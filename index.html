@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0c0e1a"/><circle cx="50" cy="50" r="26" fill="none" stroke="#38bdf8" stroke-width="4"/><text x="50" y="59" font-family="Inter,Helvetica,sans-serif" font-size="22" font-weight="600" fill="#38bdf8" text-anchor="middle">מג</text></svg></template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hm-styles.css">
+<script src="hm-app.js"></script>
+<script src="hm-new.js"></script>
+</helmet>
+<div class="app" dir="rtl">
+<div class="topbar">
+  <div class="brand"><div class="logo">🏟️</div>
+    <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
+  </div>
+  <div class="sboard"><span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
+</div>
+<section class="view" id="view-home">
+  <div class="hero">
+    <div class="kick" id="hx-date">—</div>
+    <h1>בוקר טוב,<br><b>המאמן.</b></h1>
+  </div>
+  <div class="scoreband">
+    <div class="sb"><div class="n" id="qsRuns">0</div><div class="l">מקצים נמדדו</div></div>
+    <div class="div"></div>
+    <div class="sb"><div class="n" id="qsBeep">—</div><div class="l">שיא ביפ</div></div>
+    <div class="div"></div>
+    <div class="sb"><div class="n" id="qsRecs">0</div><div class="l">שיאים מאושרים</div></div>
+    <div class="div"></div>
+    <div class="sb"><div class="n" id="qsStu">0</div><div class="l">תלמידים במעקב</div></div>
+  </div>
+  <div class="hx-mods">
+    <div class="hx-mod primary" data-go="lesson" style="--lc:#f472b6"><div class="no">01</div>
+      <div class="tx"><b>שיעור מלא</b><span>חימום → תחנות → מדידה · מערך אוטומטי לפי שכבה ומטרה</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">02</div>
+      <div class="tx"><b>ביפ טסט</b><span>ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">03</div>
+      <div class="tx"><b>פוטו־פיניש</b><span>מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="rec" style="--lc:#fbbf24"><div class="no">04</div>
+      <div class="tx"><b>אלופי בית הספר</b><span>לוח שיאים · אישור מורה · מצב טלוויזיה</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="fit" style="--lc:#a78bfa"><div class="no">05</div>
+      <div class="tx"><b>מאמן כושר</b><span>אינטרוולים · תחנות לכיתה · ספריית תרגילים · קובייה</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="stu" style="--lc:#34d399"><div class="no">06</div>
+      <div class="tx"><b>התלמידים שלי</b><span>פרופיל אישי · גרף בין־מבחני · BMI · מי מתחת לנורמה</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="nut" style="--lc:#4ade80"><div class="no">07</div>
+      <div class="tx"><b>פינת תזונה</b><span>טיפ יומי לכיתה · שתייה · צלחת ספורטאי · שוברים מיתוס</span></div><div class="go">→</div></div>
+  </div>
+  <div class="hx-ch">
+    <div class="top"><b id="hx-chTitle">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
+    <div class="track"><i id="hx-chBar"></i></div>
+    <div class="row" style="margin-top:11px">
+      <button class="btn sm acc" id="hx-chPlus">+ הוסף ספירה</button>
+      <button class="btn sm ghost" id="hx-chEdit">✎ אתגר חדש</button>
+    </div>
+  </div>
+  <div class="hx-nut"><div id="hx-nutTip"></div></div>
+  <div class="card" style="margin-top:14px"><h2><span class="dot"></span> טיפ שטח</h2><div class="hint" id="fieldTip"></div></div>
+</section>
+<section class="view" id="view-beep">
+  <div class="card">
+    <h2><span class="dot"></span> הגדרת המבחן</h2>
+    <div class="row">
+      <div class="field" style="width:150px"><label>אורך מסלול</label>
+        <div class="seg" id="bt-distSeg"><button data-d="15">15 מ׳</button><button data-d="20" class="on">20 מ׳</button></div>
+      </div>
+      <div class="field"><label>מהירות שלב 1 (קמ״ש)</label>
+        <div class="stepper"><button id="bt-spMinus">−</button><div class="val" id="bt-spVal">8.0</div><button id="bt-spPlus">+</button></div>
+      </div>
+      <button class="btn sm ghost" id="bt-spStd">↺ תקני (8.0)</button>
+      <span class="pill acc" id="bt-protoPill">פרוטוקול תקני</span>
+    </div>
+    <div class="row" style="margin-top:11px">
+      <div class="field" style="width:130px"><label>גיל הכיתה</label>
+        <select id="bt-age"><option>10</option><option>11</option><option>12</option><option>13</option><option selected>14</option><option>15</option><option>16</option><option>17</option><option>18</option></select>
+      </div>
+      <div class="field" style="width:150px"><label>מין (לנורמות)</label>
+        <div class="seg" id="bt-sexSeg"><button data-s="boys" class="on">בנים</button><button data-s="girls">בנות</button></div>
+      </div>
+      <label class="check" style="margin-top:18px"><input type="checkbox" id="bt-voice" checked> כריזה קולית</label>
+      <label class="check" style="margin-top:18px"><input type="checkbox" id="bt-sound" checked> ביפים</label>
+    </div>
+    <div class="bt-warn" id="bt-warnBox">⚠️ הפרוטוקול שונה מהתקן (20 מ׳, התחלה ≥ 8.0 קמ״ש) — ערכי ה‑VO₂max מוצגים כהערכה בלבד.</div>
+  </div>
+
+  <div class="card" id="bt-statsCard">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0"><span class="dot"></span> המבחן חי</h2>
+      <span class="pill" id="bt-statePill">מוכן לזינוק</span>
+    </div>
+    <div class="bt-dist" id="bt-distVal">0<small> מ׳</small></div>
+    <div class="statgrid" style="margin-top:8px">
+      <div class="stat"><div class="lb">שלב · מקטע</div><div class="vl acc" id="bt-stageVal">—</div></div>
+      <div class="stat"><div class="lb">זמן</div><div class="vl" id="bt-timeVal">00:00</div></div>
+      <div class="stat"><div class="lb">מהירות</div><div class="vl" id="bt-speedVal">—</div></div>
+      <div class="stat" style="grid-column:1/-1;padding:10px 14px"><div class="lb">התקדמות בשלב</div><div class="lvlbar"><i id="bt-lvlBar"></i></div></div>
+      <div class="stat"><div class="lb">VO₂max נוכחי</div><div class="vl" id="bt-vo2Val">—</div></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn acc grow" id="bt-startBtn">▶ זינוק</button>
+      <button class="btn ghost" id="bt-resetBtn">↺ איפוס</button>
+    </div>
+    <button class="btn stop big" id="bt-regBtn" style="margin-top:11px" disabled>🛑 רישום נשירה · התלמיד עצר</button>
+    <div class="row" style="margin-top:9px;justify-content:space-between">
+      <button class="btn sm ghost" id="bt-undoBtn" disabled>↩ בטל רישום אחרון</button>
+      <div class="hint">קיצורים: רווח = התחל/השהה · Enter = רישום</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0"><span class="dot"></span> לוח תוצאות</h2>
+      <div class="row">
+        <div class="seg"><button id="bt-sortOrder" class="on">לפי סדר</button><button id="bt-sortDist">לפי מרחק</button></div>
+        <button class="btn sm acc" id="bt-toTrack">⇧ שמור למעקב</button>
+        <button class="btn sm" id="bt-csvBtn">⬇ CSV</button>
+        <button class="btn sm ghost" id="bt-clearBtn">🗑</button>
+      </div>
+    </div>
+    <div class="tblwrap"><table class="tbl" id="bt-tbl">
+      <thead><tr><th>דירוג</th><th>שם</th><th>שלב·מקטע</th><th>מרחק</th><th>זמן</th><th>מהירות</th><th>VO₂max</th><th>קטגוריה</th><th></th></tr></thead>
+      <tbody id="bt-tbody"></tbody>
+    </table></div>
+    <div class="empty-state" id="bt-empty"><div class="big">🏁</div>אין עדיין רישומים.<br>בזמן הריצה — כשתלמיד עוצר, לחץ על כפתור הרישום והוא ייכנס ללוח.</div>
+  </div>
+
+  <details class="fold" id="bt-refFold"><summary>📋 טבלת שלבים ומרחקים מלאה</summary><div class="bd tblwrap" id="bt-refWrap"></div></details>
+  <details class="fold"><summary>📚 טבלת נורמות VO₂max (FITNESSGRAM®)</summary><div class="bd tblwrap" id="bt-normWrap"></div></details>
+</section>
+
+<section class="view" id="view-photo">
+  <div class="pf-tabs">
+    <button data-pt="live" class="on">🎯 מסלול חי</button>
+    <button data-pt="strip">🎞 תמונת סיום</button>
+    <button data-pt="results">🏁 תוצאות</button>
+    <button data-pt="laps">🔄 הקפות</button>
+    <button data-pt="history">🗄 ארכיון</button>
+    <button data-pt="meta">📋 פרטי מירוץ</button>
+  </div>
+
+  <!-- ----- live ----- -->
+  <div id="pf-sub-live">
+    <div class="pf-stage" id="pf-stage">
+      <video id="pf-video" autoplay playsinline muted></video>
+      <canvas id="pf-sim"></canvas>
+      <div class="pf-line" id="pf-lineEl" style="left:50%"></div>
+      <div class="pf-cd" id="pf-cd"><div class="word" id="pf-cdWord"></div></div>
+      <div class="pf-camctl">
+        <button id="pf-zoomIn" title="זום">＋</button>
+        <button id="pf-zoomOut" title="זום">－</button>
+        <button id="pf-flip" title="היפוך">⇋</button>
+        <button id="pf-fs" title="מסך מלא (F)">⛶</button>
+      </div>
+      <div class="pf-status" id="pf-status">מצב סימולציה</div>
+      <div class="pf-flash" id="pf-flash"></div>
+      <div class="pf-banner" id="pf-banner"></div>
+    </div>
+
+    <div class="card" style="margin-top:13px">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="bigclock" id="pf-clock" style="margin:0;text-align:right">00:00.00</div>
+        <div class="pf-modes" id="pf-modes">
+          <button data-m="sim" class="on">סימולציה</button>
+          <button data-m="cam">מצלמה</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:11px">
+        <button class="btn acc grow" id="pf-gun">🔫 זינוק</button>
+        <button class="btn ghost" id="pf-resetBtn">↺ איפוס מקצה</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field grow"><label>מיקום קו הסיום</label><input type="range" id="pf-lineRange" min="5" max="95" value="50"></div>
+        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45"></div>
+        <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
+        <div class="field" style="width:104px"><label>זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <label class="check"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
+        <label class="check"><input type="checkbox" id="pf-micStart"> זינוק קולי — אקדח/מחיאת כף (מיקרופון)</label>
+      </div>
+      <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span> רצועת סריקה (Slit-Scan) · ציר אופקי = זמן</h2>
+      <canvas id="pf-stripLive" class="pf-livestrip" height="64"></canvas>
+      <div class="pf-livenow" id="pf-liveNow">0.000</div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> מסלולים ומתחרים</h2>
+        <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button>
+      </div>
+      <div class="field" style="margin-top:6px"><label>מספר מסלולים · <b id="pf-laneCountVal">4</b></label><input type="range" id="pf-laneCount" min="2" max="9" value="4"></div>
+      <div class="pf-runchips" id="pf-chips" style="margin-top:10px"></div>
+      <div class="hint" style="margin-top:8px">הקשה על מסלול = רישום חצייה עכשיו · מקשים 1–9 = אותו דבר מהמקלדת.</div>
+    </div>
+  </div>
+
+  <!-- ----- strip (photo-finish analysis) ----- -->
+  <div id="pf-sub-strip" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> תמונת סיום · קריאת זמנים מדויקת</h2>
+        <div class="row">
+          <button class="btn sm" id="pf-stripRefresh">↻ רענן רצועה</button>
+          <button class="btn sm ghost" id="pf-stripPng">⬇ שמור PNG</button>
+        </div>
+      </div>
+      <div class="pf-stripview" id="pf-stripWrap"><canvas id="pf-stripFull"></canvas></div>
+      <div class="empty-state" id="pf-stripEmpty"><div class="big">🎞</div>עדיין לא הוקלטה רצועת סיום.<br>הרץ מירוץ במסך «מסלול חי» כדי לבנות את תמונת הסיום.</div>
+      <div class="pf-readout">
+        <span class="ro" id="pf-readout">— : —</span>
+        <select id="pf-laneSel" style="background:#04110a;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:9px 12px;font-family:'Rubik'"></select>
+        <button class="btn sm acc" id="pf-assign">⏱ הקצה זמן למסלול</button>
+      </div>
+      <div class="hint" style="margin-top:9px">לחיצה על גוף הרץ ברצועה מציגה את זמן החצייה המדויק. בחר מסלול ולחץ «הקצה» — הזמן נכנס ללוח התוצאות (מקור: תמונה). סימוני המסלולים מוצגים כקווים צבעוניים.</div>
+    </div>
+  </div>
+
+  <!-- ----- results ----- -->
+  <div id="pf-sub-results" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> לוח תוצאות רשמי</h2>
+      <div class="metaRow" id="pf-metaRow"></div>
+      <div class="tblwrap"><table class="tbl">
+        <thead><tr><th>דירוג</th><th>מסלול</th><th>שם</th><th>זמן</th><th>פער</th><th>מקור</th><th></th></tr></thead>
+        <tbody id="pf-tbody"></tbody>
+      </table></div>
+      <div class="empty-state" id="pf-empty"><div class="big">📸</div>אין תוצאות עדיין. הרץ מירוץ או ייבא קובץ CSV.</div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn acc" id="pf-btnAI">🎙️ דוח פרשן</button>
+        <button class="btn sm" id="pf-btnSave">💾 שמור לארכיון</button>
+        <button class="btn sm" id="pf-csv">⬇ ייצוא CSV</button>
+        <button class="btn sm ghost" id="pf-print">🖨 תעודת זכייה</button>
+        <button class="btn sm ghost" id="pf-mail">✉ שלח תוצאות</button>
+        <button class="btn sm ghost" id="pf-addRow">＋ שורה</button>
+      </div>
+      <div class="aiBox" id="pf-aiBox">
+        <div class="ai-head"><span class="av">🎙️</span><b>פרשן המירוץ</b><span class="tag">מנוע מקומי · עובד בלי אינטרנט</span></div>
+        <div class="ai-body" id="pf-aiBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ----- laps ----- -->
+  <div id="pf-sub-laps" style="display:none">
+    <div class="card">
+      <div class="bigclock" id="pf-lClock">00:00.0</div>
+      <div class="row">
+        <button class="btn acc grow" id="pf-lGun">🔫 זינוק</button>
+        <button class="btn ghost" id="pf-lReset">↺ איפוס</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field" style="width:130px"><label>יעד הקפות</label><input type="number" id="pf-lTarget" value="4" min="1"></div>
+        <div class="field" style="width:150px"><label>אורך הקפה (מ׳)</label><input type="number" id="pf-lDist" value="200" min="0" step="10"></div>
+        <div class="field" style="width:150px"><label>מינ׳ זמן הקפה (שנ׳)</label><input type="number" id="pf-lMin" value="15" min="0"></div>
+      </div>
+      <div class="hint" style="margin-top:8px">כל לחיצה על כרטיס רץ = הקפה. חסם זמן מינימלי מונע ספירה כפולה.</div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> רצים</h2>
+        <div class="row"><input type="text" id="pf-lNewName" placeholder="שם רץ…" style="background:#04110a;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:9px 12px;font-family:'Rubik';width:140px">
+        <button class="btn sm" id="pf-lAdd">＋ הוסף</button></div>
+      </div>
+      <div class="pf-lapgrid" id="pf-lGrid"></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> לוח הקפות</h2>
+        <div class="row"><button class="btn sm" id="pf-lSplits">📊 מטריצת ביניים</button><button class="btn sm" id="pf-lCsv">⬇ CSV</button></div>
+      </div>
+      <div class="tblwrap"><table class="tbl">
+        <thead><tr><th>מקום</th><th>שם</th><th>הקפות</th><th>אחרונה</th><th>הטובה</th><th>ממוצע</th><th>קצב/ק״מ</th><th>זמן סופי</th></tr></thead>
+        <tbody id="pf-lTbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ----- history ----- -->
+  <div id="pf-sub-history" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> ארכיון מירוצים</h2>
+        <div class="row">
+          <label class="btn sm" style="cursor:pointer">📥 ייבוא CSV<input type="file" id="pf-csvFile" accept=".csv" style="display:none"></label>
+          <button class="btn sm ghost" id="pf-loadSample">טען נתוני דוגמה</button>
+        </div>
+      </div>
+      <div id="pf-historyList"></div>
+      <div class="empty-state" id="pf-histEmpty"><div class="big">🗄</div>הארכיון ריק.<br>שמור מירוץ מלוח התוצאות כדי שיופיע כאן.</div>
+    </div>
+  </div>
+
+  <!-- ----- meta ----- -->
+  <div id="pf-sub-meta" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> פרטי התחרות</h2>
+      <div class="field"><label>שם התחרות / האירוע</label><input type="text" id="pf-setTitle" placeholder="אליפות בית הספר — ריצת 60 מ׳"></div>
+      <div class="row" style="margin-top:10px">
+        <div class="field" style="width:150px"><label>שלב</label>
+          <select id="pf-setRound"><option>גמר</option><option>חצי גמר</option><option>מוקדמות</option><option>מקצה</option><option>אימון</option></select></div>
+        <div class="field" style="width:130px"><label>מרחק (מטר)</label><input type="number" id="pf-setDist" value="60" min="0"></div>
+        <div class="field" style="width:160px"><label>תאריך</label><input type="date" id="pf-setDate"></div>
+        <div class="field" style="width:120px"><label>רוח (מ/ש)</label><input type="number" id="pf-setWind" step="0.1" placeholder="+1.2"></div>
+      </div>
+      <div class="hint" style="margin-top:10px">הפרטים מוצגים בלוח התוצאות, בתעודות ובדוח הפרשן. רוח מעל ‎+2.0‎ מ/ש נחשבת «לא חוקית» בתקנון האתלטיקה — והמערכת תסמן זאת.</div>
+      <button class="btn acc" id="pf-setSave" style="margin-top:12px">שמור פרטים</button>
+    </div>
+    <div class="card pf-guide">
+      <h2><span class="dot"></span> איך מציבים את המצלמה</h2>
+      <ol>
+        <li>טלפון על חצובה, <b>בניצב מדויק (90°) לקו הסיום</b>, בגובה החזה, 3–6 מ׳ מהקו.</li>
+        <li>ודא שהקו האדום במסך יושב בדיוק על קו הסיום בשטח. רקע נקי, שמש מאחורי המצלמה.</li>
+        <li>זמן מינימום (3 שנ׳) מונע זיהוי של המזניק — העלה אותו במקצים ארוכים.</li>
+        <li>הוסף רצים <b>לפי סדר המסלולים מהמהיר לאיטי</b> — הזיהוי האוטומטי מקצה לפי הסדר.</li>
+        <li>תמיד יש גיבוי: הקשה על מסלול / מקשי 1–9, וכוונון מדויק ב«תמונת סיום».</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-rec">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0"><span class="dot"></span> אלופי בית הספר</h2>
+      <div class="row">
+        <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
+        <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
+      </div>
+    </div>
+    <div class="hint">בוחרים ענף, צופים בשיא הבית־ספרי מול שיא ישראל והעולם — ושולחים שיא חדש עם סרטון הוכחה. שיא עולה ללוח רק אחרי אישור המורה.</div>
+  </div>
+  <div class="rec-grid" id="rec-grid"></div>
+
+  <!-- sport detail modal -->
+  <div class="modal" id="rec-sportModal"><div class="box">
+    <h3><span id="rec-sdTitle"></span><button class="x" data-close="rec-sportModal">✕</button></h3>
+    <div class="hint" id="rec-sdHint" style="margin-bottom:11px"></div>
+    <div id="rec-sdCompare"></div>
+    <button class="btn acc big" id="rec-sdSubmit" style="margin:6px 0 14px">🎬 שלח שיא חדש + סרטון</button>
+    <div id="rec-sdBoard"></div>
+  </div></div>
+
+  <!-- submit modal -->
+  <div class="modal" id="rec-subModal"><div class="box">
+    <h3>🎬 שליחת שיא חדש<button class="x" data-close="rec-subModal">✕</button></h3>
+    <div class="field"><label>ענף</label><select id="rec-subSport"></select></div>
+    <div class="row" style="margin-top:9px">
+      <div class="field grow"><label>שם מלא</label><input type="text" id="rec-subName" placeholder="ישראל ישראלי"></div>
+      <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="rec-subClass" placeholder="ט׳3"></div>
+    </div>
+    <div class="field" style="margin-top:9px"><label id="rec-subValLb">תוצאה</label><input type="number" id="rec-subVal" step="any" inputmode="decimal"></div>
+    <div class="field" style="margin-top:9px"><label>סרטון הוכחה (חובה לשיא רשמי)</label>
+      <input type="file" id="rec-subVideo" accept="video/*" capture="environment">
+    </div>
+    <div class="hint" style="margin:8px 0 12px">הסרטון נשמר במכשיר הזה בלבד (IndexedDB) ולא נשלח לשום שרת.</div>
+    <button class="btn acc big" id="rec-subSend">📤 שלח לאישור המורה</button>
+  </div></div>
+
+  <!-- admin modal -->
+  <div class="modal" id="rec-adminModal"><div class="box">
+    <h3>🔐 לוח המורה<button class="x" data-close="rec-adminModal">✕</button></h3>
+    <div id="rec-admLock">
+      <div class="field"><label>סיסמת מורה</label><input type="password" id="rec-admPass" placeholder="••••"></div>
+      <button class="btn acc big" id="rec-admEnter" style="margin-top:11px">כניסה</button>
+    </div>
+    <div id="rec-admBody" style="display:none">
+      <h2 style="font-size:15px"><span class="dot"></span> ממתינים לאישור</h2>
+      <div id="rec-pendList"></div>
+      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> שיאי ייחוס (ישראל / עולם)</h2>
+      <div id="rec-refList"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn sm" id="rec-export">⬇ גיבוי JSON</button>
+        <label class="btn sm" style="cursor:pointer">📥 שחזור<input type="file" id="rec-import" accept=".json" style="display:none"></label>
+        <button class="btn sm ghost" id="rec-passChg">🔑 שינוי סיסמה</button>
+        <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
+      </div>
+    </div>
+  </div></div>
+
+  <div id="rec-kiosk"><video id="rec-kVideo" muted loop playsinline></video><div class="kc">
+    <h1 id="rec-kTitle"></h1><div id="rec-kRows"></div>
+    <div style="text-align:center;margin-top:4vh;color:var(--faint);font-size:13px">הקשה בכל מקום = יציאה</div>
+  </div></div>
+</section>
+
+
+<section class="view" id="view-fit">
+  <div class="pf-tabs">
+    <button data-ft="timer" class="on">⏱ טיימר אינטרוולים</button>
+    <button data-ft="circuit">🔁 תחנות לכיתה</button>
+    <button data-ft="lib">📖 ספריית תרגילים</button>
+    <button data-ft="dice">🎲 קוביית הכושר</button>
+  </div>
+
+  <!-- timer -->
+  <div id="fit-sub-timer">
+    <div class="card">
+      <h2><span class="dot"></span> תבניות מהירות</h2>
+      <div class="fit-presets" id="fit-presets"></div>
+      <div class="row" style="margin-top:12px">
+        <div class="field" style="width:104px"><label>עבודה (שנ׳)</label><input type="number" id="fit-work" value="20" min="5"></div>
+        <div class="field" style="width:104px"><label>מנוחה (שנ׳)</label><input type="number" id="fit-rest" value="10" min="0"></div>
+        <div class="field" style="width:104px"><label>סבבים</label><input type="number" id="fit-rounds" value="8" min="1"></div>
+        <div class="field" style="width:104px"><label>סטים</label><input type="number" id="fit-sets" value="1" min="1"></div>
+        <div class="field" style="width:130px"><label>מנוחה בין סטים</label><input type="number" id="fit-setRest" value="60" min="0"></div>
+      </div>
+    </div>
+    <div class="fit-phase card" id="fit-phaseBox" data-ph="prep">
+      <div class="ph" id="fit-phName">מוכנים?</div>
+      <div class="tm" id="fit-phTime">--</div>
+      <div class="nx" id="fit-phNext">לחץ ▶ כדי להתחיל</div>
+      <div class="fit-prog"><i id="fit-progBar"></i></div>
+      <div class="row" style="margin-top:15px">
+        <button class="btn acc grow" id="fit-go">▶ התחל אימון</button>
+        <button class="btn ghost" id="fit-pause" disabled>⏸</button>
+        <button class="btn ghost" id="fit-stop" disabled>⏹</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- circuit -->
+  <div id="fit-sub-circuit" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> מחולל אימון תחנות</h2>
+      <div class="row">
+        <div class="field" style="width:160px"><label>מיקוד</label>
+          <select id="fit-cFocus"><option value="mix">משולב</option><option value="strength">כוח</option><option value="cardio">אירובי</option><option value="core">ליבה</option></select></div>
+        <div class="field" style="width:110px"><label>תחנות</label><input type="number" id="fit-cN" value="6" min="2" max="12"></div>
+        <div class="field" style="width:130px"><label>זמן בתחנה (שנ׳)</label><input type="number" id="fit-cT" value="45" min="10"></div>
+        <div class="field" style="width:130px"><label>מעבר (שנ׳)</label><input type="number" id="fit-cR" value="15" min="5"></div>
+        <button class="btn acc" id="fit-cGen" style="margin-top:18px">🎰 הגרל תחנות</button>
+      </div>
+    </div>
+    <div class="card" id="fit-cPlanCard" style="display:none">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0"><span class="dot"></span> מערך התחנות</h2>
+        <span class="pill acc" id="fit-cRound">סבב 1</span>
+      </div>
+      <div id="fit-cList"></div>
+      <div class="fit-phase" id="fit-cPhase" data-ph="prep" style="margin-top:12px">
+        <div class="ph" id="fit-cPhName">מוכנים בתחנות?</div>
+        <div class="tm" id="fit-cPhTime">--</div>
+        <div class="nx" id="fit-cPhNext"></div>
+      </div>
+      <div class="row" style="margin-top:13px">
+        <button class="btn acc grow" id="fit-cGo">▶ הפעל סבב תחנות</button>
+        <button class="btn ghost" id="fit-cStop" disabled>⏹</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- library -->
+  <div id="fit-sub-lib" style="display:none">
+    <div class="card"><h2><span class="dot"></span> ספריית תרגילים · לחץ לפרטים והדגמה</h2>
+      <div class="fit-exgrid" id="fit-exGrid"></div>
+    </div>
+    <div class="modal" id="fit-exModal"><div class="box">
+      <h3 id="fit-exTitle">תרגיל<button class="x" data-close="fit-exModal">✕</button></h3>
+      <div style="text-align:center" id="fit-exFig"></div>
+      <div id="fit-exBody"></div>
+    </div></div>
+  </div>
+
+  <!-- dice -->
+  <div id="fit-sub-dice" style="display:none">
+    <div class="card" style="text-align:center">
+      <h2 style="justify-content:center"><span class="dot"></span> קוביית הכושר · משחק כיתתי</h2>
+      <div class="hint">מטילים — והכיתה מבצעת. קובייה אחת בוחרת תרגיל, השנייה כמות.</div>
+      <div class="dicewrap">
+        <div class="die" id="fit-die1"><div><div class="top">🎲</div><div class="bot">תרגיל</div></div></div>
+        <div class="die" id="fit-die2"><div><div class="top">🎲</div><div class="bot">כמות</div></div></div>
+      </div>
+      <div style="font-family:'Secular One';font-size:21px;min-height:30px" id="fit-diceResult"></div>
+      <button class="btn acc big" id="fit-roll" style="margin-top:13px">🎲 הטל קוביות!</button>
+    </div>
+  </div>
+</section>
+
+
+<section class="view" id="view-stu">
+  <div class="card">
+    <h2><span class="dot"></span> התלמידים שלי</h2>
+    <div class="stu-tools">
+      <div class="field stu-search"><label>חיפוש</label><input type="text" id="stu-search" placeholder="שם תלמיד"></div>
+      <div class="field" style="width:150px"><label>כיתה</label><select id="stu-classSel"></select></div>
+      <button class="btn sm acc" id="stu-add" style="margin-top:18px">+ הוסף תלמידים</button>
+      <button class="btn sm" id="stu-fromBeep" style="margin-top:18px" title="ייבוא מלוח הביפ">⇩ מלוח הביפ</button>
+      <button class="btn sm ghost" id="stu-csv" style="margin-top:18px">⬇ CSV כיתה</button>
+    </div>
+    <div class="stu-stats">
+      <div class="qs"><div class="n" id="stu-count">0</div><div class="l">תלמידים</div></div>
+      <div class="qs"><div class="n" id="stu-avg">—</div><div class="l">ממוצע VO₂max</div></div>
+      <div class="qs"><div class="n" id="stu-below">0</div><div class="l">בסיכון בריאותי</div></div>
+      <div class="qs"><div class="n" id="stu-fall">0</div><div class="l">במגמת ירידה</div></div>
+    </div>
+    <div class="stu-list" id="stu-list"></div>
+    <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
+  </div>
+</section>
+<section class="view" id="view-lesson">
+  <div class="card">
+    <h2><span class="dot"></span> בניית מערך שיעור</h2>
+    <div class="row">
+      <div class="field" style="width:190px"><label>שכבה</label>
+        <div class="seg" id="ls-gradeSeg"><button data-g="mid" class="on">חטיבה ז׳–ט׳</button><button data-g="high">תיכון י׳–י״ב</button></div>
+      </div>
+      <div class="field" style="width:120px"><label>אורך (דק׳)</label><input type="number" id="ls-dur" value="45" min="30" max="90" step="5"></div>
+      <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="ls-class" placeholder="ט׳2"></div>
+      <div class="field" style="width:190px"><label>מטרת השיעור</label>
+        <select id="ls-focus">
+          <option value="aerobic">אירובי — בניית בסיס</option>
+          <option value="strength">כוח — משקל גוף</option>
+          <option value="core">ליבה ויציבה</option>
+          <option value="beepprep">הכנה לביפ טסט</option>
+          <option value="test">שיעור מבחן — ביפ טסט</option>
+          <option value="game">משחק ומשימה</option>
+        </select>
+      </div>
+      <button class="btn acc" id="ls-gen" style="margin-top:18px">⚡ בנה מערך</button>
+    </div>
+  </div>
+
+  <div class="card" id="ls-planCard" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0"><span class="dot"></span> המערך</h2>
+      <div class="row">
+        <button class="btn sm" id="ls-save">💾 שמור</button>
+        <button class="btn sm ghost" id="ls-print">🖨 הדפס</button>
+      </div>
+    </div>
+    <div id="ls-planBody"></div>
+    <div class="fit-phase" id="ls-phase" data-ph="prep" style="margin-top:12px">
+      <div class="ph" id="ls-phName">מוכן להפעלה</div>
+      <div class="tm" id="ls-phTime">--:--</div>
+      <div class="nx" id="ls-phNext"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn acc grow" id="ls-run">▶ הפעל שיעור</button>
+      <button class="btn stop" id="ls-stop" disabled>⏹ עצור</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span> ספריית המערכים</h2>
+    <div id="ls-libList"></div>
+    <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
+  </div>
+</section>
+<section class="view" id="view-nut">
+  <div class="card nut-daily">
+    <h2><span class="dot"></span> הטיפ של היום</h2>
+    <div class="hint" id="nut-dailyTxt" style="font-size:14px;color:var(--ink)"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm acc" id="nut-say">🔊 הקרא לכיתה</button>
+      <button class="btn sm ghost" id="nut-shuffle">🔀 טיפ אחר</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2><span class="dot"></span> כל הטיפים</h2>
+    <div id="nut-cats"></div>
+    <div class="nut-list" id="nut-list"></div>
+  </div>
+</section>
+</div>
+<div class="nav">
+  <button data-go="home"><span class="ic">🏠</span>בית</button>
+  <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
+  <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
+  <button data-go="photo"><span class="ic">📷</span>פיניש</button>
+  <button data-go="rec"><span class="ic">🏆</span>שיאים</button>
+  <button data-go="fit"><span class="ic">⏱</span>כושר</button>
+  <button data-go="stu"><span class="ic">👥</span>תלמידים</button>
+</div>
+<!-- settings modal -->
+<div class="modal" id="setModal"><div class="box">
+  <h3>⚙️ הגדרות<button class="x" data-close="setModal">✕</button></h3>
+  <div class="field"><label>שם בית הספר (מופיע בכותרת, בתעודות ובמצב טלוויזיה)</label><input type="text" id="set-school" placeholder="מקיף גימל באר שבע"></div>
+  <div class="row" style="margin-top:11px">
+    <label class="check"><input type="checkbox" id="set-sound" checked> צלילים</label>
+    <label class="check"><input type="checkbox" id="set-voice" checked> כריזה קולית</label>
+    <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
+    <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
+  </div>
+  <div class="hint" style="margin-top:13px">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
+  <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
+</div></div>
+
+<!-- splits modal (laps) -->
+<div class="modal" id="pf-splitModal"><div class="box">
+  <h3>📊 מטריצת זמני ביניים<button class="x" data-close="pf-splitModal">✕</button></h3>
+  <div class="tblwrap" id="pf-splitBody"></div>
+</div></div>
+
+<div id="toast"><div class="t" id="toastT"></div></div>
+
+<div class="modal" id="stu-modal"><div class="box">
+  <h3>👤 <span id="stu-mTitle"></span><button class="x" data-close="stu-modal">✕</button></h3>
+  <div id="stu-mBody"></div>
+</div></div>
+
+<div class="modal" id="stu-addModal"><div class="box">
+  <h3>+ הוספת תלמידים<button class="x" data-close="stu-addModal">✕</button></h3>
+  <div class="field"><label>שורה לכל תלמיד — «שם, כיתה»</label><textarea id="stu-bulk" rows="9" placeholder="דנה לוי, ט׳2&#10;יואב כהן, ט׳2"></textarea></div>
+  <button class="btn acc big" id="stu-addSave" style="margin-top:12px">הוסף לרשימה</button>
+</div></div>
+<div id="lockOv"><div class="box">
+  <div class="lg">🔐</div>
+  <h1>המגרש PRO</h1>
+  <p>אזור מורה — הזן קוד כדי להיכנס</p>
+  <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
+  <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסה</button>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount(){
+    const tryBoot=()=>{
+      if(window.HMBoot&&window.HMBootNew&&document.getElementById("view-home")&&document.getElementById("view-nut")){
+        if(!window.__hmBooted){window.__hmBooted=true;try{window.HMBoot();window.HMBootNew();}catch(e){console.error("boot",e);}}
+      }else setTimeout(tryBoot,60);
+    };
+    tryBoot();
+  }
+  renderVals(){return {};}
+}
+</script>
+</body>
+</html>
