@@ -83,6 +83,13 @@ const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
   ROLE=(r==="student")?"student":"teacher";
   sessionStorage.setItem("pehub.role",ROLE);
+  /* חזרה למצב מורה מנקה את ?role=student מהכתובת — אחרת רענון היה
+     מחזיר את המכשיר למצב תלמיד, כי הפרמטר ב-URL גובר על ההגדרה. */
+  if(ROLE==="teacher"&&QP.get("role")){
+    QP.delete("role"); QP.delete("guest");
+    const q=QP.toString();
+    try{history.replaceState(null,"",location.pathname+(q?"?"+q:"")+location.hash);}catch(e){}
+  }
   applyRole();
 }
 function applyRole(){
@@ -1233,7 +1240,8 @@ const REC=(function(){
   function openSport(id){
     curSport=id; const sp=sportById(id), rf=refOf(id);
     $("#rec-sdTitle").textContent=sp.em+" "+sp.name;
-    $("#rec-sdHint").textContent="יחידה: "+sp.unit+(sp.lower?" · נמוך יותר = טוב יותר":"");
+    $("#rec-sdHint").innerHTML="יחידה: "+esc(sp.unit)+(sp.lower?" · נמוך יותר = טוב יותר":"")+
+      ` <button class="btn sm acc" id="rec-sdRules" style="margin-inline-start:8px">📋 איך מבצעים ומצלמים</button>`;
     const b=best(id), sv=b?b.value:0;
     $("#rec-sdCompare").innerHTML=[
       {cls:"school",lbl:"🏫 שיא בית הספר",val:sv,sub:b?b.name:"—"},
@@ -1270,6 +1278,7 @@ const REC=(function(){
       if(f[1])f[1].style.width=pct(sp,rf.israel,rf.world)+"%";
       if(f[2])f[2].style.width="100%"; },80);
     $$("#rec-sdBoard .vbtn").forEach(b2=>b2.addEventListener("click",()=>playVideo(b2.dataset.v)));
+    const rb=$("#rec-sdRules"); if(rb)rb.addEventListener("click",()=>openHowto(id));
   }
   /* נגן ביקורת שיא: האטה, צעד פריים ולולאה — כדי שהמורה יוכל לספור חזרות
      ולוודא טכניקה לפני שהוא מאשר. */
@@ -1304,11 +1313,19 @@ const REC=(function(){
     $("#rec-subSport").innerHTML=SPORTS.map(s=>`<option value="${s.id}" ${s.id===curSport?"selected":""}>${s.em} ${s.name}</option>`).join("");
     updSubLb(); modal("rec-sportModal",false); modal("rec-subModal");
   }
-  function updSubLb(){ const sp=sportById($("#rec-subSport").value); $("#rec-subValLb").textContent="תוצאה ("+sp.unit+")"; }
+  function updSubLb(){
+    const sp=sportById($("#rec-subSport").value);
+    $("#rec-subValLb").textContent="תוצאה ("+sp.unit+")";
+    $("#rec-subRules").innerHTML=howtoHtml(sp,true);
+    const full=$("#rec-subFull");
+    if(full)full.onclick=()=>openHowto(sp.id);
+    const ck=$("#rec-subOk"); if(ck)ck.checked=false;
+  }
   async function sendSub(){
     const sport=$("#rec-subSport").value, name=$("#rec-subName").value.trim(),
       cls=$("#rec-subClass").value.trim(), val=parseFloat($("#rec-subVal").value);
     if(!name||!(val>0)){toast("מלא שם ותוצאה תקינה");return;}
+    if(!$("#rec-subOk").checked){toast("צריך לאשר שקראת את כללי הביצוע והצילום");return;}
     const f=$("#rec-subVideo").files[0]||null;
     if(f&&f.size>120*1024*1024){toast("הסרטון גדול מדי (עד 120MB)");return;}
     await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,
@@ -1336,6 +1353,7 @@ const REC=(function(){
       return `<div class="fit-station"><div class="ix">${sp.em}</div>
         <div class="grow"><b>${esc(e.name)}</b> ${e.cls?"· "+esc(e.cls):""}<div class="sb">${sp.name} · ${showVal(sp,e.value)} ${sp.unit}</div></div>
         ${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`:'<span class="pill">בלי סרטון</span>'}
+        <button class="btn sm" data-ht="${e.sport}" title="כללי הביצוע — מה לבדוק">📋</button>
         <button class="btn sm acc" data-ok="${e.id}">✓ אשר</button>
         <button class="btn sm stop" data-no="${e.id}">✕</button></div>`;
     }).join(""):'<div class="hint">אין שיאים שממתינים לאישור 👌</div>';
@@ -1349,6 +1367,7 @@ const REC=(function(){
       if(confirm("לדחות ולמחוק את הבקשה?")){ await dbDel(b.dataset.no); await refresh(); renderAdmin(); }
     }));
     $$("#rec-pendList [data-v]").forEach(b=>b.addEventListener("click",()=>playVideo(b.dataset.v)));
+    $$("#rec-pendList [data-ht]").forEach(b=>b.addEventListener("click",()=>openHowto(b.dataset.ht)));
     /* --- כל השיאים המאושרים: עריכה ומחיקה --- */
     const appr=CACHE.filter(r=>r.status==="approved").sort((a,b)=>b.ts-a.ts);
     $("#rec-allList").innerHTML=appr.length?`<table class="tbl"><thead><tr>
@@ -1440,6 +1459,39 @@ const REC=(function(){
     LS.set("rec.custom",list); rebuildSports(); LS.set("rec.refs",refs);
     $("#rec-csName").value="";$("#rec-csUnit").value="";$("#rec-csEm").value="";$("#rec-csLower").checked=false;
     await refresh(); renderAdmin(); toast("הענף נוסף — אפשר להזין בו שיאים");
+  }
+
+  /* ---------- כללי ביצוע וצילום ---------- */
+  function howtoHtml(sp,compact){
+    const W=window.RECHOWTO; if(!W)return "";
+    const h=W.getOrGeneric(sp.id);
+    const li=a=>a.map(x=>"<li>"+mdBold(esc(x))+"</li>").join("");
+    if(compact) return `<div class="rec-rules compact">
+      <div class="pr">⏱ ${esc(h.proto)}</div>
+      <div class="two">
+        <div><b class="ok">✅ תקין</b><ul>${li(h.ok.slice(0,2))}</ul></div>
+        <div><b class="no">❌ פוסל</b><ul>${li(h.no.slice(0,2))}</ul></div>
+      </div>
+      <div><b class="cam">🎥 צילום</b><ul>${li(h.film.slice(0,2))}</ul></div>
+    </div>`;
+    return `<div class="rec-rules">
+      <div class="pr">⏱ <b>פרוטוקול:</b> ${esc(h.proto)}</div>
+      <div class="sec"><b class="ok">✅ מה נחשב תקין</b><ul>${li(h.ok)}</ul></div>
+      <div class="sec"><b class="no">❌ מה פוסל</b><ul>${li(h.no)}</ul></div>
+      <div class="sec"><b class="cam">🎥 איך מצלמים</b><ul>${li(h.film)}</ul></div>
+      <div class="sec"><b class="uni">📌 נכון לכל שיא</b><ul>${li(W.universal)}</ul></div>
+      ${h.yt?`<a class="btn acc big" style="margin-top:4px;display:block;text-align:center;text-decoration:none"
+        href="${W.ytUrl(h.yt)}" target="_blank" rel="noopener">▶ סרטון הסבר — טכניקה נכונה</a>
+      <div class="hint" style="margin-top:6px">הקישור פותח חיפוש יוטיוב לפי הענף, כדי שלא יישבר עם הזמן. אפשר לבחור סרטון בעברית או באנגלית.</div>`:""}
+    </div>`;
+  }
+  /* הדגשה פשוטה: **טקסט** -> מודגש */
+  function mdBold(t){ return t.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>"); }
+  function openHowto(id){
+    const sp=sportById(id);
+    $("#rec-htTitle").innerHTML=sp.em+" "+esc(sp.name)+" — איך מבצעים ומצלמים";
+    $("#rec-htBody").innerHTML=howtoHtml(sp,false);
+    modal("rec-howtoModal");
   }
 
   /* ---------- קישור ו-QR לתלמידים ----------

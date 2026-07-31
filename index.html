@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="hm-styles.css">
 <script src="hm-app.js"></script>
 <script src="hm-qr.js"></script>
+<script src="hm-howto.js"></script>
 <script src="hm-know.js"></script>
 <script src="hm-tools.js"></script>
 <script src="hm-lesson.js"></script>
@@ -383,10 +384,13 @@
       <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="rec-subClass" placeholder="ט׳3"></div>
     </div>
     <div class="field" style="margin-top:9px"><label id="rec-subValLb">תוצאה</label><input type="number" id="rec-subVal" step="any" inputmode="decimal"></div>
-    <div class="field" style="margin-top:9px"><label>סרטון הוכחה (חובה לשיא רשמי)</label>
+    <div id="rec-subRules"></div>
+    <button class="btn sm ghost" id="rec-subFull" style="margin:2px 0 12px">📋 הכללים המלאים + סרטון הסבר</button>
+    <div class="field"><label>סרטון הוכחה (חובה לשיא רשמי)</label>
       <input type="file" id="rec-subVideo" accept="video/*" capture="environment">
     </div>
-    <div class="hint" style="margin:8px 0 12px">הסרטון נשמר במכשיר הזה בלבד (IndexedDB) ולא נשלח לשום שרת.</div>
+    <div class="hint" style="margin:8px 0 10px">הסרטון נשמר במכשיר הזה בלבד (IndexedDB) ולא נשלח לשום שרת.</div>
+    <label class="check rec-confirm"><input type="checkbox" id="rec-subOk"> קראתי את כללי הביצוע והצילום, והסרטון עומד בהם</label>
     <button class="btn acc big" id="rec-subSend">📤 שלח לאישור המורה</button>
   </div></div>
 
@@ -431,6 +435,12 @@
         <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
       </div>
     </div>
+  </div></div>
+
+  <!-- how-to: execution + filming rules -->
+  <div class="modal" id="rec-howtoModal"><div class="box">
+    <h3><span id="rec-htTitle"></span><button class="x" data-close="rec-howtoModal">✕</button></h3>
+    <div id="rec-htBody"></div>
   </div></div>
 
   <!-- share link + QR -->
