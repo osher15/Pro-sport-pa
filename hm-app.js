@@ -1150,46 +1150,62 @@ const PF=(function(){
 const REC=(function(){
   /* ענפי ברירת המחדל. המורה יכול להוסיף ענפים משלו בלוח המורה — הם נשמרים
      ב-localStorage תחת rec.custom ומצטרפים לרשימה. */
-  const BASE_SPORTS=[
-    {id:"rope",  em:"🪢", name:"קפיצה בחבל", unit:"קפיצות בדקה", lower:false},
-    {id:"push",  em:"💪", name:"שכיבות סמיכה", unit:"חזרות ברצף", lower:false},
-    {id:"pull",  em:"🧗", name:"מתח", unit:"חזרות ברצף", lower:false},
-    {id:"sit",   em:"🔥", name:"בטן", unit:"חזרות בדקה", lower:false},
-    {id:"plank", em:"🪵", name:"פלאנק", unit:"שניות", lower:false},
-    {id:"ljump", em:"🦘", name:"קפיצה למרחק מהמקום", unit:"ס״מ", lower:false},
-    {id:"sprint",em:"⚡", name:"ריצת 60 מ׳", unit:"שניות", lower:true},
-    {id:"squat", em:"🦵", name:"סקוואטים", unit:"חזרות בדקה", lower:false},
-    {id:"throw", em:"🏀", name:"זריקות עונשין", unit:"קליעות מ-10", lower:false},
-    {id:"sprint100",em:"🏃", name:"ריצת 100 מ׳", unit:"שניות", lower:true},
-    {id:"run1000",em:"🛣️", name:"ריצת 1000 מ׳", unit:"שניות", lower:true},
-    {id:"beep",  em:"🎵", name:"ביפ טסט — מרחק", unit:"מטרים", lower:false},
-    {id:"hjump", em:"⬆️", name:"קפיצה לגובה מהמקום", unit:"ס״מ", lower:false},
-    {id:"burpee",em:"🔁", name:"ברפי", unit:"חזרות בדקה", lower:false},
-    {id:"dips",  em:"🤸", name:"מקבילים (Dips)", unit:"חזרות ברצף", lower:false},
-    {id:"wallsit",em:"🪑",name:"כיסא קיר", unit:"שניות", lower:false},
-    {id:"juggle",em:"⚽", name:"נגיחות/הטחות כדורגל", unit:"נגיעות ברצף", lower:false},
-    {id:"shuttle",em:"↔️",name:"ריצת מעבורת 4×10", unit:"שניות", lower:true},
-    {id:"medball",em:"🥎",name:"הטלת כדור מדיסין", unit:"מטרים", lower:false},
-    {id:"flex",  em:"🧘", name:"גמישות — Sit & Reach", unit:"ס״מ", lower:false}
-  ];
-  const DEF_REFS={rope:{israel:200,world:388},push:{israel:120,world:140},pull:{israel:40,world:51},
-    sit:{israel:70,world:80},plank:{israel:7200,world:29700},ljump:{israel:340,world:373},
-    sprint:{israel:6.7,world:6.3},squat:{israel:55,world:60},throw:{israel:10,world:10},
-    sprint100:{israel:10.0,world:9.58},run1000:{israel:145,world:132},beep:{israel:3000,world:3500},
-    hjump:{israel:80,world:126},burpee:{israel:40,world:47},dips:{israel:60,world:70},
-    wallsit:{israel:900,world:1800},juggle:{israel:1000,world:3000},shuttle:{israel:9.0,world:8.2},
-    medball:{israel:14,world:18},flex:{israel:35,world:45}};
-  let custom=LS.get("rec.custom",[]);
-  let SPORTS=BASE_SPORTS.concat(custom);
-  let refs=Object.assign({},DEF_REFS,LS.get("rec.refs",{}));
-  let pass=LS.get("rec.pass","1234");
+  /* ---------- מקור אמת אחד לענפים ----------
+     הרשימה נטענת מ-localStorage. בפעם הראשונה היא נזרעת מברירות המחדל
+     שב-hm-howto.js, ומרגע זה **הכול ניתן לעריכה מלאה מלוח המורה** —
+     שם, סמל, יחידה, כיוון, מגבלת זמן וכל טקסט הכללים. */
+  const DEF_REFS={rope:{israel:200,world:388},dbl:{israel:120,world:180},
+    push:{israel:80,world:105},pull:{israel:35,world:45},dips:{israel:60,world:75},
+    sit:{israel:60,world:75},squat:{israel:55,world:70},burpee:{israel:35,world:45},
+    jack:{israel:90,world:110},mount:{israel:60,world:80},
+    ljump:{israel:300,world:373},hjump:{israel:80,world:126},
+    sprint30:{israel:4.0,world:3.8},sprint:{israel:6.9,world:6.3},shuttle:{israel:9.0,world:8.2},
+    throw:{israel:10,world:10},basket60:{israel:25,world:35},wallpass:{israel:60,world:80},
+    juggle:{israel:200,world:300},toetap:{israel:70,world:95},selfpass:{israel:70,world:90},
+    cone:{israel:12,world:9},balance:{israel:60,world:60}};
+
+  let SPORTS=[];
+  let refs={}, pass=LS.get("rec.pass","1234");
   let db=null, CACHE=[];
-  function rebuildSports(){
-    custom=LS.get("rec.custom",[]);
-    SPORTS=BASE_SPORTS.concat(custom);
-    custom.forEach(c=>{ if(!refs[c.id])refs[c.id]={israel:0,world:0}; });
+
+  function defaults(){ return (window.RECDEFAULTS?window.RECDEFAULTS.sports():[]); }
+  function loadSports(){
+    let list=LS.get("rec.sports",null);
+    if(!Array.isArray(list)||!list.length){
+      list=defaults();
+      /* hm-howto.js נטען אחרי הקובץ הזה — אם עוד לא הגיע, לא שומרים
+         רשימה ריקה שתישאר תקועה ב-localStorage */
+      if(!list.length){ SPORTS=[]; refs=Object.assign({},DEF_REFS,LS.get("rec.refs",{})); return; }
+      /* הגירה מהמבנה הישן: ענפים שהמורה הוסיף לפני העורך */
+      (LS.get("rec.custom",[])||[]).forEach(c=>{
+        if(!list.some(x=>x.id===c.id))
+          list.push({id:c.id,em:c.em||"🏅",name:c.name,unit:c.unit,lower:!!c.lower,
+            timeSec:null,vidMax:120,proto:"",ok:[],no:[],film:[],yt:""});
+      });
+      LS.set("rec.sports",list);
+    }
+    SPORTS=list;
+    refs=Object.assign({},DEF_REFS,LS.get("rec.refs",{}));
+    SPORTS.forEach(sp=>{ if(!refs[sp.id])refs[sp.id]={israel:0,world:0}; });
   }
-  rebuildSports();
+  function saveSports(){ LS.set("rec.sports",SPORTS); LS.set("rec.refs",refs); }
+  /* ענף שנמחק אך עדיין יש לו שיאים — משוחזר כרשומה מוסתרת כדי שהתוצאה
+     לא תיעלם בשקט מהמסך */
+  function reviveOrphans(){
+    const known=new Set(SPORTS.map(s=>s.id));
+    const R=window.RECDEFAULTS&&window.RECDEFAULTS.retired||{};
+    let added=false;
+    CACHE.forEach(r=>{
+      if(known.has(r.sport))return;
+      known.add(r.sport); added=true;
+      SPORTS.push({id:r.sport,em:"🗄️",name:(R[r.sport]||r.sport)+" (ענף ישן)",
+        unit:"",lower:false,timeSec:null,vidMax:180,legacy:true,
+        proto:"ענף שהוסר מהרשימה. השיאים נשמרו כדי שלא ילכו לאיבוד — אפשר לערוך או למחוק אותו בעורך הענפים.",
+        ok:[],no:[],film:[],yt:""});
+      if(!refs[r.sport])refs[r.sport]={israel:0,world:0};
+    });
+    if(added)saveSports();
+  }
 
   /* ---------- IndexedDB ---------- */
   function openDB(){
@@ -1203,7 +1219,7 @@ const REC=(function(){
   function dbAll(){ return new Promise((res,rej)=>{ const rq=db.transaction("rec").objectStore("rec").getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); }); }
   function dbPut(r){ return new Promise((res,rej)=>{ const rq=db.transaction("rec","readwrite").objectStore("rec").put(r); rq.onsuccess=res; rq.onerror=()=>rej(rq.error); }); }
   function dbDel(id){ return new Promise((res,rej)=>{ const rq=db.transaction("rec","readwrite").objectStore("rec").delete(id); rq.onsuccess=res; rq.onerror=()=>rej(rq.error); }); }
-  async function refresh(){ CACHE=await dbAll(); renderGrid(); }
+  async function refresh(){ CACHE=await dbAll(); reviveOrphans(); renderGrid(); }
 
   /* ---------- helpers ---------- */
   const sportById=id=>SPORTS.find(s=>s.id===id)||SPORTS[0];
@@ -1219,7 +1235,10 @@ const REC=(function(){
   function ranked(id){ const sp=sportById(id); return approved(id).sort((a,b)=>sp.lower?a.value-b.value:b.value-a.value); }
   function best(id){ return ranked(id)[0]||null; }
   function pct(sp,v,world){ if(!v||!world)return 0; const p=sp.lower?(world/v)*100:(v/world)*100; return Math.max(3,Math.min(100,p)); }
-  function countApproved(){ return (db?Promise.resolve():openDB()).then(dbAll).then(l=>l.filter(r=>r.status==="approved").length); }
+  function countApproved(){
+    if(!SPORTS.length)loadSports();
+    return (db?Promise.resolve():openDB()).then(dbAll).then(l=>l.filter(r=>r.status==="approved").length);
+  }
 
   /* ---------- grid & detail ---------- */
   function renderGrid(){
@@ -1321,6 +1340,28 @@ const REC=(function(){
     if(full)full.onclick=()=>openHowto(sp.id);
     const ck=$("#rec-subOk"); if(ck)ck.checked=false;
   }
+  /* קורא את אורך הסרטון לפני השליחה, כדי לאכוף את מגבלת הזמן של הענף */
+  function videoDuration(file){
+    return new Promise(res=>{
+      try{
+        const v=document.createElement("video"); v.preload="metadata";
+        const u=URL.createObjectURL(file);
+        let done=false;
+        const fin=d=>{ if(done)return; done=true; URL.revokeObjectURL(u); res(d); };
+        v.onloadedmetadata=()=>{
+          /* קבצים שהוקלטו בדפדפן (MediaRecorder) מדווחים duration=Infinity
+             עד שמדלגים לסוף. זו העקיפה המקובלת. */
+          if(v.duration===Infinity||isNaN(v.duration)){
+            v.currentTime=1e101;
+            v.ontimeupdate=()=>{ v.ontimeupdate=null; fin(isFinite(v.duration)?v.duration:null); };
+          } else fin(v.duration);
+        };
+        v.onerror=()=>fin(null);
+        setTimeout(()=>fin(null),6000); /* לא תוקעים שליחה אם המטא-דאטה לא נטען */
+        v.src=u;
+      }catch(e){ res(null); }
+    });
+  }
   async function sendSub(){
     const sport=$("#rec-subSport").value, name=$("#rec-subName").value.trim(),
       cls=$("#rec-subClass").value.trim(), val=parseFloat($("#rec-subVal").value);
@@ -1328,6 +1369,14 @@ const REC=(function(){
     if(!$("#rec-subOk").checked){toast("צריך לאשר שקראת את כללי הביצוע והצילום");return;}
     const f=$("#rec-subVideo").files[0]||null;
     if(f&&f.size>120*1024*1024){toast("הסרטון גדול מדי (עד 120MB)");return;}
+    if(f){
+      const spv=sportById(sport), lim=spv.vidMax||0;
+      const dur=await videoDuration(f);
+      if(lim&&dur&&dur>lim+5){
+        toast("הסרטון "+Math.round(dur)+" שניות — בענף הזה מותר עד "+lim+". חתוך אותו ושלח שוב.");
+        return;
+      }
+    }
     await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,
       status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
@@ -1399,20 +1448,7 @@ const REC=(function(){
       refOf(id)[k]=parseFloat(inp.value)||0; LS.set("rec.refs",refs); renderGrid();
     }));
 
-    /* --- ענפים מותאמים אישית --- */
-    $("#rec-customList").innerHTML=custom.length?custom.map(c=>
-      `<div class="row" style="align-items:center;margin-bottom:6px">
-        <span class="grow">${c.em} ${esc(c.name)} <span class="hint">· ${esc(c.unit)}${c.lower?" · נמוך=טוב":""}</span></span>
-        <button class="btn sm stop" data-cdel="${c.id}">✕</button></div>`).join("")
-      :'<div class="hint">אין עדיין ענפים מותאמים. הוסף ענף כדי למדוד כל דבר שרצית — משיכות בטבעות, זמן שחייה, מה שבא.</div>';
-    $$("#rec-customList [data-cdel]").forEach(b=>b.addEventListener("click",async()=>{
-      const id=b.dataset.cdel;
-      const used=CACHE.filter(r=>r.sport===id).length;
-      if(!confirm(used?`בענף הזה יש ${used} שיאים — הם יימחקו גם. להמשיך?`:"למחוק את הענף?"))return;
-      for(const r of CACHE.filter(r=>r.sport===id))await dbDel(r.id);
-      LS.set("rec.custom",LS.get("rec.custom",[]).filter(c=>c.id!==id));
-      rebuildSports(); await refresh(); renderAdmin(); toast("הענף נמחק");
-    }));
+    renderSportEditor();
   }
 
   /* ---------- הוספה ידנית ועריכה (מורה בלבד) ---------- */
@@ -1448,26 +1484,19 @@ const REC=(function(){
     }
     await refresh(); renderAdmin(); modal("rec-manualModal",false);
   }
-  async function addCustomSport(){
-    const name=($("#rec-csName").value||"").trim();
-    const unit=($("#rec-csUnit").value||"").trim();
-    const em=($("#rec-csEm").value||"🏅").trim()||"🏅";
-    const lower=$("#rec-csLower").checked;
-    if(!name||!unit){toast("צריך שם ענף ויחידת מדידה");return;}
-    const id="c"+Date.now().toString(36);
-    const list=LS.get("rec.custom",[]); list.push({id,em,name,unit,lower});
-    LS.set("rec.custom",list); rebuildSports(); LS.set("rec.refs",refs);
-    $("#rec-csName").value="";$("#rec-csUnit").value="";$("#rec-csEm").value="";$("#rec-csLower").checked=false;
-    await refresh(); renderAdmin(); toast("הענף נוסף — אפשר להזין בו שיאים");
-  }
+
 
   /* ---------- כללי ביצוע וצילום ---------- */
   function howtoHtml(sp,compact){
-    const W=window.RECHOWTO; if(!W)return "";
-    const h=W.getOrGeneric(sp.id);
+    const W=window.RECDEFAULTS; if(!W)return "";
+    const G=W.generic;
+    const h={proto:sp.proto||G.proto, ok:(sp.ok&&sp.ok.length?sp.ok:G.ok),
+             no:(sp.no&&sp.no.length?sp.no:G.no), film:(sp.film&&sp.film.length?sp.film:G.film),
+             yt:sp.yt||""};
     const li=a=>a.map(x=>"<li>"+mdBold(esc(x))+"</li>").join("");
+    const cap=sp.vidMax?`<div class="vid">🎬 אורך הסרטון: עד <b>${sp.vidMax} שניות</b>${sp.timeSec?` · משך המאמץ: ${sp.timeSec} שניות`:""}</div>`:"";
     if(compact) return `<div class="rec-rules compact">
-      <div class="pr">⏱ ${esc(h.proto)}</div>
+      <div class="pr">⏱ ${esc(h.proto)}</div>${cap}
       <div class="two">
         <div><b class="ok">✅ תקין</b><ul>${li(h.ok.slice(0,2))}</ul></div>
         <div><b class="no">❌ פוסל</b><ul>${li(h.no.slice(0,2))}</ul></div>
@@ -1475,14 +1504,14 @@ const REC=(function(){
       <div><b class="cam">🎥 צילום</b><ul>${li(h.film.slice(0,2))}</ul></div>
     </div>`;
     return `<div class="rec-rules">
-      <div class="pr">⏱ <b>פרוטוקול:</b> ${esc(h.proto)}</div>
+      <div class="pr">⏱ <b>פרוטוקול:</b> ${esc(h.proto)}</div>${cap}
       <div class="sec"><b class="ok">✅ מה נחשב תקין</b><ul>${li(h.ok)}</ul></div>
       <div class="sec"><b class="no">❌ מה פוסל</b><ul>${li(h.no)}</ul></div>
       <div class="sec"><b class="cam">🎥 איך מצלמים</b><ul>${li(h.film)}</ul></div>
       <div class="sec"><b class="uni">📌 נכון לכל שיא</b><ul>${li(W.universal)}</ul></div>
       ${h.yt?`<a class="btn acc big" style="margin-top:4px;display:block;text-align:center;text-decoration:none"
         href="${W.ytUrl(h.yt)}" target="_blank" rel="noopener">▶ סרטון הסבר — טכניקה נכונה</a>
-      <div class="hint" style="margin-top:6px">הקישור פותח חיפוש יוטיוב לפי הענף, כדי שלא יישבר עם הזמן. אפשר לבחור סרטון בעברית או באנגלית.</div>`:""}
+      <div class="hint" style="margin-top:6px">הקישור פותח חיפוש יוטיוב לפי הענף, כדי שלא יישבר עם הזמן.</div>`:""}
     </div>`;
   }
   /* הדגשה פשוטה: **טקסט** -> מודגש */
@@ -1492,6 +1521,83 @@ const REC=(function(){
     $("#rec-htTitle").innerHTML=sp.em+" "+esc(sp.name)+" — איך מבצעים ומצלמים";
     $("#rec-htBody").innerHTML=howtoHtml(sp,false);
     modal("rec-howtoModal");
+  }
+
+  /* ---------- עורך הענפים (מורה בלבד) ---------- */
+  function renderSportEditor(){
+    $("#rec-spList").innerHTML=SPORTS.map((sp,i)=>`
+      <div class="rec-sprow">
+        <span class="em">${sp.em||"🏅"}</span>
+        <div class="grow"><b>${esc(sp.name)}</b>
+          <div class="sb">${esc(sp.unit||"—")}${sp.lower?" · נמוך=טוב":""}${sp.timeSec?" · "+sp.timeSec+" שנ׳":""}${sp.vidMax?" · סרטון עד "+sp.vidMax+" שנ׳":""}</div></div>
+        <span class="cnt">${CACHE.filter(r=>r.sport===sp.id).length} שיאים</span>
+        <button class="btn sm" data-spup="${i}" title="הזז למעלה">↑</button>
+        <button class="btn sm" data-sped="${sp.id}">✎</button>
+        <button class="btn sm stop" data-spdel="${sp.id}">🗑</button>
+      </div>`).join("")||'<div class="hint">אין ענפים. לחץ «ענף חדש» או «שחזר ברירת מחדל».</div>';
+    $$("#rec-spList [data-sped]").forEach(b=>b.addEventListener("click",()=>editSport(b.dataset.sped)));
+    $$("#rec-spList [data-spup]").forEach(b=>b.addEventListener("click",()=>{
+      const i=+b.dataset.spup; if(i<1)return;
+      [SPORTS[i-1],SPORTS[i]]=[SPORTS[i],SPORTS[i-1]];
+      saveSports(); renderSportEditor(); renderGrid();
+    }));
+    $$("#rec-spList [data-spdel]").forEach(b=>b.addEventListener("click",async()=>{
+      const id=b.dataset.spdel, sp=sportById(id);
+      const n=CACHE.filter(r=>r.sport===id).length;
+      if(!confirm(n?`בענף «${sp.name}» יש ${n} שיאים — הם יימחקו גם. להמשיך?`
+                   :`למחוק את הענף «${sp.name}»?`))return;
+      for(const r of CACHE.filter(r=>r.sport===id))await dbDel(r.id);
+      SPORTS=SPORTS.filter(x=>x.id!==id); saveSports();
+      await refresh(); renderSportEditor(); renderAdmin(); toast("הענף נמחק");
+    }));
+  }
+  const linesToArr=v=>String(v||"").split("\n").map(x=>x.trim()).filter(Boolean);
+  function editSport(id){
+    const sp=id?sportById(id):null;
+    $("#rec-spTitle").textContent=sp?"✎ עריכת ענף":"➕ ענף חדש";
+    $("#rec-spId").value=sp?sp.id:"";
+    $("#rec-spEm").value=sp?(sp.em||""):"🏅";
+    $("#rec-spName").value=sp?sp.name:"";
+    $("#rec-spUnit").value=sp?(sp.unit||""):"";
+    $("#rec-spLower").checked=sp?!!sp.lower:false;
+    $("#rec-spTime").value=sp&&sp.timeSec?sp.timeSec:"";
+    $("#rec-spVid").value=sp&&sp.vidMax?sp.vidMax:90;
+    $("#rec-spProto").value=sp?(sp.proto||""):"";
+    $("#rec-spOk").value=sp?(sp.ok||[]).join("\n"):"";
+    $("#rec-spNo").value=sp?(sp.no||[]).join("\n"):"";
+    $("#rec-spFilm").value=sp?(sp.film||[]).join("\n"):"";
+    $("#rec-spYt").value=sp?(sp.yt||""):"";
+    $("#rec-spIsr").value=sp?(refOf(sp.id).israel||""):"";
+    $("#rec-spWor").value=sp?(refOf(sp.id).world||""):"";
+    modal("rec-sportEdit");
+  }
+  function saveSport(){
+    const id=$("#rec-spId").value;
+    const name=$("#rec-spName").value.trim(), unit=$("#rec-spUnit").value.trim();
+    if(!name||!unit){toast("צריך שם ענף ויחידת מדידה");return;}
+    const data={
+      em:$("#rec-spEm").value.trim()||"🏅", name, unit,
+      lower:$("#rec-spLower").checked,
+      timeSec:+$("#rec-spTime").value||null,
+      vidMax:Math.max(10,+$("#rec-spVid").value||90),
+      proto:$("#rec-spProto").value.trim(),
+      ok:linesToArr($("#rec-spOk").value),
+      no:linesToArr($("#rec-spNo").value),
+      film:linesToArr($("#rec-spFilm").value),
+      yt:$("#rec-spYt").value.trim()
+    };
+    let sid=id;
+    if(id){ Object.assign(sportById(id),data); }
+    else{ sid="c"+Date.now().toString(36); SPORTS.push(Object.assign({id:sid},data)); }
+    refs[sid]={israel:parseFloat($("#rec-spIsr").value)||0,world:parseFloat($("#rec-spWor").value)||0};
+    saveSports(); renderGrid(); renderSportEditor(); renderAdmin();
+    modal("rec-sportEdit",false); toast(id?"הענף עודכן ✓":"הענף נוסף ✓");
+  }
+  function resetSports(){
+    if(prompt('לשחזר את רשימת הענפים לברירת המחדל?\nענפים שהוספת יימחקו (השיאים יישמרו).\nהקלד "שחזר" לאישור:')!=="שחזר")return;
+    SPORTS=defaults(); refs=Object.assign({},DEF_REFS);
+    saveSports(); reviveOrphans(); renderGrid(); renderSportEditor(); renderAdmin();
+    toast("שוחזרה רשימת ברירת המחדל");
   }
 
   /* ---------- קישור ו-QR לתלמידים ----------
@@ -1613,6 +1719,7 @@ const REC=(function(){
 
   /* ---------- init ---------- */
   async function init(){
+    loadSports();               /* כעת כל הסקריפטים נטענו וברירות המחדל זמינות */
     await openDB(); await refresh();
     $("#rec-sdSubmit").addEventListener("click",openSubmit);
     $("#rec-subSport").addEventListener("change",updSubLb);
@@ -1650,7 +1757,9 @@ const REC=(function(){
     $("#rec-mnAdd").addEventListener("click",openManual);
     $("#rec-mnSport").addEventListener("change",updMnLb);
     $("#rec-mnSave").addEventListener("click",saveManual);
-    $("#rec-csAdd").addEventListener("click",addCustomSport);
+    $("#rec-spNew").addEventListener("click",()=>editSport(null));
+    $("#rec-spSave").addEventListener("click",saveSport);
+    $("#rec-spReset").addEventListener("click",resetSports);
     /* קישור ו-QR לתלמידים */
     $("#rec-shareBtn").addEventListener("click",openShare);
     $$("#rec-shModes button").forEach(b=>b.addEventListener("click",()=>{

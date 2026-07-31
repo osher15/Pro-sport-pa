@@ -416,15 +416,13 @@
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> כל השיאים המאושרים</h2>
       <div class="tblwrap" id="rec-allList"></div>
 
-      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> ענפים מותאמים אישית</h2>
-      <div id="rec-customList"></div>
-      <div class="row" style="margin-top:9px;align-items:flex-end">
-        <div class="field" style="width:66px"><label>סמל</label><input type="text" id="rec-csEm" placeholder="🏅" maxlength="3"></div>
-        <div class="field grow"><label>שם הענף</label><input type="text" id="rec-csName" placeholder="משיכות בטבעות"></div>
-        <div class="field" style="width:130px"><label>יחידת מדידה</label><input type="text" id="rec-csUnit" placeholder="חזרות"></div>
-        <label class="check" style="margin-bottom:9px"><input type="checkbox" id="rec-csLower"> נמוך = טוב יותר</label>
-        <button class="btn sm acc" id="rec-csAdd" style="margin-bottom:6px">＋ הוסף ענף</button>
+      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> עורך הענפים</h2>
+      <div class="hint">כאן אתה שולט בהכול: שם, סמל, יחידת מדידה, כיוון, מגבלת זמן, אורך סרטון מותר וכל טקסט הכללים. אפשר להוסיף אתגרים חדשים בעצמך בלי לבקש מאף אחד.</div>
+      <div class="row" style="margin:10px 0">
+        <button class="btn sm acc" id="rec-spNew">➕ ענף / אתגר חדש</button>
+        <button class="btn sm ghost" id="rec-spReset">↺ שחזר ברירת מחדל</button>
       </div>
+      <div id="rec-spList"></div>
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> שיאי ייחוס (ישראל / עולם)</h2>
       <div id="rec-refList"></div>
@@ -435,6 +433,40 @@
         <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
       </div>
     </div>
+  </div></div>
+
+  <!-- sport editor -->
+  <div class="modal" id="rec-sportEdit"><div class="box">
+    <h3><span id="rec-spTitle">עריכת ענף</span><button class="x" data-close="rec-sportEdit">✕</button></h3>
+    <input type="hidden" id="rec-spId">
+    <div class="row">
+      <div class="field" style="width:70px"><label>סמל</label><input type="text" id="rec-spEm" maxlength="3" placeholder="🏅"></div>
+      <div class="field grow"><label>שם הענף</label><input type="text" id="rec-spName" placeholder="קפיצה בחבל"></div>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <div class="field grow"><label>יחידת מדידה</label><input type="text" id="rec-spUnit" placeholder="קפיצות בדקה"></div>
+      <label class="check" style="margin-bottom:9px"><input type="checkbox" id="rec-spLower"> נמוך = טוב יותר</label>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <div class="field grow"><label>משך המאמץ (שניות · ריק = ניסיונות)</label><input type="number" id="rec-spTime" min="0" placeholder="60"></div>
+      <div class="field grow"><label>אורך סרטון מרבי (שניות)</label><input type="number" id="rec-spVid" min="10" value="90"></div>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <div class="field grow"><label>שיא ישראל</label><input type="number" id="rec-spIsr" step="any"></div>
+      <div class="field grow"><label>שיא עולם</label><input type="number" id="rec-spWor" step="any"></div>
+    </div>
+    <div class="field" style="margin-top:11px"><label>פרוטוקול — משפט אחד</label>
+      <textarea id="rec-spProto" rows="2" placeholder="60 שניות בדיוק. סופרים חזרות תקינות."></textarea></div>
+    <div class="field" style="margin-top:9px"><label>✅ מה נחשב תקין — שורה לכל כלל</label>
+      <textarea id="rec-spOk" rows="4"></textarea></div>
+    <div class="field" style="margin-top:9px"><label>❌ מה פוסל — שורה לכל כלל</label>
+      <textarea id="rec-spNo" rows="4"></textarea></div>
+    <div class="field" style="margin-top:9px"><label>🎥 איך מצלמים — שורה לכל כלל</label>
+      <textarea id="rec-spFilm" rows="4"></textarea></div>
+    <div class="field" style="margin-top:9px"><label>חיפוש יוטיוב לסרטון הסבר</label>
+      <input type="text" id="rec-spYt" placeholder="קפיצה בחבל טכניקה נכונה"></div>
+    <div class="hint" style="margin:9px 0 12px">אפשר להדגיש מילה בתוך כלל עם שתי כוכביות: <code>**מהצד**</code>.</div>
+    <button class="btn acc big" id="rec-spSave">שמור ענף</button>
   </div></div>
 
   <!-- how-to: execution + filming rules -->
