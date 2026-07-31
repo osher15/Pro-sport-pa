@@ -1,14 +1,16 @@
 # מפרסם את האפליקציה ל-GitHub Pages.
 # הכתובת החיה: https://osher15.github.io/Pro-sport-pa/
 #
-# אחרי מיזוג הענף ל-main — להוסיף כאן את main לרשימת הענפים
-# (או להחליף את שם הענף), אחרת האתר יישאר על הגרסה של הענף הזה.
+# פורס מ-main בלבד. הסביבה github-pages חוסמת פריסה מענפים אחרים כברירת
+# מחדל, ולכן פריסה מענף פיצ׳ר תיכשל לפני שהיא בכלל מתחילה. כדי לפרוס
+# מענף אחר צריך להוסיף אותו ב-Settings ← Environments ← github-pages
+# ← Deployment branches.
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - claude/sports-education-platform-ouoo5x
+      - main
   workflow_dispatch:
 
 permissions:
