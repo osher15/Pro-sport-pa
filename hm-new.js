@@ -227,6 +227,7 @@ window.HMBootNew=function(){
      תלמיד — נכנס בלי קוד למצב תצוגה: לוח השיאים ודף המשחקים בלבד. */
   const H0=H();
   const locked=LS.get("hx.lock",true)&&sessionStorage.getItem("pehub.unlocked")!=="1";
+  const codeSet=()=>LS.get("rec.pass",null)!=null;
   const unlockTeacher=()=>{
     sessionStorage.setItem("pehub.unlocked","1");
     H0.setRole("teacher");
@@ -234,8 +235,21 @@ window.HMBootNew=function(){
   };
   if(locked){
     $("#lockOv").classList.add("on");
+    /* בפעם הראשונה אין קוד — המורה קובע אותו כאן, והוא נשמר במכשיר בלבד
+       ואף פעם לא בקוד המקור. */
+    if(!codeSet()){
+      $("#lockOv .box p").textContent="הגדרת קוד מורה — בחר קוד שרק אתה יודע";
+      $("#lock-pass").placeholder="קוד חדש";
+      $("#lock-enter").textContent="קבע קוד והיכנס";
+    }
     const tryPass=()=>{
-      if($("#lock-pass").value===LS.get("rec.pass","1234")) unlockTeacher();
+      const v=$("#lock-pass").value.trim();
+      if(!codeSet()){
+        if(v.length<4){ toast("בחר קוד באורך 4 ספרות לפחות"); return; }
+        LS.set("rec.pass",v);
+        toast("🔑 הקוד נקבע — זכור אותו"); unlockTeacher(); return;
+      }
+      if(v===LS.get("rec.pass",null)) unlockTeacher();
       else { toast("קוד שגוי"); $("#lock-pass").value=""; }
     };
     $("#lock-enter").addEventListener("click",tryPass);
@@ -265,7 +279,7 @@ window.HMBootNew=function(){
   if(exitBtn)exitBtn.addEventListener("click",()=>{
     const p=prompt("קוד מורה ליציאה ממצב תלמיד:");
     if(p===null)return;
-    if(p===LS.get("rec.pass","1234")){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
+    if(codeSet()&&p===LS.get("rec.pass",null)){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
     else toast("קוד שגוי");
   });
 

@@ -1177,7 +1177,9 @@ const REC=(function(){
     cone:{israel:12,world:9},balance:{israel:60,world:60}};
 
   let SPORTS=[];
-  let refs={}, pass=LS.get("rec.pass","1234");
+  let refs={}, pass=LS.get("rec.pass",null);
+  const hasPass=()=>!!LS.get("rec.pass",null);
+  function setPass(p){ pass=p; LS.set("rec.pass",p); }
   let db=null, CACHE=[];
 
   function defaults(){ return (window.RECDEFAULTS?window.RECDEFAULTS.sports():[]); }
@@ -1758,10 +1760,20 @@ const REC=(function(){
     $("#rec-subSend").addEventListener("click",sendSub);
     $("#rec-adminBtn").addEventListener("click",()=>{ $("#rec-admLock").style.display=""; $("#rec-admBody").style.display="none"; $("#rec-admPass").value=""; modal("rec-adminModal"); });
     $("#rec-admEnter").addEventListener("click",()=>{
-      if($("#rec-admPass").value===pass){ $("#rec-admLock").style.display="none"; $("#rec-admBody").style.display=""; renderAdmin(); }
-      else toast("סיסמה שגויה");
+      const v=$("#rec-admPass").value;
+      if(!hasPass()){
+        /* לא הוגדר קוד עדיין — הראשון שנכנס קובע אותו */
+        if(v.length<4){toast("בחר קוד באורך 4 ספרות לפחות");return;}
+        setPass(v); toast("🔑 קוד המורה נקבע");
+      } else if(v!==pass){ toast("קוד שגוי"); return; }
+      $("#rec-admLock").style.display="none"; $("#rec-admBody").style.display=""; renderAdmin();
     });
-    $("#rec-passChg").addEventListener("click",()=>{ const p=prompt("סיסמה חדשה:"); if(p){pass=p;LS.set("rec.pass",p);toast("הסיסמה עודכנה");} });
+    $("#rec-passChg").addEventListener("click",()=>{
+      const p=prompt("קוד מורה חדש (4 ספרות לפחות):");
+      if(p===null)return;
+      if(p.trim().length<4){toast("הקוד קצר מדי — לפחות 4 ספרות");return;}
+      setPass(p.trim()); toast("🔑 הקוד עודכן — הוא נשמר במכשיר הזה בלבד");
+    });
     $("#rec-export").addEventListener("click",async()=>{
       const data=CACHE.map(r=>({...r,video:undefined,hadVideo:!!r.video}));
       const a=document.createElement("a");
@@ -1816,7 +1828,7 @@ const REC=(function(){
     });
     applyRoleRec();
   }
-  return {init,countApproved,applyRole:applyRoleRec,
+  return {init,countApproved,applyRole:applyRoleRec,hasPass,setPass,
     _test:{SPORTS:()=>SPORTS,showVal:(id,v)=>showVal(sportById(id),v),pct:(id,v,w)=>pct(sportById(id),v,w)}};
 })();
 
