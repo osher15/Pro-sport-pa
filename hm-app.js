@@ -1792,6 +1792,14 @@ const REC=(function(){
     $("#rec-spNew").addEventListener("click",()=>editSport(null));
     $("#rec-spSave").addEventListener("click",saveSport);
     $("#rec-spReset").addEventListener("click",resetSports);
+    /* שמות הענפים לרשימה הנפתחת בטופס גוגל — כדי שהטופס והאפליקציה
+       לא יתפצלו אחרי שמוסיפים או משנים ענף */
+    $("#rec-spCopy").addEventListener("click",async()=>{
+      const txt=SPORTS.filter(sp=>!sp.legacy).map(sp=>sp.name).join("\n");
+      try{ await navigator.clipboard.writeText(txt);
+        toast("הועתקו "+SPORTS.length+" ענפים — הדבק ברשימה הנפתחת בטופס"); }
+      catch(e){ prompt("העתק את הרשימה והדבק בטופס:",txt); }
+    });
     /* קישור ו-QR לתלמידים */
     $("#rec-shareBtn").addEventListener("click",openShare);
     $$("#rec-shModes button").forEach(b=>b.addEventListener("click",()=>{

@@ -1049,6 +1049,7 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       <div class="hint">כאן אתה שולט בהכול: שם, סמל, יחידת מדידה, כיוון, מגבלת זמן, אורך סרטון מותר וכל טקסט הכללים. אפשר להוסיף אתגרים חדשים בעצמך בלי לבקש מאף אחד.</div>
       <div class="row" style="margin:10px 0">
         <button class="btn sm acc" id="rec-spNew">➕ ענף / אתגר חדש</button>
+        <button class="btn sm" id="rec-spCopy">📋 העתק שמות לטופס גוגל</button>
         <button class="btn sm ghost" id="rec-spReset">↺ שחזר ברירת מחדל</button>
       </div>
       <div id="rec-spList"></div>
@@ -3325,6 +3326,14 @@ const REC=(function(){
     $("#rec-spNew").addEventListener("click",()=>editSport(null));
     $("#rec-spSave").addEventListener("click",saveSport);
     $("#rec-spReset").addEventListener("click",resetSports);
+    /* שמות הענפים לרשימה הנפתחת בטופס גוגל — כדי שהטופס והאפליקציה
+       לא יתפצלו אחרי שמוסיפים או משנים ענף */
+    $("#rec-spCopy").addEventListener("click",async()=>{
+      const txt=SPORTS.filter(sp=>!sp.legacy).map(sp=>sp.name).join("\n");
+      try{ await navigator.clipboard.writeText(txt);
+        toast("הועתקו "+SPORTS.length+" ענפים — הדבק ברשימה הנפתחת בטופס"); }
+      catch(e){ prompt("העתק את הרשימה והדבק בטופס:",txt); }
+    });
     /* קישור ו-QR לתלמידים */
     $("#rec-shareBtn").addEventListener("click",openShare);
     $$("#rec-shModes button").forEach(b=>b.addEventListener("click",()=>{
