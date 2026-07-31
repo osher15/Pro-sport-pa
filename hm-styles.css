@@ -635,3 +635,4 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
 .ls-doc{font-size:13px;line-height:1.75;color:var(--ink);white-space:pre-wrap;
   background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
   padding:12px 14px;max-height:56vh;overflow:auto}
+.arc-item.builtin{border-inline-start:3px solid var(--acc)}

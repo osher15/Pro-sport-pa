@@ -572,17 +572,28 @@ window.LESSON=(function(){
     lib.unshift({id:Date.now(),plan:JSON.parse(JSON.stringify(plan))});
     H().LS.set("ls.lib",lib.slice(0,60)); renderLib(); H().toast("💾 נשמר לספריית המערכים");
   }
+  /* מערכים מובנים שמגיעים עם האפליקציה — קיימים בכל מכשיר, לא נמחקים */
+  function builtIn(){
+    return (window.LESSONDOCS||[]).map(d=>({id:"bi-"+d.id,builtin:true,
+      doc:{title:d.title,meta:d.meta,text:d.text}}));
+  }
+  function allLib(){ return builtIn().concat(H().LS.get("ls.lib",[])); }
+  function findEntry(id){ return allLib().find(x=>String(x.id)===String(id)); }
+
   function renderLib(){
-    const {$, $$, esc}=H(); const lib=H().LS.get("ls.lib",[]);
+    const {$, $$, esc}=H();
+    const saved=H().LS.get("ls.lib",[]), bi=builtIn(), lib=bi.concat(saved);
     $("#ls-libEmpty").style.display=lib.length?"none":"block";
-    $("#ls-libCount").textContent=lib.length?lib.length+" מערכים בספרייה":"";
+    $("#ls-libCount").textContent=lib.length
+      ? lib.length+" מערכים בספרייה"+(bi.length?" · "+bi.length+" מובנים":"")
+      : "";
     $("#ls-libList").innerHTML=lib.map(e=>{
       /* שני סוגי רשומות: מערך שנוצר במחולל, ומסמך שיובא מקובץ */
-      if(e.doc) return `<div class="arc-item"><div class="grow">
-        <div class="ttl">📄 ${esc(e.doc.title)}</div>
-        <div class="sb">${esc(e.doc.meta||"מסמך מיובא")}</div></div>
+      if(e.doc) return `<div class="arc-item${e.builtin?" builtin":""}"><div class="grow">
+        <div class="ttl">${e.builtin?"📚":"📄"} ${esc(e.doc.title)}</div>
+        <div class="sb">${esc(e.doc.meta||"מסמך מיובא")}${e.builtin?" · מובנה":""}</div></div>
         <button class="btn sm" data-doc="${e.id}">👁 פתח</button>
-        <button class="btn sm stop" data-del="${e.id}">✕</button></div>`;
+        ${e.builtin?"":`<button class="btn sm stop" data-del="${e.id}">✕</button>`}</div>`;
       return `<div class="arc-item"><div class="grow">
         <div class="ttl">${e.plan.em||"📋"} ${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
         <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
@@ -602,7 +613,7 @@ window.LESSON=(function(){
   /* ---------- מסמכים מיובאים ---------- */
   function openDoc(id){
     const {$, esc}=H();
-    const e=H().LS.get("ls.lib",[]).find(x=>x.id==id); if(!e||!e.doc)return;
+    const e=findEntry(id); if(!e||!e.doc)return;
     $("#ls-docTitle").textContent=e.doc.title;
     $("#ls-docBody").innerHTML=`<div class="hint" style="margin-bottom:10px">${esc(e.doc.meta||"")}</div>
       <div class="ls-doc">${esc(e.doc.text).replace(/\n/g,"<br>")}</div>`;
@@ -620,8 +631,9 @@ window.LESSON=(function(){
 
   /* ---------- ייצוא וייבוא של הספרייה ---------- */
   function exportLib(){
+    /* המערכים המובנים מגיעים עם האפליקציה ואין טעם לייצא אותם */
     const lib=H().LS.get("ls.lib",[]);
-    if(!lib.length){H().toast("הספרייה ריקה");return;}
+    if(!lib.length){H().toast("אין מערכים משלך לייצוא — המובנים כבר בתוך האפליקציה");return;}
     const blob=new Blob([JSON.stringify({app:"hamigrash-pro",kind:"lessons",v:1,exported:today(),items:lib},null,1)],
       {type:"application/json"});
     const a=document.createElement("a");
@@ -638,8 +650,10 @@ window.LESSON=(function(){
       const lib=H().LS.get("ls.lib",[]);
       const seen=new Set(lib.map(x=>String(x.id)));
       let added=0;
+      const biTitles=new Set(builtIn().map(x=>x.doc.title));
       incoming.forEach(e=>{
         if(!e||(!e.plan&&!e.doc))return;
+        if(e.doc&&biTitles.has(e.doc.title))return;   /* כבר מובנה באפליקציה */
         let id=String(e.id||Date.now()+Math.random());
         while(seen.has(id))id=id+"_";        /* מזהה כפול לא דורס רשומה קיימת */
         seen.add(id); lib.push(Object.assign({},e,{id})); added++;
