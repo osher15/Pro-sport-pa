@@ -1,0 +1,61 @@
+# מפרסם את האפליקציה ל-GitHub Pages.
+# הכתובת החיה: https://osher15.github.io/Pro-sport-pa/
+#
+# אחרי מיזוג הענף ל-main — להוסיף כאן את main לרשימת הענפים
+# (או להחליף את שם הענף), אחרת האתר יישאר על הגרסה של הענף הזה.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/sports-education-platform-ouoo5x
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# פריסה אחת בכל רגע; לא מבטלים פריסה שכבר רצה
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # שומר על כך שהקובץ היחיד (Hamegrash.html) תמיד מסונכרן עם המקור.
+      # פעם אחת הוא כבר יצא מסנכרון בשקט — הבדיקה הזאת מונעת את זה.
+      - name: Verify standalone build is up to date
+        run: |
+          node build-standalone.js
+          if ! git diff --quiet -- Hamegrash.html; then
+            echo "::error::Hamegrash.html אינו מעודכן. הרץ: node build-standalone.js ובצע commit"
+            git diff --stat -- Hamegrash.html
+            exit 1
+          fi
+          echo "Hamegrash.html מסונכרן ✓"
+
+      # ללא הקובץ הזה GitHub מריץ Jekyll ומתעלם מקבצים שמתחילים בקו תחתון
+      - name: Add .nojekyll
+        run: touch .nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
