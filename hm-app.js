@@ -78,6 +78,14 @@ if(QP.get("role")==="student"){
   sessionStorage.setItem("pehub.unlocked","1"); /* מדלג על מסך הקוד */
 }
 const GUEST=QP.get("guest")==="1"&&ROLE==="student";
+/* קישור טופס ההעלאה נוסע בתוך הקישור עצמו — ההגדרות נשמרות לכל מכשיר
+   בנפרד, ולתלמיד בטלפון שלו אין את מה שהמורה הגדיר אצלו. */
+(function(){
+  const up=QP.get("up");
+  if(up&&ROLE==="student"&&/^https:\/\//i.test(up)&&up!==SET.driveForm){
+    SET.driveForm=up; try{LS.set("settings",SET);}catch(e){}
+  }
+})();
 const isStudent=()=>ROLE==="student";
 const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
@@ -1618,7 +1626,11 @@ const REC=(function(){
      guest — המכשיר של התלמיד. אין שרת משותף, ולכן השיא נארז לקובץ
              שהתלמיד שולח למורה, והמורה קולט אותו בלוח המורה. */
   function baseUrl(){ return location.href.split("#")[0].split("?")[0]; }
-  function shareUrl(guest){ return baseUrl()+"?role=student"+(guest?"&guest=1":"")+"#rec"; }
+  function shareUrl(guest){
+    /* מצרפים את קישור הטופס כדי שהכפתור יופיע גם במכשיר של התלמיד */
+    const up=(guest&&SET.driveForm)?"&up="+encodeURIComponent(SET.driveForm):"";
+    return baseUrl()+"?role=student"+(guest?"&guest=1":"")+up+"#rec";
+  }
   function urlReachable(){
     return location.protocol!=="file:"&&
       !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/i.test(location.hostname);
@@ -1629,7 +1641,10 @@ const REC=(function(){
     $("#rec-shUrl").value=url;
     $$("#rec-shModes button").forEach(b=>b.classList.toggle("on",(b.dataset.sh==="guest")===shareGuest));
     $("#rec-shDesc").innerHTML=shareGuest
-      ? "התלמיד פותח את הקישור <b>במכשיר שלו</b>, ממלא תוצאה ומצרף סרטון. בסיום נוצר קובץ שיא שהוא שולח לך (וואטסאפ / מייל), ואתה קולט אותו בלוח המורה בכפתור «קלוט שיא מקובץ»."
+      ? ("התלמיד פותח את הקישור <b>במכשיר שלו</b> וממלא תוצאה. "+
+         (SET.driveForm
+          ? "הקישור נושא איתו גם את טופס ההעלאה, כך שהתלמיד יראה כפתור להעלאת הסרטון לתיקייה שלך."
+          : "בסיום נוצר קובץ שיא שהוא שולח לך (וואטסאפ / מייל), ואתה קולט אותו בלוח המורה בכפתור «קלוט שיא מקובץ». אפשר גם להגדיר טופס העלאה ב⚙ הגדרות."))
       : "הקישור פותח את האפליקציה במצב תלמיד — לוח השיאים ודף המשחקים בלבד. מיועד ל<b>עמדה קבועה</b> או לטאבלט של בית הספר: השיא נשמר במכשיר הזה ומחכה לאישורך.";
     try{
       window.HMQR.draw($("#rec-shQr"),url,{size:250,fg:"#0c0e1a",bg:"#ffffff"});
