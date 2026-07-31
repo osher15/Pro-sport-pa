@@ -13,7 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css">
 <script src="hm-app.js"></script>
+<script src="hm-qr.js"></script>
 <script src="hm-know.js"></script>
+<script src="hm-tools.js"></script>
 <script src="hm-lesson.js"></script>
 <script src="hm-new.js"></script>
 </helmet>
@@ -57,7 +59,9 @@
       <div class="tx"><b>פינת תזונה</b><span>טיפ יומי לכיתה · שתייה · צלחת ספורטאי · שוברים מיתוס</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="games" style="--lc:#f87171"><div class="no">08</div>
       <div class="tx"><b>משחקים לשעות פנאי</b><span>הסבר מלא · מטרה · למי מתאים · וריאציות · צפייה ביוטיוב</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">09</div>
+    <div class="hx-mod" data-go="tools" style="--lc:#818cf8"><div class="no">09</div>
+      <div class="tx"><b>כלי כיתה</b><span>קבוצות מאוזנות · הגרלת תלמיד · נוכחות · מחוונים</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">10</div>
       <div class="tx"><b>מאגר ידע ומקורות</b><span>משרד החינוך · WHO · תוכניות אימון מוערכות · סטנדרטים</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
@@ -192,6 +196,12 @@
         <label class="check"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
         <label class="check"><input type="checkbox" id="pf-micStart"> זינוק קולי — אקדח/מחיאת כף (מיקרופון)</label>
       </div>
+      <div class="row" style="margin-top:9px">
+        <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
+          <input type="number" id="pf-gunDist" value="0" min="0" step="1"></div>
+        <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
+        <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
+      </div>
       <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
     </div>
 
@@ -204,7 +214,8 @@
     <div class="card">
       <div class="row" style="justify-content:space-between">
         <h2 style="margin:0"><span class="dot"></span> מסלולים ומתחרים</h2>
-        <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button>
+        <div class="row"><button class="btn sm" id="pf-pasteNames">📋 הדבק רשימה</button>
+        <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button></div>
       </div>
       <div class="field" style="margin-top:6px"><label>מספר מסלולים · <b id="pf-laneCountVal">4</b></label><input type="range" id="pf-laneCount" min="2" max="9" value="4"></div>
       <div class="pf-runchips" id="pf-chips" style="margin-top:10px"></div>
@@ -229,6 +240,7 @@
         <select id="pf-laneSel" style="background:#04110a;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:9px 12px;font-family:'Rubik'"></select>
         <button class="btn sm acc" id="pf-assign">⏱ הקצה זמן למסלול</button>
       </div>
+      <div class="hint" id="pf-precision" style="margin-top:7px;color:var(--acc)"></div>
       <div class="hint" style="margin-top:9px">לחיצה על גוף הרץ ברצועה מציגה את זמן החצייה המדויק. בחר מסלול ולחץ «הקצה» — הזמן נכנס ללוח התוצאות (מקור: תמונה). סימוני המסלולים מוצגים כקווים צבעוניים.</div>
     </div>
   </div>
@@ -343,11 +355,13 @@
       <div class="row">
         <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
         <button class="btn sm" id="rec-handBtn">📱 מסור לתלמידים</button>
+        <button class="btn sm" id="rec-shareBtn">🔗 קישור / QR</button>
         <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
       </div>
     </div>
     <div class="hint">בוחרים ענף, צופים בשיא הבית־ספרי מול שיא ישראל והעולם — ושולחים שיא חדש עם סרטון הוכחה. שיא עולה ללוח רק אחרי אישור המורה.</div>
     <div class="hint rec-stuhint" id="rec-roleHint" style="display:none">👦 <b>מצב תלמיד.</b> אפשר לצפות בשיאים, לצפות בסרטונים ולשלוח שיא חדש לאישור. אישור, עריכה ומחיקה — למורה בלבד.</div>
+    <div class="hint rec-guesthint" id="rec-guestHint" style="display:none">📁 <b>מכשיר אישי.</b> אחרי שתשלח שיא ייווצר קובץ — שלח אותו למורה בוואטסאפ או במייל, והוא יקלוט אותו ללוח.</div>
   </div>
   <div class="rec-grid" id="rec-grid"></div>
 
@@ -389,7 +403,11 @@
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> הוספה ידנית</h2>
       <div class="hint">מדדת בשטח ואין סרטון? הוסף את התוצאה ישירות — היא נכנסת ללוח כשיא מאושר בלי לעבור אישור.</div>
-      <button class="btn acc" id="rec-mnAdd" style="margin-top:9px">➕ הוסף שיא ידנית</button>
+      <div class="row" style="margin-top:9px">
+        <button class="btn acc" id="rec-mnAdd">➕ הוסף שיא ידנית</button>
+        <label class="btn" style="cursor:pointer">📥 קלוט שיא מקובץ<input type="file" id="rec-fileImp" accept=".hmrec,application/octet-stream" multiple style="display:none"></label>
+      </div>
+      <div class="hint" style="margin-top:6px">קובץ <code>.hmrec</code> מגיע מתלמיד שפתח את הקישור במכשיר שלו — הוא נכנס לתור האישור עם הסרטון.</div>
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> כל השיאים המאושרים</h2>
       <div class="tblwrap" id="rec-allList"></div>
@@ -413,6 +431,24 @@
         <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
       </div>
     </div>
+  </div></div>
+
+  <!-- share link + QR -->
+  <div class="modal" id="rec-shareModal"><div class="box">
+    <h3>🔗 קישור לתלמידים<button class="x" data-close="rec-shareModal">✕</button></h3>
+    <div class="seg" id="rec-shModes" style="margin-bottom:11px">
+      <button data-sh="kiosk" class="on">עמדה / טאבלט בית ספר</button>
+      <button data-sh="guest">מכשיר של התלמיד</button>
+    </div>
+    <div class="hint" id="rec-shDesc" style="margin-bottom:12px"></div>
+    <div class="rec-qrwrap"><canvas id="rec-shQr"></canvas></div>
+    <div class="field" style="margin-top:11px"><label>הקישור</label>
+      <input type="text" id="rec-shUrl" readonly style="font-size:12px;direction:ltr;text-align:left"></div>
+    <div class="row" style="margin-top:9px">
+      <button class="btn sm acc grow" id="rec-shCopy">📋 העתק קישור</button>
+      <button class="btn sm" id="rec-shOpen">↗ פתח לבדיקה</button>
+    </div>
+    <div class="hint rec-shwarn" id="rec-shWarn" style="display:none"></div>
   </div></div>
 
   <!-- manual add / edit modal (teacher only) -->
@@ -621,6 +657,84 @@
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-tools">
+  <div class="pf-tabs" id="tl-tabs">
+    <button data-tt="teams" class="on">👥 קבוצות</button>
+    <button data-tt="pick">🎯 הגרלה</button>
+    <button data-tt="att">✅ נוכחות</button>
+    <button data-tt="rub">📋 מחוונים</button>
+  </div>
+
+  <div id="tl-sub-teams">
+    <div class="card">
+      <h2><span class="dot"></span> מחולל קבוצות</h2>
+      <div class="hint">מחלק את הכיתה לקבוצות מאוזנות לפי תוצאת המבחן האחרונה — כדי שלא ייווצרו קבוצה חזקה וקבוצה שאין לה סיכוי.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-teamCls"></select></div>
+        <div class="field" style="width:180px"><label>מספר קבוצות · <b id="tl-teamNVal">4</b></label>
+          <input type="range" id="tl-teamN" min="2" max="10" value="4"></div>
+        <div class="field" style="width:190px"><label>שיטת חלוקה</label>
+          <select id="tl-teamMode">
+            <option value="balanced">מאוזן לפי רמה</option>
+            <option value="gender">מאוזן לפי רמה ומגדר</option>
+            <option value="random">אקראי לגמרי</option>
+          </select></div>
+        <button class="btn acc" id="tl-teamGo" style="margin-top:18px">🎲 חלק לקבוצות</button>
+      </div>
+    </div>
+    <div class="tl-teams" id="tl-teamsWrap"></div>
+    <div class="card" id="tl-teamActions" style="display:none">
+      <div class="row">
+        <button class="btn acc grow" id="tl-teamAgain">🔄 חלוקה אחרת</button>
+        <button class="btn ghost" id="tl-teamPrint">🖨 הדפס</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tl-sub-pick" style="display:none">
+    <div class="card" style="text-align:center">
+      <h2 style="justify-content:center"><span class="dot"></span> הגרלת תלמיד</h2>
+      <div class="hint">בלי חזרות — כל תלמיד יוצא פעם אחת עד שהסבב מתאפס.</div>
+      <div class="field" style="width:170px;margin:11px auto 0"><label>כיתה</label><select id="tl-pickCls"></select></div>
+      <div class="tl-pickbox"><div id="tl-pickName">—</div><div class="sb" id="tl-pickSub"></div></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn acc big" id="tl-pickGo">🎯 הגרל</button>
+        <button class="btn ghost" id="tl-pickReset">↺ אפס סבב</button>
+      </div>
+      <div class="tl-picked" id="tl-pickList" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div id="tl-sub-att" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> נוכחות והשתתפות</h2>
+      <div class="row" style="margin-top:9px">
+        <div class="field" style="width:160px"><label>תאריך</label><input type="date" id="tl-attDate"></div>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-attCls"></select></div>
+        <button class="btn sm acc" id="tl-attAll" style="margin-top:18px">✓ סמן את כולם</button>
+        <button class="btn sm" id="tl-attCsv" style="margin-top:18px">⬇ דוח CSV</button>
+      </div>
+      <div class="stu-stats" id="tl-attStats" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><div id="tl-attList"></div></div>
+  </div>
+
+  <div id="tl-sub-rub" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> מחוונים להערכה</h2>
+      <div class="hint">מחוון = קריטריונים + סולם 1–4. הציון הסופי הוא ממוצע הקריטריונים, וניתן לייצוא ל-CSV.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field grow"><label>מחוון</label><select id="tl-rubSel"></select></div>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-rubCls"></select></div>
+        <button class="btn sm acc" id="tl-rubNew" style="margin-top:18px">＋ חדש</button>
+        <button class="btn sm" id="tl-rubCsv" style="margin-top:18px">⬇ CSV</button>
+        <button class="btn sm stop" id="tl-rubDel" style="margin-top:18px">🗑</button>
+      </div>
+    </div>
+    <div class="card"><div id="tl-rubBody"></div></div>
+  </div>
+</section>
+
 <section class="view" id="view-games">
   <div class="card">
     <h2><span class="dot"></span> משחקים לשעות פנאי</h2>
@@ -694,6 +808,7 @@
   <button data-go="rec"><span class="ic">🏆</span>שיאים</button>
   <button data-go="games"><span class="ic">🎮</span>משחקים</button>
   <button data-go="fit"><span class="ic">⏱</span>כושר</button>
+  <button data-go="tools"><span class="ic">🧰</span>כלים</button>
   <button data-go="know"><span class="ic">📚</span>ידע</button>
   <button data-go="stu"><span class="ic">👥</span>תלמידים</button>
 </div>

@@ -13,7 +13,13 @@ if(!dc)throw new Error("לא נמצא <x-dc> ב-index.html");
 const body=dc[1].replace(/<helmet>[\s\S]*?<\/helmet>/,"").trim();
 
 const css=R("hm-styles.css");
-const js=["hm-app.js","hm-know.js","hm-lesson.js","hm-new.js"].map(R).join("\n;\n");
+/* חייב להישאר זהה לסדר תגי ה-script ב-index.html */
+const SCRIPTS=["hm-app.js","hm-qr.js","hm-know.js","hm-tools.js","hm-lesson.js","hm-new.js"];
+/* בדיקת שפיות: כל סקריפט שמופיע ב-index.html חייב להיכלל גם כאן */
+const inHtml=[...html.matchAll(/<script src="(hm-[\w-]+\.js)"><\/script>/g)].map(m=>m[1]);
+const missing=inHtml.filter(f=>!SCRIPTS.includes(f));
+if(missing.length)throw new Error("סקריפטים חסרים ברשימת הבנייה: "+missing.join(", "));
+const js=SCRIPTS.map(R).join("\n;\n");
 
 const out=`<!DOCTYPE html>
 <html lang="he" dir="rtl">

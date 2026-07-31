@@ -532,3 +532,64 @@ body.role-student .hx-mods,body.role-student .scoreband{display:none}
 }
 body[data-mod="games"]{--acc:#f87171;--accDim:rgba(248,113,113,.18)}
 body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
+
+/* ============================================================
+   כלי כיתה · קישור QR
+   ============================================================ */
+body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
+
+.rec-guesthint{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.08);
+  border-radius:11px;padding:9px 12px;margin-top:9px}
+.rec-qrwrap{display:grid;place-items:center;background:#fff;border-radius:14px;padding:14px}
+.rec-qrwrap canvas{display:block;max-width:100%;height:auto;image-rendering:pixelated}
+.rec-shwarn{margin-top:11px;border:1px solid rgba(255,210,63,.4);background:rgba(255,210,63,.09);
+  border-radius:11px;padding:10px 12px;line-height:1.65}
+.rec-shwarn code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:5px;font-size:11.5px}
+
+/* קבוצות */
+.tl-teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;margin-top:13px}
+.tl-team{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--tc);
+  border-radius:13px;padding:12px 14px}
+.tl-team .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px}
+.tl-team .hd b{font-family:'Secular One',sans-serif;font-size:15px;color:var(--tc)}
+.tl-team .cnt{font-size:11px;color:var(--faint)}
+.tl-team ol{margin:0;padding-inline-start:20px;font-size:13px;line-height:1.85;color:var(--ink)}
+
+/* הגרלה */
+.tl-pickbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:26px 16px;margin:14px 0;min-height:104px;display:grid;place-items:center}
+.tl-pickbox #tl-pickName{font-family:'Secular One',sans-serif;font-size:30px;color:var(--acc);line-height:1.2;text-align:center}
+.tl-pickbox .sb{font-size:12px;color:var(--muted);margin-top:7px}
+.tl-picked{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+
+/* נוכחות */
+.tl-attrow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tl-attrow:last-child{border-bottom:none}
+.tl-attrow b{font-size:14px}
+.tl-attrow .sb{font-size:11.5px;color:var(--faint);margin-inline-start:7px}
+.tl-marks{display:flex;gap:5px}
+.tl-marks button{background:transparent;border:1px solid var(--line);color:var(--muted);
+  border-radius:9px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+.tl-marks button.on{background:var(--mc);border-color:var(--mc);color:#0c0e1a;font-weight:700}
+
+/* מחוונים */
+.tl-rubrow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px}
+.tl-rubrow .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tl-rubrow .hd b{font-size:14.5px}
+.tl-rubrow .avg{font-family:'Secular One',sans-serif;font-size:19px;color:var(--acc)}
+.tl-rubrow .avg.none{color:var(--faint)}
+.tl-rubrow .crit{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:5px 0;font-size:12.5px;color:var(--muted)}
+.tl-rubrow .lv{display:flex;gap:4px;flex:none}
+.tl-rubrow .lv button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12.5px}
+.tl-rubrow .lv button.on{background:var(--acc);border-color:var(--acc);color:#0c0e1a;font-weight:700}
+
+@media(max-width:520px){
+  .tl-teams{grid-template-columns:1fr}
+  .tl-attrow{align-items:flex-start}
+  .tl-rubrow .crit{flex-direction:column;align-items:flex-start;gap:5px}
+}
+.rec-mine{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.08);
+  border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.rec-mine>b{font-size:13px;color:var(--cy)}

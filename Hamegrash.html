@@ -543,6 +543,67 @@ body.role-student .hx-mods,body.role-student .scoreband{display:none}
 body[data-mod="games"]{--acc:#f87171;--accDim:rgba(248,113,113,.18)}
 body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
 
+/* ============================================================
+   כלי כיתה · קישור QR
+   ============================================================ */
+body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
+
+.rec-guesthint{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.08);
+  border-radius:11px;padding:9px 12px;margin-top:9px}
+.rec-qrwrap{display:grid;place-items:center;background:#fff;border-radius:14px;padding:14px}
+.rec-qrwrap canvas{display:block;max-width:100%;height:auto;image-rendering:pixelated}
+.rec-shwarn{margin-top:11px;border:1px solid rgba(255,210,63,.4);background:rgba(255,210,63,.09);
+  border-radius:11px;padding:10px 12px;line-height:1.65}
+.rec-shwarn code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:5px;font-size:11.5px}
+
+/* קבוצות */
+.tl-teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;margin-top:13px}
+.tl-team{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--tc);
+  border-radius:13px;padding:12px 14px}
+.tl-team .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px}
+.tl-team .hd b{font-family:'Secular One',sans-serif;font-size:15px;color:var(--tc)}
+.tl-team .cnt{font-size:11px;color:var(--faint)}
+.tl-team ol{margin:0;padding-inline-start:20px;font-size:13px;line-height:1.85;color:var(--ink)}
+
+/* הגרלה */
+.tl-pickbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:26px 16px;margin:14px 0;min-height:104px;display:grid;place-items:center}
+.tl-pickbox #tl-pickName{font-family:'Secular One',sans-serif;font-size:30px;color:var(--acc);line-height:1.2;text-align:center}
+.tl-pickbox .sb{font-size:12px;color:var(--muted);margin-top:7px}
+.tl-picked{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+
+/* נוכחות */
+.tl-attrow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tl-attrow:last-child{border-bottom:none}
+.tl-attrow b{font-size:14px}
+.tl-attrow .sb{font-size:11.5px;color:var(--faint);margin-inline-start:7px}
+.tl-marks{display:flex;gap:5px}
+.tl-marks button{background:transparent;border:1px solid var(--line);color:var(--muted);
+  border-radius:9px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+.tl-marks button.on{background:var(--mc);border-color:var(--mc);color:#0c0e1a;font-weight:700}
+
+/* מחוונים */
+.tl-rubrow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px}
+.tl-rubrow .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tl-rubrow .hd b{font-size:14.5px}
+.tl-rubrow .avg{font-family:'Secular One',sans-serif;font-size:19px;color:var(--acc)}
+.tl-rubrow .avg.none{color:var(--faint)}
+.tl-rubrow .crit{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:5px 0;font-size:12.5px;color:var(--muted)}
+.tl-rubrow .lv{display:flex;gap:4px;flex:none}
+.tl-rubrow .lv button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12.5px}
+.tl-rubrow .lv button.on{background:var(--acc);border-color:var(--acc);color:#0c0e1a;font-weight:700}
+
+@media(max-width:520px){
+  .tl-teams{grid-template-columns:1fr}
+  .tl-attrow{align-items:flex-start}
+  .tl-rubrow .crit{flex-direction:column;align-items:flex-start;gap:5px}
+}
+.rec-mine{border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.08);
+  border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.rec-mine>b{font-size:13px;color:var(--cy)}
+
 </style>
 </head>
 <body>
@@ -586,7 +647,9 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
       <div class="tx"><b>פינת תזונה</b><span>טיפ יומי לכיתה · שתייה · צלחת ספורטאי · שוברים מיתוס</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="games" style="--lc:#f87171"><div class="no">08</div>
       <div class="tx"><b>משחקים לשעות פנאי</b><span>הסבר מלא · מטרה · למי מתאים · וריאציות · צפייה ביוטיוב</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">09</div>
+    <div class="hx-mod" data-go="tools" style="--lc:#818cf8"><div class="no">09</div>
+      <div class="tx"><b>כלי כיתה</b><span>קבוצות מאוזנות · הגרלת תלמיד · נוכחות · מחוונים</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">10</div>
       <div class="tx"><b>מאגר ידע ומקורות</b><span>משרד החינוך · WHO · תוכניות אימון מוערכות · סטנדרטים</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
@@ -721,6 +784,12 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
         <label class="check"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
         <label class="check"><input type="checkbox" id="pf-micStart"> זינוק קולי — אקדח/מחיאת כף (מיקרופון)</label>
       </div>
+      <div class="row" style="margin-top:9px">
+        <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
+          <input type="number" id="pf-gunDist" value="0" min="0" step="1"></div>
+        <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
+        <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
+      </div>
       <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
     </div>
 
@@ -733,7 +802,8 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
     <div class="card">
       <div class="row" style="justify-content:space-between">
         <h2 style="margin:0"><span class="dot"></span> מסלולים ומתחרים</h2>
-        <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button>
+        <div class="row"><button class="btn sm" id="pf-pasteNames">📋 הדבק רשימה</button>
+        <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button></div>
       </div>
       <div class="field" style="margin-top:6px"><label>מספר מסלולים · <b id="pf-laneCountVal">4</b></label><input type="range" id="pf-laneCount" min="2" max="9" value="4"></div>
       <div class="pf-runchips" id="pf-chips" style="margin-top:10px"></div>
@@ -758,6 +828,7 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
         <select id="pf-laneSel" style="background:#04110a;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:9px 12px;font-family:'Rubik'"></select>
         <button class="btn sm acc" id="pf-assign">⏱ הקצה זמן למסלול</button>
       </div>
+      <div class="hint" id="pf-precision" style="margin-top:7px;color:var(--acc)"></div>
       <div class="hint" style="margin-top:9px">לחיצה על גוף הרץ ברצועה מציגה את זמן החצייה המדויק. בחר מסלול ולחץ «הקצה» — הזמן נכנס ללוח התוצאות (מקור: תמונה). סימוני המסלולים מוצגים כקווים צבעוניים.</div>
     </div>
   </div>
@@ -872,11 +943,13 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
       <div class="row">
         <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
         <button class="btn sm" id="rec-handBtn">📱 מסור לתלמידים</button>
+        <button class="btn sm" id="rec-shareBtn">🔗 קישור / QR</button>
         <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
       </div>
     </div>
     <div class="hint">בוחרים ענף, צופים בשיא הבית־ספרי מול שיא ישראל והעולם — ושולחים שיא חדש עם סרטון הוכחה. שיא עולה ללוח רק אחרי אישור המורה.</div>
     <div class="hint rec-stuhint" id="rec-roleHint" style="display:none">👦 <b>מצב תלמיד.</b> אפשר לצפות בשיאים, לצפות בסרטונים ולשלוח שיא חדש לאישור. אישור, עריכה ומחיקה — למורה בלבד.</div>
+    <div class="hint rec-guesthint" id="rec-guestHint" style="display:none">📁 <b>מכשיר אישי.</b> אחרי שתשלח שיא ייווצר קובץ — שלח אותו למורה בוואטסאפ או במייל, והוא יקלוט אותו ללוח.</div>
   </div>
   <div class="rec-grid" id="rec-grid"></div>
 
@@ -918,7 +991,11 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> הוספה ידנית</h2>
       <div class="hint">מדדת בשטח ואין סרטון? הוסף את התוצאה ישירות — היא נכנסת ללוח כשיא מאושר בלי לעבור אישור.</div>
-      <button class="btn acc" id="rec-mnAdd" style="margin-top:9px">➕ הוסף שיא ידנית</button>
+      <div class="row" style="margin-top:9px">
+        <button class="btn acc" id="rec-mnAdd">➕ הוסף שיא ידנית</button>
+        <label class="btn" style="cursor:pointer">📥 קלוט שיא מקובץ<input type="file" id="rec-fileImp" accept=".hmrec,application/octet-stream" multiple style="display:none"></label>
+      </div>
+      <div class="hint" style="margin-top:6px">קובץ <code>.hmrec</code> מגיע מתלמיד שפתח את הקישור במכשיר שלו — הוא נכנס לתור האישור עם הסרטון.</div>
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> כל השיאים המאושרים</h2>
       <div class="tblwrap" id="rec-allList"></div>
@@ -942,6 +1019,24 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
         <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
       </div>
     </div>
+  </div></div>
+
+  <!-- share link + QR -->
+  <div class="modal" id="rec-shareModal"><div class="box">
+    <h3>🔗 קישור לתלמידים<button class="x" data-close="rec-shareModal">✕</button></h3>
+    <div class="seg" id="rec-shModes" style="margin-bottom:11px">
+      <button data-sh="kiosk" class="on">עמדה / טאבלט בית ספר</button>
+      <button data-sh="guest">מכשיר של התלמיד</button>
+    </div>
+    <div class="hint" id="rec-shDesc" style="margin-bottom:12px"></div>
+    <div class="rec-qrwrap"><canvas id="rec-shQr"></canvas></div>
+    <div class="field" style="margin-top:11px"><label>הקישור</label>
+      <input type="text" id="rec-shUrl" readonly style="font-size:12px;direction:ltr;text-align:left"></div>
+    <div class="row" style="margin-top:9px">
+      <button class="btn sm acc grow" id="rec-shCopy">📋 העתק קישור</button>
+      <button class="btn sm" id="rec-shOpen">↗ פתח לבדיקה</button>
+    </div>
+    <div class="hint rec-shwarn" id="rec-shWarn" style="display:none"></div>
   </div></div>
 
   <!-- manual add / edit modal (teacher only) -->
@@ -1150,6 +1245,84 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-tools">
+  <div class="pf-tabs" id="tl-tabs">
+    <button data-tt="teams" class="on">👥 קבוצות</button>
+    <button data-tt="pick">🎯 הגרלה</button>
+    <button data-tt="att">✅ נוכחות</button>
+    <button data-tt="rub">📋 מחוונים</button>
+  </div>
+
+  <div id="tl-sub-teams">
+    <div class="card">
+      <h2><span class="dot"></span> מחולל קבוצות</h2>
+      <div class="hint">מחלק את הכיתה לקבוצות מאוזנות לפי תוצאת המבחן האחרונה — כדי שלא ייווצרו קבוצה חזקה וקבוצה שאין לה סיכוי.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-teamCls"></select></div>
+        <div class="field" style="width:180px"><label>מספר קבוצות · <b id="tl-teamNVal">4</b></label>
+          <input type="range" id="tl-teamN" min="2" max="10" value="4"></div>
+        <div class="field" style="width:190px"><label>שיטת חלוקה</label>
+          <select id="tl-teamMode">
+            <option value="balanced">מאוזן לפי רמה</option>
+            <option value="gender">מאוזן לפי רמה ומגדר</option>
+            <option value="random">אקראי לגמרי</option>
+          </select></div>
+        <button class="btn acc" id="tl-teamGo" style="margin-top:18px">🎲 חלק לקבוצות</button>
+      </div>
+    </div>
+    <div class="tl-teams" id="tl-teamsWrap"></div>
+    <div class="card" id="tl-teamActions" style="display:none">
+      <div class="row">
+        <button class="btn acc grow" id="tl-teamAgain">🔄 חלוקה אחרת</button>
+        <button class="btn ghost" id="tl-teamPrint">🖨 הדפס</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tl-sub-pick" style="display:none">
+    <div class="card" style="text-align:center">
+      <h2 style="justify-content:center"><span class="dot"></span> הגרלת תלמיד</h2>
+      <div class="hint">בלי חזרות — כל תלמיד יוצא פעם אחת עד שהסבב מתאפס.</div>
+      <div class="field" style="width:170px;margin:11px auto 0"><label>כיתה</label><select id="tl-pickCls"></select></div>
+      <div class="tl-pickbox"><div id="tl-pickName">—</div><div class="sb" id="tl-pickSub"></div></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn acc big" id="tl-pickGo">🎯 הגרל</button>
+        <button class="btn ghost" id="tl-pickReset">↺ אפס סבב</button>
+      </div>
+      <div class="tl-picked" id="tl-pickList" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div id="tl-sub-att" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> נוכחות והשתתפות</h2>
+      <div class="row" style="margin-top:9px">
+        <div class="field" style="width:160px"><label>תאריך</label><input type="date" id="tl-attDate"></div>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-attCls"></select></div>
+        <button class="btn sm acc" id="tl-attAll" style="margin-top:18px">✓ סמן את כולם</button>
+        <button class="btn sm" id="tl-attCsv" style="margin-top:18px">⬇ דוח CSV</button>
+      </div>
+      <div class="stu-stats" id="tl-attStats" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><div id="tl-attList"></div></div>
+  </div>
+
+  <div id="tl-sub-rub" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> מחוונים להערכה</h2>
+      <div class="hint">מחוון = קריטריונים + סולם 1–4. הציון הסופי הוא ממוצע הקריטריונים, וניתן לייצוא ל-CSV.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field grow"><label>מחוון</label><select id="tl-rubSel"></select></div>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="tl-rubCls"></select></div>
+        <button class="btn sm acc" id="tl-rubNew" style="margin-top:18px">＋ חדש</button>
+        <button class="btn sm" id="tl-rubCsv" style="margin-top:18px">⬇ CSV</button>
+        <button class="btn sm stop" id="tl-rubDel" style="margin-top:18px">🗑</button>
+      </div>
+    </div>
+    <div class="card"><div id="tl-rubBody"></div></div>
+  </div>
+</section>
+
 <section class="view" id="view-games">
   <div class="card">
     <h2><span class="dot"></span> משחקים לשעות פנאי</h2>
@@ -1223,6 +1396,7 @@ body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
   <button data-go="rec"><span class="ic">🏆</span>שיאים</button>
   <button data-go="games"><span class="ic">🎮</span>משחקים</button>
   <button data-go="fit"><span class="ic">⏱</span>כושר</button>
+  <button data-go="tools"><span class="ic">🧰</span>כלים</button>
   <button data-go="know"><span class="ic">📚</span>ידע</button>
   <button data-go="stu"><span class="ic">👥</span>תלמידים</button>
 </div>
@@ -1341,7 +1515,16 @@ function wireModals(){
    ובלוח השיאים אפשר לצפות ולשלוח שיא — לא לאשר, לא לערוך ולא למחוק. */
 const STUDENT_MODS={rec:1,games:1};
 let ROLE=sessionStorage.getItem("pehub.role")||"teacher";
+/* קישור שהמורה מחלק: ?role=student  (ועם guest=1 — מכשיר של התלמיד) */
+const QP=new URLSearchParams(location.search);
+if(QP.get("role")==="student"){
+  ROLE="student";
+  sessionStorage.setItem("pehub.role","student");
+  sessionStorage.setItem("pehub.unlocked","1"); /* מדלג על מסך הקוד */
+}
+const GUEST=QP.get("guest")==="1"&&ROLE==="student";
 const isStudent=()=>ROLE==="student";
+const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
   ROLE=(r==="student")?"student":"teacher";
   sessionStorage.setItem("pehub.role",ROLE);
@@ -1359,7 +1542,7 @@ function applyRole(){
 }
 
 /* ---------- router ---------- */
-const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1};
+const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1};
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -1367,7 +1550,7 @@ function go(mod){
   document.body.dataset.mod=mod;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
-  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init}[mod]; if(f)f(); }
+  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
@@ -1880,6 +2063,9 @@ const PF=(function(){
     ctx.fillStyle="#0d1d16"; ctx.fillRect(0,STRIPH,cv.width,50);
     ctx.font="11px 'Share Tech Mono'"; ctx.textAlign="center";
     if(cols.length>1){
+      const rate=capRate();
+      const pv=$("#pf-precision");
+      if(pv)pv.textContent=rate?`קצב דגימה בפועל: ${rate.toFixed(0)} עמודות/שנ׳ · רזולוציית זמן ±${(1/rate*1000).toFixed(0)} מ״ש`:"";
       const t0=cols[0].t, t1=cols[cols.length-1].t, span=Math.max(0.001,t1-t0);
       const step=span>30?5:span>12?2:span>6?1:0.5;
       for(let tt=Math.ceil(t0/step)*step;tt<=t1;tt+=step){
@@ -1900,10 +2086,24 @@ const PF=(function(){
       ctx.beginPath(); ctx.moveTo(fullCursor,0); ctx.lineTo(fullCursor,STRIPH+50); ctx.stroke(); ctx.setLineDash([]);
     }
   }
+  /* אינטרפולציה תת-עמודתית: במקום לקפוץ לעמודה הקרובה, מחשבים ליניארית
+     בין שתי העמודות שמקיפות את הנקודה. זה מוריד את שגיאת הקוונטיזציה
+     מפריים שלם לחלק ממנו — בדיוק העיקרון שמערכות FAT משתמשות בו. */
   function timeAtCol(x){
-    let best=null,bd=1e9;
-    cols.forEach(c=>{const d=Math.abs(c.x-x);if(d<bd){bd=d;best=c}});
-    return best?best.t:null;
+    if(!cols.length)return null;
+    if(x<=cols[0].x)return cols[0].t;
+    if(x>=cols[cols.length-1].x)return cols[cols.length-1].t;
+    let lo=0,hi=cols.length-1;
+    while(hi-lo>1){ const mid=(lo+hi)>>1; if(cols[mid].x<=x)lo=mid; else hi=mid; }
+    const a=cols[lo],b=cols[hi],dx=b.x-a.x;
+    return dx>0 ? a.t+(b.t-a.t)*((x-a.x)/dx) : a.t;
+  }
+  /* קצב הדגימה בפועל ורזולוציית הזמן הנובעת ממנו */
+  function capRate(){
+    if(cols.length<12)return null;
+    const span=cols[cols.length-1].t-cols[0].t;
+    if(span<=0)return null;
+    return (cols.length-1)/span;
   }
 
   /* ---------- race control ---------- */
@@ -1923,7 +2123,7 @@ const PF=(function(){
         micAn.getByteTimeDomainData(data);
         let peak=0; for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]-128));
         if(calm<20){ if(peak<25)calm++; }
-        else if(peak>70){ micStop(); launch(); return; }
+        else if(peak>70){ micStop(); launch(soundLagSec()); return; }
         requestAnimationFrame(poll);
       })();
     }catch(e){ toast("אין גישה למיקרופון — זינוק רגיל"); countdown(); }
@@ -1956,9 +2156,18 @@ const PF=(function(){
       }else{ $("#pf-cd").classList.remove("on"); launch(); }
     })();
   }
-  function launch(){
+  /* קול נע ~343 מ/ש. אם המיקרופון רחוק מהמזניק, השמע מגיע באיחור
+     והשעון היה מתחיל מאוחר מדי — לכן מזיזים את t0 אחורה בהתאם.
+     (המנגנון שמערכות FAT מיישמות כדי לקזז את מרחק האקדח.) */
+  function soundLagSec(){
+    const d=parseFloat(LS.get("pf.gunDist",0));
+    return (d>0&&isFinite(d)) ? d/343 : 0;
+  }
+  function launch(backdate){
     horn();
-    race.on=true; race.armed=true; race.t0=performance.now(); lineActive=false; lastFire=-1e9;
+    race.on=true; race.armed=true;
+    race.t0=performance.now()-(backdate||0)*1000;
+    lineActive=false; lastFire=-1e9;
     $("#pf-gun").innerHTML="⏹ עצור מקצה";
     LS.set("pf.totalRaces",LS.get("pf.totalRaces",0)+1);
     keepAwake(true); clockLoop();
@@ -2258,6 +2467,28 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    /* קיזוז מרחק אקדח–מיקרופון */
+    $("#pf-gunDist").value=LS.get("pf.gunDist",0);
+    $("#pf-gunDist").addEventListener("change",e=>{
+      const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d);
+      $("#pf-gunLag").textContent=d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";
+    });
+    $("#pf-gunLag").textContent=(()=>{const d=LS.get("pf.gunDist",0);
+      return d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";})();
+    /* הדבקת רשימת שמות */
+    $("#pf-pasteNames").addEventListener("click",()=>{
+      const txt=prompt("הדבק רשימת שמות — שם בכל שורה (או מופרד בפסיקים):");
+      if(!txt)return;
+      const list=txt.split(/[\n,]/).map(x=>x.trim()).filter(Boolean);
+      if(!list.length)return;
+      laneN=Math.max(2,Math.min(9,list.length));
+      LS.set("pf.laneN",laneN);
+      $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
+      buildLanes(false);
+      lanes.forEach((l,i)=>{ if(list[i])l.name=list[i]; });
+      persistNames(); renderChips(); renderBoard(); refreshLaneSel();
+      toast("נטענו "+lanes.length+" מתחרים");
+    });
     $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
@@ -2463,6 +2694,21 @@ const REC=(function(){
       <td style="color:var(--muted)">${esc(e.cls||"")}</td><td class="mono">${showVal(sp,e.value)}</td>
       <td>${e.video?`<button class="vbtn" data-v="${e.id}">▶ סרטון</button>`:""}</td></tr>`).join("")}</tbody></table>`
       :'<div class="empty-state"><div class="big">🏅</div>אין עדיין שיאים מאושרים בענף.<br>שלח שיא והיה הראשון בלוח הכבוד!</div>';
+    /* במכשיר של התלמיד: השיאים שנשלחו יושבים כאן בלבד — נותנים אפשרות לשלוח שוב */
+    if(window.HM&&window.HM.isGuest&&window.HM.isGuest()){
+      const mine=CACHE.filter(r=>r.sport===id&&r.status==="pending").sort((a,b)=>b.ts-a.ts);
+      if(mine.length)$("#rec-sdBoard").insertAdjacentHTML("afterbegin",
+        `<div class="rec-mine"><b>📁 השיאים ששלחת מהמכשיר הזה</b>${
+          mine.map(e=>`<div class="row" style="align-items:center;margin-top:7px">
+            <span class="grow">${esc(e.name)} · ${showVal(sp,e.value)} ${esc(sp.unit)}</span>
+            <button class="btn sm acc" data-resend="${e.id}">📤 שלח למורה שוב</button></div>`).join("")
+        }<div class="hint" style="margin-top:7px">שיא נכנס ללוח רק אחרי שהמורה קולט את הקובץ ומאשר.</div></div>`);
+      $$("#rec-sdBoard [data-resend]").forEach(b2=>b2.addEventListener("click",async()=>{
+        const r=CACHE.find(x=>x.id===b2.dataset.resend); if(!r)return;
+        const how=await exportRecord(r);
+        toast(how==="shared"?"📤 נשלח":how==="cancelled"?"בוטל":"📁 הקובץ ירד — שלח אותו למורה");
+      }));
+    }
     modal("rec-sportModal");
     setTimeout(()=>{ const f=$$("#rec-sdCompare .fill");
       if(f[0])f[0].style.width=pct(sp,sv,rf.world)+"%";
@@ -2514,6 +2760,16 @@ const REC=(function(){
       status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
     $("#rec-subName").value="";$("#rec-subClass").value="";$("#rec-subVal").value="";$("#rec-subVideo").value="";
+    if(window.HM&&window.HM.isGuest&&window.HM.isGuest()){
+      /* מכשיר של התלמיד: אין שרת משותף, ולכן אורזים את השיא לקובץ לשליחה למורה */
+      const rec=CACHE.slice().sort((a,b)=>b.ts-a.ts)[0];
+      const how=await exportRecord(rec);
+      beep(880,0.15);
+      toast(how==="shared"?"📤 נשלח למורה!":
+            how==="cancelled"?"הקובץ מוכן — אפשר לשלוח שוב מהלוח":
+            "📁 קובץ השיא ירד — שלח אותו למורה");
+      return;
+    }
     toast("📤 נשלח! השיא ימתין לאישור המורה."); beep(880,0.15);
   }
 
@@ -2631,6 +2887,93 @@ const REC=(function(){
     await refresh(); renderAdmin(); toast("הענף נוסף — אפשר להזין בו שיאים");
   }
 
+  /* ---------- קישור ו-QR לתלמידים ----------
+     שני מצבים:
+     kiosk — עמדה על מכשיר המורה. השיא נשמר כאן ומחכה לאישור.
+     guest — המכשיר של התלמיד. אין שרת משותף, ולכן השיא נארז לקובץ
+             שהתלמיד שולח למורה, והמורה קולט אותו בלוח המורה. */
+  function baseUrl(){ return location.href.split("#")[0].split("?")[0]; }
+  function shareUrl(guest){ return baseUrl()+"?role=student"+(guest?"&guest=1":"")+"#rec"; }
+  function urlReachable(){
+    return location.protocol!=="file:"&&
+      !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/i.test(location.hostname);
+  }
+  let shareGuest=false;
+  function renderShare(){
+    const url=shareUrl(shareGuest);
+    $("#rec-shUrl").value=url;
+    $$("#rec-shModes button").forEach(b=>b.classList.toggle("on",(b.dataset.sh==="guest")===shareGuest));
+    $("#rec-shDesc").innerHTML=shareGuest
+      ? "התלמיד פותח את הקישור <b>במכשיר שלו</b>, ממלא תוצאה ומצרף סרטון. בסיום נוצר קובץ שיא שהוא שולח לך (וואטסאפ / מייל), ואתה קולט אותו בלוח המורה בכפתור «קלוט שיא מקובץ»."
+      : "הקישור פותח את האפליקציה במצב תלמיד — לוח השיאים ודף המשחקים בלבד. מיועד ל<b>עמדה קבועה</b> או לטאבלט של בית הספר: השיא נשמר במכשיר הזה ומחכה לאישורך.";
+    try{
+      window.HMQR.draw($("#rec-shQr"),url,{size:250,fg:"#0c0e1a",bg:"#ffffff"});
+      $("#rec-shQr").style.display="";
+    }catch(e){ $("#rec-shQr").style.display="none"; }
+    const warn=$("#rec-shWarn");
+    if(!urlReachable()){
+      warn.style.display="";
+      warn.innerHTML=location.protocol==="file:"
+        ? "⚠️ האפליקציה פתוחה כקובץ מקומי (<code>file://</code>), ולכן הקישור והברקוד <b>לא יעבדו משום מכשיר אחר</b>. כדי שהם יעבדו צריך להעלות את התיקייה לאירוח כלשהו — GitHub Pages, שרת בית הספר או כל אחסון סטטי — ולפתוח את האפליקציה משם."
+        : "⚠️ הכתובת היא <code>localhost</code> ולכן היא מצביעה על המכשיר שסורק, לא עליך. הברקוד יעבוד רק אם תפתח את האפליקציה מכתובת שנגישה ברשת בית הספר או מהאינטרנט.";
+    } else warn.style.display="none";
+  }
+  function openShare(){ renderShare(); modal("rec-shareModal"); }
+
+  /* אריזת שיא לקובץ .hmrec: כותרת טקסט + JSON + בייטים של הסרטון */
+  async function packRecord(rec){
+    const meta={v:1,sport:rec.sport,name:rec.name,cls:rec.cls,value:rec.value,ts:rec.ts,
+      school:SET.school||"",hasVideo:!!rec.video,
+      videoType:rec.video?rec.video.type:"",videoName:rec.video?(rec.video.name||"video"):""};
+    const head=new TextEncoder().encode("HMREC1\n"+JSON.stringify(meta)+"\n");
+    const parts=[head]; if(rec.video)parts.push(rec.video);
+    return new Blob(parts,{type:"application/octet-stream"});
+  }
+  async function unpackRecord(file){
+    const buf=new Uint8Array(await file.arrayBuffer());
+    let nl=0,seen=0,i=0;
+    for(;i<buf.length&&seen<2;i++)if(buf[i]===10){seen++;nl=i;}
+    const headTxt=new TextDecoder().decode(buf.slice(0,nl));
+    const lines=headTxt.split("\n");
+    if(lines[0]!=="HMREC1")throw new Error("קובץ לא מזוהה");
+    const meta=JSON.parse(lines.slice(1).join("\n"));
+    const rest=buf.slice(nl+1);
+    const video=meta.hasVideo&&rest.length?new Blob([rest],{type:meta.videoType||"video/mp4"}):null;
+    return {meta,video};
+  }
+  async function exportRecord(rec){
+    const blob=await packRecord(rec);
+    const sp=sportById(rec.sport);
+    /* שם הקובץ חייב להיות ASCII: כרום מתעלם מ-download עם תווים בעברית
+       ומוריד קובץ בשם "download" בלי סיומת — והמורה לא יוכל לבחור אותו. */
+    const ascii=(rec.name||"").replace(/[^\w.-]+/g,"-").replace(/^-+|-+$/g,"");
+    const stamp=new Date(rec.ts||Date.now()).toISOString().slice(0,10);
+    const fname=`hmrec-${ascii||rec.sport}-${stamp}-${String(rec.id).slice(-4)}.hmrec`;
+    const f=new File([blob],fname,{type:"application/octet-stream"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      try{ await navigator.share({files:[f],title:"שיא חדש",text:`${rec.name} · ${sp.name} · ${showVal(sp,rec.value)}`}); return "shared"; }
+      catch(e){ if(e&&e.name==="AbortError")return "cancelled"; }
+    }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    return "downloaded";
+  }
+  async function importRecordFile(file){
+    try{
+      const {meta,video}=await unpackRecord(file);
+      if(!sportById(meta.sport)||!(meta.value>0))throw new Error("נתונים חסרים");
+      const dup=CACHE.some(r=>r.name===meta.name&&r.sport===meta.sport&&r.value===meta.value&&Math.abs(r.ts-meta.ts)<1000);
+      if(dup){ toast("השיא הזה כבר נקלט"); return; }
+      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),
+        sport:meta.sport,name:meta.name,cls:meta.cls||"",value:meta.value,video,
+        status:"pending",src:"file",ts:meta.ts||Date.now()});
+      await refresh(); renderAdmin();
+      toast("📥 נקלט — ממתין לאישורך"); beep(880,0.15);
+    }catch(e){ toast("קובץ שיא לא תקין"); }
+  }
+
   /* ---------- הרשאות ---------- */
   function applyRoleRec(){
     const stu=window.HM&&window.HM.isStudent&&window.HM.isStudent();
@@ -2638,6 +2981,9 @@ const REC=(function(){
     const kb=$("#rec-kioskBtn"); if(kb)kb.style.display=stu?"none":"";
     const hb=$("#rec-handBtn"); if(hb)hb.style.display=stu?"none":"";
     const rh=$("#rec-roleHint"); if(rh)rh.style.display=stu?"":"none";
+    const gh=$("#rec-guestHint");
+    if(gh)gh.style.display=(window.HM&&window.HM.isGuest&&window.HM.isGuest())?"":"none";
+    const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
     if(stu)modal("rec-adminModal",false);
   }
 
@@ -2698,6 +3044,20 @@ const REC=(function(){
     $("#rec-mnSport").addEventListener("change",updMnLb);
     $("#rec-mnSave").addEventListener("click",saveManual);
     $("#rec-csAdd").addEventListener("click",addCustomSport);
+    /* קישור ו-QR לתלמידים */
+    $("#rec-shareBtn").addEventListener("click",openShare);
+    $$("#rec-shModes button").forEach(b=>b.addEventListener("click",()=>{
+      shareGuest=b.dataset.sh==="guest"; renderShare();
+    }));
+    $("#rec-shCopy").addEventListener("click",async()=>{
+      try{ await navigator.clipboard.writeText($("#rec-shUrl").value); toast("הקישור הועתק"); }
+      catch(e){ $("#rec-shUrl").select(); toast("סמן והעתק ידנית"); }
+    });
+    $("#rec-shOpen").addEventListener("click",()=>window.open($("#rec-shUrl").value,"_blank"));
+    $("#rec-fileImp").addEventListener("change",async e=>{
+      for(const f of e.target.files)await importRecordFile(f);
+      e.target.value="";
+    });
     applyRoleRec();
   }
   return {init,countApproved,applyRole:applyRoleRec,
@@ -2910,9 +3270,267 @@ const FIT=(function(){
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,role:()=>ROLE};
+  setRole,isStudent,isGuest,role:()=>ROLE};
 window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };
+
+;
+"use strict";
+/* ============================================================
+   מקודד QR מינימלי — מצב בייטים (UTF-8), רמת תיקון שגיאות M,
+   גרסאות 1–13. עצמאי לגמרי, בלי ספריות חיצוניות.
+   window.HMQR.matrix(text) -> מערך דו־ממדי של true/false
+   window.HMQR.draw(canvas,text,opts)
+   ============================================================ */
+window.HMQR=(function(){
+
+  /* ---------- שדה גלואה GF(256) ---------- */
+  const EXP=new Uint8Array(512), LOG=new Uint8Array(256);
+  (function(){ let x=1;
+    for(let i=0;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&0x100)x^=0x11d; }
+    for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+  })();
+  const mul=(a,b)=>(a&&b)?EXP[LOG[a]+LOG[b]]:0;
+
+  function rsGen(n){
+    let g=[1];
+    for(let i=0;i<n;i++){
+      const ng=new Array(g.length+1).fill(0);
+      /* אינדקס 0 = המקדם של החזקה הגבוהה ביותר:
+         הכפלה ב-x נשארת באינדקס j, והכפלה ב-α^i יורדת ל-j+1 */
+      for(let j=0;j<g.length;j++){ ng[j]^=g[j]; ng[j+1]^=mul(g[j],EXP[i]); }
+      g=ng;
+    }
+    return g;
+  }
+  function rsEncode(data,n){
+    const g=rsGen(n), res=new Array(n).fill(0);
+    for(const b of data){
+      const f=b^res[0];
+      res.shift(); res.push(0);
+      if(f)for(let i=0;i<n;i++)res[i]^=mul(g[i+1],f);
+    }
+    return res;
+  }
+
+  /* ---------- טבלאות גרסה (רמת M בלבד) ----------
+     [סה״כ קודי־מילה, ECC לבלוק, בלוקים בקבוצה 1, בלוקים בקבוצה 2] */
+  const VER={
+    1:[26,10,1,0],   2:[44,16,1,0],   3:[70,26,1,0],   4:[100,18,2,0],
+    5:[134,24,2,0],  6:[172,16,4,0],  7:[196,18,4,0],  8:[242,22,2,2],
+    9:[292,22,3,2], 10:[346,26,4,1], 11:[404,30,1,4], 12:[466,22,6,2],
+    13:[532,22,8,1]
+  };
+  /* קיבולת נתונים במצב בייטים לכל גרסה ברמת M */
+  const CAP={1:14,2:26,3:42,4:62,5:84,6:106,7:122,8:152,9:180,10:213,11:251,12:287,13:331};
+
+  const ALIGN={1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],
+    7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50],11:[6,30,54],
+    12:[6,32,58],13:[6,34,62]};
+
+  function utf8(s){
+    const out=[];
+    for(const ch of unescape(encodeURIComponent(s)))out.push(ch.charCodeAt(0));
+    return out;
+  }
+
+  /* ---------- בניית זרם הביטים ---------- */
+  function buildData(bytes,ver){
+    const [total,eccPer,g1,g2]=VER[ver];
+    const blocks=g1+g2;
+    const dataCw=total-eccPer*blocks;
+    const bits=[];
+    const push=(v,n)=>{ for(let i=n-1;i>=0;i--)bits.push((v>>i)&1); };
+    push(4,4);                                   /* מצב בייטים */
+    push(bytes.length, ver<10?8:16);             /* אורך */
+    bytes.forEach(b=>push(b,8));
+    /* מחוון סיום + ריפוד לגבול בייט */
+    for(let i=0;i<4&&bits.length<dataCw*8;i++)bits.push(0);
+    while(bits.length%8)bits.push(0);
+    const cw=[];
+    for(let i=0;i<bits.length;i+=8){
+      let v=0; for(let j=0;j<8;j++)v=(v<<1)|bits[i+j];
+      cw.push(v);
+    }
+    const PAD=[0xEC,0x11]; let k=0;
+    while(cw.length<dataCw)cw.push(PAD[k++%2]);
+
+    /* חלוקה לבלוקים: g2 בלוקים ארוכים ב-1 מ-g1 */
+    const shortLen=Math.floor(dataCw/blocks);
+    const dBlocks=[],eBlocks=[];
+    let p=0;
+    for(let i=0;i<blocks;i++){
+      const len=shortLen+(i>=g1?1:0);
+      const d=cw.slice(p,p+len); p+=len;
+      dBlocks.push(d); eBlocks.push(rsEncode(d,eccPer));
+    }
+    /* שזירה */
+    const out=[];
+    const maxD=Math.max(...dBlocks.map(b=>b.length));
+    for(let i=0;i<maxD;i++)for(const b of dBlocks)if(i<b.length)out.push(b[i]);
+    for(let i=0;i<eccPer;i++)for(const b of eBlocks)out.push(b[i]);
+    return out;
+  }
+
+  /* ---------- מטריצה ---------- */
+  function newMatrix(size){
+    const m=[],r=[];
+    for(let i=0;i<size;i++){ m.push(new Array(size).fill(null)); r.push(new Array(size).fill(false)); }
+    return {m,r};
+  }
+  function placeFinder(m,r,size,row,col){
+    for(let dy=-1;dy<=7;dy++)for(let dx=-1;dx<=7;dx++){
+      const y=row+dy,x=col+dx;
+      if(y<0||y>=size||x<0||x>=size)continue;
+      const inner=(dy>=0&&dy<=6&&dx>=0&&dx<=6);
+      const on=inner&&((dy===0||dy===6||dx===0||dx===6)||(dy>=2&&dy<=4&&dx>=2&&dx<=4));
+      m[y][x]=on; r[y][x]=true;
+    }
+  }
+  function buildMatrix(ver,codewords,mask){
+    const size=ver*4+17;
+    const {m,r}=newMatrix(size);
+    placeFinder(m,r,size,0,0);
+    placeFinder(m,r,size,0,size-7);
+    placeFinder(m,r,size,size-7,0);
+    /* טיימינג */
+    for(let i=8;i<size-8;i++){
+      m[6][i]=(i%2===0); r[6][i]=true;
+      m[i][6]=(i%2===0); r[i][6]=true;
+    }
+    /* דפוסי יישור */
+    const al=ALIGN[ver];
+    for(const ay of al)for(const ax of al){
+      if((ay<=8&&ax<=8)||(ay<=8&&ax>=size-9)||(ay>=size-9&&ax<=8))continue;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+        m[ay+dy][ax+dx]=(Math.max(Math.abs(dy),Math.abs(dx))!==1);
+        r[ay+dy][ax+dx]=true;
+      }
+    }
+    /* מודול כהה קבוע */
+    m[size-8][8]=true; r[size-8][8]=true;
+    /* שריון אזור מידע הפורמט */
+    for(let i=0;i<9;i++){ if(!r[8][i]){m[8][i]=false;r[8][i]=true;} if(!r[i][8]){m[i][8]=false;r[i][8]=true;} }
+    for(let i=0;i<8;i++){ if(!r[8][size-1-i]){m[8][size-1-i]=false;r[8][size-1-i]=true;}
+                          if(!r[size-1-i][8]){m[size-1-i][8]=false;r[size-1-i][8]=true;} }
+    /* מידע גרסה — נדרש מגרסה 7 ומעלה */
+    if(ver>=7){
+      let rem=ver;
+      for(let i=0;i<12;i++)rem=(rem<<1)^((rem>>>11)*0x1F25);
+      const vb=(ver<<12)|rem;
+      for(let i=0;i<18;i++){
+        const bit=((vb>>i)&1)===1, a=size-11+i%3, b=Math.floor(i/3);
+        m[b][a]=bit; r[b][a]=true;   /* פינה ימנית עליונה */
+        m[a][b]=bit; r[a][b]=true;   /* פינה שמאלית תחתונה */
+      }
+    }
+
+    /* נתונים בזיגזג */
+    let bi=0;
+    const bitAt=i=>(i>>3)<codewords.length?((codewords[i>>3]>>(7-(i&7)))&1):0;
+    let up=true;
+    for(let col=size-1;col>0;col-=2){
+      if(col===6)col--;
+      for(let n=0;n<size;n++){
+        const row=up?size-1-n:n;
+        for(let c=0;c<2;c++){
+          const x=col-c;
+          if(r[row][x])continue;
+          let v=bitAt(bi++)===1;
+          if(maskFn(mask,row,x))v=!v;
+          m[row][x]=v;
+        }
+      }
+      up=!up;
+    }
+    /* מידע פורמט: רמה M = 00. הקואורדינטות הן [שורה][עמודה]. */
+    const fmt=formatBits(0,mask);
+    for(let i=0;i<15;i++){
+      const b=((fmt>>i)&1)===1;
+      /* עותק ראשון — סביב הפינה השמאלית העליונה */
+      if(i<6)m[i][8]=b;
+      else if(i===6)m[7][8]=b;
+      else if(i===7)m[8][8]=b;
+      else if(i===8)m[8][7]=b;
+      else m[8][14-i]=b;
+      /* עותק שני — מפוצל בין ימין למטה */
+      if(i<8)m[8][size-1-i]=b;
+      else m[size-15+i][8]=b;
+    }
+    return m;
+  }
+  function maskFn(k,i,j){
+    switch(k){
+      case 0:return (i+j)%2===0;
+      case 1:return i%2===0;
+      case 2:return j%3===0;
+      case 3:return (i+j)%3===0;
+      case 4:return (Math.floor(i/2)+Math.floor(j/3))%2===0;
+      case 5:return (i*j)%2+(i*j)%3===0;
+      case 6:return ((i*j)%2+(i*j)%3)%2===0;
+      default:return ((i+j)%2+(i*j)%3)%2===0;
+    }
+  }
+  function formatBits(ec,mask){
+    const data=(ec<<3)|mask;
+    let v=data<<10;
+    for(let i=4;i>=0;i--)if(v&(1<<(i+10)))v^=0x537<<i;
+    return ((data<<10)|v)^0x5412;
+  }
+
+  /* ---------- ניקוד עונשין לבחירת מסכה ---------- */
+  function penalty(m){
+    const n=m.length; let p=0;
+    const run=line=>{ let s=0,c=1;
+      for(let i=1;i<n;i++){ if(line[i]===line[i-1])c++; else {if(c>=5)s+=c-2;c=1;} }
+      if(c>=5)s+=c-2; return s; };
+    for(let i=0;i<n;i++){ p+=run(m[i]); p+=run(m.map(r=>r[i])); }
+    for(let i=0;i<n-1;i++)for(let j=0;j<n-1;j++){
+      const a=m[i][j];
+      if(a===m[i][j+1]&&a===m[i+1][j]&&a===m[i+1][j+1])p+=3;
+    }
+    const pat=[true,false,true,true,true,false,true,false,false,false,false];
+    const hit=(arr,s)=>{ for(let k=0;k<11;k++)if(arr[s+k]!==pat[k])return false; return true; };
+    for(let i=0;i<n;i++){
+      const row=m[i], col=m.map(r=>r[i]);
+      for(let j=0;j+11<=n;j++){ if(hit(row,j))p+=40; if(hit(col,j))p+=40; }
+    }
+    let dark=0; m.forEach(r=>r.forEach(v=>{if(v)dark++;}));
+    p+=Math.floor(Math.abs(dark*100/(n*n)-50)/5)*10;
+    return p;
+  }
+
+  function matrix(text){
+    const bytes=utf8(text);
+    let ver=0;
+    for(let v=1;v<=13;v++)if(bytes.length<=CAP[v]){ver=v;break;}
+    if(!ver)throw new Error("הטקסט ארוך מדי ל-QR (עד "+CAP[13]+" בייטים)");
+    const cw=buildData(bytes,ver);
+    let best=null,bestP=Infinity;
+    for(let k=0;k<8;k++){
+      const m=buildMatrix(ver,cw,k), p=penalty(m);
+      if(p<bestP){bestP=p;best=m;}
+    }
+    return best;
+  }
+
+  function draw(canvas,text,opts){
+    opts=opts||{};
+    const m=matrix(text), n=m.length;
+    const quiet=opts.quiet==null?4:opts.quiet;
+    const scale=opts.scale||Math.max(2,Math.floor((opts.size||280)/(n+quiet*2)));
+    const px=(n+quiet*2)*scale;
+    canvas.width=px; canvas.height=px;
+    const c=canvas.getContext("2d");
+    c.fillStyle=opts.bg||"#ffffff"; c.fillRect(0,0,px,px);
+    c.fillStyle=opts.fg||"#000000";
+    for(let y=0;y<n;y++)for(let x=0;x<n;x++)
+      if(m[y][x])c.fillRect((x+quiet)*scale,(y+quiet)*scale,scale,scale);
+    return canvas;
+  }
+
+  return {matrix,draw};
+})();
 
 ;
 "use strict";
@@ -3784,6 +4402,332 @@ window.KNOW=(function(){
     renderSrc(); renderProg(); renderFacts();
   }
   return {init, sources:()=>SOURCES, programs:()=>PROGRAMS, byId:srcById};
+})();
+})();
+
+;
+"use strict";
+/* ============================================================
+   המגרש PRO — כלי כיתה
+   קבוצות מאוזנות · הגרלת תלמיד · נוכחות והשתתפות · מחוונים
+   כולם נשענים על רשימת התלמידים של מודול «התלמידים שלי».
+   ============================================================ */
+(function(){
+const H=()=>window.HM;
+const today=()=>new Date().toISOString().slice(0,10);
+const students=()=>H().LS.get("stu.list",[]);
+const classesOf=l=>[...new Set(l.map(s=>s.cls).filter(Boolean))].sort();
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* דירוג יכולת לצורך איזון: המרחק במבחן האחרון. תלמיד בלי מבחן מקבל חציון. */
+function levelOf(s){
+  const t=s.tests&&s.tests.length?s.tests[s.tests.length-1]:null;
+  return t&&t.dist>0?t.dist:null;
+}
+function withLevels(list){
+  const known=list.map(levelOf).filter(v=>v!=null).sort((a,b)=>a-b);
+  const med=known.length?known[Math.floor(known.length/2)]:1000;
+  return list.map(s=>({s,lv:levelOf(s)??med,known:levelOf(s)!=null}));
+}
+
+window.TOOLS=(function(){
+  let inited=false, tab="teams";
+
+  /* ============================================================
+     1. מחולל קבוצות
+     ============================================================ */
+  let teams=[], teamCls="", teamN=4, teamMode="balanced";
+  function pool(){
+    const l=students();
+    return teamCls?l.filter(s=>s.cls===teamCls):l;
+  }
+  function makeTeams(){
+    const {toast}=H();
+    const p=pool();
+    if(p.length<teamN){toast("אין מספיק תלמידים למספר הקבוצות");return;}
+    const n=Math.max(2,Math.min(10,teamN));
+    teams=Array.from({length:n},()=>[]);
+
+    if(teamMode==="random"){
+      shuffle(p).forEach((s,i)=>teams[i%n].push({s,lv:null}));
+    } else if(teamMode==="gender"){
+      /* מאזן בנים ובנות בין הקבוצות, ובתוך זה מאזן רמה */
+      ["boys","girls"].forEach(sex=>{
+        const grp=withLevels(p.filter(s=>(s.sex||"boys")===sex)).sort((a,b)=>b.lv-a.lv);
+        snake(grp);
+      });
+    } else {
+      /* איזון רמה בשיטת "נחש": חזק–חלש לסירוגין */
+      snake(withLevels(p).sort((a,b)=>b.lv-a.lv));
+    }
+    function snake(arr){
+      let dir=1,i=0;
+      arr.forEach(e=>{
+        teams[i].push(e);
+        i+=dir;
+        if(i===n){i=n-1;dir=-1;} else if(i<0){i=0;dir=1;}
+      });
+    }
+    renderTeams();
+    H().toast("הוגרלו "+n+" קבוצות");
+  }
+  function renderTeams(){
+    const {$, $$, esc}=H();
+    if(!teams.length){$("#tl-teamsWrap").innerHTML="";$("#tl-teamActions").style.display="none";return;}
+    $("#tl-teamActions").style.display="";
+    const COL=["#38bdf8","#fbbf24","#34d399","#f472b6","#a78bfa","#fb923c","#4ade80","#f87171","#22d3ee","#c084fc"];
+    $("#tl-teamsWrap").innerHTML=teams.map((t,i)=>{
+      const known=t.filter(e=>e.lv!=null&&e.s.tests&&e.s.tests.length);
+      const avg=known.length?Math.round(known.reduce((a,e)=>a+e.lv,0)/known.length):null;
+      return `<div class="tl-team" style="--tc:${COL[i%COL.length]}">
+        <div class="hd"><b>קבוצה ${i+1}</b>
+          <span class="cnt">${t.length} שחקנים${avg?" · ממוצע "+avg+" מ׳":""}</span></div>
+        <ol>${t.map(e=>`<li>${esc(e.s.name)}${e.s.sex==="girls"?" ♀":""}</li>`).join("")}</ol>
+      </div>`;
+    }).join("");
+  }
+  function printTeams(){
+    if(!teams.length)return;
+    const esc=H().esc, school=H().SET.school?esc(H().SET.school)+" · ":"";
+    const w=window.open("","_blank");
+    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>חלוקה לקבוצות</title>
+      <style>body{font-family:Arial;padding:26px;color:#16182b}
+      h1{color:#1f7a4d;font-size:21px;margin:0 0 3px}.meta{color:#666;font-size:13px;margin-bottom:16px}
+      .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+      .t{border:2px solid #1f7a4d;border-radius:9px;padding:10px 13px;break-inside:avoid}
+      .t b{color:#1f7a4d;font-size:15px}ol{margin:6px 0 0;padding-inline-start:20px;line-height:1.75}
+      </style></head><body>
+      <h1>חלוקה לקבוצות</h1><div class="meta">${school}${teamCls?"כיתה "+esc(teamCls)+" · ":""}${today()}</div>
+      <div class="g">${teams.map((t,i)=>`<div class="t"><b>קבוצה ${i+1}</b>
+        <ol>${t.map(e=>"<li>"+esc(e.s.name)+"</li>").join("")}</ol></div>`).join("")}</div>
+      <script>print()<\/script></body></html>`);
+    w.document.close();
+  }
+
+  /* ============================================================
+     2. הגרלת תלמיד — בלי חזרות עד שכולם יצאו
+     ============================================================ */
+  let pickCls="", picked=[], lastPick=null;
+  function pickPool(){
+    const l=students();
+    return (pickCls?l.filter(s=>s.cls===pickCls):l);
+  }
+  function drawStudent(){
+    const {$, esc, toast, beep, confetti}=H();
+    let p=pickPool();
+    if(!p.length){toast("אין תלמידים ברשימה");return;}
+    let left=p.filter(s=>!picked.includes(s.id));
+    if(!left.length){ picked=[]; left=p; toast("סבב חדש — כולם חוזרים לקלפי"); }
+    const s=left[Math.floor(Math.random()*left.length)];
+    picked.push(s.id); lastPick=s;
+    /* אנימציית גלגול קצרה */
+    const box=$("#tl-pickName"); let n=0;
+    const spin=setInterval(()=>{
+      box.textContent=p[Math.floor(Math.random()*p.length)].name;
+      if(++n>9){ clearInterval(spin);
+        box.textContent=s.name;
+        $("#tl-pickSub").textContent=(s.cls||"")+" · נותרו "+(p.length-picked.length)+" בסבב";
+        beep(880,0.14); confetti(30);
+      }
+    },70);
+    renderPicked();
+  }
+  function renderPicked(){
+    const {$, esc}=H();
+    const p=pickPool();
+    $("#tl-pickList").innerHTML=picked.length
+      ? picked.map(id=>{const s=p.find(x=>x.id===id);return s?`<span class="pill">${esc(s.name)}</span>`:"";}).join("")
+      : '<span class="hint">עדיין לא הוגרל אף אחד בסבב הזה.</span>';
+  }
+
+  /* ============================================================
+     3. נוכחות והשתתפות
+     ============================================================ */
+  const ATT=()=>H().LS.get("tools.att",{});
+  const attKey=(d,c)=>d+"|"+(c||"all");
+  const MARKS=[["p","מלאה","#34d399"],["h","חלקית","#fbbf24"],["e","פטור","#38bdf8"],["a","נעדר","#f87171"]];
+  let attCls="", attDate=today();
+  function renderAtt(){
+    const {$, $$, esc}=H();
+    const l=students().filter(s=>!attCls||s.cls===attCls);
+    const all=ATT(), rec=all[attKey(attDate,attCls)]||{};
+    const cnt={p:0,h:0,e:0,a:0};
+    l.forEach(s=>{ if(rec[s.id])cnt[rec[s.id]]=(cnt[rec[s.id]]||0)+1; });
+    $("#tl-attStats").innerHTML=MARKS.map(([k,nm,c])=>
+      `<div class="qs"><div class="n" style="color:${c}">${cnt[k]||0}</div><div class="l">${nm}</div></div>`).join("")+
+      `<div class="qs"><div class="n">${l.length-Object.keys(rec).length}</div><div class="l">לא סומן</div></div>`;
+    $("#tl-attList").innerHTML=l.length?l.map(s=>`<div class="tl-attrow">
+      <div class="grow"><b>${esc(s.name)}</b><span class="sb">${esc(s.cls||"")}</span></div>
+      <div class="tl-marks">${MARKS.map(([k,nm,c])=>
+        `<button data-att="${s.id}|${k}" class="${rec[s.id]===k?"on":""}" style="--mc:${c}">${nm}</button>`).join("")}</div>
+    </div>`).join(""):'<div class="empty-state"><div class="big">👥</div>אין תלמידים בכיתה הזו.<br>הוסף תלמידים במודול «התלמידים שלי».</div>';
+    $$("#tl-attList [data-att]").forEach(b=>b.addEventListener("click",()=>{
+      const [id,k]=b.dataset.att.split("|");
+      const a=ATT(), key=attKey(attDate,attCls);
+      a[key]=a[key]||{};
+      if(a[key][id]===k)delete a[key][id]; else a[key][id]=k;
+      H().LS.set("tools.att",a); renderAtt();
+    }));
+  }
+  function attSummary(){
+    const {esc}=H();
+    const all=ATT(), l=students().filter(s=>!attCls||s.cls===attCls);
+    const per={};
+    Object.keys(all).forEach(k=>{
+      const [d,c]=k.split("|");
+      if(attCls&&c!==attCls)return;
+      Object.entries(all[k]).forEach(([id,v])=>{ per[id]=per[id]||{p:0,h:0,e:0,a:0,days:0}; per[id][v]++; per[id].days++; });
+    });
+    const rows=[["שם","כיתה","שיעורים","השתתפות מלאה","חלקית","פטור","נעדר","% השתתפות"]];
+    l.forEach(s=>{
+      const x=per[s.id]||{p:0,h:0,e:0,a:0,days:0};
+      const pct=x.days?Math.round((x.p+x.h*0.5)/x.days*100):0;
+      rows.push([s.name,s.cls||"",x.days,x.p,x.h,x.e,x.a,pct+"%"]);
+    });
+    H().dlCSV("attendance_"+(attCls||"all")+".csv",rows);
+    H().toast("דוח נוכחות הורד");
+  }
+
+  /* ============================================================
+     4. מחוונים (רובריקות)
+     ============================================================ */
+  const RUB=()=>H().LS.get("tools.rubrics",[]);
+  const SC=()=>H().LS.get("tools.scores",{});
+  const LEVELS=[["4","מצוין"],["3","טוב"],["2","בסיסי"],["1","טעון שיפור"]];
+  const PRESETS=[
+    {name:"משחק כדור — מיומנות והתנהגות",
+     crit:["מסירה וקליטה בתנועה","מיקום ותנועה בלי כדור","שיתוף פעולה והכלה","הוגנות וכיבוד חוקים"]},
+    {name:"כושר גופני — מאמץ והתמדה",
+     crit:["מאמץ עקבי לאורך השיעור","ביצוע טכני נכון","התמדה מול קושי","עבודה בטוחה ומודעת"]},
+    {name:"התעמלות — שליטה בגוף",
+     crit:["שליטה ובקרה בתנועה","רצף וזרימה","עזרה ובטיחות לחבר","נכונות לנסות"]},
+    {name:"מנהיגות והובלה",
+     crit:["הסבר ברור של משימה","הכלת כל חברי הקבוצה","קבלת אחריות","משוב מכבד"]}
+  ];
+  let curRub=null, rubCls="";
+  function renderRub(){
+    const {$, $$, esc}=H();
+    const list=RUB();
+    $("#tl-rubSel").innerHTML='<option value="">— בחר מחוון —</option>'+
+      list.map(r=>`<option value="${r.id}" ${curRub===r.id?"selected":""}>${esc(r.name)}</option>`).join("");
+    const r=list.find(x=>x.id===curRub);
+    if(!r){ $("#tl-rubBody").innerHTML='<div class="hint">בחר מחוון קיים או צור חדש מתבנית.</div>'; return; }
+    const l=students().filter(s=>!rubCls||s.cls===rubCls);
+    const sc=SC();
+    $("#tl-rubBody").innerHTML=`
+      <div class="hint" style="margin-bottom:10px">${r.crit.length} קריטריונים · סולם 1–4 · הציון הוא ממוצע הקריטריונים.</div>
+      ${l.length?l.map(s=>{
+        const key=r.id+"|"+s.id, mine=sc[key]||{};
+        const vals=r.crit.map((_,i)=>mine[i]).filter(v=>v);
+        const avg=vals.length?(vals.reduce((a,b)=>a+ +b,0)/vals.length):null;
+        return `<div class="tl-rubrow">
+          <div class="hd"><b>${esc(s.name)}</b>
+            <span class="avg ${avg?"":"none"}">${avg?avg.toFixed(1):"—"}</span></div>
+          ${r.crit.map((c,i)=>`<div class="crit"><span>${esc(c)}</span>
+            <div class="lv">${LEVELS.map(([v,nm])=>
+              `<button data-sc="${key}|${i}|${v}" class="${mine[i]===v?"on":""}" title="${nm}">${v}</button>`).join("")}</div></div>`).join("")}
+        </div>`;
+      }).join(""):'<div class="empty-state"><div class="big">📋</div>אין תלמידים בכיתה הזו.</div>'}`;
+    $$("#tl-rubBody [data-sc]").forEach(b=>b.addEventListener("click",()=>{
+      /* המפתח הוא rubricId|studentId|criterionIndex|value */
+      const parts=b.dataset.sc.split("|");
+      const k=parts[0]+"|"+parts[1], idx=parts[2], val=parts[3];
+      const s=SC(); s[k]=s[k]||{};
+      if(s[k][idx]===val)delete s[k][idx]; else s[k][idx]=val;
+      H().LS.set("tools.scores",s); renderRub();
+    }));
+  }
+  function newRubric(presetIdx){
+    const {toast}=H();
+    const p=PRESETS[presetIdx];
+    const name=prompt("שם המחוון:",p?p.name:"מחוון חדש");
+    if(!name)return;
+    let crit=p?p.crit.slice():[];
+    if(!p){
+      const txt=prompt("קריטריונים, אחד בכל שורה:","מיומנות\nמאמץ\nשיתוף פעולה\nבטיחות");
+      if(!txt)return;
+      crit=txt.split("\n").map(x=>x.trim()).filter(Boolean);
+    }
+    if(!crit.length){toast("צריך לפחות קריטריון אחד");return;}
+    const list=RUB(), id="rb"+Date.now().toString(36);
+    list.push({id,name:name.trim(),crit});
+    H().LS.set("tools.rubrics",list); curRub=id; renderRub(); toast("המחוון נוצר");
+  }
+  function rubCsv(){
+    const r=RUB().find(x=>x.id===curRub); if(!r){H().toast("בחר מחוון");return;}
+    const l=students().filter(s=>!rubCls||s.cls===rubCls), sc=SC();
+    const rows=[["שם","כיתה",...r.crit,"ממוצע"]];
+    l.forEach(s=>{
+      const mine=sc[r.id+"|"+s.id]||{};
+      const vals=r.crit.map((_,i)=>mine[i]||"");
+      const nums=vals.filter(v=>v).map(Number);
+      rows.push([s.name,s.cls||"",...vals,nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(2):""]);
+    });
+    H().dlCSV("rubric_"+r.name+".csv",rows);
+  }
+
+  /* ============================================================
+     אתחול
+     ============================================================ */
+  function fillClassSelects(){
+    const {$}=H(); const cs=classesOf(students());
+    const opts=v=>'<option value="">כל הכיתות</option>'+cs.map(c=>`<option ${c===v?"selected":""}>${c}</option>`).join("");
+    $("#tl-teamCls").innerHTML=opts(teamCls);
+    $("#tl-pickCls").innerHTML=opts(pickCls);
+    $("#tl-attCls").innerHTML=opts(attCls);
+    $("#tl-rubCls").innerHTML=opts(rubCls);
+  }
+  function init(){
+    const {$, $$}=H();
+    if(inited){ fillClassSelects(); renderAtt(); renderRub(); renderPicked(); return; }
+    inited=true;
+    $$("#tl-tabs [data-tt]").forEach(b=>b.addEventListener("click",()=>{
+      tab=b.dataset.tt;
+      $$("#tl-tabs [data-tt]").forEach(x=>x.classList.toggle("on",x===b));
+      ["teams","pick","att","rub"].forEach(t=>$("#tl-sub-"+t).style.display=t===tab?"":"none");
+    }));
+    /* קבוצות */
+    $("#tl-teamCls").addEventListener("change",e=>{teamCls=e.target.value;});
+    $("#tl-teamN").addEventListener("input",e=>{teamN=+e.target.value||4;$("#tl-teamNVal").textContent=teamN;});
+    $("#tl-teamMode").addEventListener("change",e=>{teamMode=e.target.value;});
+    $("#tl-teamGo").addEventListener("click",makeTeams);
+    $("#tl-teamAgain").addEventListener("click",makeTeams);
+    $("#tl-teamPrint").addEventListener("click",printTeams);
+    /* הגרלה */
+    $("#tl-pickCls").addEventListener("change",e=>{pickCls=e.target.value;picked=[];renderPicked();});
+    $("#tl-pickGo").addEventListener("click",drawStudent);
+    $("#tl-pickReset").addEventListener("click",()=>{picked=[];renderPicked();H().toast("הסבב אופס");});
+    /* נוכחות */
+    $("#tl-attDate").value=attDate;
+    $("#tl-attDate").addEventListener("change",e=>{attDate=e.target.value||today();renderAtt();});
+    $("#tl-attCls").addEventListener("change",e=>{attCls=e.target.value;renderAtt();});
+    $("#tl-attAll").addEventListener("click",()=>{
+      const l=students().filter(s=>!attCls||s.cls===attCls);
+      const a=ATT(), key=attKey(attDate,attCls); a[key]=a[key]||{};
+      l.forEach(s=>{ if(!a[key][s.id])a[key][s.id]="p"; });
+      H().LS.set("tools.att",a); renderAtt(); H().toast("כל מי שלא סומן — השתתפות מלאה");
+    });
+    $("#tl-attCsv").addEventListener("click",attSummary);
+    /* מחוונים */
+    $("#tl-rubSel").addEventListener("change",e=>{curRub=e.target.value;renderRub();});
+    $("#tl-rubCls").addEventListener("change",e=>{rubCls=e.target.value;renderRub();});
+    $("#tl-rubCsv").addEventListener("click",rubCsv);
+    $("#tl-rubNew").addEventListener("click",()=>{
+      const opts=PRESETS.map((p,i)=>`${i+1}. ${p.name}`).join("\n");
+      const c=prompt("בחר תבנית (מספר), או 0 למחוון ריק:\n\n"+opts,"1");
+      if(c===null)return;
+      newRubric(+c>0?+c-1:null);
+    });
+    $("#tl-rubDel").addEventListener("click",()=>{
+      if(!curRub)return;
+      if(!confirm("למחוק את המחוון והציונים שלו?"))return;
+      H().LS.set("tools.rubrics",RUB().filter(r=>r.id!==curRub));
+      const s=SC(); Object.keys(s).forEach(k=>{ if(k.startsWith(curRub+"|"))delete s[k]; });
+      H().LS.set("tools.scores",s); curRub=null; renderRub(); H().toast("נמחק");
+    });
+    fillClassSelects(); renderAtt(); renderRub(); renderPicked();
+  }
+  return {init};
 })();
 })();
 

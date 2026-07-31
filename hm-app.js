@@ -70,7 +70,16 @@ function wireModals(){
    ובלוח השיאים אפשר לצפות ולשלוח שיא — לא לאשר, לא לערוך ולא למחוק. */
 const STUDENT_MODS={rec:1,games:1};
 let ROLE=sessionStorage.getItem("pehub.role")||"teacher";
+/* קישור שהמורה מחלק: ?role=student  (ועם guest=1 — מכשיר של התלמיד) */
+const QP=new URLSearchParams(location.search);
+if(QP.get("role")==="student"){
+  ROLE="student";
+  sessionStorage.setItem("pehub.role","student");
+  sessionStorage.setItem("pehub.unlocked","1"); /* מדלג על מסך הקוד */
+}
+const GUEST=QP.get("guest")==="1"&&ROLE==="student";
 const isStudent=()=>ROLE==="student";
+const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
   ROLE=(r==="student")?"student":"teacher";
   sessionStorage.setItem("pehub.role",ROLE);
@@ -88,7 +97,7 @@ function applyRole(){
 }
 
 /* ---------- router ---------- */
-const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1};
+const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1};
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -96,7 +105,7 @@ function go(mod){
   document.body.dataset.mod=mod;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
-  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init}[mod]; if(f)f(); }
+  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
@@ -609,6 +618,9 @@ const PF=(function(){
     ctx.fillStyle="#0d1d16"; ctx.fillRect(0,STRIPH,cv.width,50);
     ctx.font="11px 'Share Tech Mono'"; ctx.textAlign="center";
     if(cols.length>1){
+      const rate=capRate();
+      const pv=$("#pf-precision");
+      if(pv)pv.textContent=rate?`קצב דגימה בפועל: ${rate.toFixed(0)} עמודות/שנ׳ · רזולוציית זמן ±${(1/rate*1000).toFixed(0)} מ״ש`:"";
       const t0=cols[0].t, t1=cols[cols.length-1].t, span=Math.max(0.001,t1-t0);
       const step=span>30?5:span>12?2:span>6?1:0.5;
       for(let tt=Math.ceil(t0/step)*step;tt<=t1;tt+=step){
@@ -629,10 +641,24 @@ const PF=(function(){
       ctx.beginPath(); ctx.moveTo(fullCursor,0); ctx.lineTo(fullCursor,STRIPH+50); ctx.stroke(); ctx.setLineDash([]);
     }
   }
+  /* אינטרפולציה תת-עמודתית: במקום לקפוץ לעמודה הקרובה, מחשבים ליניארית
+     בין שתי העמודות שמקיפות את הנקודה. זה מוריד את שגיאת הקוונטיזציה
+     מפריים שלם לחלק ממנו — בדיוק העיקרון שמערכות FAT משתמשות בו. */
   function timeAtCol(x){
-    let best=null,bd=1e9;
-    cols.forEach(c=>{const d=Math.abs(c.x-x);if(d<bd){bd=d;best=c}});
-    return best?best.t:null;
+    if(!cols.length)return null;
+    if(x<=cols[0].x)return cols[0].t;
+    if(x>=cols[cols.length-1].x)return cols[cols.length-1].t;
+    let lo=0,hi=cols.length-1;
+    while(hi-lo>1){ const mid=(lo+hi)>>1; if(cols[mid].x<=x)lo=mid; else hi=mid; }
+    const a=cols[lo],b=cols[hi],dx=b.x-a.x;
+    return dx>0 ? a.t+(b.t-a.t)*((x-a.x)/dx) : a.t;
+  }
+  /* קצב הדגימה בפועל ורזולוציית הזמן הנובעת ממנו */
+  function capRate(){
+    if(cols.length<12)return null;
+    const span=cols[cols.length-1].t-cols[0].t;
+    if(span<=0)return null;
+    return (cols.length-1)/span;
   }
 
   /* ---------- race control ---------- */
@@ -652,7 +678,7 @@ const PF=(function(){
         micAn.getByteTimeDomainData(data);
         let peak=0; for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]-128));
         if(calm<20){ if(peak<25)calm++; }
-        else if(peak>70){ micStop(); launch(); return; }
+        else if(peak>70){ micStop(); launch(soundLagSec()); return; }
         requestAnimationFrame(poll);
       })();
     }catch(e){ toast("אין גישה למיקרופון — זינוק רגיל"); countdown(); }
@@ -685,9 +711,18 @@ const PF=(function(){
       }else{ $("#pf-cd").classList.remove("on"); launch(); }
     })();
   }
-  function launch(){
+  /* קול נע ~343 מ/ש. אם המיקרופון רחוק מהמזניק, השמע מגיע באיחור
+     והשעון היה מתחיל מאוחר מדי — לכן מזיזים את t0 אחורה בהתאם.
+     (המנגנון שמערכות FAT מיישמות כדי לקזז את מרחק האקדח.) */
+  function soundLagSec(){
+    const d=parseFloat(LS.get("pf.gunDist",0));
+    return (d>0&&isFinite(d)) ? d/343 : 0;
+  }
+  function launch(backdate){
     horn();
-    race.on=true; race.armed=true; race.t0=performance.now(); lineActive=false; lastFire=-1e9;
+    race.on=true; race.armed=true;
+    race.t0=performance.now()-(backdate||0)*1000;
+    lineActive=false; lastFire=-1e9;
     $("#pf-gun").innerHTML="⏹ עצור מקצה";
     LS.set("pf.totalRaces",LS.get("pf.totalRaces",0)+1);
     keepAwake(true); clockLoop();
@@ -987,6 +1022,28 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    /* קיזוז מרחק אקדח–מיקרופון */
+    $("#pf-gunDist").value=LS.get("pf.gunDist",0);
+    $("#pf-gunDist").addEventListener("change",e=>{
+      const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d);
+      $("#pf-gunLag").textContent=d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";
+    });
+    $("#pf-gunLag").textContent=(()=>{const d=LS.get("pf.gunDist",0);
+      return d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";})();
+    /* הדבקת רשימת שמות */
+    $("#pf-pasteNames").addEventListener("click",()=>{
+      const txt=prompt("הדבק רשימת שמות — שם בכל שורה (או מופרד בפסיקים):");
+      if(!txt)return;
+      const list=txt.split(/[\n,]/).map(x=>x.trim()).filter(Boolean);
+      if(!list.length)return;
+      laneN=Math.max(2,Math.min(9,list.length));
+      LS.set("pf.laneN",laneN);
+      $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
+      buildLanes(false);
+      lanes.forEach((l,i)=>{ if(list[i])l.name=list[i]; });
+      persistNames(); renderChips(); renderBoard(); refreshLaneSel();
+      toast("נטענו "+lanes.length+" מתחרים");
+    });
     $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
@@ -1192,6 +1249,21 @@ const REC=(function(){
       <td style="color:var(--muted)">${esc(e.cls||"")}</td><td class="mono">${showVal(sp,e.value)}</td>
       <td>${e.video?`<button class="vbtn" data-v="${e.id}">▶ סרטון</button>`:""}</td></tr>`).join("")}</tbody></table>`
       :'<div class="empty-state"><div class="big">🏅</div>אין עדיין שיאים מאושרים בענף.<br>שלח שיא והיה הראשון בלוח הכבוד!</div>';
+    /* במכשיר של התלמיד: השיאים שנשלחו יושבים כאן בלבד — נותנים אפשרות לשלוח שוב */
+    if(window.HM&&window.HM.isGuest&&window.HM.isGuest()){
+      const mine=CACHE.filter(r=>r.sport===id&&r.status==="pending").sort((a,b)=>b.ts-a.ts);
+      if(mine.length)$("#rec-sdBoard").insertAdjacentHTML("afterbegin",
+        `<div class="rec-mine"><b>📁 השיאים ששלחת מהמכשיר הזה</b>${
+          mine.map(e=>`<div class="row" style="align-items:center;margin-top:7px">
+            <span class="grow">${esc(e.name)} · ${showVal(sp,e.value)} ${esc(sp.unit)}</span>
+            <button class="btn sm acc" data-resend="${e.id}">📤 שלח למורה שוב</button></div>`).join("")
+        }<div class="hint" style="margin-top:7px">שיא נכנס ללוח רק אחרי שהמורה קולט את הקובץ ומאשר.</div></div>`);
+      $$("#rec-sdBoard [data-resend]").forEach(b2=>b2.addEventListener("click",async()=>{
+        const r=CACHE.find(x=>x.id===b2.dataset.resend); if(!r)return;
+        const how=await exportRecord(r);
+        toast(how==="shared"?"📤 נשלח":how==="cancelled"?"בוטל":"📁 הקובץ ירד — שלח אותו למורה");
+      }));
+    }
     modal("rec-sportModal");
     setTimeout(()=>{ const f=$$("#rec-sdCompare .fill");
       if(f[0])f[0].style.width=pct(sp,sv,rf.world)+"%";
@@ -1243,6 +1315,16 @@ const REC=(function(){
       status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
     $("#rec-subName").value="";$("#rec-subClass").value="";$("#rec-subVal").value="";$("#rec-subVideo").value="";
+    if(window.HM&&window.HM.isGuest&&window.HM.isGuest()){
+      /* מכשיר של התלמיד: אין שרת משותף, ולכן אורזים את השיא לקובץ לשליחה למורה */
+      const rec=CACHE.slice().sort((a,b)=>b.ts-a.ts)[0];
+      const how=await exportRecord(rec);
+      beep(880,0.15);
+      toast(how==="shared"?"📤 נשלח למורה!":
+            how==="cancelled"?"הקובץ מוכן — אפשר לשלוח שוב מהלוח":
+            "📁 קובץ השיא ירד — שלח אותו למורה");
+      return;
+    }
     toast("📤 נשלח! השיא ימתין לאישור המורה."); beep(880,0.15);
   }
 
@@ -1360,6 +1442,93 @@ const REC=(function(){
     await refresh(); renderAdmin(); toast("הענף נוסף — אפשר להזין בו שיאים");
   }
 
+  /* ---------- קישור ו-QR לתלמידים ----------
+     שני מצבים:
+     kiosk — עמדה על מכשיר המורה. השיא נשמר כאן ומחכה לאישור.
+     guest — המכשיר של התלמיד. אין שרת משותף, ולכן השיא נארז לקובץ
+             שהתלמיד שולח למורה, והמורה קולט אותו בלוח המורה. */
+  function baseUrl(){ return location.href.split("#")[0].split("?")[0]; }
+  function shareUrl(guest){ return baseUrl()+"?role=student"+(guest?"&guest=1":"")+"#rec"; }
+  function urlReachable(){
+    return location.protocol!=="file:"&&
+      !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/i.test(location.hostname);
+  }
+  let shareGuest=false;
+  function renderShare(){
+    const url=shareUrl(shareGuest);
+    $("#rec-shUrl").value=url;
+    $$("#rec-shModes button").forEach(b=>b.classList.toggle("on",(b.dataset.sh==="guest")===shareGuest));
+    $("#rec-shDesc").innerHTML=shareGuest
+      ? "התלמיד פותח את הקישור <b>במכשיר שלו</b>, ממלא תוצאה ומצרף סרטון. בסיום נוצר קובץ שיא שהוא שולח לך (וואטסאפ / מייל), ואתה קולט אותו בלוח המורה בכפתור «קלוט שיא מקובץ»."
+      : "הקישור פותח את האפליקציה במצב תלמיד — לוח השיאים ודף המשחקים בלבד. מיועד ל<b>עמדה קבועה</b> או לטאבלט של בית הספר: השיא נשמר במכשיר הזה ומחכה לאישורך.";
+    try{
+      window.HMQR.draw($("#rec-shQr"),url,{size:250,fg:"#0c0e1a",bg:"#ffffff"});
+      $("#rec-shQr").style.display="";
+    }catch(e){ $("#rec-shQr").style.display="none"; }
+    const warn=$("#rec-shWarn");
+    if(!urlReachable()){
+      warn.style.display="";
+      warn.innerHTML=location.protocol==="file:"
+        ? "⚠️ האפליקציה פתוחה כקובץ מקומי (<code>file://</code>), ולכן הקישור והברקוד <b>לא יעבדו משום מכשיר אחר</b>. כדי שהם יעבדו צריך להעלות את התיקייה לאירוח כלשהו — GitHub Pages, שרת בית הספר או כל אחסון סטטי — ולפתוח את האפליקציה משם."
+        : "⚠️ הכתובת היא <code>localhost</code> ולכן היא מצביעה על המכשיר שסורק, לא עליך. הברקוד יעבוד רק אם תפתח את האפליקציה מכתובת שנגישה ברשת בית הספר או מהאינטרנט.";
+    } else warn.style.display="none";
+  }
+  function openShare(){ renderShare(); modal("rec-shareModal"); }
+
+  /* אריזת שיא לקובץ .hmrec: כותרת טקסט + JSON + בייטים של הסרטון */
+  async function packRecord(rec){
+    const meta={v:1,sport:rec.sport,name:rec.name,cls:rec.cls,value:rec.value,ts:rec.ts,
+      school:SET.school||"",hasVideo:!!rec.video,
+      videoType:rec.video?rec.video.type:"",videoName:rec.video?(rec.video.name||"video"):""};
+    const head=new TextEncoder().encode("HMREC1\n"+JSON.stringify(meta)+"\n");
+    const parts=[head]; if(rec.video)parts.push(rec.video);
+    return new Blob(parts,{type:"application/octet-stream"});
+  }
+  async function unpackRecord(file){
+    const buf=new Uint8Array(await file.arrayBuffer());
+    let nl=0,seen=0,i=0;
+    for(;i<buf.length&&seen<2;i++)if(buf[i]===10){seen++;nl=i;}
+    const headTxt=new TextDecoder().decode(buf.slice(0,nl));
+    const lines=headTxt.split("\n");
+    if(lines[0]!=="HMREC1")throw new Error("קובץ לא מזוהה");
+    const meta=JSON.parse(lines.slice(1).join("\n"));
+    const rest=buf.slice(nl+1);
+    const video=meta.hasVideo&&rest.length?new Blob([rest],{type:meta.videoType||"video/mp4"}):null;
+    return {meta,video};
+  }
+  async function exportRecord(rec){
+    const blob=await packRecord(rec);
+    const sp=sportById(rec.sport);
+    /* שם הקובץ חייב להיות ASCII: כרום מתעלם מ-download עם תווים בעברית
+       ומוריד קובץ בשם "download" בלי סיומת — והמורה לא יוכל לבחור אותו. */
+    const ascii=(rec.name||"").replace(/[^\w.-]+/g,"-").replace(/^-+|-+$/g,"");
+    const stamp=new Date(rec.ts||Date.now()).toISOString().slice(0,10);
+    const fname=`hmrec-${ascii||rec.sport}-${stamp}-${String(rec.id).slice(-4)}.hmrec`;
+    const f=new File([blob],fname,{type:"application/octet-stream"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      try{ await navigator.share({files:[f],title:"שיא חדש",text:`${rec.name} · ${sp.name} · ${showVal(sp,rec.value)}`}); return "shared"; }
+      catch(e){ if(e&&e.name==="AbortError")return "cancelled"; }
+    }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    return "downloaded";
+  }
+  async function importRecordFile(file){
+    try{
+      const {meta,video}=await unpackRecord(file);
+      if(!sportById(meta.sport)||!(meta.value>0))throw new Error("נתונים חסרים");
+      const dup=CACHE.some(r=>r.name===meta.name&&r.sport===meta.sport&&r.value===meta.value&&Math.abs(r.ts-meta.ts)<1000);
+      if(dup){ toast("השיא הזה כבר נקלט"); return; }
+      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),
+        sport:meta.sport,name:meta.name,cls:meta.cls||"",value:meta.value,video,
+        status:"pending",src:"file",ts:meta.ts||Date.now()});
+      await refresh(); renderAdmin();
+      toast("📥 נקלט — ממתין לאישורך"); beep(880,0.15);
+    }catch(e){ toast("קובץ שיא לא תקין"); }
+  }
+
   /* ---------- הרשאות ---------- */
   function applyRoleRec(){
     const stu=window.HM&&window.HM.isStudent&&window.HM.isStudent();
@@ -1367,6 +1536,9 @@ const REC=(function(){
     const kb=$("#rec-kioskBtn"); if(kb)kb.style.display=stu?"none":"";
     const hb=$("#rec-handBtn"); if(hb)hb.style.display=stu?"none":"";
     const rh=$("#rec-roleHint"); if(rh)rh.style.display=stu?"":"none";
+    const gh=$("#rec-guestHint");
+    if(gh)gh.style.display=(window.HM&&window.HM.isGuest&&window.HM.isGuest())?"":"none";
+    const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
     if(stu)modal("rec-adminModal",false);
   }
 
@@ -1427,6 +1599,20 @@ const REC=(function(){
     $("#rec-mnSport").addEventListener("change",updMnLb);
     $("#rec-mnSave").addEventListener("click",saveManual);
     $("#rec-csAdd").addEventListener("click",addCustomSport);
+    /* קישור ו-QR לתלמידים */
+    $("#rec-shareBtn").addEventListener("click",openShare);
+    $$("#rec-shModes button").forEach(b=>b.addEventListener("click",()=>{
+      shareGuest=b.dataset.sh==="guest"; renderShare();
+    }));
+    $("#rec-shCopy").addEventListener("click",async()=>{
+      try{ await navigator.clipboard.writeText($("#rec-shUrl").value); toast("הקישור הועתק"); }
+      catch(e){ $("#rec-shUrl").select(); toast("סמן והעתק ידנית"); }
+    });
+    $("#rec-shOpen").addEventListener("click",()=>window.open($("#rec-shUrl").value,"_blank"));
+    $("#rec-fileImp").addEventListener("change",async e=>{
+      for(const f of e.target.files)await importRecordFile(f);
+      e.target.value="";
+    });
     applyRoleRec();
   }
   return {init,countApproved,applyRole:applyRoleRec,
@@ -1639,6 +1825,6 @@ const FIT=(function(){
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,role:()=>ROLE};
+  setRole,isStudent,isGuest,role:()=>ROLE};
 window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };
