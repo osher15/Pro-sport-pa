@@ -9,7 +9,7 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
-const SET=Object.assign({school:"",sound:true,voice:true,wake:true},LS.get("settings",{}));
+const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
@@ -140,8 +140,12 @@ setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc
 
 /* ---------- settings ---------- */
 function wireSettings(){
-$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; modal("setModal"); });
-$("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked; saveSet(); modal("setModal",false); toast("ההגדרות נשמרו"); });
+$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake;
+  $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||""; modal("setModal"); });
+$("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
+  SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
+  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
 }
 
 /* ---------- PWA-ish manifest ---------- */
@@ -1336,6 +1340,14 @@ const REC=(function(){
     const sp=sportById($("#rec-subSport").value);
     $("#rec-subValLb").textContent="תוצאה ("+sp.unit+")";
     $("#rec-subRules").innerHTML=howtoHtml(sp,true);
+    const dv=$("#rec-subDrive");
+    if(dv){
+      const guest=window.HM&&window.HM.isGuest&&window.HM.isGuest();
+      dv.style.display=(guest&&SET.driveForm)?"":"none";
+      dv.innerHTML=`📤 <b>בבית הספר הזה מעלים את הסרטון לטופס.</b> מלא כאן את התוצאה,
+        ואז לחץ על הכפתור כדי להעלות את הסרטון לתיקייה של המורה.
+        <a class="btn sm acc" href="${esc(SET.driveForm)}" target="_blank" rel="noopener" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
+    }
     const full=$("#rec-subFull");
     if(full)full.onclick=()=>openHowto(sp.id);
     const ck=$("#rec-subOk"); if(ck)ck.checked=false;
@@ -1697,6 +1709,11 @@ const REC=(function(){
     const gh=$("#rec-guestHint");
     if(gh)gh.style.display=(window.HM&&window.HM.isGuest&&window.HM.isGuest())?"":"none";
     const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
+    /* כפתורי הדרייב מופיעים רק אם המורה הגדיר קישורים בהגדרות */
+    const up=$("#rec-driveUp");
+    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>window.open(SET.driveForm,"_blank"); }
+    const fo=$("#rec-driveFolder");
+    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>window.open(SET.driveFolder,"_blank"); }
     if(stu)modal("rec-adminModal",false);
   }
 

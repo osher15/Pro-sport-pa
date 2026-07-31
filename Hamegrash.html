@@ -640,6 +640,8 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
 .rec-rules .vid{font-size:12px;color:var(--cy);background:rgba(56,189,248,.1);
   border:1px solid rgba(56,189,248,.28);border-radius:9px;padding:6px 10px;margin-bottom:10px}
 #rec-sportEdit textarea{min-height:60px;line-height:1.6}
+.rec-drivebox{border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.09);
+  border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;line-height:1.65}
 
 </style>
 </head>
@@ -981,6 +983,8 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
         <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
         <button class="btn sm" id="rec-handBtn">📱 מסור לתלמידים</button>
         <button class="btn sm" id="rec-shareBtn">🔗 קישור / QR</button>
+        <button class="btn sm acc" id="rec-driveUp" style="display:none">📤 העלה סרטון</button>
+        <button class="btn sm" id="rec-driveFolder" style="display:none">📂 תיקיית הסרטונים</button>
         <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
       </div>
     </div>
@@ -1008,6 +1012,7 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="rec-subClass" placeholder="ט׳3"></div>
     </div>
     <div class="field" style="margin-top:9px"><label id="rec-subValLb">תוצאה</label><input type="number" id="rec-subVal" step="any" inputmode="decimal"></div>
+    <div class="rec-drivebox" id="rec-subDrive" style="display:none"></div>
     <div id="rec-subRules"></div>
     <button class="btn sm ghost" id="rec-subFull" style="margin:2px 0 12px">📋 הכללים המלאים + סרטון הסבר</button>
     <div class="field"><label>סרטון הוכחה (חובה לשיא רשמי)</label>
@@ -1488,6 +1493,11 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
     <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
     <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
   </div>
+  <div class="field" style="margin-top:13px"><label>קישור לטופס העלאת סרטונים (Google Forms)</label>
+    <input type="url" id="set-driveForm" placeholder="https://forms.gle/..." style="direction:ltr;text-align:left;font-size:12px"></div>
+  <div class="field" style="margin-top:9px"><label>קישור לתיקיית הסרטונים בדרייב</label>
+    <input type="url" id="set-driveFolder" placeholder="https://drive.google.com/drive/folders/..." style="direction:ltr;text-align:left;font-size:12px"></div>
+  <div class="hint" style="margin-top:7px">כשממלאים את הטופס — תלמידים במצב אורח מקבלים כפתור העלאה ישיר, ואתה מקבל קיצור לתיקייה מלוח השיאים.</div>
   <div class="hint" style="margin-top:13px">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
 </div></div>
@@ -1532,7 +1542,7 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
-const SET=Object.assign({school:"",sound:true,voice:true,wake:true},LS.get("settings",{}));
+const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
@@ -1663,8 +1673,12 @@ setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc
 
 /* ---------- settings ---------- */
 function wireSettings(){
-$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; modal("setModal"); });
-$("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked; saveSet(); modal("setModal",false); toast("ההגדרות נשמרו"); });
+$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake;
+  $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||""; modal("setModal"); });
+$("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
+  SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
+  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
 }
 
 /* ---------- PWA-ish manifest ---------- */
@@ -2859,6 +2873,14 @@ const REC=(function(){
     const sp=sportById($("#rec-subSport").value);
     $("#rec-subValLb").textContent="תוצאה ("+sp.unit+")";
     $("#rec-subRules").innerHTML=howtoHtml(sp,true);
+    const dv=$("#rec-subDrive");
+    if(dv){
+      const guest=window.HM&&window.HM.isGuest&&window.HM.isGuest();
+      dv.style.display=(guest&&SET.driveForm)?"":"none";
+      dv.innerHTML=`📤 <b>בבית הספר הזה מעלים את הסרטון לטופס.</b> מלא כאן את התוצאה,
+        ואז לחץ על הכפתור כדי להעלות את הסרטון לתיקייה של המורה.
+        <a class="btn sm acc" href="${esc(SET.driveForm)}" target="_blank" rel="noopener" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
+    }
     const full=$("#rec-subFull");
     if(full)full.onclick=()=>openHowto(sp.id);
     const ck=$("#rec-subOk"); if(ck)ck.checked=false;
@@ -3220,6 +3242,11 @@ const REC=(function(){
     const gh=$("#rec-guestHint");
     if(gh)gh.style.display=(window.HM&&window.HM.isGuest&&window.HM.isGuest())?"":"none";
     const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
+    /* כפתורי הדרייב מופיעים רק אם המורה הגדיר קישורים בהגדרות */
+    const up=$("#rec-driveUp");
+    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>window.open(SET.driveForm,"_blank"); }
+    const fo=$("#rec-driveFolder");
+    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>window.open(SET.driveFolder,"_blank"); }
     if(stu)modal("rec-adminModal",false);
   }
 

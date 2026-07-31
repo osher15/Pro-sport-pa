@@ -357,6 +357,8 @@
         <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
         <button class="btn sm" id="rec-handBtn">📱 מסור לתלמידים</button>
         <button class="btn sm" id="rec-shareBtn">🔗 קישור / QR</button>
+        <button class="btn sm acc" id="rec-driveUp" style="display:none">📤 העלה סרטון</button>
+        <button class="btn sm" id="rec-driveFolder" style="display:none">📂 תיקיית הסרטונים</button>
         <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
       </div>
     </div>
@@ -384,6 +386,7 @@
       <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="rec-subClass" placeholder="ט׳3"></div>
     </div>
     <div class="field" style="margin-top:9px"><label id="rec-subValLb">תוצאה</label><input type="number" id="rec-subVal" step="any" inputmode="decimal"></div>
+    <div class="rec-drivebox" id="rec-subDrive" style="display:none"></div>
     <div id="rec-subRules"></div>
     <button class="btn sm ghost" id="rec-subFull" style="margin:2px 0 12px">📋 הכללים המלאים + סרטון הסבר</button>
     <div class="field"><label>סרטון הוכחה (חובה לשיא רשמי)</label>
@@ -864,6 +867,11 @@
     <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
     <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
   </div>
+  <div class="field" style="margin-top:13px"><label>קישור לטופס העלאת סרטונים (Google Forms)</label>
+    <input type="url" id="set-driveForm" placeholder="https://forms.gle/..." style="direction:ltr;text-align:left;font-size:12px"></div>
+  <div class="field" style="margin-top:9px"><label>קישור לתיקיית הסרטונים בדרייב</label>
+    <input type="url" id="set-driveFolder" placeholder="https://drive.google.com/drive/folders/..." style="direction:ltr;text-align:left;font-size:12px"></div>
+  <div class="hint" style="margin-top:7px">כשממלאים את הטופס — תלמידים במצב אורח מקבלים כפתור העלאה ישיר, ואתה מקבל קיצור לתיקייה מלוח השיאים.</div>
   <div class="hint" style="margin-top:13px">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
 </div></div>
