@@ -171,129 +171,7 @@ window.STU=(function(){
   return {init,importFromBeep,count:()=>load().length};
 })();
 
-/* ============================ LESSON — שיעור מלא ============================ */
-window.LESSON=(function(){
-  let inited=false,grade="mid",plan=null,run={on:false,i:0,t0:0,raf:0};
-  const WARM={
-    mid:[{n:"משחק תופסת שדה",d:"תופסת זוגות במגרש מסומן — מי שנתפס מצטרף לתופסים"},{n:"ג׳וגינג + תרגילי תנועה",d:"2 הקפות קלות, ואז: סקיפים, עקבים לישבן, צעדים צידיים, פתיחות ידיים"},{n:"מתיחות דינמיות",d:"סיבובי אגן, הנפות רגליים, שכיבות תמיכה איטיות ×5"}],
-    high:[{n:"ג׳וגינג פרוגרסיבי",d:"3 דק׳ בקצב עולה מ־50% ל־75% דופק מרבי"},{n:"מוביליטי + אקטיבציה",d:"לאנג׳ הליכה, פלאנק כתפיים, סקוואט תחתית 10 שנ׳ ×3"},{n:"האצות קצרות",d:"4×40 מ׳ בעלייה הדרגתית 60→90%"}]
-  };
-  const MAINS={
-    aerobic:{t:"אירובי — בניית בסיס",mid:"רצף תחנות אירובי: 6 תחנות × 40/20 שנ׳ (ג׳אמפינג ג׳ק, ברכיים גבוהות, מטפס הרים, דילוג חבל, סקיפים, ריצת סרק) — 2 סבבים עם משחק «רמזור» בין הסבבים.",high:"אינטרוולים: 8×200 מ׳ ביחס עבודה:מנוחה 1:1, קצב יעד לפי תוצאת ביפ אחרונה (מהירות שלב אחרון ×0.85). סיום: 4 דק׳ טמפו רציף.",goals:["שיפור סבולת לב־ריאה","ויסות קצב ונשימה"],eq:["קונוסים","שעון עצר / האפליקציה","מדבקות תחנות"]},
-    strength:{t:"כוח — משקל גוף",mid:"מעגל כוח 6 תחנות × 40/20: סקוואט, שכיבות סמיכה (ברכיים למתקשים), פלאנק, לאנג׳, כיסא קיר, סופרמן. דגש טכניקה — המורה עובר תחנה־תחנה.",high:"מעגל כוח 8 תחנות × 45/15 ×2 סבבים, התקדמות: סקוואט קפיצה, שכיבות שיפוע, פלאנק עם מגע כתף, לאנג׳ אחורי. רישום חזרות אישי לכל תלמיד.",goals:["חיזוק שרירי ליבה וגפיים","טכניקת תרגילי בסיס נכונה"],eq:["מזרנים","קיר פנוי","כרטיסי תחנות"]},
-    core:{t:"ליבה ויציבה",mid:"סבב ליבה 5 תחנות × 30/20: פלאנק, כפיפות בטן, סופרמן, פלאנק צד (חצי זמן לכל צד), הרמות רגליים. בין סבבים — משחק שיווי משקל בזוגות.",high:"סבב ליבה 6 תחנות × 45/15 ×2, כולל פלאנק דינמי ו־hollow hold. מדידת שיא פלאנק כיתתי בסוף — אפשר לשלוח ללוח השיאים.",goals:["ייצוב עמוד שדרה ואגן","מודעות ליציבה"],eq:["מזרנים","שעון עצר"]},
-    beepprep:{t:"הכנה לביפ טסט",mid:"היכרות עם הפרוטוקול: 2 מעברי תרגול של 20 מ׳ בקצב ביפ שלבים 1–3 (בלי מדידה), ואז משחק «רודף את הביפ» — עמידה בקצב הולך ועולה. שיחה קצרה: איך מחלקים כוחות.",high:"סימולציית ביפ חלקית עד שלב 5–6 + ניתוח: איפה כל תלמיד «נשבר» ומה קצב היעד האישי למבחן. עבודת קצב: 6×20 מ׳ בקצב השלב האחרון של כל תלמיד.",goals:["היכרות עם פרוטוקול המבחן","קביעת קצב יעד אישי"],eq:["האפליקציה + רמקול","מסלול 20 מ׳ מסומן"]},
-    test:{t:"שיעור מבחן — ביפ טסט",mid:"חימום קצר ← מבחן ביפ מלא דרך מודול «ביפ טסט» ← רישום נשירות בלוח ← שמירה למעקב תלמידים. מי שסיים: הליכת התאוששות ושתייה.",high:"כמו חטיבה, בתוספת: תלמידים שסיימו ממלאים תפקיד שופטי קו. בסוף — צפייה בלוח התוצאות והשוואה לנורמות.",goals:["מדידת סבולת אירובית (VO₂max)","תיעוד למעקב שנתי"],eq:["האפליקציה + רמקול חזק","מסלול 20 מ׳","מים"]},
-    game:{t:"משחק ומשימה",mid:"משחק מרכזי: כדורשת / תופסת דגלים / מחניים בחוקים מותאמים. כל 6 דק׳ — «הפסקת כושר»: הטלת קוביית הכושר וביצוע כיתתי.",high:"טורניר מיני 3×3 (כדורסל/כדורעף) במגרשים קטנים, רוטציה כל 5 דק׳. קבוצה שמחוץ למגרש — תחנת כוח פעילה.",goals:["הנאה ושייכות חברתית","יישום מיומנויות במשחק"],eq:["כדורים","סימוני מגרש","קוביית הכושר באפליקציה"]}
-  };
-  const COOL=[{n:"הרפיה ומתיחות",d:"מתיחות סטטיות 20 שנ׳ לקבוצות השרירים שעבדו + נשימות עמוקות"},{n:"סבב משוב",d:"במעגל: כל תלמיד — מילה אחת על השיעור. חיזוק הישג אחד בולט"}];
-  function minutes(){ const dur=+H().$("#ls-dur").value||45; const w=grade==="mid"?8:10,c=5; return {w,m:Math.max(10,dur-w-c),c}; }
-  function gen(){
-    const {$}=H();
-    const focus=$("#ls-focus").value, M=MAINS[focus], mm=minutes();
-    const warm=WARM[grade][Math.floor(Math.random()*WARM[grade].length)];
-    const cool=COOL[Math.floor(Math.random()*COOL.length)];
-    plan={grade,focus,cls:$("#ls-class").value.trim(),date:today(),title:M.t,goals:M.goals,eq:M.eq,
-      phases:[{n:"חימום: "+warm.n,min:mm.w,d:warm.d},{n:M.t,min:mm.m,d:grade==="mid"?M.mid:M.high},{n:"סיום: "+cool.n,min:mm.c,d:cool.d}]};
-    renderPlan(); H().toast("המערך נבנה — אפשר להפעיל, להדפיס או לשמור");
-  }
-  function renderPlan(){
-    const {$, esc}=H();
-    if(!plan){$("#ls-planCard").style.display="none";return;}
-    $("#ls-planCard").style.display="";
-    const total=plan.phases.reduce((a,p)=>a+p.min,0);
-    $("#ls-planBody").innerHTML=`
-      <div class="row" style="margin-bottom:9px;gap:7px">
-        <span class="pill acc">${plan.grade==="mid"?"חטיבה ז׳–ט׳":"תיכון י׳–י״ב"}</span>
-        ${plan.cls?`<span class="pill">כיתה ${esc(plan.cls)}</span>`:""}
-        <span class="pill">${total} דק׳</span><span class="pill mono">${plan.date}</span>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600">מטרות</div>
-      <ul class="hint" style="margin:0 0 10px;padding-inline-start:18px;line-height:1.7">${plan.goals.map(g=>"<li>"+esc(g)+"</li>").join("")}</ul>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">ציוד</div>
-      <div class="row" style="gap:6px;margin-bottom:12px">${plan.eq.map(e=>`<span class="pill">${esc(e)}</span>`).join("")}</div>
-      ${plan.phases.map((p,i)=>`<div class="fit-station"><div class="ix">${p.min}׳</div>
-        <div class="grow"><b>${esc(p.n)}</b><div class="sb" style="line-height:1.55;margin-top:2px">${esc(p.d)}</div></div></div>`).join("")}`;
-  }
-  function runStart(){
-    if(!plan||run.on)return;
-    const {ac,keepAwake,say,horn}=H(); ac();
-    run={on:true,i:-1,t0:performance.now(),raf:0};
-    H().$("#ls-run").disabled=true; H().$("#ls-stop").disabled=false;
-    keepAwake(true); say("השיעור מתחיל. "+plan.phases[0].n); horn();
-    loop();
-  }
-  function loop(){
-    if(!run.on)return;
-    const {$, say, horn, beep}=H();
-    const el=(performance.now()-run.t0)/1000;
-    let acc=0,i=0;
-    while(i<plan.phases.length&&acc+plan.phases[i].min*60<=el){acc+=plan.phases[i].min*60;i++;}
-    if(i>=plan.phases.length){finish();return;}
-    const remain=Math.ceil(acc+plan.phases[i].min*60-el);
-    if(i!==run.i){run.i=i;if(i>0){horn();say(plan.phases[i].n);}}
-    $("#ls-phase").dataset.ph=i===0?"prep":(i===plan.phases.length-1?"rest":"work");
-    $("#ls-phName").textContent=plan.phases[i].n;
-    $("#ls-phTime").textContent=Math.floor(remain/60)+":"+String(remain%60).padStart(2,"0");
-    $("#ls-phNext").textContent=plan.phases[i+1]?"הבא: "+plan.phases[i+1].n:"שלב אחרון";
-    if(remain<=3)beep(660,0.09);
-    run.raf=requestAnimationFrame(loop);
-  }
-  function finish(){ stop(); const {say,horn,confetti,$}=H(); horn(); confetti(); say("השיעור הסתיים, כל הכבוד!");
-    $("#ls-phName").textContent="🏆 השיעור הושלם"; $("#ls-phTime").textContent="✓"; $("#ls-phNext").textContent=""; }
-  function stop(){ run.on=false; cancelAnimationFrame(run.raf); H().keepAwake(false);
-    H().$("#ls-run").disabled=false; H().$("#ls-stop").disabled=true; }
-  function saveLib(){
-    if(!plan)return;
-    const lib=H().LS.get("ls.lib",[]);
-    lib.unshift({id:Date.now(),plan:JSON.parse(JSON.stringify(plan))});
-    H().LS.set("ls.lib",lib.slice(0,40)); renderLib(); H().toast("💾 נשמר לספריית המערכים");
-  }
-  function renderLib(){
-    const {$, $$, esc}=H(); const lib=H().LS.get("ls.lib",[]);
-    $("#ls-libEmpty").style.display=lib.length?"none":"block";
-    $("#ls-libList").innerHTML=lib.map(e=>`<div class="arc-item"><div class="grow">
-      <div class="ttl">${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
-      <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
-      <button class="btn sm" data-load="${e.id}">📂</button><button class="btn sm stop" data-del="${e.id}">✕</button></div>`).join("");
-    $$("#ls-libList [data-load]").forEach(b=>b.addEventListener("click",()=>{
-      const e=H().LS.get("ls.lib",[]).find(x=>x.id==b.dataset.load); if(e){plan=e.plan;renderPlan();H().toast("המערך נטען");}
-    }));
-    $$("#ls-libList [data-del]").forEach(b=>b.addEventListener("click",()=>{
-      H().LS.set("ls.lib",H().LS.get("ls.lib",[]).filter(x=>x.id!=b.dataset.del)); renderLib();
-    }));
-  }
-  function print(){
-    if(!plan)return;
-    const esc=H().esc, total=plan.phases.reduce((a,p)=>a+p.min,0);
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>מערך שיעור</title>
-      <style>body{font-family:Arial;padding:34px;color:#1a1a2e;max-width:720px;margin:0 auto}h1{margin:0 0 2px;color:#3d3580}
-      .meta{color:#666;margin-bottom:18px}h2{font-size:15px;border-bottom:2px solid #3d3580;padding-bottom:4px;margin:18px 0 8px}
-      .ph{border:1px solid #ccc;border-radius:9px;padding:12px 14px;margin-bottom:10px}.ph b{color:#3d3580}
-      ul{margin:4px 0;line-height:1.7}.tag{display:inline-block;border:1px solid #999;border-radius:99px;padding:2px 10px;font-size:12px;margin-inline-end:6px}</style></head><body>
-      <h1>${esc(plan.title)}</h1><div class="meta">${plan.grade==="mid"?"חטיבה (ז׳–ט׳)":"תיכון (י׳–י״ב)"}${plan.cls?" · כיתה "+esc(plan.cls):""} · ${plan.date} · ${total} דק׳</div>
-      <h2>מטרות</h2><ul>${plan.goals.map(g=>"<li>"+esc(g)+"</li>").join("")}</ul>
-      <h2>ציוד</h2><div>${plan.eq.map(e=>'<span class="tag">'+esc(e)+"</span>").join("")}</div>
-      <h2>מהלך השיעור</h2>${plan.phases.map(p=>`<div class="ph"><b>${esc(p.n)} · ${p.min} דק׳</b><div>${esc(p.d)}</div></div>`).join("")}
-      <script>print()<\/script></body></html>`);
-    w.document.close();
-  }
-  function init(){
-    if(inited)return; inited=true;
-    const {$, $$}=H();
-    $$("#ls-gradeSeg button").forEach(b=>b.addEventListener("click",()=>{
-      $$("#ls-gradeSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); grade=b.dataset.g;
-    }));
-    $("#ls-gen").addEventListener("click",gen);
-    $("#ls-run").addEventListener("click",runStart);
-    $("#ls-stop").addEventListener("click",()=>{stop();H().$("#ls-phName").textContent="הופסק";});
-    $("#ls-save").addEventListener("click",saveLib);
-    $("#ls-print").addEventListener("click",print);
-    renderLib();
-  }
-  return {init};
-})();
+/* LESSON — עבר לקובץ נפרד: hm-lesson.js (מחולל מערכים מורחב) */
 
 /* ============================ NUT — פינת תזונה ============================ */
 window.NUT=(function(){
@@ -344,20 +222,53 @@ window.NUT=(function(){
 /* ============================ HOME extras + נעילת מורה ============================ */
 window.HMBootNew=function(){
   const {$, LS, toast, esc}=H();
-  /* teacher lock */
+  /* ---------- מסך כניסה: מורה (קוד) או תלמיד (בלי קוד) ----------
+     מורה  — קוד נכון פותח את כל האפליקציה.
+     תלמיד — נכנס בלי קוד למצב תצוגה: לוח השיאים ודף המשחקים בלבד. */
+  const H0=H();
   const locked=LS.get("hx.lock",true)&&sessionStorage.getItem("pehub.unlocked")!=="1";
+  const unlockTeacher=()=>{
+    sessionStorage.setItem("pehub.unlocked","1");
+    H0.setRole("teacher");
+    $("#lockOv").classList.remove("on"); toast("ברוך הבא, המאמן 👋");
+  };
   if(locked){
     $("#lockOv").classList.add("on");
     const tryPass=()=>{
-      if($("#lock-pass").value===LS.get("rec.pass","1234")){
-        sessionStorage.setItem("pehub.unlocked","1");
-        $("#lockOv").classList.remove("on"); toast("ברוך הבא, המאמן 👋");
-      } else { toast("סיסמה שגויה"); $("#lock-pass").value=""; }
+      if($("#lock-pass").value===LS.get("rec.pass","1234")) unlockTeacher();
+      else { toast("קוד שגוי"); $("#lock-pass").value=""; }
     };
     $("#lock-enter").addEventListener("click",tryPass);
     $("#lock-pass").addEventListener("keydown",e=>{if(e.key==="Enter")tryPass();});
     setTimeout(()=>$("#lock-pass").focus(),150);
+  } else if(H0.role()==="student"){
+    /* נעילה כבויה אבל המכשיר נשאר במצב תלמיד */
+    H0.setRole("student");
   }
+  const stuBtn=$("#lock-student");
+  if(stuBtn)stuBtn.addEventListener("click",()=>{
+    sessionStorage.setItem("pehub.unlocked","1");
+    H0.setRole("student");
+    $("#lockOv").classList.remove("on");
+    H0.go("rec"); toast("מצב תלמיד — צפייה בשיאים ושליחת שיא חדש");
+  });
+
+  /* מעבר למצב תלמיד מתוך האפליקציה (מוסרים את המכשיר לכיתה) */
+  const handBtn=$("#rec-handBtn");
+  if(handBtn)handBtn.addEventListener("click",()=>{
+    if(!confirm("להעביר את המכשיר למצב תלמיד?\n\nהתלמידים יוכלו לצפות בשיאים ולשלוח שיא חדש בלבד.\nיציאה חזרה דורשת את קוד המורה."))return;
+    H0.setRole("student"); H0.go("rec"); toast("🔒 מצב תלמיד פעיל");
+  });
+
+  /* יציאה ממצב תלמיד — דורשת קוד */
+  const exitBtn=$("#roleExit");
+  if(exitBtn)exitBtn.addEventListener("click",()=>{
+    const p=prompt("קוד מורה ליציאה ממצב תלמיד:");
+    if(p===null)return;
+    if(p===LS.get("rec.pass","1234")){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
+    else toast("קוד שגוי");
+  });
+
   const lockChk=$("#set-lock");
   if(lockChk){ lockChk.checked=LS.get("hx.lock",true);
     lockChk.addEventListener("change",()=>LS.set("hx.lock",lockChk.checked)); }

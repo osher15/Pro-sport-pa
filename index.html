@@ -13,6 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css">
 <script src="hm-app.js"></script>
+<script src="hm-know.js"></script>
+<script src="hm-lesson.js"></script>
 <script src="hm-new.js"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -20,7 +22,9 @@
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
-  <div class="sboard"><span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
+  <div class="sboard">
+    <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
+    <span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
 </div>
 <section class="view" id="view-home">
   <div class="hero">
@@ -51,6 +55,10 @@
       <div class="tx"><b>התלמידים שלי</b><span>פרופיל אישי · גרף בין־מבחני · BMI · מי מתחת לנורמה</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="nut" style="--lc:#4ade80"><div class="no">07</div>
       <div class="tx"><b>פינת תזונה</b><span>טיפ יומי לכיתה · שתייה · צלחת ספורטאי · שוברים מיתוס</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="games" style="--lc:#f87171"><div class="no">08</div>
+      <div class="tx"><b>משחקים לשעות פנאי</b><span>הסבר מלא · מטרה · למי מתאים · וריאציות · צפייה ביוטיוב</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">09</div>
+      <div class="tx"><b>מאגר ידע ומקורות</b><span>משרד החינוך · WHO · תוכניות אימון מוערכות · סטנדרטים</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -334,10 +342,12 @@
       <h2 style="margin:0"><span class="dot"></span> אלופי בית הספר</h2>
       <div class="row">
         <button class="btn sm" id="rec-kioskBtn">📺 מצב טלוויזיה</button>
+        <button class="btn sm" id="rec-handBtn">📱 מסור לתלמידים</button>
         <button class="btn sm ghost" id="rec-adminBtn">🔐 לוח מורה</button>
       </div>
     </div>
     <div class="hint">בוחרים ענף, צופים בשיא הבית־ספרי מול שיא ישראל והעולם — ושולחים שיא חדש עם סרטון הוכחה. שיא עולה ללוח רק אחרי אישור המורה.</div>
+    <div class="hint rec-stuhint" id="rec-roleHint" style="display:none">👦 <b>מצב תלמיד.</b> אפשר לצפות בשיאים, לצפות בסרטונים ולשלוח שיא חדש לאישור. אישור, עריכה ומחיקה — למורה בלבד.</div>
   </div>
   <div class="rec-grid" id="rec-grid"></div>
 
@@ -376,6 +386,24 @@
     <div id="rec-admBody" style="display:none">
       <h2 style="font-size:15px"><span class="dot"></span> ממתינים לאישור</h2>
       <div id="rec-pendList"></div>
+
+      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> הוספה ידנית</h2>
+      <div class="hint">מדדת בשטח ואין סרטון? הוסף את התוצאה ישירות — היא נכנסת ללוח כשיא מאושר בלי לעבור אישור.</div>
+      <button class="btn acc" id="rec-mnAdd" style="margin-top:9px">➕ הוסף שיא ידנית</button>
+
+      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> כל השיאים המאושרים</h2>
+      <div class="tblwrap" id="rec-allList"></div>
+
+      <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> ענפים מותאמים אישית</h2>
+      <div id="rec-customList"></div>
+      <div class="row" style="margin-top:9px;align-items:flex-end">
+        <div class="field" style="width:66px"><label>סמל</label><input type="text" id="rec-csEm" placeholder="🏅" maxlength="3"></div>
+        <div class="field grow"><label>שם הענף</label><input type="text" id="rec-csName" placeholder="משיכות בטבעות"></div>
+        <div class="field" style="width:130px"><label>יחידת מדידה</label><input type="text" id="rec-csUnit" placeholder="חזרות"></div>
+        <label class="check" style="margin-bottom:9px"><input type="checkbox" id="rec-csLower"> נמוך = טוב יותר</label>
+        <button class="btn sm acc" id="rec-csAdd" style="margin-bottom:6px">＋ הוסף ענף</button>
+      </div>
+
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> שיאי ייחוס (ישראל / עולם)</h2>
       <div id="rec-refList"></div>
       <div class="row" style="margin-top:14px">
@@ -385,6 +413,20 @@
         <button class="btn sm stop" id="rec-wipe">🗑 מחיקת הכל</button>
       </div>
     </div>
+  </div></div>
+
+  <!-- manual add / edit modal (teacher only) -->
+  <div class="modal" id="rec-manualModal"><div class="box">
+    <h3><span id="rec-mnTitle">➕ הוספת שיא ידנית</span><button class="x" data-close="rec-manualModal">✕</button></h3>
+    <input type="hidden" id="rec-mnId">
+    <div class="field"><label>ענף</label><select id="rec-mnSport"></select></div>
+    <div class="row" style="margin-top:9px">
+      <div class="field grow"><label>שם מלא</label><input type="text" id="rec-mnName" placeholder="ישראל ישראלי"></div>
+      <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="rec-mnClass" placeholder="ט׳3"></div>
+    </div>
+    <div class="field" style="margin-top:9px"><label id="rec-mnValLb">תוצאה</label><input type="number" id="rec-mnVal" step="any" inputmode="decimal"></div>
+    <div class="hint" style="margin:8px 0 12px">שיא שנוסף כאן נכנס ללוח מיד — האחריות על נכונות התוצאה עליך. אפשר לערוך או למחוק אותו בכל רגע.</div>
+    <button class="btn acc big" id="rec-mnSave">שמור כשיא מאושר</button>
   </div></div>
 
   <div id="rec-kiosk"><video id="rec-kVideo" muted loop playsinline></video><div class="kc">
@@ -516,17 +558,40 @@
       </div>
       <div class="field" style="width:120px"><label>אורך (דק׳)</label><input type="number" id="ls-dur" value="45" min="30" max="90" step="5"></div>
       <div class="field" style="width:110px"><label>כיתה</label><input type="text" id="ls-class" placeholder="ט׳2"></div>
-      <div class="field" style="width:190px"><label>מטרת השיעור</label>
-        <select id="ls-focus">
-          <option value="aerobic">אירובי — בניית בסיס</option>
-          <option value="strength">כוח — משקל גוף</option>
-          <option value="core">ליבה ויציבה</option>
-          <option value="beepprep">הכנה לביפ טסט</option>
-          <option value="test">שיעור מבחן — ביפ טסט</option>
-          <option value="game">משחק ומשימה</option>
+      <div class="field" style="width:120px"><label>מס׳ תלמידים</label><input type="number" id="ls-size" value="30" min="4" max="60"></div>
+      <div class="field" style="width:150px"><label>מקום</label>
+        <select id="ls-place">
+          <option value="field">מגרש חוץ</option>
+          <option value="hall">אולם</option>
+          <option value="class">כיתה</option>
+          <option value="gym">חדר כושר</option>
         </select>
       </div>
-      <button class="btn acc" id="ls-gen" style="margin-top:18px">⚡ בנה מערך</button>
+    </div>
+    <div class="row" style="margin-top:11px">
+      <div class="field grow"><label>נושא השיעור</label>
+        <select id="ls-focus"></select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:11px"><label>ציוד זמין</label>
+      <div class="ls-eq" id="ls-eq">
+        <label class="check"><input type="checkbox" value="כדורים" checked> כדורים</label>
+        <label class="check"><input type="checkbox" value="קונוסים" checked> קונוסים</label>
+        <label class="check"><input type="checkbox" value="מזרנים"> מזרנים</label>
+        <label class="check"><input type="checkbox" value="חישוקים"> חישוקים</label>
+        <label class="check"><input type="checkbox" value="רשת"> רשת</label>
+        <label class="check"><input type="checkbox" value="חבל"> חבלים</label>
+        <label class="check"><input type="checkbox" value="רמקול"> רמקול</label>
+        <label class="check"><input type="checkbox" value="וסטים"> וסטים</label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:11px">
+      <label class="check"><input type="checkbox" id="ls-optGame" checked> לשלב משחק מדף המשחקים</label>
+      <label class="check"><input type="checkbox" id="ls-optMeasure"> לשלב מדידה (ביפ / פוטו־פיניש)</label>
+    </div>
+    <div class="row" style="margin-top:13px">
+      <button class="btn acc grow" id="ls-gen">⚡ בנה מערך בשניות</button>
+      <button class="btn ghost" id="ls-again" title="גרסה אחרת לאותו נושא">🎲 גרסה אחרת</button>
     </div>
   </div>
 
@@ -556,6 +621,55 @@
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-games">
+  <div class="card">
+    <h2><span class="dot"></span> משחקים לשעות פנאי</h2>
+    <div class="hint">כל משחק עם הסבר מלא, מטרה, למי הוא מתאים, וריאציות, דגשי בטיחות וקישור לצפייה. אפשר לקחת כל משחק ישירות למערך שיעור.</div>
+    <div class="field" style="margin-top:11px"><label>חיפוש</label><input type="text" id="gm-search" placeholder="שם משחק, ציוד, מטרה…"></div>
+    <div id="gm-cats" class="gm-cats"></div>
+    <div class="hint" id="gm-count" style="margin-top:8px"></div>
+  </div>
+  <div class="gm-grid" id="gm-grid"></div>
+  <div class="modal" id="gm-modal"><div class="box">
+    <h3><span id="gm-mTitle"></span><button class="x" data-close="gm-modal">✕</button></h3>
+    <div id="gm-mBody"></div>
+  </div></div>
+</section>
+
+<section class="view" id="view-know">
+  <div class="pf-tabs" id="kn-tabs">
+    <button data-kt="src" class="on">📚 מקורות רשמיים</button>
+    <button data-kt="prog">🏋️ תוכניות מוערכות</button>
+    <button data-kt="facts">📌 מספרים שכדאי לזכור</button>
+  </div>
+  <div id="kn-sub-src">
+    <div class="card">
+      <h2><span class="dot"></span> מקורות מידע רשמיים</h2>
+      <div class="hint">כל פריט מקושר לעמוד או למסמך הרשמי החי. התקציר כאן הוא כלי עבודה — המסמך המחייב הוא תמיד המקור. הקישורים נפתחים בדפדפן חיצוני, כך שהאפליקציה עצמה ממשיכה לעבוד גם בלי אינטרנט.</div>
+      <div id="kn-regs" class="gm-cats" style="margin-top:10px"></div>
+    </div>
+    <div id="kn-srcList"></div>
+  </div>
+  <div id="kn-sub-prog" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> תוכניות אימון מוערכות</h2>
+      <div class="hint">תוכניות מבוססות־ראיות, מוכנות להפעלה: למי הן מיועדות, מבנה מלא, מינון ודגשי הוראה — עם הפניה למקור שעליו הן נשענות.</div>
+    </div>
+    <div id="kn-progList"></div>
+  </div>
+  <div id="kn-sub-facts" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> מספרים שכדאי לזכור</h2>
+      <div class="kn-facts" id="kn-facts"></div>
+      <div class="hint" style="margin-top:12px">שימושי לישיבת צוות, לשיחה עם הורה ולשיעור עיוני. המקורות המלאים בלשונית «מקורות רשמיים».</div>
+    </div>
+  </div>
+  <div class="modal" id="kn-modal"><div class="box">
+    <h3><span id="kn-mTitle"></span><button class="x" data-close="kn-modal">✕</button></h3>
+    <div id="kn-mBody"></div>
+  </div></div>
+</section>
+
 <section class="view" id="view-nut">
   <div class="card nut-daily">
     <h2><span class="dot"></span> הטיפ של היום</h2>
@@ -578,7 +692,9 @@
   <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
   <button data-go="photo"><span class="ic">📷</span>פיניש</button>
   <button data-go="rec"><span class="ic">🏆</span>שיאים</button>
+  <button data-go="games"><span class="ic">🎮</span>משחקים</button>
   <button data-go="fit"><span class="ic">⏱</span>כושר</button>
+  <button data-go="know"><span class="ic">📚</span>ידע</button>
   <button data-go="stu"><span class="ic">👥</span>תלמידים</button>
 </div>
 <!-- settings modal -->
@@ -618,7 +734,10 @@
   <h1>המגרש PRO</h1>
   <p>אזור מורה — הזן קוד כדי להיכנס</p>
   <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
-  <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסה</button>
+  <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסת מורה</button>
+  <div class="lock-or"><span>או</span></div>
+  <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
+  <p class="lock-note">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
 </div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -633,6 +752,27 @@ class Component extends DCLogic {
   }
   renderVals(){return {};}
 }
+</script>
+<script>
+/* גיבוי הפעלה — ריצת הרכיב (support.js) טוענת ספרייה מהרשת.
+   בלי אינטרנט היא לא מספיקה לאתחל, ולכן אחרי 1.2 שניות אנחנו מפעילים
+   את האפליקציה ישירות. כך היא עובדת גם אופליין לגמרי. */
+(function(){
+  var tries=0;
+  function boot(){
+    if(window.__hmBooted)return;
+    if(window.HMBoot&&window.HMBootNew&&document.getElementById("view-home")&&document.getElementById("view-nut")){
+      window.__hmBooted=true;
+      var dc=document.querySelector("x-dc");
+      if(dc)dc.style.setProperty("display","block","important"); /* support.js מסתיר עם !important */
+      var ld=document.getElementById("__bundler_loading"); if(ld)ld.remove();
+      try{window.HMBoot();window.HMBootNew();}catch(e){console.error("fallback boot",e);}
+      return;
+    }
+    if(tries++<60)setTimeout(boot,200);
+  }
+  setTimeout(boot,1200);
+})();
 </script>
 </body>
 </html>

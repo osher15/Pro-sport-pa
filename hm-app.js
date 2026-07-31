@@ -65,15 +65,38 @@ function wireModals(){
   $$(".modal").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m)m.classList.remove("on"); }));
 }
 
+/* ---------- roles: מורה מול תלמיד ----------
+   מצב תלמיד הוא מצב תצוגה בלבד: רק לוח השיאים ודף המשחקים נגישים,
+   ובלוח השיאים אפשר לצפות ולשלוח שיא — לא לאשר, לא לערוך ולא למחוק. */
+const STUDENT_MODS={rec:1,games:1};
+let ROLE=sessionStorage.getItem("pehub.role")||"teacher";
+const isStudent=()=>ROLE==="student";
+function setRole(r){
+  ROLE=(r==="student")?"student":"teacher";
+  sessionStorage.setItem("pehub.role",ROLE);
+  applyRole();
+}
+function applyRole(){
+  const stu=isStudent();
+  document.body.classList.toggle("role-student",stu);
+  $$(".nav button[data-go]").forEach(b=>{ b.style.display=(!stu||STUDENT_MODS[b.dataset.go])?"":"none"; });
+  const st=$("#btnSettings"); if(st)st.style.display=stu?"none":"";
+  const rb=$("#roleBadge");
+  if(rb){ rb.style.display=stu?"":"none"; }
+  if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole();
+  if(stu&&!STUDENT_MODS[document.body.dataset.mod||""])go("rec");
+}
+
 /* ---------- router ---------- */
-const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1};
+const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1};
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
+  if(isStudent()&&!STUDENT_MODS[mod])mod="rec";
   document.body.dataset.mod=mod;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
-  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init}[mod]; if(f)f(); }
+  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
@@ -93,7 +116,7 @@ function homeInit(){ $("#fieldTip").textContent=TIPS[Math.floor(Math.random()*TI
 function homeStats(){
   $("#qsRuns").textContent=LS.get("pf.totalRaces",0);
   const bb=LS.get("bt.best",null); $("#qsBeep").textContent=bb?bb+" מ׳":"—";
-  if(window.REC&&REC.countApproved)REC.countApproved().then(n=>$("#qsRecs").textContent=n).catch(()=>{});
+  if(typeof REC!=="undefined"&&REC.countApproved)REC.countApproved().then(n=>$("#qsRecs").textContent=n).catch(()=>{});
 }
 
 /* ---------- top clock ---------- */
@@ -1061,7 +1084,9 @@ const PF=(function(){
    IndexedDB לשיאים + סרטוני הוכחה · אישור מורה · השוואות · קיוסק
    ============================================================ */
 const REC=(function(){
-  const SPORTS=[
+  /* ענפי ברירת המחדל. המורה יכול להוסיף ענפים משלו בלוח המורה — הם נשמרים
+     ב-localStorage תחת rec.custom ומצטרפים לרשימה. */
+  const BASE_SPORTS=[
     {id:"rope",  em:"🪢", name:"קפיצה בחבל", unit:"קפיצות בדקה", lower:false},
     {id:"push",  em:"💪", name:"שכיבות סמיכה", unit:"חזרות ברצף", lower:false},
     {id:"pull",  em:"🧗", name:"מתח", unit:"חזרות ברצף", lower:false},
@@ -1070,14 +1095,37 @@ const REC=(function(){
     {id:"ljump", em:"🦘", name:"קפיצה למרחק מהמקום", unit:"ס״מ", lower:false},
     {id:"sprint",em:"⚡", name:"ריצת 60 מ׳", unit:"שניות", lower:true},
     {id:"squat", em:"🦵", name:"סקוואטים", unit:"חזרות בדקה", lower:false},
-    {id:"throw", em:"🏀", name:"זריקות עונשין", unit:"קליעות מ-10", lower:false}
+    {id:"throw", em:"🏀", name:"זריקות עונשין", unit:"קליעות מ-10", lower:false},
+    {id:"sprint100",em:"🏃", name:"ריצת 100 מ׳", unit:"שניות", lower:true},
+    {id:"run1000",em:"🛣️", name:"ריצת 1000 מ׳", unit:"שניות", lower:true},
+    {id:"beep",  em:"🎵", name:"ביפ טסט — מרחק", unit:"מטרים", lower:false},
+    {id:"hjump", em:"⬆️", name:"קפיצה לגובה מהמקום", unit:"ס״מ", lower:false},
+    {id:"burpee",em:"🔁", name:"ברפי", unit:"חזרות בדקה", lower:false},
+    {id:"dips",  em:"🤸", name:"מקבילים (Dips)", unit:"חזרות ברצף", lower:false},
+    {id:"wallsit",em:"🪑",name:"כיסא קיר", unit:"שניות", lower:false},
+    {id:"juggle",em:"⚽", name:"נגיחות/הטחות כדורגל", unit:"נגיעות ברצף", lower:false},
+    {id:"shuttle",em:"↔️",name:"ריצת מעבורת 4×10", unit:"שניות", lower:true},
+    {id:"medball",em:"🥎",name:"הטלת כדור מדיסין", unit:"מטרים", lower:false},
+    {id:"flex",  em:"🧘", name:"גמישות — Sit & Reach", unit:"ס״מ", lower:false}
   ];
   const DEF_REFS={rope:{israel:200,world:388},push:{israel:120,world:140},pull:{israel:40,world:51},
     sit:{israel:70,world:80},plank:{israel:7200,world:29700},ljump:{israel:340,world:373},
-    sprint:{israel:6.7,world:6.3},squat:{israel:55,world:60},throw:{israel:10,world:10}};
+    sprint:{israel:6.7,world:6.3},squat:{israel:55,world:60},throw:{israel:10,world:10},
+    sprint100:{israel:10.0,world:9.58},run1000:{israel:145,world:132},beep:{israel:3000,world:3500},
+    hjump:{israel:80,world:126},burpee:{israel:40,world:47},dips:{israel:60,world:70},
+    wallsit:{israel:900,world:1800},juggle:{israel:1000,world:3000},shuttle:{israel:9.0,world:8.2},
+    medball:{israel:14,world:18},flex:{israel:35,world:45}};
+  let custom=LS.get("rec.custom",[]);
+  let SPORTS=BASE_SPORTS.concat(custom);
   let refs=Object.assign({},DEF_REFS,LS.get("rec.refs",{}));
   let pass=LS.get("rec.pass","1234");
   let db=null, CACHE=[];
+  function rebuildSports(){
+    custom=LS.get("rec.custom",[]);
+    SPORTS=BASE_SPORTS.concat(custom);
+    custom.forEach(c=>{ if(!refs[c.id])refs[c.id]={israel:0,world:0}; });
+  }
+  rebuildSports();
 
   /* ---------- IndexedDB ---------- */
   function openDB(){
@@ -1094,9 +1142,12 @@ const REC=(function(){
   async function refresh(){ CACHE=await dbAll(); renderGrid(); }
 
   /* ---------- helpers ---------- */
-  const sportById=id=>SPORTS.find(s=>s.id===id);
+  const sportById=id=>SPORTS.find(s=>s.id===id)||SPORTS[0];
+  const refOf=id=>(refs[id]||(refs[id]={israel:0,world:0}));
+  /* ענפים שנמדדים בשניות מוצגים כ־מ:שש כשהערך גדול מדקה */
+  const TIMEY={plank:1,wallsit:1,run1000:1};
   function showVal(sp,v){
-    if(sp.id==="plank"){ const h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.round(v%60);
+    if(TIMEY[sp.id]&&v>=60){ const h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.round(v%60);
       return (h?h+":":"")+String(m).padStart(h?2:1,"0")+":"+String(s).padStart(2,"0"); }
     return (+v).toLocaleString("he-IL",{maximumFractionDigits:2});
   }
@@ -1123,7 +1174,7 @@ const REC=(function(){
   }
   let curSport=null;
   function openSport(id){
-    curSport=id; const sp=sportById(id), rf=refs[id];
+    curSport=id; const sp=sportById(id), rf=refOf(id);
     $("#rec-sdTitle").textContent=sp.em+" "+sp.name;
     $("#rec-sdHint").textContent="יחידה: "+sp.unit+(sp.lower?" · נמוך יותר = טוב יותר":"");
     const b=best(id), sv=b?b.value:0;
@@ -1148,15 +1199,30 @@ const REC=(function(){
       if(f[2])f[2].style.width="100%"; },80);
     $$("#rec-sdBoard .vbtn").forEach(b2=>b2.addEventListener("click",()=>playVideo(b2.dataset.v)));
   }
+  /* נגן ביקורת שיא: האטה, צעד פריים ולולאה — כדי שהמורה יוכל לספור חזרות
+     ולוודא טכניקה לפני שהוא מאשר. */
   function playVideo(id){
     const e=CACHE.find(x=>x.id===id); if(!e||!e.video)return;
     const url=URL.createObjectURL(e.video);
     const ov=document.createElement("div");
-    ov.style.cssText="position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:18px";
-    ov.innerHTML=`<div style="max-width:540px;width:100%;text-align:center">
-      <video src="${url}" controls autoplay playsinline style="width:100%;border-radius:14px;background:#000;max-height:78vh"></video>
-      <div style="margin-top:10px;font-family:'Secular One';font-size:17px">${esc(e.name)} · ${esc(sportById(e.sport).name)}</div>
-      <div class="hint">הקשה מחוץ לסרטון = סגירה</div></div>`;
+    ov.style.cssText="position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.93);display:grid;place-items:center;padding:16px";
+    ov.innerHTML=`<div style="max-width:560px;width:100%;text-align:center">
+      <video src="${url}" controls autoplay playsinline loop style="width:100%;border-radius:14px;background:#000;max-height:70vh"></video>
+      <div class="rec-vctl">
+        <button data-sp="0.25">0.25×</button><button data-sp="0.5">0.5×</button>
+        <button data-sp="1" class="on">1×</button><button data-sp="2">2×</button>
+        <button data-fr="-1">⏮ פריים</button><button data-fr="1">פריים ⏭</button>
+      </div>
+      <div style="margin-top:9px;font-family:'Secular One';font-size:17px">${esc(e.name)} · ${esc(sportById(e.sport).name)}</div>
+      <div class="hint">${e.cls?esc(e.cls)+" · ":""}${showVal(sportById(e.sport),e.value)} ${esc(sportById(e.sport).unit)} · הקשה מחוץ לסרטון = סגירה</div></div>`;
+    const v=ov.querySelector("video");
+    ov.querySelectorAll("[data-sp]").forEach(b=>b.addEventListener("click",ev=>{
+      ev.stopPropagation(); v.playbackRate=parseFloat(b.dataset.sp);
+      ov.querySelectorAll("[data-sp]").forEach(x=>x.classList.toggle("on",x===b));
+    }));
+    ov.querySelectorAll("[data-fr]").forEach(b=>b.addEventListener("click",ev=>{
+      ev.stopPropagation(); v.pause(); v.currentTime=Math.max(0,v.currentTime+(+b.dataset.fr)/30);
+    }));
     ov.addEventListener("click",ev=>{ if(ev.target===ov){URL.revokeObjectURL(url);ov.remove();} });
     document.body.appendChild(ov);
   }
@@ -1173,7 +1239,8 @@ const REC=(function(){
     if(!name||!(val>0)){toast("מלא שם ותוצאה תקינה");return;}
     const f=$("#rec-subVideo").files[0]||null;
     if(f&&f.size>120*1024*1024){toast("הסרטון גדול מדי (עד 120MB)");return;}
-    await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,status:"pending",ts:Date.now()});
+    await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,
+      status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
     $("#rec-subName").value="";$("#rec-subClass").value="";$("#rec-subVal").value="";$("#rec-subVideo").value="";
     toast("📤 נשלח! השיא ימתין לאישור המורה."); beep(880,0.15);
@@ -1200,16 +1267,107 @@ const REC=(function(){
       if(confirm("לדחות ולמחוק את הבקשה?")){ await dbDel(b.dataset.no); await refresh(); renderAdmin(); }
     }));
     $$("#rec-pendList [data-v]").forEach(b=>b.addEventListener("click",()=>playVideo(b.dataset.v)));
+    /* --- כל השיאים המאושרים: עריכה ומחיקה --- */
+    const appr=CACHE.filter(r=>r.status==="approved").sort((a,b)=>b.ts-a.ts);
+    $("#rec-allList").innerHTML=appr.length?`<table class="tbl"><thead><tr>
+      <th>ענף</th><th>שם</th><th>כיתה</th><th>תוצאה</th><th>מקור</th><th></th></tr></thead><tbody>${
+      appr.map(e=>{ const sp=sportById(e.sport);
+        return `<tr><td>${sp.em} ${esc(sp.name)}</td><td><b>${esc(e.name)}</b></td>
+          <td style="color:var(--muted)">${esc(e.cls||"")}</td>
+          <td class="mono">${showVal(sp,e.value)}</td>
+          <td>${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`:(e.src==="manual"?'<span class="pill">ידני</span>':'<span class="pill">—</span>')}</td>
+          <td><button class="btn sm" data-ed="${e.id}">✎</button>
+              <button class="btn sm stop" data-rm="${e.id}">🗑</button></td></tr>`;}).join("")}</tbody></table>`
+      :'<div class="hint">אין עדיין שיאים מאושרים.</div>';
+    $$("#rec-allList [data-v]").forEach(b=>b.addEventListener("click",()=>playVideo(b.dataset.v)));
+    $$("#rec-allList [data-ed]").forEach(b=>b.addEventListener("click",()=>editRec(b.dataset.ed)));
+    $$("#rec-allList [data-rm]").forEach(b=>b.addEventListener("click",async()=>{
+      const e=CACHE.find(x=>x.id===b.dataset.rm);
+      if(e&&confirm(`למחוק את השיא של ${e.name}?`)){ await dbDel(e.id); await refresh(); renderAdmin(); toast("נמחק"); }
+    }));
+
+    /* --- ערכי ייחוס --- */
     $("#rec-refList").innerHTML=SPORTS.map(sp=>`
       <div class="row" style="margin-bottom:7px;align-items:center">
-        <span style="width:160px;font-size:13px">${sp.em} ${sp.name}</span>
-        <input data-rf="${sp.id}-israel" type="number" step="any" value="${refs[sp.id].israel}" style="width:90px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px" title="ישראל">
-        <input data-rf="${sp.id}-world" type="number" step="any" value="${refs[sp.id].world}" style="width:90px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px" title="עולם">
-      </div>`).join("")+'<div class="hint">ישראל | עולם — ערכי ייחוס לעריכה חופשית (פלאנק בשניות).</div>';
+        <span style="width:160px;font-size:13px">${sp.em} ${esc(sp.name)}</span>
+        <input data-rf="${sp.id}|israel" type="number" step="any" value="${refOf(sp.id).israel}" style="width:90px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px" title="ישראל">
+        <input data-rf="${sp.id}|world" type="number" step="any" value="${refOf(sp.id).world}" style="width:90px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:6px" title="עולם">
+      </div>`).join("")+'<div class="hint">ישראל | עולם — ערכי ייחוס לעריכה חופשית (ענפי זמן בשניות). זה מה שקובע את אורך העמודות במסך ההשוואה.</div>';
     $$("#rec-refList [data-rf]").forEach(inp=>inp.addEventListener("change",()=>{
-      const parts=inp.dataset.rf.split("-"), id=parts[0], k=parts[1];
-      refs[id][k]=parseFloat(inp.value)||0; LS.set("rec.refs",refs); renderGrid();
+      const [id,k]=inp.dataset.rf.split("|");
+      refOf(id)[k]=parseFloat(inp.value)||0; LS.set("rec.refs",refs); renderGrid();
     }));
+
+    /* --- ענפים מותאמים אישית --- */
+    $("#rec-customList").innerHTML=custom.length?custom.map(c=>
+      `<div class="row" style="align-items:center;margin-bottom:6px">
+        <span class="grow">${c.em} ${esc(c.name)} <span class="hint">· ${esc(c.unit)}${c.lower?" · נמוך=טוב":""}</span></span>
+        <button class="btn sm stop" data-cdel="${c.id}">✕</button></div>`).join("")
+      :'<div class="hint">אין עדיין ענפים מותאמים. הוסף ענף כדי למדוד כל דבר שרצית — משיכות בטבעות, זמן שחייה, מה שבא.</div>';
+    $$("#rec-customList [data-cdel]").forEach(b=>b.addEventListener("click",async()=>{
+      const id=b.dataset.cdel;
+      const used=CACHE.filter(r=>r.sport===id).length;
+      if(!confirm(used?`בענף הזה יש ${used} שיאים — הם יימחקו גם. להמשיך?`:"למחוק את הענף?"))return;
+      for(const r of CACHE.filter(r=>r.sport===id))await dbDel(r.id);
+      LS.set("rec.custom",LS.get("rec.custom",[]).filter(c=>c.id!==id));
+      rebuildSports(); await refresh(); renderAdmin(); toast("הענף נמחק");
+    }));
+  }
+
+  /* ---------- הוספה ידנית ועריכה (מורה בלבד) ---------- */
+  function openManual(){
+    $("#rec-mnSport").innerHTML=SPORTS.map(s=>`<option value="${s.id}">${s.em} ${s.name}</option>`).join("");
+    updMnLb(); $("#rec-mnName").value=""; $("#rec-mnClass").value=""; $("#rec-mnVal").value="";
+    $("#rec-mnId").value=""; $("#rec-mnTitle").textContent="➕ הוספת שיא ידנית";
+    $("#rec-mnSave").textContent="שמור כשיא מאושר";
+    modal("rec-manualModal");
+  }
+  function updMnLb(){ const sp=sportById($("#rec-mnSport").value); $("#rec-mnValLb").textContent="תוצאה ("+sp.unit+")"; }
+  function editRec(id){
+    const e=CACHE.find(x=>x.id===id); if(!e)return;
+    $("#rec-mnSport").innerHTML=SPORTS.map(s=>`<option value="${s.id}" ${s.id===e.sport?"selected":""}>${s.em} ${s.name}</option>`).join("");
+    updMnLb();
+    $("#rec-mnName").value=e.name; $("#rec-mnClass").value=e.cls||""; $("#rec-mnVal").value=e.value;
+    $("#rec-mnId").value=e.id; $("#rec-mnTitle").textContent="✎ עריכת שיא";
+    $("#rec-mnSave").textContent="שמור שינויים";
+    modal("rec-manualModal");
+  }
+  async function saveManual(){
+    const id=$("#rec-mnId").value, sport=$("#rec-mnSport").value,
+      name=$("#rec-mnName").value.trim(), cls=$("#rec-mnClass").value.trim(),
+      val=parseFloat($("#rec-mnVal").value);
+    if(!name||!(val>0)){toast("מלא שם ותוצאה תקינה");return;}
+    if(id){
+      const e=CACHE.find(x=>x.id===id); if(!e)return;
+      Object.assign(e,{sport,name,cls,value:val}); await dbPut(e); toast("עודכן ✓");
+    }else{
+      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,
+        video:null,status:"approved",src:"manual",ts:Date.now()});
+      toast("נוסף ללוח ✓"); confetti(40);
+    }
+    await refresh(); renderAdmin(); modal("rec-manualModal",false);
+  }
+  async function addCustomSport(){
+    const name=($("#rec-csName").value||"").trim();
+    const unit=($("#rec-csUnit").value||"").trim();
+    const em=($("#rec-csEm").value||"🏅").trim()||"🏅";
+    const lower=$("#rec-csLower").checked;
+    if(!name||!unit){toast("צריך שם ענף ויחידת מדידה");return;}
+    const id="c"+Date.now().toString(36);
+    const list=LS.get("rec.custom",[]); list.push({id,em,name,unit,lower});
+    LS.set("rec.custom",list); rebuildSports(); LS.set("rec.refs",refs);
+    $("#rec-csName").value="";$("#rec-csUnit").value="";$("#rec-csEm").value="";$("#rec-csLower").checked=false;
+    await refresh(); renderAdmin(); toast("הענף נוסף — אפשר להזין בו שיאים");
+  }
+
+  /* ---------- הרשאות ---------- */
+  function applyRoleRec(){
+    const stu=window.HM&&window.HM.isStudent&&window.HM.isStudent();
+    const ab=$("#rec-adminBtn"); if(ab)ab.style.display=stu?"none":"";
+    const kb=$("#rec-kioskBtn"); if(kb)kb.style.display=stu?"none":"";
+    const hb=$("#rec-handBtn"); if(hb)hb.style.display=stu?"none":"";
+    const rh=$("#rec-roleHint"); if(rh)rh.style.display=stu?"":"none";
+    if(stu)modal("rec-adminModal",false);
   }
 
   /* ---------- kiosk ---------- */
@@ -1264,8 +1422,15 @@ const REC=(function(){
     $("#rec-kioskBtn").addEventListener("click",kioskStart);
     $("#rec-kiosk").addEventListener("click",kioskStop);
     document.addEventListener("keydown",e=>{ if(e.key==="Escape")kioskStop(); });
+    /* הוספה ידנית / עריכה / ענפים מותאמים */
+    $("#rec-mnAdd").addEventListener("click",openManual);
+    $("#rec-mnSport").addEventListener("change",updMnLb);
+    $("#rec-mnSave").addEventListener("click",saveManual);
+    $("#rec-csAdd").addEventListener("click",addCustomSport);
+    applyRoleRec();
   }
-  return {init,countApproved,_test:{SPORTS,showVal:(id,v)=>showVal(sportById(id),v),pct:(id,v,w)=>pct(sportById(id),v,w)}};
+  return {init,countApproved,applyRole:applyRoleRec,
+    _test:{SPORTS:()=>SPORTS,showVal:(id,v)=>showVal(sportById(id),v),pct:(id,v,w)=>pct(sportById(id),v,w)}};
 })();
 
 
@@ -1472,5 +1637,8 @@ const FIT=(function(){
 
 
 /* ===== bridge for new modules ===== */
-window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc};
-window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); go(location.hash.slice(1)||"home"); homeStats(); };
+window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
+window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
+  setRole,isStudent,role:()=>ROLE};
+window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
+  go(location.hash.slice(1)||"home"); homeStats(); };

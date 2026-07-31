@@ -412,3 +412,123 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #lockOv h1{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:24px;margin:0 0 4px}
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
+
+/* ============================================================
+   תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד
+   ============================================================ */
+
+/* --- מצב תלמיד --- */
+#roleBadge{display:flex;align-items:center;gap:8px;background:rgba(251,191,36,.14);
+  border:1px solid rgba(251,191,36,.4);color:#fbbf24;border-radius:99px;
+  padding:5px 11px;font-size:12px;font-weight:600;cursor:default;font-family:inherit}
+#roleBadge #roleExit{cursor:pointer;background:rgba(251,191,36,.2);border-radius:99px;
+  padding:2px 8px;font-size:11px}
+#roleBadge #roleExit:hover{background:rgba(251,191,36,.35)}
+.rec-stuhint{border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.08);
+  border-radius:11px;padding:9px 12px;margin-top:9px}
+body.role-student .hx-mods,body.role-student .scoreband{display:none}
+
+.lock-or{display:flex;align-items:center;gap:10px;margin:15px 0 11px;color:var(--faint);font-size:12px}
+.lock-or::before,.lock-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.lock-note{font-size:11.5px;color:var(--faint);line-height:1.6;margin-top:13px}
+
+/* --- נגן ביקורת סרטון --- */
+.rec-vctl{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.rec-vctl button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  color:#fff;border-radius:9px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.rec-vctl button.on{background:var(--acc);color:#0c0e1a;border-color:var(--acc);font-weight:700}
+
+/* --- דף המשחקים --- */
+.gm-cats{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.gm-cats button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+  border-radius:99px;padding:7px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px}
+.gm-cats button.on{background:var(--acc);color:#0c0e1a;border-color:var(--acc);font-weight:700}
+.gm-cats button .cnt{opacity:.65;font-size:11px}
+.gm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px;margin-top:13px}
+.gm-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:13px 14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:8px}
+.gm-card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.gm-card .hd{display:flex;gap:10px;align-items:flex-start}
+.gm-card .hd .em{font-size:26px;line-height:1}
+.gm-card .hd b{display:block;font-family:'Secular One',sans-serif;font-size:15px;line-height:1.3}
+.gm-card .tag{font-size:11px;color:var(--acc)}
+.gm-card .gl{font-size:12.5px;color:var(--muted);line-height:1.55}
+.gm-card .meta{display:flex;flex-wrap:wrap;gap:5px 10px;font-size:11px;color:var(--faint);
+  border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
+
+.gm-sec{margin-bottom:13px}
+.gm-sec h4{font-size:13px;margin:0 0 5px;color:var(--acc);font-family:'Secular One',sans-serif}
+.gm-sec p{font-size:13px;line-height:1.65;color:var(--ink);margin:0}
+.gm-sec ol,.gm-sec ul{margin:0;padding-inline-start:20px;font-size:13px;line-height:1.7;color:var(--ink)}
+.gm-sec ol li,.gm-sec ul li{margin-bottom:4px}
+.gm-sec.warn{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.28);
+  border-radius:11px;padding:10px 13px}
+.gm-sec.warn h4{color:#f87171}
+
+/* --- מאגר הידע --- */
+.kn-src{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:14px 15px;margin-top:11px}
+.kn-src .hd{display:flex;gap:11px;align-items:flex-start;margin-bottom:8px}
+.kn-src .hd .fl{font-size:22px;line-height:1.2}
+.kn-src .hd b{font-family:'Secular One',sans-serif;font-size:15px;line-height:1.35;display:block}
+.kn-src .org{font-size:11.5px;color:var(--acc);margin-top:2px}
+.kn-src p{font-size:13px;line-height:1.65;color:var(--muted);margin:0}
+.kn-src .usebox{margin-top:9px;background:rgba(255,255,255,.04);border-radius:10px;
+  padding:8px 11px;font-size:12.5px;line-height:1.6;color:var(--ink)}
+.kn-src .usebox b{color:var(--acc)}
+
+.kn-prog{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px;margin-top:11px;cursor:pointer;transition:.15s}
+.kn-prog:hover{border-color:var(--acc);transform:translateY(-2px)}
+.kn-prog .hd{display:flex;gap:11px;align-items:center;margin-bottom:6px}
+.kn-prog .hd .em{font-size:24px}
+.kn-prog .hd b{font-family:'Secular One',sans-serif;font-size:15px;display:block}
+.kn-prog .hd .go{color:var(--acc);font-size:19px}
+.kn-prog .org{font-size:11.5px;color:var(--acc)}
+.kn-prog p{font-size:12.5px;line-height:1.6;color:var(--muted);margin:0}
+.kn-blk{background:rgba(255,255,255,.04);border-radius:10px;padding:9px 12px;margin-bottom:7px}
+.kn-blk b{display:block;font-size:12.5px;color:var(--acc);margin-bottom:3px}
+.kn-blk div{font-size:12.5px;line-height:1.65;color:var(--ink)}
+
+.kn-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:11px}
+.kn-fact{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:13px;
+  padding:13px;text-align:center}
+.kn-fact .n{font-family:'Secular One',sans-serif;font-size:27px;color:var(--acc);line-height:1.1}
+.kn-fact .l{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+
+/* --- מערך שיעור מורחב --- */
+.ls-eq{display:flex;flex-wrap:wrap;gap:6px 13px;background:rgba(255,255,255,.03);
+  border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.ls-head{display:flex;gap:12px;align-items:center}
+.ls-head .em{font-size:31px}
+.ls-head b{font-family:'Secular One',sans-serif;font-size:18px;display:block}
+.ls-head .sb{font-size:12px;color:var(--acc)}
+.ls-sec{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.ls-sec h4{font-size:13px;margin:0 0 7px;color:var(--acc);font-family:'Secular One',sans-serif}
+.ls-sec p{font-size:13px;line-height:1.65;margin:0;color:var(--ink)}
+.ls-sec ul{margin:0;padding-inline-start:20px;font-size:13px;line-height:1.75;color:var(--ink)}
+.ls-sec.warn{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);
+  border-radius:11px;padding:11px 13px;border-top:1px solid rgba(248,113,113,.25)}
+.ls-sec.warn h4{color:#f87171}
+.ls-diff{display:flex;gap:10px;font-size:12.5px;line-height:1.6;margin-bottom:6px;
+  background:rgba(255,255,255,.04);border-radius:9px;padding:8px 11px}
+.ls-diff b{color:var(--acc);flex:0 0 88px}
+.ls-diff span{color:var(--ink)}
+
+@media(max-width:520px){
+  .gm-grid{grid-template-columns:1fr}
+  .kn-facts{grid-template-columns:repeat(2,1fr)}
+  .ls-diff{flex-direction:column;gap:3px}
+  .ls-diff b{flex:none}
+}
+
+/* nav: 9 מודולים — גלילה אופקית במסכים צרים במקום דחיסה */
+@media(max-width:640px){
+  .nav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{flex:0 0 auto;min-width:62px;max-width:none;font-size:10.5px}
+  .nav button .ic{font-size:19px}
+}
+body[data-mod="games"]{--acc:#f87171;--accDim:rgba(248,113,113,.18)}
+body[data-mod="know"]{--acc:#22d3ee;--accDim:rgba(34,211,238,.18)}
