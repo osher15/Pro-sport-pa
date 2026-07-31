@@ -698,7 +698,14 @@
   </div>
 
   <div class="card">
-    <h2><span class="dot"></span> ספריית המערכים</h2>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 style="margin:0"><span class="dot"></span> ספריית המערכים</h2>
+      <div class="row">
+        <label class="btn sm acc" style="cursor:pointer">📥 ייבוא<input type="file" id="ls-libImport" accept=".json,application/json" multiple style="display:none"></label>
+        <button class="btn sm" id="ls-libExport">⬇ ייצוא</button>
+      </div>
+    </div>
+    <div class="hint" id="ls-libCount" style="margin-top:6px"></div>
     <div id="ls-libList"></div>
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
@@ -829,6 +836,12 @@
     <div id="kn-mBody"></div>
   </div></div>
 </section>
+
+<div class="modal" id="ls-docModal"><div class="box">
+  <h3><span id="ls-docTitle"></span><button class="x" data-close="ls-docModal">✕</button></h3>
+  <div id="ls-docBody"></div>
+  <button class="btn sm ghost" id="ls-docPrint" style="margin-top:11px">🖨 הדפס</button>
+</div></div>
 
 <section class="view" id="view-nut">
   <div class="card nut-daily">

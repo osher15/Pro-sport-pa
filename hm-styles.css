@@ -632,3 +632,6 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
 #rec-sportEdit textarea{min-height:60px;line-height:1.6}
 .rec-drivebox{border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.09);
   border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;line-height:1.65}
+.ls-doc{font-size:13px;line-height:1.75;color:var(--ink);white-space:pre-wrap;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
+  padding:12px 14px;max-height:56vh;overflow:auto}

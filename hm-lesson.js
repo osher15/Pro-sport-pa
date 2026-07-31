@@ -575,17 +575,78 @@ window.LESSON=(function(){
   function renderLib(){
     const {$, $$, esc}=H(); const lib=H().LS.get("ls.lib",[]);
     $("#ls-libEmpty").style.display=lib.length?"none":"block";
-    $("#ls-libList").innerHTML=lib.map(e=>`<div class="arc-item"><div class="grow">
-      <div class="ttl">${e.plan.em||"📋"} ${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
-      <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
-      <button class="btn sm" data-load="${e.id}">📂</button><button class="btn sm stop" data-del="${e.id}">✕</button></div>`).join("");
+    $("#ls-libCount").textContent=lib.length?lib.length+" מערכים בספרייה":"";
+    $("#ls-libList").innerHTML=lib.map(e=>{
+      /* שני סוגי רשומות: מערך שנוצר במחולל, ומסמך שיובא מקובץ */
+      if(e.doc) return `<div class="arc-item"><div class="grow">
+        <div class="ttl">📄 ${esc(e.doc.title)}</div>
+        <div class="sb">${esc(e.doc.meta||"מסמך מיובא")}</div></div>
+        <button class="btn sm" data-doc="${e.id}">👁 פתח</button>
+        <button class="btn sm stop" data-del="${e.id}">✕</button></div>`;
+      return `<div class="arc-item"><div class="grow">
+        <div class="ttl">${e.plan.em||"📋"} ${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
+        <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
+        <button class="btn sm" data-load="${e.id}">📂</button>
+        <button class="btn sm stop" data-del="${e.id}">✕</button></div>`;
+    }).join("");
     $$("#ls-libList [data-load]").forEach(b=>b.addEventListener("click",()=>{
       const e=H().LS.get("ls.lib",[]).find(x=>x.id==b.dataset.load);
       if(e){plan=e.plan;renderPlan();H().toast("המערך נטען");window.scrollTo({top:0,behavior:"smooth"});}
     }));
+    $$("#ls-libList [data-doc]").forEach(b=>b.addEventListener("click",()=>openDoc(b.dataset.doc)));
     $$("#ls-libList [data-del]").forEach(b=>b.addEventListener("click",()=>{
       H().LS.set("ls.lib",H().LS.get("ls.lib",[]).filter(x=>x.id!=b.dataset.del)); renderLib();
     }));
+  }
+
+  /* ---------- מסמכים מיובאים ---------- */
+  function openDoc(id){
+    const {$, esc}=H();
+    const e=H().LS.get("ls.lib",[]).find(x=>x.id==id); if(!e||!e.doc)return;
+    $("#ls-docTitle").textContent=e.doc.title;
+    $("#ls-docBody").innerHTML=`<div class="hint" style="margin-bottom:10px">${esc(e.doc.meta||"")}</div>
+      <div class="ls-doc">${esc(e.doc.text).replace(/\n/g,"<br>")}</div>`;
+    H().modal("ls-docModal");
+    $("#ls-docPrint").onclick=()=>{
+      const w=window.open("","_blank");
+      w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>${esc(e.doc.title)}</title>
+        <style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;line-height:1.7;color:#16182b;white-space:pre-wrap}
+        h1{color:#1f7a4d;font-size:20px}.m{color:#666;font-size:12px;margin-bottom:16px}</style></head><body>
+        <h1>${esc(e.doc.title)}</h1><div class="m">${esc(e.doc.meta||"")}</div>${esc(e.doc.text)}
+        <script>print()<\/script></body></html>`);
+      w.document.close();
+    };
+  }
+
+  /* ---------- ייצוא וייבוא של הספרייה ---------- */
+  function exportLib(){
+    const lib=H().LS.get("ls.lib",[]);
+    if(!lib.length){H().toast("הספרייה ריקה");return;}
+    const blob=new Blob([JSON.stringify({app:"hamigrash-pro",kind:"lessons",v:1,exported:today(),items:lib},null,1)],
+      {type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="lessons-"+today()+".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    H().toast("⬇ הספרייה יוצאה — "+lib.length+" מערכים");
+  }
+  async function importLib(file){
+    try{
+      const j=JSON.parse(await file.text());
+      const incoming=Array.isArray(j)?j:(j.items||[]);
+      if(!incoming.length){H().toast("אין מערכים בקובץ");return;}
+      const lib=H().LS.get("ls.lib",[]);
+      const seen=new Set(lib.map(x=>String(x.id)));
+      let added=0;
+      incoming.forEach(e=>{
+        if(!e||(!e.plan&&!e.doc))return;
+        let id=String(e.id||Date.now()+Math.random());
+        while(seen.has(id))id=id+"_";        /* מזהה כפול לא דורס רשומה קיימת */
+        seen.add(id); lib.push(Object.assign({},e,{id})); added++;
+      });
+      H().LS.set("ls.lib",lib); renderLib();
+      H().toast("📥 נוספו "+added+" מערכים לספרייה");
+    }catch(e){ H().toast("קובץ לא תקין"); }
   }
 
   /* ---------- הדפסה ---------- */
@@ -644,6 +705,11 @@ window.LESSON=(function(){
     $("#ls-stop").addEventListener("click",()=>{stop();H().$("#ls-phName").textContent="הופסק";});
     $("#ls-save").addEventListener("click",saveLib);
     $("#ls-print").addEventListener("click",print);
+    $("#ls-libExport").addEventListener("click",exportLib);
+    $("#ls-libImport").addEventListener("change",async e=>{
+      for(const f of e.target.files)await importLib(f);
+      e.target.value="";
+    });
     renderLib();
     const pre=H().LS.get("ls.pickGame",null);
     if(pre)H().toast("משחק נבחר ממתין — לחץ «בנה מערך»");
