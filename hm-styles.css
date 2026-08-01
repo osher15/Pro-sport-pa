@@ -511,6 +511,8 @@ body.role-student .hx-mods,body.role-student .scoreband{display:none}
 .ls-sec.warn{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);
   border-radius:11px;padding:11px 13px;border-top:1px solid rgba(248,113,113,.25)}
 .ls-sec.warn h4{color:#f87171}
+.ls-steps{margin:6px 0 0;padding-inline-start:20px;font-size:12.5px;line-height:1.65;color:var(--ink)}
+.ls-steps li{margin-bottom:6px}
 .ls-diff{display:flex;gap:10px;font-size:12.5px;line-height:1.6;margin-bottom:6px;
   background:rgba(255,255,255,.04);border-radius:9px;padding:8px 11px}
 .ls-diff b{color:var(--acc);flex:0 0 88px}
