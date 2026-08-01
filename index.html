@@ -656,6 +656,10 @@
         <select id="ls-focus"></select>
       </div>
     </div>
+    <div class="field" id="ls-subWrap" style="margin-top:11px;display:none">
+      <label>מיקוד ספציפי (תת-נושא) — אפשר לבחור כמה, או להשאיר ריק לגיוון אוטומטי</label>
+      <div class="ls-eq" id="ls-subs"></div>
+    </div>
     <div class="field" style="margin-top:11px"><label>ציוד זמין</label>
       <div class="ls-eq" id="ls-eq">
         <label class="check"><input type="checkbox" value="כדורים" checked> כדורים</label>
@@ -695,6 +699,17 @@
     <div class="row" style="margin-top:12px">
       <button class="btn acc grow" id="ls-run">▶ הפעל שיעור</button>
       <button class="btn stop" id="ls-stop" disabled>⏹ עצור</button>
+    </div>
+    <div class="ls-sec" id="ls-fbBox">
+      <h4>📝 משוב מהיר על השיעור</h4>
+      <div class="hint">איך זה עבד בפועל? המשוב עוזר לגוון את המערכים הבאים לאותו נושא — ולא לחזור על אותו דבר כל הזמן.</div>
+      <div class="row" style="margin-top:8px;gap:8px">
+        <button class="btn sm" id="ls-fbGood">👍 עבד מצוין</button>
+        <button class="btn sm ghost" id="ls-fbOk">😐 בינוני</button>
+        <button class="btn sm stop" id="ls-fbBad">👎 לא עבד</button>
+      </div>
+      <textarea id="ls-fbNote" rows="2" placeholder="מה עבד / מה פחות (רשות)" style="margin-top:8px;width:100%"></textarea>
+      <div class="hint" id="ls-fbHist" style="margin-top:6px"></div>
     </div>
   </div>
 
