@@ -264,8 +264,12 @@ details.fold .bd{padding:0 12px 13px}
 .fit-ex svg{width:74px;height:74px}
 .fit-ex b{display:block;font-size:13.5px;margin-top:5px}
 .fit-ex span{font-size:11px;color:var(--faint)}
-.fig{stroke:var(--ink);stroke-width:5;stroke-linecap:round;fill:none}
-.fig .hd{fill:var(--acc);stroke:none}
+.fig2{overflow:visible}
+.fig2 .limb{stroke:var(--ink);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fig2 .torso{stroke:var(--acc);stroke-width:10;stroke-linecap:round;fill:none}
+.fig2 .hd{fill:var(--acc);stroke:var(--panel2);stroke-width:2}
+.fig2 .hl{fill:rgba(255,255,255,.5);stroke:none}
+.fig2 .gnd{fill:var(--ink);opacity:.1;stroke:none}
 .dicewrap{display:flex;gap:16px;justify-content:center;margin:14px 0}
 .die{width:104px;height:104px;border-radius:18px;background:linear-gradient(160deg,#13301f,#0a1c12);border:2px solid var(--acc);
   display:grid;place-items:center;text-align:center;padding:6px;transition:transform .5s}
@@ -1156,6 +1160,7 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
     <button data-ft="circuit">🔁 תחנות לכיתה</button>
     <button data-ft="lib">📖 ספריית תרגילים</button>
     <button data-ft="dice">🎲 קוביית הכושר</button>
+    <button data-ft="gym">🏋️ תוכנית חדר כושר</button>
   </div>
 
   <!-- timer -->
@@ -1190,7 +1195,7 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       <h2><span class="dot"></span> מחולל אימון תחנות</h2>
       <div class="row">
         <div class="field" style="width:160px"><label>מיקוד</label>
-          <select id="fit-cFocus"><option value="mix">משולב</option><option value="strength">כוח</option><option value="cardio">אירובי</option><option value="core">ליבה</option></select></div>
+          <select id="fit-cFocus"><option value="mix">משולב</option><option value="strength">כוח</option><option value="cardio">אירובי</option><option value="core">ליבה</option><option value="mobility">ניידות</option></select></div>
         <div class="field" style="width:110px"><label>תחנות</label><input type="number" id="fit-cN" value="6" min="2" max="12"></div>
         <div class="field" style="width:130px"><label>זמן בתחנה (שנ׳)</label><input type="number" id="fit-cT" value="45" min="10"></div>
         <div class="field" style="width:130px"><label>מעבר (שנ׳)</label><input type="number" id="fit-cR" value="15" min="5"></div>
@@ -1238,6 +1243,29 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       </div>
       <div style="font-family:'Secular One';font-size:21px;min-height:30px" id="fit-diceResult"></div>
       <button class="btn acc big" id="fit-roll" style="margin-top:13px">🎲 הטל קוביות!</button>
+    </div>
+  </div>
+
+  <!-- gym program -->
+  <div id="fit-sub-gym" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> תוכנית חדר כושר — לפי מסלול</h2>
+      <div class="hint">מותאם לחדר כושר קטן בבית ספר: משקולות יד, קטלבל, גומיות התנגדות, ספסל ומוט מתח. כל תרגיל שדורש ציוד ניתן להחלפה בגרסת משקל גוף מספריית התרגילים אם משהו חסר.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field grow"><label>מסלול</label>
+          <select id="gym-track">
+            <option value="AB">מתחילים — AB (2 ימים בשבוע)</option>
+            <option value="ABC">בינוניים — ABC (3 ימים, Push/Pull/Legs)</option>
+            <option value="ABCD">מתקדמים — ABCD (4 ימים, Upper/Lower ×2)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" id="gym-note" style="margin-top:9px"></div>
+      <div class="seg" id="gym-daySeg" style="margin-top:11px"></div>
+    </div>
+    <div class="card">
+      <h2 id="gym-dayTitle"><span class="dot"></span> יום</h2>
+      <div id="gym-list" style="margin-top:9px"></div>
     </div>
   </div>
 </section>
@@ -3408,31 +3436,237 @@ const REC=(function(){
    ============================================================ */
 const FIT=(function(){
   /* ---------- exercise library ---------- */
-  const FIGS={
-    squat:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="50" cy="22" r="9"/><g><animateTransform attributeName="transform" type="translate" values="0 0;0 12;0 0" dur="1.6s" repeatCount="indefinite"/><path d="M50 31 V52"/><path d="M50 38 L34 48 M50 38 L66 48"/></g><path d="M50 52 L38 70 L38 88 M50 52 L62 70 L62 88"><animate attributeName="d" values="M50 52 L38 70 L38 88 M50 52 L62 70 L62 88;M50 64 L34 74 L38 88 M50 64 L66 74 L62 88;M50 52 L38 70 L38 88 M50 52 L62 70 L62 88" dur="1.6s" repeatCount="indefinite"/></path></svg>`,
-    push:`<svg viewBox="0 0 100 100" class="fig"><g><animateTransform attributeName="transform" type="translate" values="0 0;0 10;0 0" dur="1.5s" repeatCount="indefinite"/><circle class="hd" cx="22" cy="48" r="8"/><path d="M30 52 L72 60 L88 64"/></g><path d="M34 54 L30 76 M64 59 L62 78"><animate attributeName="d" values="M34 54 L30 76 M64 59 L62 78;M34 64 L30 76 M64 69 L62 78;M34 54 L30 76 M64 59 L62 78" dur="1.5s" repeatCount="indefinite"/></path><path d="M10 80 H92" opacity=".4"/></svg>`,
-    jack:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="50" cy="18" r="9"/><path d="M50 27 V55"/><path d="M50 36 L30 22 M50 36 L70 22"><animate attributeName="d" values="M50 36 L30 22 M50 36 L70 22;M50 36 L32 52 M50 36 L68 52;M50 36 L30 22 M50 36 L70 22" dur="1s" repeatCount="indefinite"/></path><path d="M50 55 L34 86 M50 55 L66 86"><animate attributeName="d" values="M50 55 L34 86 M50 55 L66 86;M50 55 L44 86 M50 55 L56 86;M50 55 L34 86 M50 55 L66 86" dur="1s" repeatCount="indefinite"/></path></svg>`,
-    plank:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="20" cy="50" r="8"/><path d="M28 54 L74 58 L90 60"/><path d="M34 56 L32 74 M68 58 L66 76"/><path d="M8 80 H94" opacity=".4"/><circle cx="50" cy="40" r="2" fill="var(--acc)" stroke="none"><animate attributeName="opacity" values="1;.2;1" dur="1.4s" repeatCount="indefinite"/></circle></svg>`,
-    lunge:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="48" cy="20" r="9"/><path d="M48 29 V52"/><path d="M48 36 L34 46 M48 36 L62 46"/><path d="M48 52 L30 66 L30 86 M48 52 L66 72 L78 86"><animate attributeName="d" values="M48 52 L30 66 L30 86 M48 52 L66 72 L78 86;M48 58 L28 72 L30 86 M48 58 L70 76 L78 86;M48 52 L30 66 L30 86 M48 52 L66 72 L78 86" dur="1.8s" repeatCount="indefinite"/></path></svg>`,
-    climber:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="24" cy="42" r="8"/><path d="M32 47 L70 62"/><path d="M36 50 L32 70 M62 58 L60 76"/><path d="M70 62 L84 76 M70 62 L60 84"><animate attributeName="d" values="M70 62 L84 76 M70 62 L60 84;M70 62 L62 80 M70 62 L86 72;M70 62 L84 76 M70 62 L60 84" dur=".8s" repeatCount="indefinite"/></path><path d="M8 86 H94" opacity=".4"/></svg>`,
-    knees:`<svg viewBox="0 0 100 100" class="fig"><circle class="hd" cx="50" cy="16" r="9"/><path d="M50 25 V52"/><path d="M50 34 L36 44 M50 34 L64 26"><animate attributeName="d" values="M50 34 L36 44 M50 34 L64 26;M50 34 L36 26 M50 34 L64 44;M50 34 L36 44 M50 34 L64 26" dur=".7s" repeatCount="indefinite"/></path><path d="M50 52 L38 64 L36 86 M50 52 L62 60 L62 70"><animate attributeName="d" values="M50 52 L38 64 L36 86 M50 52 L62 60 L62 70;M50 52 L40 58 L40 68 M50 52 L62 70 L64 86;M50 52 L38 64 L36 86 M50 52 L62 60 L62 70" dur=".7s" repeatCount="indefinite"/></path></svg>`,
-    burpee:`<svg viewBox="0 0 100 100" class="fig"><g><circle class="hd" cx="50" cy="20" r="8"/><path d="M50 28 V50 M50 34 L36 24 M50 34 L64 24 M50 50 L40 84 M50 50 L60 84"/><animateTransform attributeName="transform" type="rotate" values="0 50 55;90 50 60;0 50 55" dur="2s" repeatCount="indefinite"/></g><path d="M10 88 H90" opacity=".4"/></svg>`
+  /* ---------- מנוע איורים (ריג מפרקים) ---------- */
+  const STAND={hd:[50,20],nk:[50,30],hip:[50,54],
+    shL:[42,32],elL:[38,45],haL:[35,58],
+    shR:[58,32],elR:[62,45],haR:[65,58],
+    knL:[45,71],ftL:[43,90],
+    knR:[55,71],ftR:[57,90]};
+  const P=over=>Object.assign({},STAND,over);
+
+  function human(frames,dur){
+    dur=dur||1.4;
+    const seg2=(a,b)=>`M${a[0]} ${a[1]} L${b[0]} ${b[1]}`;
+    const seg3=(a,b,c)=>`M${a[0]} ${a[1]} L${b[0]} ${b[1]} L${c[0]} ${c[1]}`;
+    const anim=(attr,vals)=>`<animate attributeName="${attr}" values="${vals.join(";")}" dur="${dur}s" repeatCount="indefinite"/>`;
+    const torso=frames.map(f=>seg2(f.nk,f.hip));
+    const armL=frames.map(f=>seg3(f.shL,f.elL,f.haL));
+    const armR=frames.map(f=>seg3(f.shR,f.elR,f.haR));
+    const legL=frames.map(f=>seg3(f.hip,f.knL,f.ftL));
+    const legR=frames.map(f=>seg3(f.hip,f.knR,f.ftR));
+    const hx=frames.map(f=>f.hd[0]), hy=frames.map(f=>f.hd[1]);
+    const hlx=hx.map(x=>x-3), hly=hy.map(y=>y-3);
+    return `<svg viewBox="0 0 100 100" class="fig2">`+
+      `<ellipse class="gnd" cx="50" cy="96" rx="18" ry="3"/>`+
+      `<path class="limb" d="${armL[0]}">${anim("d",armL)}</path>`+
+      `<path class="limb" d="${armR[0]}">${anim("d",armR)}</path>`+
+      `<path class="limb" d="${legL[0]}">${anim("d",legL)}</path>`+
+      `<path class="limb" d="${legR[0]}">${anim("d",legR)}</path>`+
+      `<path class="torso" d="${torso[0]}">${anim("d",torso)}</path>`+
+      `<circle class="hd" cx="${hx[0]}" cy="${hy[0]}" r="9">${anim("cx",hx)}${anim("cy",hy)}</circle>`+
+      `<circle class="hl" cx="${hlx[0]}" cy="${hly[0]}" r="2.4">${anim("cx",hlx)}${anim("cy",hly)}</circle>`+
+      `</svg>`;
+  }
+  function rig(base,active,dur){ return human([base,active,base],dur); }
+
+  const POSES={
+    squat:[STAND, P({hip:[50,68],nk:[50,37],shL:[43,39],elL:[36,44],haL:[32,50],shR:[57,39],elR:[64,44],haR:[68,50],knL:[38,65],ftL:[36,90],knR:[62,65],ftR:[64,90]})],
+    lunge:[STAND, P({hip:[48,60],nk:[48,40],shL:[41,42],elL:[35,50],haL:[32,58],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]})],
+    stepup:[STAND, P({hip:[52,50],nk:[52,30],knL:[40,52],ftL:[38,32],knR:[60,66],ftR:[64,90],shL:[45,32],elL:[38,26],haL:[34,18],shR:[59,32],elR:[64,42],haR:[68,52]})],
+    calf:[STAND, P({hd:[50,17],nk:[50,27],hip:[50,51],knL:[45,68],knR:[55,68]})],
+    deepsquat:[STAND, P({hip:[50,72],nk:[50,44],shL:[44,46],elL:[36,50],haL:[32,54],shR:[56,46],elR:[64,50],haR:[68,54],knL:[36,68],ftL:[36,90],knR:[64,68],ftR:[64,90]})],
+    hinge:[STAND, P({nk:[46,36],hip:[55,48],shL:[40,38],elL:[38,52],haL:[38,66],shR:[52,38],elR:[50,52],haR:[50,66],knL:[46,68],ftL:[43,89],knR:[60,68],ftR:[62,89]})],
+    kbswing:[P({nk:[46,36],hip:[55,50],shL:[40,38],elL:[40,52],haL:[42,64],shR:[52,38],elR:[50,52],haR:[50,64],knL:[46,68],ftL:[43,89],knR:[60,68],ftR:[62,89]}),
+              P({shL:[42,32],elL:[38,18],haL:[36,6],shR:[58,32],elR:[62,18],haR:[64,6]})],
+    row:[P({nk:[46,36],hip:[54,50],shL:[40,38],elL:[36,52],haL:[34,68],shR:[52,38],elR:[48,52],haR:[46,68],knL:[46,68],ftL:[44,89],knR:[58,68],ftR:[60,89]}),
+         P({nk:[46,36],hip:[54,50],shL:[40,38],elL:[42,44],haL:[48,40],shR:[52,38],elR:[54,44],haR:[60,40],knL:[46,68],ftL:[44,89],knR:[58,68],ftR:[60,89]})],
+    press:[P({shL:[42,32],elL:[36,38],haL:[34,44],shR:[58,32],elR:[64,38],haR:[66,44]}),
+           P({shL:[42,32],elL:[38,20],haL:[38,8],shR:[58,32],elR:[62,20],haR:[62,8]})],
+    pulldown:[P({shL:[42,32],elL:[36,20],haL:[34,8],shR:[58,32],elR:[64,20],haR:[66,8]}),
+              P({shL:[42,32],elL:[34,30],haL:[30,36],shR:[58,32],elR:[66,30],haR:[70,36]})],
+    curl:[STAND, P({elL:[38,45],haL:[42,32],elR:[62,45],haR:[58,32]})],
+    tripush:[P({elL:[38,40],haL:[36,50],elR:[62,40],haR:[64,50]}), P({elL:[38,40],haL:[38,58],elR:[62,40],haR:[62,58]})],
+    carry:[P({knL:[44,68],ftL:[40,90],knR:[56,74],ftR:[64,90]}), P({knL:[56,74],ftL:[64,90],knR:[44,68],ftR:[40,90]})],
+    jack:[STAND, P({nk:[50,27],shL:[38,20],elL:[30,10],haL:[26,3],shR:[62,20],elR:[70,10],haR:[74,3],knL:[38,68],ftL:[30,90],knR:[62,68],ftR:[70,90]})],
+    knees:[P({hip:[50,52],nk:[50,32],knL:[40,50],ftL:[38,72],knR:[60,72],ftR:[62,90],shL:[43,34],elL:[36,30],haL:[34,22],shR:[57,34],elR:[64,42],haR:[68,52]}),
+           P({hip:[50,52],nk:[50,32],knR:[40,50],ftR:[38,72],knL:[60,72],ftL:[62,90],shR:[43,34],elR:[36,30],haR:[34,22],shL:[57,34],elL:[64,42],haL:[68,52]})],
+    buttkick:[P({knL:[43,68],ftL:[40,88],knR:[57,70],ftR:[70,74]}), P({knR:[43,68],ftR:[40,88],knL:[57,70],ftL:[30,74]})],
+    skater:[P({hip:[46,58],nk:[46,36],knL:[34,66],ftL:[26,88],knR:[58,72],ftR:[68,86],shL:[40,38],elL:[30,44],haL:[24,50],shR:[52,38],elR:[62,30],haR:[70,20]}),
+            P({hip:[54,58],nk:[54,36],knR:[66,66],ftR:[74,88],knL:[42,72],ftL:[32,86],shR:[60,38],elR:[70,44],haR:[76,50],shL:[48,38],elL:[38,30],haL:[30,20]})],
+    burpee:[P({hip:[50,66],nk:[50,50],shL:[44,52],elL:[38,58],haL:[34,64],shR:[56,52],elR:[62,58],haR:[66,64],knL:[40,66],ftL:[38,88],knR:[60,66],ftR:[62,88]}),
+            P({hip:[50,46],nk:[50,26],shL:[40,28],elL:[34,18],haL:[30,8],shR:[60,28],elR:[66,18],haR:[70,8],knL:[42,60],ftL:[40,84],knR:[58,60],ftR:[60,84]})],
+    climber:[
+      {hd:[18,45],nk:[26,48],hip:[58,50],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
+       knL:[74,50],ftL:[90,52],knR:[45,46],ftR:[36,56]},
+      {hd:[18,45],nk:[26,48],hip:[58,50],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
+       knL:[45,46],ftL:[36,56],knR:[74,50],ftR:[90,52]}
+    ],
+    plank:[
+      {hd:[18,48],nk:[26,50],hip:[62,52],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
+       knL:[80,54],ftL:[94,54],knR:[80,50],ftR:[94,50]},
+      {hd:[18,50],nk:[26,52],hip:[62,53],shL:[28,52],elL:[27,60],haL:[27,66],shR:[28,48],elR:[27,56],haR:[27,62],
+       knL:[80,55],ftL:[94,55],knR:[80,51],ftR:[94,51]}
+    ],
+    splank:[
+      {hd:[20,42],nk:[28,44],hip:[62,50],shL:[30,46],elL:[30,60],haL:[30,72],shR:[30,40],elR:[38,32],haR:[46,24],
+       knL:[80,54],ftL:[95,54],knR:[80,50],ftR:[95,50]},
+      {hd:[20,40],nk:[28,42],hip:[62,48],shL:[30,44],elL:[30,58],haL:[30,70],shR:[30,38],elR:[36,28],haR:[42,18],
+       knL:[80,52],ftL:[95,52],knR:[80,48],ftR:[95,48]}
+    ],
+    push:[
+      {hd:[16,44],nk:[24,48],hip:[60,52],shL:[26,50],elL:[36,58],haL:[46,60],shR:[26,46],elR:[36,54],haR:[46,56],
+       knL:[76,56],ftL:[92,58],knR:[76,52],ftR:[92,54]},
+      {hd:[16,54],nk:[24,58],hip:[60,56],shL:[26,60],elL:[30,64],haL:[46,60],shR:[26,56],elR:[30,60],haR:[46,56],
+       knL:[76,58],ftL:[92,58],knR:[76,54],ftR:[92,54]}
+    ],
+    pike:[
+      {hd:[18,58],nk:[26,52],hip:[58,34],shL:[28,50],elL:[36,58],haL:[46,60],shR:[28,46],elR:[36,54],haR:[46,56],
+       knL:[76,44],ftL:[92,58],knR:[76,40],ftR:[92,54]},
+      {hd:[22,66],nk:[28,58],hip:[58,34],shL:[30,58],elL:[32,66],haL:[46,60],shR:[30,54],elR:[32,62],haR:[46,56],
+       knL:[76,44],ftL:[92,58],knR:[76,40],ftR:[92,54]}
+    ],
+    dip:[
+      {hd:[18,40],nk:[26,44],hip:[46,50],shL:[28,46],elL:[24,56],haL:[26,66],shR:[28,42],elR:[24,52],haR:[26,62],
+       knL:[62,50],ftL:[86,58],knR:[62,46],ftR:[86,54]},
+      {hd:[18,50],nk:[26,54],hip:[46,60],shL:[28,56],elL:[20,58],haL:[24,66],shR:[28,52],elR:[20,54],haR:[24,62],
+       knL:[62,54],ftL:[86,58],knR:[62,50],ftR:[86,54]}
+    ],
+    bench:[
+      {hd:[18,54],nk:[28,54],hip:[64,56],shL:[34,54],elL:[34,66],haL:[34,76],shR:[34,50],elR:[34,62],haR:[34,72],
+       knL:[80,58],ftL:[92,68],knR:[80,54],ftR:[92,64]},
+      {hd:[18,54],nk:[28,54],hip:[64,56],shL:[34,54],elL:[30,40],haL:[26,26],shR:[34,50],elR:[30,38],haR:[26,24],
+       knL:[80,58],ftL:[92,68],knR:[80,54],ftR:[92,64]}
+    ],
+    bearcrawl:[
+      {hd:[22,44],nk:[30,46],hip:[62,44],shL:[32,48],elL:[36,60],haL:[36,72],shR:[32,44],elR:[42,54],haR:[52,58],
+       knL:[74,52],ftL:[74,70],knR:[76,46],ftR:[92,54]},
+      {hd:[22,44],nk:[30,46],hip:[62,44],shL:[32,48],elL:[42,54],haL:[52,58],shR:[32,44],elR:[36,60],haR:[36,72],
+       knL:[76,46],ftL:[92,54],knR:[74,52],ftR:[74,70]}
+    ],
+    situp:[
+      {hd:[24,64],nk:[32,58],hip:[62,52],shL:[34,58],elL:[26,52],haL:[24,44],shR:[34,54],elR:[26,48],haR:[24,40],
+       knL:[80,58],ftL:[94,44],knR:[80,54],ftR:[94,40]},
+      {hd:[46,36],nk:[48,44],hip:[62,52],shL:[46,40],elL:[38,36],haL:[30,32],shR:[46,36],elR:[38,32],haR:[30,28],
+       knL:[80,58],ftL:[94,44],knR:[80,54],ftR:[94,40]}
+    ],
+    bicycle:[
+      {hd:[30,54],nk:[36,50],hip:[62,52],shL:[38,52],elL:[30,46],haL:[24,40],shR:[38,48],elR:[30,42],haR:[24,36],
+       knL:[76,42],ftL:[92,50],knR:[80,58],ftR:[96,64]},
+      {hd:[30,54],nk:[36,50],hip:[62,52],shL:[38,52],elL:[46,44],haL:[54,38],shR:[38,48],elR:[46,40],haR:[54,34],
+       knL:[80,58],ftL:[96,64],knR:[76,42],ftR:[92,50]}
+    ],
+    superman:[
+      {hd:[16,50],nk:[26,50],hip:[60,50],shL:[28,50],elL:[24,52],haL:[16,54],shR:[28,46],elR:[24,44],haR:[16,42],
+       knL:[76,52],ftL:[92,54],knR:[76,48],ftR:[92,46]},
+      {hd:[16,44],nk:[26,46],hip:[60,50],shL:[28,44],elL:[22,38],haL:[12,32],shR:[28,42],elR:[22,36],haR:[12,30],
+       knL:[76,48],ftL:[92,44],knR:[76,46],ftR:[92,42]}
+    ],
+    deadbug:[
+      {hd:[24,42],nk:[32,44],hip:[64,46],shL:[34,44],elL:[30,30],haL:[26,16],shR:[34,40],elR:[30,26],haR:[26,12],
+       knL:[78,40],ftL:[92,26],knR:[78,44],ftR:[92,58]},
+      {hd:[24,42],nk:[32,44],hip:[64,46],shL:[34,44],elL:[30,26],haL:[26,12],shR:[34,40],elR:[42,38],haR:[52,40],
+       knL:[78,40],ftL:[92,58],knR:[78,44],ftR:[92,44]}
+    ],
+    birddog:[
+      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[36,54],haR:[42,58],
+       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]},
+      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[20,36],haR:[8,32],
+       knL:[76,50],ftL:[76,68],knR:[86,40],ftR:[100,30]}
+    ],
+    catcow:[
+      {hd:[22,42],nk:[30,46],hip:[62,44],shL:[32,48],elL:[32,62],haL:[32,74],shR:[32,44],elR:[38,56],haR:[46,60],
+       knL:[76,52],ftL:[76,70],knR:[78,46],ftR:[94,54]},
+      {hd:[22,36],nk:[30,38],hip:[62,52],shL:[32,40],elL:[32,60],haL:[32,74],shR:[32,36],elR:[38,52],haR:[46,58],
+       knL:[76,54],ftL:[76,70],knR:[78,48],ftR:[94,54]}
+    ],
+    hip90:[
+      {hd:[46,30],nk:[48,38],hip:[54,56],shL:[42,40],elL:[36,44],haL:[30,48],shR:[54,40],elR:[60,44],haR:[66,48],
+       knL:[36,60],ftL:[30,70],knR:[66,64],ftR:[78,58]},
+      {hd:[46,30],nk:[48,38],hip:[54,56],shL:[42,40],elL:[36,44],haL:[30,48],shR:[54,40],elR:[60,44],haR:[66,48],
+       knL:[66,64],ftL:[78,58],knR:[36,60],ftR:[30,70]}
+    ],
+    worldgreat:[
+      P({hip:[48,60],nk:[48,40],shL:[41,42],elL:[35,50],haL:[32,58],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]}),
+      P({hip:[48,60],nk:[46,38],shL:[38,36],elL:[30,20],haL:[24,6],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]})
+    ],
+    thoracic:[
+      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[36,54],haR:[42,58],
+       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]},
+      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[22,28],haR:[14,14],
+       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]}
+    ],
+    anklerock:[
+      P({hip:[50,60],nk:[50,42],shL:[42,44],elL:[36,50],haL:[32,56],shR:[58,44],elR:[64,50],haR:[68,56],knL:[42,64],ftL:[36,88],knR:[58,64],ftR:[64,88]}),
+      P({hip:[50,58],nk:[50,40],shL:[42,42],elL:[36,48],haL:[32,54],shR:[58,42],elR:[64,48],haR:[68,54],knL:[38,64],ftL:[36,88],knR:[62,64],ftR:[64,88]})
+    ],
+    shouldercar:[
+      P({shL:[42,32],elL:[34,26],haL:[28,32],shR:[58,32],elR:[66,26],haR:[72,32]}),
+      P({shL:[42,32],elL:[34,40],haL:[30,50],shR:[58,32],elR:[66,40],haR:[70,50]})
+    ]
   };
+  const FIGS={};
+  Object.keys(POSES).forEach(k=>{ FIGS[k]=rig(POSES[k][0],POSES[k][1]); });
+
   const EX=[
-    {id:"squat",name:"סקוואט",grp:"strength",mus:"רגליים · ישבן",fig:"squat",cues:["רגליים ברוחב כתפיים","גב ישר, חזה קדימה","ירידה עד 90° בברכיים","דחיפה דרך העקבים"],mis:["ברכיים קורסות פנימה","עקבים מתרוממים"],reps:{קל:8,בינוני:12,מתקדם:20}},
-    {id:"push",name:"שכיבות סמיכה",grp:"strength",mus:"חזה · ידיים · ליבה",fig:"push",cues:["גוף בקו ישר","ידיים ברוחב כתפיים","חזה כמעט נוגע ברצפה"],mis:["אגן שוקע","מרפקים פתוחים מדי"],reps:{קל:6,בינוני:12,מתקדם:20}},
-    {id:"jack",name:"ג׳אמפינג ג׳ק",grp:"cardio",mus:"כל הגוף · אירובי",fig:"jack",cues:["קפיצה לפיסוק עם הרמת ידיים","נחיתה רכה על כריות הרגליים","קצב אחיד"],mis:["נחיתה קשה","ידיים לא מגיעות למעלה"],reps:{קל:15,בינוני:25,מתקדם:40}},
-    {id:"plank",name:"פלאנק",grp:"core",mus:"ליבה · כתפיים",fig:"plank",cues:["מרפקים מתחת לכתפיים","בטן אסופה, גוף קרש","מבט לרצפה"],mis:["אגן גבוה/נמוך מדי","עצירת נשימה"],reps:{קל:"20 שנ׳",בינוני:"40 שנ׳",מתקדם:"60 שנ׳"}},
-    {id:"lunge",name:"לאנג׳",grp:"strength",mus:"רגליים · שיווי משקל",fig:"lunge",cues:["צעד גדול קדימה","שתי הברכיים ב-90°","גו זקוף"],mis:["ברך קדמית עוברת את כף הרגל","צעד קצר מדי"],reps:{קל:6,בינוני:10,מתקדם:16}},
-    {id:"climber",name:"מטפס הרים",grp:"cardio",mus:"ליבה · אירובי",fig:"climber",cues:["ידיים נעוצות מתחת לכתפיים","ברכיים רצות לחזה","גב ישר"],mis:["ישבן עולה","קצב לא אחיד"],reps:{קל:16,בינוני:30,מתקדם:50}},
-    {id:"knees",name:"ברכיים גבוהות",grp:"cardio",mus:"רגליים · אירובי",fig:"knees",cues:["ברך עד גובה האגן","עבודה על כריות הרגליים","ידיים מלוות בריצה"],mis:["רכינה אחורה","ברכיים נמוכות"],reps:{קל:20,בינוני:30,מתקדם:50}},
-    {id:"burpee",name:"ברפי",grp:"mix",mus:"כל הגוף",fig:"burpee",cues:["ירידה לסמיכה","קפיצת רגליים אחורה","חזרה וקפיצה למעלה"],mis:["דילוג על שלב","גב מתעגל"],reps:{קל:5,בינוני:10,מתקדם:15}},
-    {id:"situp",name:"כפיפות בטן",grp:"core",mus:"בטן",fig:"plank",cues:["ברכיים כפופות","ידיים מוצלבות על החזה","עלייה מבוקרת"],mis:["משיכה בצוואר","תנופה"],reps:{קל:10,בינוני:15,מתקדם:25}},
-    {id:"wall",name:"כיסא קיר",grp:"strength",mus:"רגליים",fig:"squat",cues:["גב צמוד לקיר","ירכיים מקבילות לרצפה","ידיים לצדדים"],mis:["ידיים על הברכיים","זווית גבוהה מדי"],reps:{קל:"20 שנ׳",בינוני:"40 שנ׳",מתקדם:"60 שנ׳"}},
-    {id:"skip",name:"דילוג בחבל (מדומה)",grp:"cardio",mus:"שוקיים · תיאום",fig:"jack",cues:["קפיצות קטנות ומהירות","מרפקים צמודים, סיבוב שורש כף יד","נחיתה שקטה"],mis:["קפיצה גבוהה מדי","כתפיים מתוחות"],reps:{קל:30,בינוני:50,מתקדם:80}},
-    {id:"superman",name:"סופרמן",grp:"core",mus:"גב תחתון",fig:"plank",cues:["שכיבה על הבטן","הרמת ידיים ורגליים יחד","החזקה שנייה למעלה"],mis:["תנועה חדה","צוואר שבור למעלה"],reps:{קל:8,בינוני:12,מתקדם:20}}
+    /* --- כוח: משקל גוף --- */
+    {id:"squat",name:"סקוואט",grp:"strength",mus:"רגליים · ישבן",fig:"squat",eq:"בלי ציוד",cues:["רגליים ברוחב כתפיים","גב ישר, חזה קדימה","ירידה עד 90° בברכיים","דחיפה דרך העקבים"],mis:["ברכיים קורסות פנימה","עקבים מתרוממים"],reps:{קל:8,בינוני:12,מתקדם:20},yt:"סקוואט טכניקה נכונה"},
+    {id:"push",name:"שכיבות סמיכה",grp:"strength",mus:"חזה · ידיים · ליבה",fig:"push",eq:"בלי ציוד",cues:["גוף בקו ישר","ידיים ברוחב כתפיים","חזה כמעט נוגע ברצפה"],mis:["אגן שוקע","מרפקים פתוחים מדי"],reps:{קל:6,בינוני:12,מתקדם:20},yt:"שכיבות סמיכה טכניקה נכונה"},
+    {id:"pushincline",name:"שכיבות סמיכה בשיפוע",grp:"strength",mus:"חזה · ידיים",fig:"push",eq:"בלי ציוד",cues:["ידיים על ספסל/קיר, גוף בקו ישר","ככל שהשיפוע גבוה יותר — קל יותר","להתקדם בהדרגה לרצפה"],mis:["אגן שוקע","טווח תנועה חלקי"],reps:{קל:8,בינוני:15,מתקדם:20},yt:"incline push up beginner"},
+    {id:"lunge",name:"לאנג׳",grp:"strength",mus:"רגליים · שיווי משקל",fig:"lunge",eq:"בלי ציוד",cues:["צעד גדול קדימה","שתי הברכיים ב-90°","גו זקוף"],mis:["ברך קדמית עוברת את כף הרגל","צעד קצר מדי"],reps:{קל:6,בינוני:10,מתקדם:16},yt:"לאנג׳ טכניקה נכונה"},
+    {id:"wall",name:"כיסא קיר",grp:"strength",mus:"רגליים",fig:"squat",eq:"בלי ציוד",cues:["גב צמוד לקיר","ירכיים מקבילות לרצפה","ידיים לצדדים"],mis:["ידיים על הברכיים","זווית גבוהה מדי"],reps:{קל:"20 שנ׳",בינוני:"40 שנ׳",מתקדם:"60 שנ׳"},yt:"wall sit exercise"},
+    {id:"gluteb",name:"גשר ישבן",grp:"strength",mus:"ישבן · גב תחתון",fig:"deepsquat",eq:"בלי ציוד",cues:["שכיבה על הגב, ברכיים כפופות","דחיפה דרך העקבים","סחיטת ישבן למעלה בלי קשת יתר בגב"],mis:["קשת גב מוגזמת","דחיפה דרך כפות הרגליים ולא העקבים"],reps:{קל:10,בינוני:15,מתקדם:25},yt:"glute bridge exercise"},
+    {id:"stepup",name:"עליות לספסל",grp:"strength",mus:"רגליים · שיווי משקל",fig:"stepup",eq:"ספסל",cues:["כל כף הרגל על הספסל","דחיפה מהרגל העולה, לא קפיצה מהרגל התחתונה","ירידה מבוקרת"],mis:["דחיפה מרגל הקרקע","ברך עולה קורסת פנימה"],reps:{קל:8,בינוני:12,מתקדם:16},yt:"box step up exercise"},
+    {id:"dip",name:"דיפים על ספסל",grp:"strength",mus:"טרייספס · כתפיים",fig:"dip",eq:"ספסל",cues:["ידיים צמודות לגוף על קצה הספסל","ירידה עד 90° במרפק","מרפקים לא נפתחים לצדדים"],mis:["כתפיים עולות לאוזניים","ירידה עמוקה מדי"],reps:{קל:6,בינוני:10,מתקדם:15},yt:"bench dip triceps exercise"},
+    {id:"pike",name:"שכיבות פייק",grp:"strength",mus:"כתפיים",fig:"pike",eq:"בלי ציוד",cues:["אגן גבוה, גוף ביצירת ״V״","ירידה עם הראש בין הידיים","דחיפה חזרה למעלה"],mis:["אגן יורד — הופך לשכיבת סמיכה רגילה","ידיים רחוקות מדי מהרגליים"],reps:{קל:5,בינוני:8,מתקדם:15},yt:"pike push up shoulders"},
+    {id:"calf",name:"עליות עקבים",grp:"strength",mus:"שוקיים",fig:"calf",eq:"בלי ציוד",cues:["עלייה איטית עד קצות האצבעות","החזקה שנייה למעלה","ירידה מבוקרת בלי נפילה"],mis:["קפיצה במקום עלייה מבוקרת","טווח תנועה חלקי"],reps:{קל:12,בינוני:20,מתקדם:30},yt:"calf raise technique"},
+    {id:"bearcrawl",name:"זחילת דוב",grp:"strength",mus:"כל הגוף · ליבה",fig:"bearcrawl",eq:"בלי ציוד",cues:["ברכיים צמודות לרצפה בלי לגעת","יד ורגל נגדיות זזות יחד","גב שטוח כל הזמן"],mis:["ישבן גבוה מדי","נשימה עצורה"],reps:{קל:"6 מ׳",בינוני:"10 מ׳",מתקדם:"15 מ׳"},yt:"bear crawl exercise"},
+    {id:"singleleg",name:"דדליפט רגל אחת (משקל גוף)",grp:"strength",mus:"ישבן · שיווי משקל",fig:"hinge",eq:"בלי ציוד",cues:["רגל תומכת כפופה מעט","רגל אחורית וגו יורדים יחד כמו קרש","ידיים לאיזון קדימה"],mis:["סיבוב אגן","כיפוף גב תחתון במקום ירך"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"single leg deadlift bodyweight"},
+    {id:"inchworm",name:"תולעת (Inchworm)",grp:"mix",mus:"כל הגוף · ניידות",fig:"pike",eq:"בלי ציוד",cues:["כיפוף מהמותניים, ידיים לרצפה","הליכת ידיים קדימה לתנוחת פלאנק","הליכת רגליים לידיים ברגליים כמעט ישרות"],mis:["ברכיים כפופות מדי — מאבד את המתיחה","גב מתעגל בירידה"],reps:{קל:4,בינוני:8,מתקדם:12},yt:"inchworm exercise warm up"},
+
+    /* --- אירובי --- */
+    {id:"jack",name:"ג׳אמפינג ג׳ק",grp:"cardio",mus:"כל הגוף · אירובי",fig:"jack",eq:"בלי ציוד",cues:["קפיצה לפיסוק עם הרמת ידיים","נחיתה רכה על כריות הרגליים","קצב אחיד"],mis:["נחיתה קשה","ידיים לא מגיעות למעלה"],reps:{קל:15,בינוני:25,מתקדם:40},yt:"jumping jack technique"},
+    {id:"climber",name:"מטפס הרים",grp:"cardio",mus:"ליבה · אירובי",fig:"climber",eq:"בלי ציוד",cues:["ידיים נעוצות מתחת לכתפיים","ברכיים רצות לחזה","גב ישר"],mis:["ישבן עולה","קצב לא אחיד"],reps:{קל:16,בינוני:30,מתקדם:50},yt:"mountain climber exercise"},
+    {id:"knees",name:"ברכיים גבוהות",grp:"cardio",mus:"רגליים · אירובי",fig:"knees",eq:"בלי ציוד",cues:["ברך עד גובה האגן","עבודה על כריות הרגליים","ידיים מלוות בריצה"],mis:["רכינה אחורה","ברכיים נמוכות"],reps:{קל:20,בינוני:30,מתקדם:50},yt:"high knees exercise"},
+    {id:"burpee",name:"ברפי",grp:"mix",mus:"כל הגוף",fig:"burpee",eq:"בלי ציוד",cues:["ירידה לסמיכה","קפיצת רגליים אחורה","חזרה וקפיצה למעלה"],mis:["דילוג על שלב","גב מתעגל"],reps:{קל:5,בינוני:10,מתקדם:15},yt:"burpee technique"},
+    {id:"skip",name:"דילוג בחבל (מדומה)",grp:"cardio",mus:"שוקיים · תיאום",fig:"jack",eq:"בלי ציוד",cues:["קפיצות קטנות ומהירות","מרפקים צמודים, סיבוב שורש כף יד","נחיתה שקטה"],mis:["קפיצה גבוהה מדי","כתפיים מתוחות"],reps:{קל:30,בינוני:50,מתקדם:80},yt:"jump rope technique"},
+    {id:"buttkick",name:"בעיטות לישבן",grp:"cardio",mus:"רגליים · אירובי",fig:"buttkick",eq:"בלי ציוד",cues:["עקב נוגע בישבן","גוף זקוף, קצב מהיר","ידיים רפויות לצדדים"],mis:["רכינה קדימה","קצב איטי מדי"],reps:{קל:20,בינוני:35,מתקדם:50},yt:"butt kicks exercise"},
+    {id:"skater",name:"קפיצות סקייטר",grp:"cardio",mus:"רגליים · צד · שיווי משקל",fig:"skater",eq:"בלי ציוד",cues:["קפיצה לצד, נחיתה על רגל אחת","רגל אחורית חוצה מאחור לאיזון","ברך נוחתת רכה"],mis:["נחיתה על שתי רגליים","טווח קטן מדי"],reps:{קל:8,בינוני:14,מתקדם:22},yt:"skater jumps exercise"},
+
+    /* --- ליבה --- */
+    {id:"plank",name:"פלאנק",grp:"core",mus:"ליבה · כתפיים",fig:"plank",eq:"בלי ציוד",cues:["מרפקים מתחת לכתפיים","בטן אסופה, גוף קרש","מבט לרצפה"],mis:["אגן גבוה/נמוך מדי","עצירת נשימה"],reps:{קל:"20 שנ׳",בינוני:"40 שנ׳",מתקדם:"60 שנ׳"},yt:"plank technique"},
+    {id:"splank",name:"פלאנק צד",grp:"core",mus:"ליבה · אלכסונים",fig:"splank",eq:"בלי ציוד",cues:["מרפק מתחת לכתף","גוף בקו ישר מהראש לרגליים","ישבן לא שוקע ולא בולט"],mis:["גוף מתכופף לאמצע","ישבן דוחף אחורה"],reps:{קל:"15 שנ׳",בינוני:"30 שנ׳",מתקדם:"45 שנ׳"},yt:"side plank technique"},
+    {id:"situp",name:"כפיפות בטן",grp:"core",mus:"בטן",fig:"situp",eq:"בלי ציוד",cues:["ברכיים כפופות","ידיים מוצלבות על החזה","עלייה מבוקרת"],mis:["משיכה בצוואר","תנופה"],reps:{קל:10,בינוני:15,מתקדם:25},yt:"sit up correct technique"},
+    {id:"bicycle",name:"כפיפות אופניים",grp:"core",mus:"בטן · אלכסונים",fig:"bicycle",eq:"בלי ציוד",cues:["מרפק פוגש ברך נגדית","גב תחתון צמוד לרצפה","תנועה איטית ומבוקרת"],mis:["מהירות גבוהה מדי על חשבון טווח","משיכה בצוואר"],reps:{קל:10,בינוני:16,מתקדם:24},yt:"bicycle crunch technique"},
+    {id:"superman",name:"סופרמן",grp:"core",mus:"גב תחתון",fig:"superman",eq:"בלי ציוד",cues:["שכיבה על הבטן","הרמת ידיים ורגליים יחד","החזקה שנייה למעלה"],mis:["תנועה חדה","צוואר שבור למעלה"],reps:{קל:8,בינוני:12,מתקדם:20},yt:"superman exercise back"},
+    {id:"deadbug",name:"Dead bug",grp:"core",mus:"ליבה · יציבות",fig:"deadbug",eq:"בלי ציוד",cues:["גב תחתון צמוד לרצפה לכל אורך התרגיל","יד ורגל נגדיות יורדות יחד לאט","נשימה רציפה"],mis:["גב תחתון מתרומם","תנועה מהירה מדי"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"dead bug exercise core"},
+    {id:"birddog",name:"Bird dog",grp:"core",mus:"ליבה · יציבות",fig:"birddog",eq:"בלי ציוד",cues:["יד ורגל נגדיות מתארכות יחד","גב ואגן נשארים יציבים, בלי סיבוב","החזקה שנייה בקצה התנועה"],mis:["סיבוב אגן","הרמה גבוהה מדי על חשבון יציבות"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"bird dog exercise core"},
+    {id:"rtwist",name:"סיבובי רוסי",grp:"core",mus:"בטן · אלכסונים",fig:"bicycle",eq:"בלי ציוד",cues:["ישיבה מוטה אחורה, גב ישר","סיבוב מהחזה, לא רק הידיים","נגיעה קלה ברצפה משני הצדדים"],mis:["גב מתעגל","תנועה מהירה וחסרת שליטה"],reps:{קל:10,בינוני:20,מתקדם:30},yt:"russian twist technique"},
+    {id:"hollow",name:"Hollow hold",grp:"core",mus:"בטן · ליבה",fig:"situp",eq:"בלי ציוד",cues:["גב תחתון צמוד לרצפה","ידיים ורגליים מורמות ומתוחות","נשימה שקטה בהחזקה"],mis:["גב תחתון מתרומם","הרמה גבוהה מדי שמאבדת שליטה"],reps:{קל:"10 שנ׳",בינוני:"20 שנ׳",מתקדם:"35 שנ׳"},yt:"hollow body hold"},
+
+    /* --- ניידות (Mobility) --- */
+    {id:"catcow",name:"חתול־פרה",grp:"mobility",mus:"עמוד שדרה",fig:"catcow",eq:"בלי ציוד",cues:["תנועה איטית ורציפה עם הנשימה","שאיפה בקימור (פרה), נשיפה בעיגול (חתול)","תנועה מתחילה מהאגן"],mis:["תנועה מהירה מדי","תנועה רק בצוואר ולא בכל עמוד השדרה"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"cat cow stretch mobility"},
+    {id:"hip90",name:"90/90 ירך",grp:"mobility",mus:"ירכיים",fig:"hip90",eq:"בלי ציוד",cues:["שתי הרגליים ב-90° בישיבה","מעבר צד לצד בלי להישען על הידיים","גב זקוף לאורך התרגיל"],mis:["הישענות על הידיים כדי לפצות","תנועה מהירה מדי"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"90 90 hip mobility drill"},
+    {id:"worldgreat",name:"המתיחה הגדולה בעולם",grp:"mobility",mus:"כל הגוף",fig:"worldgreat",eq:"בלי ציוד",cues:["צעד לאנג׳ גדול קדימה","סיבוב פלג גוף עליון והושטת יד למעלה","מבט עוקב אחרי היד"],mis:["ברך קדמית עוברת את כף הרגל","סיבוב מהמותניים ולא מבית החזה"],reps:{קל:4,בינוני:6,מתקדם:8},yt:"world's greatest stretch"},
+    {id:"thoracic",name:"סיבוב בית החזה",grp:"mobility",mus:"עמוד שדרה עליון",fig:"thoracic",eq:"בלי ציוד",cues:["עמידת ארבע, יד אחת מאחורי הראש","סיבוב מבית החזה בלבד — האגן לא זז","תנועה איטית ונשלטת"],mis:["סיבוב מהאגן במקום מבית החזה","תנועה מהירה מדי"],reps:{קל:6,בינוני:10,מתקדם:14},yt:"thoracic rotation mobility"},
+    {id:"deepsquathold",name:"ישיבה עמוקה (Deep squat hold)",grp:"mobility",mus:"ירכיים · קרסוליים",fig:"deepsquat",eq:"בלי ציוד",cues:["עקבים נשארים על הרצפה","גב ארוך ככל האפשר, לא מתעגל לגמרי","מרפקים דוחפים ברכיים החוצה בעדינות"],mis:["עקבים מתרוממים","קריסת ברכיים פנימה"],reps:{קל:"15 שנ׳",בינוני:"30 שנ׳",מתקדם:"50 שנ׳"},yt:"deep squat hold mobility"},
+    {id:"anklerock",name:"נדנוד קרסול",grp:"mobility",mus:"קרסוליים",fig:"anklerock",eq:"בלי ציוד",cues:["ברך נעה קדימה מעל כף הרגל","עקב נשאר צמוד לרצפה","תנועה איטית ומבוקרת"],mis:["עקב מתרומם מוקדם מדי","תנועה מהירה מדי"],reps:{קל:8,בינוני:12,מתקדם:16},yt:"ankle mobility rock exercise"},
+    {id:"shouldercar",name:"עיגולי כתפיים (Shoulder CARs)",grp:"mobility",mus:"כתפיים",fig:"shouldercar",eq:"בלי ציוד",cues:["עיגול איטי ומלא של הכתף בכל טווח","ליבה יציבה, בלי להזיז את הגו","עצירה קלה בנקודת הקושי"],mis:["מהירות גבוהה מדי","פיצוי בתנועת הגו"],reps:{קל:5,בינוני:8,מתקדם:10},yt:"shoulder CARs mobility"},
+
+    /* --- ציוד חדר כושר --- */
+    {id:"gsquat",name:"סקוואט גביע (Goblet Squat)",grp:"strength",mus:"רגליים · ליבה",fig:"squat",eq:"משקולות יד",cues:["אוחזים במשקולת קרוב לחזה","מרפקים בתוך הברכיים בתחתית","גב ישר לכל אורך התנועה"],mis:["רכינה קדימה","עקבים מתרוממים"],reps:{קל:8,בינוני:12,מתקדם:18},yt:"goblet squat technique"},
+    {id:"dbrow",name:"חתירה עם משקולת",grp:"strength",mus:"גב · ביצפס",fig:"row",eq:"משקולות יד",cues:["גב ישר ומוטה קדימה כ-45°","מרפק נשלף לאחור וקרוב לגוף","סחיטת השכמות בחלק העליון"],mis:["גב מתעגל","סיבוב הגו במקום נשיכת השכמה"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"dumbbell row technique"},
+    {id:"dbpress",name:"לחיצת כתפיים עם משקולות",grp:"strength",mus:"כתפיים · טרייספס",fig:"press",eq:"משקולות יד",cues:["ליבה מהודקת, בלי קשת יתר בגב","דחיפה ישר למעלה","ירידה מבוקרת עד גובה כתפיים"],mis:["קשת גב מוגזמת","נעילת מרפקים בעוצמה למעלה"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"dumbbell shoulder press technique"},
+    {id:"rdl",name:"דדליפט רומני עם משקולות",grp:"strength",mus:"ישבן · האמסטרינג",fig:"hinge",eq:"משקולות יד",cues:["ברכיים כפופות קלות, לא נעולות","המשקולות צמודות לרגליים בירידה","הירך נעה אחורה, לא הגב מתעגל"],mis:["גב תחתון מתעגל","ירידה עמוקה מדי על חשבון הטכניקה"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"dumbbell romanian deadlift"},
+    {id:"latpull",name:"משיכה עליונה (מוט/גומייה)",grp:"strength",mus:"גב · ביצפס",fig:"pulldown",eq:"גומיית התנגדות",cues:["משיכה מתחילה מהשכמות","מרפקים יורדים לכיוון הצלעות","גב זקוף, בלי להישען אחורה"],mis:["משיכה בעיקר בזרועות","נדנוד גוף לעזרה בתנועה"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"band lat pulldown technique"},
+    {id:"pullup",name:"מתח (עצמי / בעזרת גומייה)",grp:"strength",mus:"גב · ביצפס",fig:"pulldown",eq:"מוט מתח",cues:["אחיזה ברוחב כתפיים","משיכת החזה לכיוון המוט","ירידה מבוקרת עד יישור מלא"],mis:["נדנוד גוף (קיפינג לא מבוקר)","טווח תנועה חלקי"],reps:{קל:"3 (בעזרה)",בינוני:6,מתקדם:10},yt:"pull up technique beginner"},
+    {id:"curl",name:"כפיפת מרפקים (Bicep Curl)",grp:"strength",mus:"ביצפס",fig:"curl",eq:"משקולות יד",cues:["מרפקים צמודים לגוף לכל אורך התנועה","עלייה ללא נדנוד גוף","ירידה מבוקרת ואיטית"],mis:["נדנוד גוף לעזרה","מרפקים נעים קדימה"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"bicep curl technique"},
+    {id:"tripush",name:"פשיטת מרפקים בגומייה",grp:"strength",mus:"טרייספס",fig:"tripush",eq:"גומיית התנגדות",cues:["מרפקים צמודים לצלעות ולא זזים","פשיטה מלאה למטה","חזרה מבוקרת בלי לשחרר מתח"],mis:["מרפקים נעים קדימה־אחורה","טווח תנועה חלקי"],reps:{קל:10,בינוני:15,מתקדם:20},yt:"triceps pushdown band"},
+    {id:"kbswing",name:"נדנוד קטלבל (Kettlebell Swing)",grp:"mix",mus:"ישבן · גב · ליבה",fig:"kbswing",eq:"קטלבל",cues:["התנועה מהירך (hinge), לא סקוואט","דחיפת ירך נפיצה קדימה","ליבה מהודקת, גב ישר"],mis:["הרמה בכוח הזרועות","כיפוף גב תחתון"],reps:{קל:8,בינוני:15,מתקדם:20},yt:"kettlebell swing technique"},
+    {id:"carry",name:"הליכת חקלאי (Farmer's Carry)",grp:"mix",mus:"ליבה · אחיזה · כתפיים",fig:"carry",eq:"משקולות יד",cues:["כתפיים אחורה ולמטה, גו זקוף","צעדים קטנים ויציבים","ליבה מהודקת לאורך כל ההליכה"],mis:["כתפיים מתגלגלות קדימה","צעדים גדולים מדי שמערערים יציבות"],reps:{קל:"15 מ׳",בינוני:"25 מ׳",מתקדם:"40 מ׳"},yt:"farmers carry exercise"},
+    {id:"bench",name:"לחיצת חזה (משקולות/ספסל)",grp:"strength",mus:"חזה · טרייספס",fig:"bench",eq:"ספסל",cues:["שכמות צמודות לספסל","דחיפה ישר מעל החזה","ירידה מבוקרת עד גובה החזה"],mis:["ניתור המשקולות מהחזה","מרפקים נפתחים ל-90° מהגוף"],reps:{קל:8,בינוני:12,מתקדם:15},yt:"dumbbell bench press technique"}
   ];
-  const GRPS={strength:"כוח",cardio:"אירובי",core:"ליבה",mix:"משולב"};
+  const GRPS={strength:"כוח",cardio:"אירובי",core:"ליבה",mobility:"ניידות",mix:"משולב"};
+
 
   /* ---------- interval engine ---------- */
   let IV={phases:[],i:0,t0:0,paused:0,on:false,raf:0,total:0};
@@ -3496,8 +3730,9 @@ const FIT=(function(){
   let CIR={list:[],on:false,t0:0,raf:0,phase:"work",station:0,round:1};
   function cGen(){
     const focus=$("#fit-cFocus").value,n=+$("#fit-cN").value||6;
-    let pool=EX.filter(e=>focus==="mix"||e.grp===focus||e.grp==="mix");
-    if(pool.length<n)pool=EX.slice();
+    const bodyweight=EX.filter(e=>e.eq==="בלי ציוד");
+    let pool=bodyweight.filter(e=>focus==="mix"||e.grp===focus||e.grp==="mix");
+    if(pool.length<n)pool=bodyweight.slice();
     const pick=[...pool].sort(()=>Math.random()-0.5).slice(0,n);
     CIR.list=pick; $("#fit-cPlanCard").style.display="";
     cRenderList(-1);
@@ -3544,22 +3779,93 @@ const FIT=(function(){
     $("#fit-cGo").disabled=false; $("#fit-cStop").disabled=true; }
 
   /* ---------- library & dice ---------- */
+  function openEx(id){
+    const e=EX.find(x=>x.id===id); if(!e)return;
+    $("#fit-exTitle").textContent=e.name;
+    $("#fit-exFig").innerHTML=`<div style="width:130px;margin:0 auto">${FIGS[e.fig]}</div>`;
+    $("#fit-exBody").innerHTML=`
+      <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="pill acc">${GRPS[e.grp]}</span><span class="pill">${e.mus}</span>
+        <span class="pill">🎒 ${e.eq}</span></div>
+      <h2 style="font-size:14px"><span class="dot"></span> ביצוע נכון</h2>
+      <ul class="hint" style="font-size:13.5px;line-height:1.8;margin:4px 0 12px">${e.cues.map(c=>"<li>"+c+"</li>").join("")}</ul>
+      <h2 style="font-size:14px"><span class="dot"></span> טעויות נפוצות</h2>
+      <ul class="hint" style="font-size:13.5px;line-height:1.8;margin:4px 0 12px">${e.mis.map(c=>"<li>"+c+"</li>").join("")}</ul>
+      <h2 style="font-size:14px"><span class="dot"></span> מינון מומלץ</h2>
+      <div class="row">${Object.entries(e.reps).map(([k,v])=>`<span class="pill">${k}: <b style="color:var(--acc)">&nbsp;${v}</b></span>`).join("")}</div>
+      ${e.yt&&window.GAMES?`<a class="btn sm acc" style="margin-top:11px;display:block;text-align:center;text-decoration:none"
+         href="${window.GAMES.ytUrl(e.yt)}" target="_blank" rel="noopener">▶ צפייה בהדגמה ביוטיוב</a>`:""}`;
+    modal("fit-exModal");
+  }
   function renderLib(){
     $("#fit-exGrid").innerHTML=EX.map(e=>`<div class="fit-ex" data-id="${e.id}">${FIGS[e.fig]}<b>${e.name}</b><span>${GRPS[e.grp]} · ${e.mus}</span></div>`).join("");
-    $$("#fit-exGrid .fit-ex").forEach(t=>t.addEventListener("click",()=>{
-      const e=EX.find(x=>x.id===t.dataset.id);
-      $("#fit-exTitle").textContent=e.name;
-      $("#fit-exFig").innerHTML=`<div style="width:130px;margin:0 auto">${FIGS[e.fig]}</div>`;
-      $("#fit-exBody").innerHTML=`
-        <div class="pill acc" style="margin-bottom:10px">${GRPS[e.grp]} · ${e.mus}</div>
-        <h2 style="font-size:14px"><span class="dot"></span> ביצוע נכון</h2>
-        <ul class="hint" style="font-size:13.5px;line-height:1.8;margin:4px 0 12px">${e.cues.map(c=>"<li>"+c+"</li>").join("")}</ul>
-        <h2 style="font-size:14px"><span class="dot"></span> טעויות נפוצות</h2>
-        <ul class="hint" style="font-size:13.5px;line-height:1.8;margin:4px 0 12px">${e.mis.map(c=>"<li>"+c+"</li>").join("")}</ul>
-        <h2 style="font-size:14px"><span class="dot"></span> מינון מומלץ</h2>
-        <div class="row">${Object.entries(e.reps).map(([k,v])=>`<span class="pill">${k}: <b style="color:var(--acc)">&nbsp;${v}</b></span>`).join("")}</div>`;
-      modal("fit-exModal");
+    $$("#fit-exGrid .fit-ex").forEach(t=>t.addEventListener("click",()=>openEx(t.dataset.id)));
+  }
+
+  /* ---------- תוכנית חדר כושר ---------- */
+  const GYMPROG={
+    AB:{label:"מתחילים · AB (2 ימים בשבוע)",
+      note:"מטרה: ללמוד טכניקה נכונה בכל תרגיל. משקל קליל מאוד בהתחלה — מעלים משקל רק אחרי ששלושת הסטים יצאו נקיים ובלי כאב, לאורך שתי אימונים ברציפות. מנוחה 60–75 שנ׳ בין סטים.",
+      days:{
+        A:{title:"גוף מלא A",ex:[
+          {id:"gsquat",sets:"3×12"},{id:"pushincline",sets:"3×10"},{id:"dbrow",sets:"3×12"},
+          {id:"gluteb",sets:"3×15"},{id:"plank",sets:"3×20–30 שנ׳"}]},
+        B:{title:"גוף מלא B",ex:[
+          {id:"lunge",sets:"3×10 לרגל"},{id:"dbpress",sets:"3×10"},{id:"latpull",sets:"3×12"},
+          {id:"rdl",sets:"3×10"},{id:"deadbug",sets:"3×10"}]}
+      }},
+    ABC:{label:"בינוניים · ABC (3 ימים — Push / Pull / Legs)",
+      note:"3 סטים עבודה בכל תרגיל, אחרי חימום קליל לתרגיל הראשון של היום. מנוחה 60–90 שנ׳ בתרגילים מורכבים, 45 שנ׳ בתרגילי בידוד.",
+      days:{
+        A:{title:"Push — דחיפה",ex:[
+          {id:"bench",sets:"3×10"},{id:"dbpress",sets:"3×10"},{id:"dip",sets:"3×10"},
+          {id:"tripush",sets:"3×15"},{id:"pike",sets:"3×8"}]},
+        B:{title:"Pull — משיכה",ex:[
+          {id:"dbrow",sets:"4×10"},{id:"latpull",sets:"3×12"},{id:"curl",sets:"3×12"},
+          {id:"superman",sets:"3×15"},{id:"birddog",sets:"3×10 לצד"}]},
+        C:{title:"Legs — רגליים",ex:[
+          {id:"gsquat",sets:"4×10"},{id:"rdl",sets:"3×10"},{id:"lunge",sets:"3×10 לרגל"},
+          {id:"calf",sets:"4×15"},{id:"hollow",sets:"3×30 שנ׳"}]}
+      }},
+    ABCD:{label:"מתקדמים · ABCD (4 ימים — Upper/Lower ×2)",
+      note:"בתרגילי הכוח המרכזיים (ימים A/B) לעבוד קרוב לכשל טכני בטווח 6–8 חזרות; בתרגילי העזר (ימים C/D) טווח חזרות גבוה יותר. מנוחה 90–120 שנ׳ בתרגילים המורכבים.",
+      days:{
+        A:{title:"Upper — כוח עליון",ex:[
+          {id:"bench",sets:"4×6–8"},{id:"dbrow",sets:"4×8"},{id:"dbpress",sets:"3×8"},
+          {id:"pullup",sets:"3×עד כשל טכני"},{id:"tripush",sets:"3×12"}]},
+        B:{title:"Lower — כוח תחתון",ex:[
+          {id:"gsquat",sets:"4×6–8"},{id:"rdl",sets:"4×8"},{id:"lunge",sets:"3×10 לרגל"},
+          {id:"calf",sets:"4×15"},{id:"hollow",sets:"3×30–40 שנ׳"}]},
+        C:{title:"Upper — עזר",ex:[
+          {id:"dip",sets:"3×12"},{id:"latpull",sets:"4×12"},{id:"curl",sets:"4×12"},
+          {id:"pike",sets:"3×10"},{id:"splank",sets:"3×30 שנ׳ לצד"}]},
+        D:{title:"Lower + קונדישן",ex:[
+          {id:"kbswing",sets:"4×15"},{id:"stepup",sets:"3×12"},{id:"singleleg",sets:"3×8 לרגל"},
+          {id:"carry",sets:"3×30 מ׳"},{id:"deadbug",sets:"3×10"}]}
+      }}
+  };
+  function renderGymDay(track,d){
+    const day=track.days[d];
+    $("#gym-dayTitle").innerHTML=`<span class="dot"></span> ${day.title}`;
+    $("#gym-list").innerHTML=day.ex.map(item=>{
+      const e=EX.find(x=>x.id===item.id);
+      return `<div class="fit-station" data-id="${item.id}" style="cursor:pointer">
+        <div style="width:42px;height:42px;flex:none">${e?FIGS[e.fig]:""}</div>
+        <div class="grow"><b>${e?e.name:item.id}</b><div class="sb">${e?e.mus+" · 🎒 "+e.eq:""}</div></div>
+        <div class="pill acc" style="flex:none">${item.sets}</div></div>`;
+    }).join("");
+    $$("#gym-list [data-id]").forEach(el=>el.addEventListener("click",()=>openEx(el.dataset.id)));
+  }
+  function renderGym(){
+    const track=GYMPROG[$("#gym-track").value];
+    $("#gym-note").textContent=track.note;
+    const days=Object.keys(track.days);
+    $("#gym-daySeg").innerHTML=days.map((d,i)=>`<button data-gd="${d}" class="${i===0?"on":""}">יום ${d}</button>`).join("");
+    $$("#gym-daySeg [data-gd]").forEach(b=>b.addEventListener("click",()=>{
+      $$("#gym-daySeg [data-gd]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+      renderGymDay(track,b.dataset.gd);
     }));
+    renderGymDay(track,days[0]);
   }
   function roll(){
     ac();
@@ -3567,7 +3873,8 @@ const FIT=(function(){
     d1.classList.remove("roll");d2.classList.remove("roll");void d1.offsetWidth;
     d1.classList.add("roll");d2.classList.add("roll");beep(700,0.1);setTimeout(()=>beep(900,0.1),200);
     setTimeout(()=>{
-      const e=EX[Math.floor(Math.random()*EX.length)];
+      const pool=EX.filter(x=>x.eq==="בלי ציוד");
+      const e=pool[Math.floor(Math.random()*pool.length)];
       const isTime=typeof e.reps.בינוני==="string";
       const amounts=isTime?["15 שנ׳","20 שנ׳","30 שנ׳","40 שנ׳","45 שנ׳","60 שנ׳"]:[5,8,10,12,15,20];
       const amt=amounts[Math.floor(Math.random()*6)];
@@ -3582,7 +3889,7 @@ const FIT=(function(){
   function init(){
     $$(".pf-tabs [data-ft]").forEach(b=>b.addEventListener("click",()=>{
       $$(".pf-tabs [data-ft]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-      ["timer","circuit","lib","dice"].forEach(t=>$("#fit-sub-"+t).style.display=t===b.dataset.ft?"":"none");
+      ["timer","circuit","lib","dice","gym"].forEach(t=>$("#fit-sub-"+t).style.display=t===b.dataset.ft?"":"none");
     }));
     $("#fit-presets").innerHTML=PRESETS.map((p,i)=>`<div class="fit-pre" data-i="${i}"><b>${p.name}</b><span>${p.sub}</span></div>`).join("");
     $$("#fit-presets .fit-pre").forEach(t=>t.addEventListener("click",()=>{
@@ -3597,7 +3904,9 @@ const FIT=(function(){
     $("#fit-cGo").addEventListener("click",cStart);
     $("#fit-cStop").addEventListener("click",()=>{cStop();$("#fit-cPhName").textContent="הופסק";});
     $("#fit-roll").addEventListener("click",roll);
+    $("#gym-track").addEventListener("change",renderGym);
     renderLib();
+    renderGym();
   }
   return {init,_test:{buildPhases,EX}};
 })();
@@ -4916,7 +5225,175 @@ const GAMES=[
          "משחק זוגות בכל ריבוע.",
          "בלי הגשה עליונה בשלב הלימוד."],
    safe:"רשת מעוגנת, אזור פנוי סביב המגרש.",
-   yt:"crossnet four square volleyball rules"}
+   yt:"crossnet four square volleyball rules"},
+
+  {id:"g-tagdown", em:"🙇", name:"טאג׳ דאון (Tag & Down)", cat:"fit",
+   who:"ז׳–י״ב · 10–30 משתתפים", space:"מגרש / חצר מסומנת", equip:"אין (אפשר סרטי צבע לתופסים)", time:"10–15 דק׳",
+   goal:"סבולת אירובית, זריזות ומינון כוח פונקציונלי בתוך משחק תנועה.",
+   fit:"תופסת קלאסית עם תוספת כושר — הופכת רגע של ״נתפסתי״ לתרגיל ולא לעצירה משעממת.",
+   how:["2–3 תופסים עם סרט צבעוני, כל השאר בורחים בשטח מסומן.",
+        "מי שנתפס יורד מיד לתנוחת פלאנק (או שכיבת סמיכה) במקום שבו נתפס — זה ה״דאון״.",
+        "כדי לשחרר שחקן שוכב — עובר חבר קבוצה ומבצע לידו 5 קפיצות (ג׳אמפינג ג׳ק) או עובר מעליו בזחילה.",
+        "מחליפים תופסים כל 2–3 דקות כדי לשמור על עצימות גבוהה לכולם."],
+   vars:["שחרור בעזרת מספר קבוע של שכיבות סמיכה של השוכב עצמו, במקום חבר.",
+         "שני סוגי ״דאון״ (פלאנק / ישיבה) לפי הכרזת התופס בזמן התפיסה.",
+         "אזור ״מקלט״ קטן שבו אי אפשר להיתפס — מוסיף טקטיקה."],
+   safe:"רק נגיעת כתף, בלי משיכה. תנוחת ה״דאון״ תמיד על משטח נקי ולא רטוב.",
+   yt:"tag and down game freeze tag exercise pe"},
+
+  {id:"g-mundial", em:"🌍", name:"מונדיאל (מעגל קליעה)", cat:"ball",
+   who:"ה׳–י״ב · 6–14 משתתפים", space:"מגרש קטן / חצר", equip:"כדורגל + 4 קונוסים לשער קטן", time:"15–20 דק׳",
+   goal:"שליטה בכדור תחת לחץ, דיוק בבעיטה וקבלת תוצאה מיידית.",
+   fit:"הקלאסיקה מהחצר — כולם נגד כולם, קצב מהיר וסבבים קצרים, אף אחד לא מחכה הרבה.",
+   how:["שער קטן אחד (2 קונוסים) במרכז, שוער אחד מתחלף, שאר השחקנים במעגל סביבו.",
+        "כל שחקן בתורו בועט לשער מנקודה קבועה; שוער מגן.",
+        "מי שהבקיע — נכנס לשער והשוער הקודם עובר להיות בועט.",
+        "מי שהחטיא 3 פעמים ברצף (מקבל ״אות״ בכל החטאה — מ-נ-ד-י-א-ל) יוצא מהסיבוב עד שיישאר שחקן אחד — ״אלוף המונדיאל״."],
+   vars:["מרחק בעיטה גדל ככל שמתקדמים בסיבוב — מעלה קושי בהדרגה.",
+         "בעיטה ברגל חלשה בלבד לסיבוב מתקדם.",
+         "שני שערים במקביל לקבוצה גדולה — מקצר תורים."],
+   safe:"שוער עם כפפות אם יש; לא לבעוט כשהשוער עדיין מתכופף לאסוף כדור.",
+   yt:"מונדיאל משחק כדורגל חצר מעגל"},
+
+  {id:"g-goldencone", em:"🏆", name:"קונוס הזהב", cat:"big",
+   who:"ז׳–י״ב · 12–30 משתתפים", space:"מגרש גדול מחולק לשתיים", equip:"קונוס צבעוני בולט (״זהב״) + סרטים לתופסים", time:"15–20 דק׳",
+   goal:"תכנון טקטי קבוצתי, ריצה במאמץ משתנה וקבלת החלטות תחת לחץ.",
+   fit:"גרסת ״תפיסת הדגל״ עם מוקד יחיד וברור — קל להסביר וקשה לשלוט בו, כך שיש מתח עד השנייה האחרונה.",
+   how:["קונוס הזהב מונח במעגל מסומן במרכז המגרש. שתי קבוצות בקצוות הנגדיים, כל קבוצה עם 2 ״שומרים״ קבועים סביב המעגל.",
+        "מטרת שחקן: לחדור למעגל, לקחת את הקונוס ולהחזיר אותו לבסיס הקבוצה שלו בלי להיתפס.",
+        "מי שנתפס בדרך — חוזר לבסיס ומתחיל מחדש; מי שנתפס כשהקונוס בידיו — מחזיר את הקונוס למקומו במעגל.",
+        "הקבוצה הראשונה שמצליחה להחזיר את הקונוס לבסיס שלה שלוש פעמים מנצחת."],
+   vars:["קונוס זהב אחד בלבד לכל המגרש (לא לכל קבוצה) — כולם רודפים אחרי אותה מטרה.",
+         "השומרים מתחלפים כל ניסיון כדי שכולם יתנסו בכל תפקיד.",
+         "אזור ״הגנה״ קרוב לקונוס שאסור לתפוס בו — מגביר טקטיקה של הסחה."],
+   safe:"תפיסה בנגיעת כתף בלבד. לתחום את המעגל המרכזי בבירור כדי למנוע התנגשויות.",
+   yt:"capture the flag cone variation pe game"},
+
+  {id:"g-lava", em:"🌋", name:"רצפת לבה (The Floor is Lava)", cat:"break",
+   who:"ג׳–ח׳ · 8–25 משתתפים", space:"אולם / כיתה עם ריהוט זמין", equip:"מזרנים, חישוקים, קונוסים כ״איים״", time:"10–15 דק׳",
+   goal:"תכנון תנועתי, שיווי משקל וקבלת החלטות מהירה בשיתוף.",
+   fit:"פעילות דמיון שמלהיבה גם תלמידים שפחות אוהבים תחרות ישירה — כולם עסוקים בפתרון בעיה משותפת.",
+   how:["פזורים ״איים״ (חישוקים, מזרנים, קונוסים הפוכים) על הרצפה — כל שאר הרצפה היא ״לבה״.",
+        "המטרה: לעבור מקצה החדר לקצה השני בלי לגעת ברצפה, רק על האיים.",
+        "אפשר להזיז אי אחד קדימה אם עומדים עליו — אבל לא לדלג בלי אי מתחת לרגליים.",
+        "מי שנוגע ברצפה חוזר לנקודת ההתחלה ומתחיל מחדש."],
+   vars:["גרסה קבוצתית: כל הקבוצה חייבת לעבור יחד, עם פחות איים ממספר המשתתפים — מכריח שיתוף פעולה.",
+         "הגבלת זמן כללית לכל הכיתה יוצרת מרוץ נגד השעון.",
+         "אי אחד ״נמס״ (מוסר) כל דקה — מקשה בהדרגה."],
+   safe:"איים יציבים ולא חלקלקים; מרחק ביניהם מותאם לגיל כדי למנוע קפיצות מסוכנות.",
+   yt:"the floor is lava classroom game pe"},
+
+  {id:"g-cornerball", em:"🥅", name:"בול פינה", cat:"ball",
+   who:"ד׳–ט׳ · 10–24 משתתפים", space:"מגרש עם 4 פינות מסומנות", equip:"1–2 כדורי ספוג", time:"15 דק׳",
+   goal:"זריקה מדויקת, קליטה ותנועה קבוצתית מתואמת.",
+   fit:"וריאציה על מחניים עם דגש על עבודת פינות — פחות ״עומדים בשורה״, יותר תנועה כל הזמן.",
+   how:["קבוצה אחת בתוך המגרש, קבוצה שנייה מפוזרת בארבע הפינות סביבו עם כדור.",
+        "שחקני הפינות מוסרים ביניהם ומנסים לפגוע בשחקני האמצע מתחת לחגורה.",
+        "שחקן שנפגע יוצא לפינה ומצטרף לקבוצה הזורקת.",
+        "כשנשאר שחקן אחד באמצע או בתום הזמן — מחליפים תפקידים בין הקבוצות."],
+   vars:["שני כדורים במקביל להעלאת קצב.",
+         "קליטת כדור באוויר ״מצילה״ שחקן אחד שכבר יצא.",
+         "אזור אמצע קטן יותר להעלאת עצימות."],
+   safe:"פגיעה מתחת לחגורה בלבד, כדור רך, איסור זריקה לראש.",
+   yt:"corner ball dodgeball variation pe"},
+
+  {id:"g-foxhen", em:"🦊", name:"שועל ותרנגולות", cat:"big",
+   who:"א׳–ו׳ · 10–30 משתתפים", space:"מגרש / חצר גדולה", equip:"אין", time:"10–15 דק׳",
+   goal:"תגובה מהירה, ריצה במאמץ משתנה ועבודה בשרשרת קבוצתית.",
+   fit:"משחק עממי קליט שמצליח כמעט תמיד — טוב לפתיחת שיעור או למילוי זמן קצר באנרגיה גבוהה.",
+   how:["שחקן אחד ״שועל״, שאר הכיתה ״תרנגולות״ עומדות בשרשרת אחיזת מותניים מאחורי ״תרנגולת ראש״.",
+        "השועל מנסה לגעת בתרנגולת האחרונה בשרשרת.",
+        "השרשרת כולה זזה יחד כדי להגן על האחרונה — תרנגולת הראש מוביל את התנועה.",
+        "מי שנתפס הופך לשועל החדש (או מצטרף כשועל שני אם רוצים קצב מהיר יותר)."],
+   vars:["שני שועלים במקביל בכיתה גדולה.",
+         "שרשראות קטנות (5–6) שמתחרות זו בזו על אותו שטח.",
+         "החלפת ״תרנגולת ראש״ כל סיבוב כדי שכולם יובילו."],
+   safe:"אחיזה במותניים בלבד, בלי משיכה חזקה; שטח פנוי ממכשולים.",
+   yt:"fox and chickens tag game pe"},
+
+  {id:"g-humanknot", em:"🪢", name:"הקשר האנושי", cat:"social",
+   who:"ה׳–י״ב · 8–16 משתתפים (בקבוצות)", space:"כל מקום עם מרחב לעמידה במעגל", equip:"אין", time:"10–15 דק׳",
+   goal:"תקשורת, פתרון בעיות משותף וסבלנות תחת תסכול.",
+   fit:"אתגר קלאסי לגיבוש כיתה חדשה או קבוצת עבודה — דורש שיתוף פעולה מילולי מתחילתו ועד סופו.",
+   how:["קבוצות של 8–10, כל קבוצה במעגל צפוף.",
+        "כל שחקן מושיט יד ימין ואוחז ביד של מישהו אחר מולו (לא שכן), ואז יד שמאל באדם אחר.",
+        "נוצר ״קשר״ מסובך של ידיים שזורות בלי לשחרר אחיזה.",
+        "המשימה: להתיר את הקשר ולחזור למעגל פשוט — בלי לשחרר ידיים לאורך כל הדרך, רק בעזרת תנועה וסיבוב."],
+   vars:["הגבלת זמן ליצירת תחרות בין קבוצות מקבילות.",
+         "אסור לדבר — רק תנועה, מעלה קושי משמעותית.",
+         "אם הקשר לא נפתר אחרי 8 דקות — מותר שחרור אחיזה אחת בלבד."],
+   safe:"בלי משיכות חזקות של פרקי ידיים; לעצור מיד אם מישהו מרגיש לא בנוח.",
+   yt:"human knot team building game"},
+
+  {id:"g-obstaclerelay", em:"🏁", name:"מירוץ מכשולים משולב", cat:"fit",
+   who:"ז׳–י״ב · 10–30 משתתפים", space:"מסלול מסומן עם קונוסים/מזרנים", equip:"קונוסים, חישוקים, מזרן, חבל", time:"15–20 דק׳",
+   goal:"תיאום, כוח פונקציונלי וזריזות ברצף תנועות משתנה.",
+   fit:"במקום תחנה בודדת — רצף שלם שמכריח מעבר בין דפוסי תנועה שונים ברצף אחד.",
+   how:["בונים מסלול עם 5–6 מכשולים: זיגזג קונוסים, דילוג בין חישוקים, זחילה מתחת לספסל/מתחת ליד מושטת, גלגול על מזרן, קפיצות פיסוק.",
+        "מחלקים לקבוצות של 3–4 בטור מול תחילת המסלול.",
+        "שחקן ראשון עובר את כל המסלול, חוזר בריצה חופשית ונותן ״טאץ׳״ לבא בתור.",
+        "הקבוצה שסיימה ראשונה (כל השחקנים עברו) מנצחת בסיבוב."],
+   vars:["מסלול הפוך בסיבוב שני — מונע שינון ומחייב הסתגלות.",
+         "נשיאת כדור/חפץ לאורך כל המסלול בלי להפיל.",
+         "זמן קבוצתי מצטבר במקום תחרות ראש בראש — מתאים לכיתה לא תחרותית."],
+   safe:"מכשולים יציבים ומרווחים; בדיקת המסלול לפני ריצה ראשונה בעצימות מלאה.",
+   yt:"obstacle course relay pe class"},
+
+  {id:"g-swampcrossing", em:"🐊", name:"חציית הביצה", cat:"social",
+   who:"ד׳–ט׳ · 8–20 משתתפים (בקבוצות)", space:"רצועת רצפה מסומנת (״ביצה״)", equip:"מזרנים קטנים / דפי נייר כ״אבני דריכה״", time:"15 דק׳",
+   goal:"תכנון אסטרטגי, שיתוף פעולה ושימוש חסכוני במשאב משותף.",
+   fit:"אתגר קבוצתי בלי ריצה ובלי מגע — מצוין לכיתות שצריכות פעילות רגועה יותר בעצימות נמוכה.",
+   how:["מסמנים ״ביצה״ ברוחב 6–8 מ׳ שכל הקבוצה צריכה לחצות.",
+        "לקבוצה יש רק 3–4 ״אבני דריכה״ (מזרנים קטנים) — פחות ממספר הצעדים הדרוש לחצות.",
+        "מותר לעמוד רק על אבן; אבן שאין עליה איש אפשר להעביר קדימה, אבל אסור שהביצה תיגע ברגל בלי אבן.",
+        "אם מישהו נוגע ב״ביצה״ — כל הקבוצה (או השחקן, לפי הכרזה מראש) חוזרת לנקודת ההתחלה."],
+   vars:["קבוצה שקטה: אסור לדבר במהלך התכנון בפועל — רק תכנון מראש.",
+         "אבן אחת ״נעלמת״ אחרי כל חציה מוצלחת — מקשה בהדרגה.",
+         "שתי קבוצות חוצות אותה ביצה בו-זמנית משני הכיוונים — מוסיף תיאום."],
+   safe:"אבני דריכה יציבות ולא חלקלקות; מרחק בין אבנים מותאם לגיל.",
+   yt:"stepping stones team challenge pe game"},
+
+  {id:"g-birdsnest", em:"🐦", name:"קן הציפורים", cat:"break",
+   who:"א׳–ו׳ · 12–30 משתתפים", space:"מגרש / חצר", equip:"חישוקים (״קנים״), כדורי ספוג/עצמים קטנים (״ביצים״)", time:"10–15 דק׳",
+   goal:"ריצה קצרה וחוזרת, קבלת החלטות מהירה ואיסוף לעומת הגנה.",
+   fit:"משחק אנרגטי וקליט לגילאים צעירים — כל אחד רץ הרבה בלי להבין שזה אימון אירובי.",
+   how:["מפזרים חישוקים (״קנים״) בשטח, בכל קן כמה ״ביצים״ (כדורי ספוג).",
+        "מחלקים לכמה קבוצות, לכל קבוצה קן בסיס משלה ריק בהתחלה.",
+        "לאות התחלה — כל שחקן רץ ולוקח ביצה אחת בכל פעם משאר הקנים (לא מהקן הבית שלו) ומביא לקן הבית.",
+        "בתום הזמן — הקבוצה עם הכי הרבה ביצים בקן שלה מנצחת."],
+   vars:["מותר לגנוב ביצה אחת מקן בית של קבוצה יריבה, לא רק מקנים ניטרליים.",
+         "כל ריצה מותרת רק ביצה אחת ביד — מכריח יותר חזרות.",
+         "הוספת ״ציפור שומרת״ אחת לכל קן שיכולה לתפוס גנבים ולעצור אותם ל-5 שניות."],
+   safe:"עצמים קטנים ורכים בלבד; לתחום מרחב פנוי סביב כל קן כדי למנוע התנגשויות.",
+   yt:"beanbag scramble bird nest game pe"},
+
+  {id:"g-teamjuggle", em:"🤹", name:"ג׳אגלינג קבוצתי (מעגל הזרימה)", cat:"mind",
+   who:"ד׳–י״ב · 8–20 משתתפים", space:"מעגל פתוח", equip:"3–8 כדורים רכים/שקיות שעועית", time:"10–15 דק׳",
+   goal:"ריכוז, זיכרון תבנית וזריזות ידיים תוך שיתוף קבוצתי.",
+   fit:"פעילות רגועה ומאתגרת מבחינה קוגניטיבית — טובה כמעבר בין פעילות עצימה לסיום שיעור.",
+   how:["עומדים במעגל; המורה מתחיל וזורק כדור אחד לשחקן כלשהו תוך קריאת שמו.",
+        "כל שחקן שקיבל כדור זורק אותו הלאה לשחקן שעוד לא קיבל, תמיד לאותו אדם בכל סיבוב — בונים ״תבנית זרימה״ קבועה.",
+        "אחרי שהתבנית נסגרת (כולם קיבלו פעם אחת), חוזרים על אותה תבנית שוב ושוב.",
+        "כשהתבנית יציבה — מוסיפים כדור שני ושלישי לאותה תבנית בו-זמנית."],
+   vars:["הוספת כדור בכל פעם שהקבוצה משלימה סיבוב שלם בלי הפלה.",
+         "גרסת מהירות: לתזמן כמה סיבובים אפשר להשלים בדקה.",
+         "גרסת שמות: זורקים רק אחרי קריאת שם הזורק החדש בקול, לא רק שם המקבל."],
+   safe:"כדורים רכים בלבד; מרחק סביר בין שחקנים במעגל.",
+   yt:"group juggling pattern game team building"},
+
+  {id:"g-bucketrelay", em:"🪣", name:"מירוץ דליים", cat:"water",
+   who:"ג׳–ח׳ · 10–30 משתתפים", space:"חצר / מגרש (יום חם)", equip:"דליים/כוסות, מקור מים, קו סיום מסומן", time:"15–20 דק׳",
+   goal:"ריצה קצרה וחוזרת, עבודת צוות ושליטה עדינה בתנועה (כדי לא לשפוך).",
+   fit:"פעילות קיץ אהובה שמשלבת תחרות עם קירור — טובה ליום חם בלי לוותר על מבנה ומטרה ברורה.",
+   how:["מחלקים לקבוצות בטור, בקצה המסלול דלי מלא מים ובקצה השני דלי ריק (או כוס מדידה) לכל קבוצה.",
+        "כל שחקן בתורו ממלא כוס קטנה מהדלי המלא, רץ למסלול ושופך לדלי הריק בקצה השני.",
+        "חוזר בריצה ונותן את הכוס לשחקן הבא בתור.",
+        "הקבוצה שאספה הכי הרבה מים בדלי שלה בתום הזמן הקבוע מנצחת."],
+   vars:["כוס עם חורים קטנים — צריך למהר לפני שהמים נשפכים.",
+         "ריצה עם הכוס על הראש בלי ידיים — מוסיפה קושי שיווי משקל.",
+         "תחרות נגד הזמן במקום קבוצה מול קבוצה — כל קבוצה נגד השעון בלבד."],
+   safe:"רצפה רטובה = סכנת החלקה — לוודא נעליים מתאימות ולפזר מים באזור מוגדר בלבד.",
+   yt:"water bucket relay race game pe"}
 ];
 
 /* ============================================================

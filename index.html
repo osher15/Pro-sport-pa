@@ -525,6 +525,7 @@
     <button data-ft="circuit">🔁 תחנות לכיתה</button>
     <button data-ft="lib">📖 ספריית תרגילים</button>
     <button data-ft="dice">🎲 קוביית הכושר</button>
+    <button data-ft="gym">🏋️ תוכנית חדר כושר</button>
   </div>
 
   <!-- timer -->
@@ -559,7 +560,7 @@
       <h2><span class="dot"></span> מחולל אימון תחנות</h2>
       <div class="row">
         <div class="field" style="width:160px"><label>מיקוד</label>
-          <select id="fit-cFocus"><option value="mix">משולב</option><option value="strength">כוח</option><option value="cardio">אירובי</option><option value="core">ליבה</option></select></div>
+          <select id="fit-cFocus"><option value="mix">משולב</option><option value="strength">כוח</option><option value="cardio">אירובי</option><option value="core">ליבה</option><option value="mobility">ניידות</option></select></div>
         <div class="field" style="width:110px"><label>תחנות</label><input type="number" id="fit-cN" value="6" min="2" max="12"></div>
         <div class="field" style="width:130px"><label>זמן בתחנה (שנ׳)</label><input type="number" id="fit-cT" value="45" min="10"></div>
         <div class="field" style="width:130px"><label>מעבר (שנ׳)</label><input type="number" id="fit-cR" value="15" min="5"></div>
@@ -607,6 +608,29 @@
       </div>
       <div style="font-family:'Secular One';font-size:21px;min-height:30px" id="fit-diceResult"></div>
       <button class="btn acc big" id="fit-roll" style="margin-top:13px">🎲 הטל קוביות!</button>
+    </div>
+  </div>
+
+  <!-- gym program -->
+  <div id="fit-sub-gym" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span> תוכנית חדר כושר — לפי מסלול</h2>
+      <div class="hint">מותאם לחדר כושר קטן בבית ספר: משקולות יד, קטלבל, גומיות התנגדות, ספסל ומוט מתח. כל תרגיל שדורש ציוד ניתן להחלפה בגרסת משקל גוף מספריית התרגילים אם משהו חסר.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field grow"><label>מסלול</label>
+          <select id="gym-track">
+            <option value="AB">מתחילים — AB (2 ימים בשבוע)</option>
+            <option value="ABC">בינוניים — ABC (3 ימים, Push/Pull/Legs)</option>
+            <option value="ABCD">מתקדמים — ABCD (4 ימים, Upper/Lower ×2)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" id="gym-note" style="margin-top:9px"></div>
+      <div class="seg" id="gym-daySeg" style="margin-top:11px"></div>
+    </div>
+    <div class="card">
+      <h2 id="gym-dayTitle"><span class="dot"></span> יום</h2>
+      <div id="gym-list" style="margin-top:9px"></div>
     </div>
   </div>
 </section>

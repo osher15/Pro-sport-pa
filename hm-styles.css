@@ -254,8 +254,12 @@ details.fold .bd{padding:0 12px 13px}
 .fit-ex svg{width:74px;height:74px}
 .fit-ex b{display:block;font-size:13.5px;margin-top:5px}
 .fit-ex span{font-size:11px;color:var(--faint)}
-.fig{stroke:var(--ink);stroke-width:5;stroke-linecap:round;fill:none}
-.fig .hd{fill:var(--acc);stroke:none}
+.fig2{overflow:visible}
+.fig2 .limb{stroke:var(--ink);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fig2 .torso{stroke:var(--acc);stroke-width:10;stroke-linecap:round;fill:none}
+.fig2 .hd{fill:var(--acc);stroke:var(--panel2);stroke-width:2}
+.fig2 .hl{fill:rgba(255,255,255,.5);stroke:none}
+.fig2 .gnd{fill:var(--ink);opacity:.1;stroke:none}
 .dicewrap{display:flex;gap:16px;justify-content:center;margin:14px 0}
 .die{width:104px;height:104px;border-radius:18px;background:linear-gradient(160deg,#13301f,#0a1c12);border:2px solid var(--acc);
   display:grid;place-items:center;text-align:center;padding:6px;transition:transform .5s}
