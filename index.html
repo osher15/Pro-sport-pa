@@ -945,8 +945,13 @@
 
 <div class="modal" id="stu-addModal"><div class="box">
   <h3>+ הוספת תלמידים<button class="x" data-close="stu-addModal">✕</button></h3>
-  <div class="field"><label>שורה לכל תלמיד — «שם, כיתה»</label><textarea id="stu-bulk" rows="9" placeholder="דנה לוי, ט׳2&#10;יואב כהן, ט׳2"></textarea></div>
+  <div class="field"><label>כיתה לכל השורות שלא ציינו כיתה בעצמן (רשות)</label>
+    <input type="text" id="stu-defaultCls" placeholder="ט׳2"></div>
+  <div class="field" style="margin-top:9px"><label>שורה לכל תלמיד — «שם, כיתה»</label><textarea id="stu-bulk" rows="9" placeholder="דנה לוי, ט׳2&#10;יואב כהן, ט׳2"></textarea></div>
   <button class="btn acc big" id="stu-addSave" style="margin-top:12px">הוסף לרשימה</button>
+  <div class="hint" style="margin-top:13px">או ייבוא מקובץ (CSV / TXT) — שורה לכל תלמיד, אותו פורמט «שם, כיתה». שורות בלי כיתה יקבלו את הכיתה שהוגדרה למעלה.</div>
+  <label class="btn ghost big" style="margin-top:9px;display:block;text-align:center;cursor:pointer">📥 ייבוא מקובץ
+    <input type="file" id="stu-fileImport" accept=".csv,.txt,text/csv,text/plain" style="display:none"></label>
 </div></div>
 <div id="lockOv"><div class="box">
   <div class="lg">🔐</div>

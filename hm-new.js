@@ -148,16 +148,28 @@ window.STU=(function(){
     $("#stu-search").addEventListener("input",e=>{q=e.target.value.trim();render();});
     $("#stu-classSel").addEventListener("change",e=>{clsF=e.target.value;render();});
     $("#stu-add").addEventListener("click",()=>H().modal("stu-addModal"));
-    $("#stu-addSave").addEventListener("click",()=>{
-      const lines=$("#stu-bulk").value.split(/\n/).map(l=>l.trim()).filter(Boolean);
-      if(!lines.length)return;
+    function addLines(text){
+      const defCls=$("#stu-defaultCls").value.trim();
+      const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      if(!lines.length)return 0;
       const list=load(); let n=0;
       lines.forEach(l=>{
         const [name,cls]=l.split(",").map(x=>(x||"").trim());
-        if(!name||list.some(s=>s.name===name))return;
-        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:cls||"",sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
+        if(!name||/^(שם|name)$/i.test(name)||list.some(s=>s.name===name))return;
+        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:cls||defCls||"",sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
       });
-      save(list); $("#stu-bulk").value=""; H().modal("stu-addModal",false); H().toast("נוספו "+n+" תלמידים"); render();
+      save(list); return n;
+    }
+    $("#stu-addSave").addEventListener("click",()=>{
+      const n=addLines($("#stu-bulk").value);
+      $("#stu-bulk").value=""; H().modal("stu-addModal",false); H().toast("נוספו "+n+" תלמידים"); render();
+    });
+    $("#stu-fileImport").addEventListener("change",async e=>{
+      const file=e.target.files[0]; e.target.value="";
+      if(!file)return;
+      const text=await file.text();
+      const n=addLines(text);
+      H().modal("stu-addModal",false); H().toast(n?"נוספו "+n+" תלמידים מהקובץ":"לא נמצאו תלמידים חדשים בקובץ"); render();
     });
     $("#stu-csv").addEventListener("click",()=>{
       const list=load(); if(!list.length){H().toast("אין תלמידים");return;}
