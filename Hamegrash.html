@@ -192,6 +192,16 @@ details.fold .bd{padding:0 12px 13px}
   color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(4px)}
 .pf-status{position:absolute;top:9px;inset-inline-end:9px;z-index:5;font-size:11px;font-weight:800;border-radius:99px;padding:5px 11px;
   background:rgba(0,0,0,.55);color:#9df;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px)}
+/* פקדים מוקטנים בתוך #pf-stage עצמו — כך שהם נשארים גלויים גם במסך מלא אמיתי (Fullscreen API),
+   שמציג רק את תת-העץ של האלמנט שעליו נקרא requestFullscreen. */
+.pf-fsctl{position:absolute;bottom:9px;inset-inline:9px;z-index:6;display:flex;align-items:center;justify-content:center;gap:8px}
+.pf-fsctl .tm{font-family:'Share Tech Mono';font-size:15px;color:#fff;background:rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:7px 12px;min-width:92px;text-align:center;backdrop-filter:blur(4px)}
+.pf-fsctl button{border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.6);
+  color:#fff;font-weight:800;font-size:13px;padding:8px 14px;cursor:pointer;backdrop-filter:blur(4px)}
+.pf-fsctl button.go{background:rgba(31,122,77,.75)}
+.pf-fsctl button#pf-fsReset{width:36px;padding:8px 0}
+@media (min-width:761px){ .pf-stage:not(.fs) .pf-fsctl{display:none} }
 .pf-runchips{display:flex;flex-wrap:wrap;gap:8px}
 .pf-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);border-radius:13px;
   padding:9px 13px;font-weight:700;font-size:14px;cursor:pointer;user-select:none;transition:.14s}
@@ -809,6 +819,11 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       <div class="pf-status" id="pf-status">מצב סימולציה</div>
       <div class="pf-flash" id="pf-flash"></div>
       <div class="pf-banner" id="pf-banner"></div>
+      <div class="pf-fsctl">
+        <div class="tm" id="pf-fsClock">00:00.00</div>
+        <button class="go" id="pf-fsGun" title="זינוק / עצור (רווח)">🔫 זינוק</button>
+        <button id="pf-fsReset" title="איפוס מקצה">↺</button>
+      </div>
     </div>
 
     <div class="card" style="margin-top:13px">
@@ -2356,15 +2371,21 @@ const PF=(function(){
     race.t0=performance.now()-(backdate||0)*1000;
     lineActive=false; lastFire=-1e9;
     $("#pf-gun").innerHTML="⏹ עצור מקצה";
+    const fg=$("#pf-fsGun"); if(fg){ fg.textContent="⏹ עצור"; fg.classList.remove("go"); }
     LS.set("pf.totalRaces",LS.get("pf.totalRaces",0)+1);
     keepAwake(true); clockLoop();
     if(mode==="sim")simStart();
   }
-  function clockLoop(){ if(!race.on)return; $("#pf-clock").textContent=fmtMSc(rTime()); race.raf=requestAnimationFrame(clockLoop); }
+  function clockLoop(){ if(!race.on)return;
+    const t=fmtMSc(rTime()); $("#pf-clock").textContent=t;
+    const fc=$("#pf-fsClock"); if(fc)fc.textContent=t;
+    race.raf=requestAnimationFrame(clockLoop); }
   function stopRace(){ race.on=false; race.armed=false; sim.active=false; micStop();
     cancelAnimationFrame(race.raf); cancelAnimationFrame(sim.raf); keepAwake(false);
-    $("#pf-gun").textContent="🔫 זינוק"; renderFullStrip(); refreshLaneSel(); }
-  function resetRace(){ stopRace(); prepRace(); $("#pf-clock").textContent="00:00.00"; if(mode==="sim")drawSimIdle(); }
+    $("#pf-gun").textContent="🔫 זינוק"; renderFullStrip(); refreshLaneSel();
+    const fg=$("#pf-fsGun"); if(fg){ fg.textContent="🔫 זינוק"; fg.classList.add("go"); } }
+  function resetRace(){ stopRace(); prepRace(); $("#pf-clock").textContent="00:00.00";
+    const fc=$("#pf-fsClock"); if(fc)fc.textContent="00:00.00"; if(mode==="sim")drawSimIdle(); }
 
   function nextUnfinished(){ return lanes.findIndex(l=>l.time==null); }
   function fire(idx,src){
@@ -2645,6 +2666,8 @@ const PF=(function(){
     $$("#pf-modes button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
     $("#pf-gun").addEventListener("click",gun);
     $("#pf-resetBtn").addEventListener("click",()=>{ if(confirm("לאפס את המקצה?"))resetRace(); });
+    $("#pf-fsGun").addEventListener("click",gun);
+    $("#pf-fsReset").addEventListener("click",()=>{ if(confirm("לאפס את המקצה?"))resetRace(); });
     $("#pf-lineRange").value=lineRatio*100;
     $("#pf-lineEl").style.left=(lineRatio*100)+"%";
     $("#pf-lineRange").addEventListener("input",e=>{ lineRatio=e.target.value/100; LS.set("pf.line",lineRatio); $("#pf-lineEl").style.left=e.target.value+"%"; bg=null; });

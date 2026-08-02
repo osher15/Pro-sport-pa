@@ -745,15 +745,21 @@ const PF=(function(){
     race.t0=performance.now()-(backdate||0)*1000;
     lineActive=false; lastFire=-1e9;
     $("#pf-gun").innerHTML="⏹ עצור מקצה";
+    const fg=$("#pf-fsGun"); if(fg){ fg.textContent="⏹ עצור"; fg.classList.remove("go"); }
     LS.set("pf.totalRaces",LS.get("pf.totalRaces",0)+1);
     keepAwake(true); clockLoop();
     if(mode==="sim")simStart();
   }
-  function clockLoop(){ if(!race.on)return; $("#pf-clock").textContent=fmtMSc(rTime()); race.raf=requestAnimationFrame(clockLoop); }
+  function clockLoop(){ if(!race.on)return;
+    const t=fmtMSc(rTime()); $("#pf-clock").textContent=t;
+    const fc=$("#pf-fsClock"); if(fc)fc.textContent=t;
+    race.raf=requestAnimationFrame(clockLoop); }
   function stopRace(){ race.on=false; race.armed=false; sim.active=false; micStop();
     cancelAnimationFrame(race.raf); cancelAnimationFrame(sim.raf); keepAwake(false);
-    $("#pf-gun").textContent="🔫 זינוק"; renderFullStrip(); refreshLaneSel(); }
-  function resetRace(){ stopRace(); prepRace(); $("#pf-clock").textContent="00:00.00"; if(mode==="sim")drawSimIdle(); }
+    $("#pf-gun").textContent="🔫 זינוק"; renderFullStrip(); refreshLaneSel();
+    const fg=$("#pf-fsGun"); if(fg){ fg.textContent="🔫 זינוק"; fg.classList.add("go"); } }
+  function resetRace(){ stopRace(); prepRace(); $("#pf-clock").textContent="00:00.00";
+    const fc=$("#pf-fsClock"); if(fc)fc.textContent="00:00.00"; if(mode==="sim")drawSimIdle(); }
 
   function nextUnfinished(){ return lanes.findIndex(l=>l.time==null); }
   function fire(idx,src){
@@ -1034,6 +1040,8 @@ const PF=(function(){
     $$("#pf-modes button").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.m)));
     $("#pf-gun").addEventListener("click",gun);
     $("#pf-resetBtn").addEventListener("click",()=>{ if(confirm("לאפס את המקצה?"))resetRace(); });
+    $("#pf-fsGun").addEventListener("click",gun);
+    $("#pf-fsReset").addEventListener("click",()=>{ if(confirm("לאפס את המקצה?"))resetRace(); });
     $("#pf-lineRange").value=lineRatio*100;
     $("#pf-lineEl").style.left=(lineRatio*100)+"%";
     $("#pf-lineRange").addEventListener("input",e=>{ lineRatio=e.target.value/100; LS.set("pf.line",lineRatio); $("#pf-lineEl").style.left=e.target.value+"%"; bg=null; });
