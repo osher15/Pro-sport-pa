@@ -104,6 +104,10 @@ function applyRole(){
   const stu=isStudent();
   document.body.classList.toggle("role-student",stu);
   $$(".nav button[data-go]").forEach(b=>{ b.style.display=(!stu||STUDENT_MODS[b.dataset.go])?"":"none"; });
+  /* «משחקים» עבר לתוך אשכול «שיעור» עבור המורה — לתלמיד (שלא נכנס ל-שיעור בכלל)
+     הוא חייב להישאר כפתור ישיר בסרגל. «עוד» מוביל רק למודולים שאסורים לתלמיד ממילא. */
+  const ng=$("#navGames"); if(ng)ng.style.display=stu?"":"none";
+  const nm=$("#navMore"); if(nm)nm.style.display=stu?"none":"";
   const st=$("#btnSettings"); if(st)st.style.display=stu?"none":"";
   const rb=$("#roleBadge");
   if(rb){ rb.style.display=stu?"":"none"; }
@@ -113,6 +117,8 @@ function applyRole(){
 
 /* ---------- router ---------- */
 const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1};
+/* מודולים שנגישים דרך כפתור «עוד» ולא ישירות בסרגל — כדי שהכפתור יודגש כשנמצאים באחד מהם */
+const MORE_MODS=["stu","know","tools","nut"];
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -120,11 +126,13 @@ function go(mod){
   document.body.dataset.mod=mod;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
+  const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
-function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); })); }
+function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
+  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"home"));
 
 /* ---------- home ---------- */

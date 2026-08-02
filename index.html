@@ -528,6 +528,11 @@
 
 
 <section class="view" id="view-fit">
+  <div class="pf-tabs lesson-cluster">
+    <button data-go="lesson">📋 בניית מערך</button>
+    <button data-go="fit" class="on">⏱ כושר</button>
+    <button data-go="games">🎮 משחקים</button>
+  </div>
   <div class="pf-tabs">
     <button data-ft="timer" class="on">⏱ טיימר אינטרוולים</button>
     <button data-ft="circuit">🔁 תחנות לכיתה</button>
@@ -645,26 +650,71 @@
 
 
 <section class="view" id="view-stu">
-  <div class="card">
-    <h2><span class="dot"></span> התלמידים שלי</h2>
-    <div class="stu-tools">
-      <div class="field stu-search"><label>חיפוש</label><input type="text" id="stu-search" placeholder="שם תלמיד"></div>
-      <div class="field" style="width:150px"><label>כיתה</label><select id="stu-classSel"></select></div>
-      <button class="btn sm acc" id="stu-add" style="margin-top:18px">+ הוסף תלמידים</button>
-      <button class="btn sm" id="stu-fromBeep" style="margin-top:18px" title="ייבוא מלוח הביפ">⇩ מלוח הביפ</button>
-      <button class="btn sm ghost" id="stu-csv" style="margin-top:18px">⬇ CSV כיתה</button>
-    </div>
-    <div class="stu-stats">
-      <div class="qs"><div class="n" id="stu-count">0</div><div class="l">תלמידים</div></div>
-      <div class="qs"><div class="n" id="stu-avg">—</div><div class="l">ממוצע VO₂max</div></div>
-      <div class="qs"><div class="n" id="stu-below">0</div><div class="l">בסיכון בריאותי</div></div>
-      <div class="qs"><div class="n" id="stu-fall">0</div><div class="l">במגמת ירידה</div></div>
-    </div>
-    <div class="stu-list" id="stu-list"></div>
-    <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
+  <div class="pf-tabs">
+    <button data-st="list" class="on">👥 רשימת תלמידים</button>
+    <button data-st="grades">📊 ציונים</button>
   </div>
+
+  <div id="stu-sub-list">
+    <div class="card">
+      <h2><span class="dot"></span> התלמידים שלי</h2>
+      <div class="stu-tools">
+        <div class="field stu-search"><label>חיפוש</label><input type="text" id="stu-search" placeholder="שם תלמיד"></div>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="stu-classSel"></select></div>
+        <button class="btn sm acc" id="stu-add" style="margin-top:18px">+ הוסף תלמידים</button>
+        <button class="btn sm" id="stu-fromBeep" style="margin-top:18px" title="ייבוא מלוח הביפ">⇩ מלוח הביפ</button>
+        <button class="btn sm ghost" id="stu-csv" style="margin-top:18px">⬇ CSV כיתה</button>
+      </div>
+      <div class="stu-stats">
+        <div class="qs"><div class="n" id="stu-count">0</div><div class="l">תלמידים</div></div>
+        <div class="qs"><div class="n" id="stu-avg">—</div><div class="l">ממוצע VO₂max</div></div>
+        <div class="qs"><div class="n" id="stu-below">0</div><div class="l">בסיכון בריאותי</div></div>
+        <div class="qs"><div class="n" id="stu-fall">0</div><div class="l">במגמת ירידה</div></div>
+      </div>
+      <div class="stu-list" id="stu-list"></div>
+      <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
+    </div>
+  </div>
+
+  <div id="stu-sub-grades" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0"><span class="dot"></span> ציונים</h2>
+        <button class="btn sm ghost" id="gr-weightsBtn">⚖️ מבנה הציון</button>
+      </div>
+      <div class="hint" id="gr-formula" style="margin-top:6px"></div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:170px"><label>תקופת הערכה</label><select id="gr-period"></select></div>
+        <button class="btn sm" id="gr-periodAdd" style="margin-top:18px">+ תקופה</button>
+        <button class="btn sm ghost" id="gr-periodDel" style="margin-top:18px">🗑 מחק תקופה</button>
+        <div class="field" style="width:150px"><label>כיתה</label><select id="gr-classSel"></select></div>
+        <button class="btn sm" id="gr-examAdd" style="margin-top:18px">+ עמודת מבחן</button>
+        <button class="btn sm ghost" id="gr-csv" style="margin-top:18px">⬇ CSV</button>
+      </div>
+      <div class="tblwrap" style="margin-top:13px"><table class="tbl" id="gr-table"></table></div>
+      <div class="empty-state" id="gr-empty" style="display:none"><div class="big">📊</div>אין עדיין תלמידים בכיתה הזו. הוסף תלמידים בלשונית «רשימת תלמידים».</div>
+    </div>
+  </div>
+
+  <div class="modal" id="gr-weightsModal"><div class="box">
+    <h3>⚖️ מבנה הציון<button class="x" data-close="gr-weightsModal">✕</button></h3>
+    <div class="hint">המשקלים צריכים להסתכם ל-100. אחוז השתתפות ורצינות משמש כברירת מחדל וניתן לשינוי לפי מדיניות בית הספר.</div>
+    <div class="row" style="margin-top:11px;flex-wrap:wrap;gap:10px">
+      <div class="field" style="width:150px"><label>השתתפות ורצינות %</label><input type="number" id="gr-wPart" min="0" max="100"></div>
+      <div class="field" style="width:150px"><label>מבחנים ומבדקים %</label><input type="number" id="gr-wExams" min="0" max="100"></div>
+      <div class="field" style="width:150px"><label>שיפור והתמדה %</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
+      <div class="field" style="width:150px"><label>עבודת צוות ושת״פ %</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+    </div>
+    <div class="hint" id="gr-wSum" style="margin-top:9px"></div>
+    <button class="btn acc big" id="gr-wSave" style="margin-top:12px">שמור מבנה ציון</button>
+  </div></div>
 </section>
 <section class="view" id="view-lesson">
+  <div class="pf-tabs lesson-cluster">
+    <button data-go="lesson" class="on">📋 בניית מערך</button>
+    <button data-go="fit">⏱ כושר</button>
+    <button data-go="games">🎮 משחקים</button>
+  </div>
   <div class="card">
     <h2><span class="dot"></span> בניית מערך שיעור</h2>
     <div class="row">
@@ -837,6 +887,11 @@
 </section>
 
 <section class="view" id="view-games">
+  <div class="pf-tabs lesson-cluster">
+    <button data-go="lesson">📋 בניית מערך</button>
+    <button data-go="fit">⏱ כושר</button>
+    <button data-go="games" class="on">🎮 משחקים</button>
+  </div>
   <div class="card">
     <h2><span class="dot"></span> משחקים לשעות פנאי</h2>
     <div class="hint">כל משחק עם הסבר מלא, מטרה, למי הוא מתאים, וריאציות, דגשי בטיחות וקישור לצפייה. אפשר לקחת כל משחק ישירות למערך שיעור.</div>
@@ -912,13 +967,25 @@
   <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
   <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
   <button data-go="photo"><span class="ic">📷</span>פיניש</button>
-  <button data-go="rec"><span class="ic">🏆</span>שיאים</button>
-  <button data-go="games"><span class="ic">🎮</span>משחקים</button>
-  <button data-go="fit"><span class="ic">⏱</span>כושר</button>
-  <button data-go="tools"><span class="ic">🧰</span>כלים</button>
-  <button data-go="know"><span class="ic">📚</span>ידע</button>
-  <button data-go="stu"><span class="ic">👥</span>תלמידים</button>
+  <button data-go="rec" id="navRec"><span class="ic">🏆</span>שיאים</button>
+  <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span>משחקים</button>
+  <button id="navMore"><span class="ic">⋯</span>עוד</button>
 </div>
+<!-- more menu -->
+<div class="modal" id="moreModal"><div class="box" style="max-width:400px">
+  <h3>⋯ עוד מודולים<button class="x" data-close="moreModal">✕</button></h3>
+  <div class="hint" style="margin-bottom:9px">כושר ומשחקים עברו לתוך «שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
+  <div class="more-grp">
+    <div class="more-h">📊 תלמידים והערכה</div>
+    <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
+  </div>
+  <div class="more-grp">
+    <div class="more-h">🧰 תוכן וכלים</div>
+    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span>ידע<span class="go">→</span></button>
+    <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span>כלי כיתה<span class="go">→</span></button>
+    <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span>פינת תזונה<span class="go">→</span></button>
+  </div>
+</div></div>
 <!-- settings modal -->
 <div class="modal" id="setModal"><div class="box">
   <h3>⚙️ הגדרות<button class="x" data-close="setModal">✕</button></h3>

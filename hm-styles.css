@@ -50,6 +50,16 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .nav button.on{color:var(--ink)}
 .nav button.on .ic{filter:none;transform:translateY(-1px)}
 .nav button.on::before{content:"";position:absolute;top:0;inset-inline:22%;height:3px;border-radius:0 0 4px 4px;background:var(--acc)}
+/* ---------- תפריט «עוד» ---------- */
+.more-grp{margin-bottom:14px}
+.more-grp:last-child{margin-bottom:0}
+.more-h{font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:7px;padding-inline-start:2px}
+.more-item{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;
+  color:var(--ink);font-family:'Heebo';font-size:14px;font-weight:600}
+.more-item:hover{border-color:var(--acc)}
+.more-item .ic{font-size:19px;flex:none}
+.more-item .go{margin-inline-start:auto;color:var(--acc);font-size:16px;transform:scaleX(-1)}
 /* ---------- views ---------- */
 .view{display:none;animation:vin .22s ease}
 .view.on{display:block}
@@ -96,6 +106,11 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .tbl .rk{font-family:'Inter';font-size:16px;width:42px;text-align:center}
 .tbl .mono{font-family:'Share Tech Mono';white-space:nowrap}
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
+.gr-in{width:56px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);
+  padding:6px 4px;text-align:center;font-family:'Share Tech Mono';font-size:13px}
+.gr-in:focus{border-color:var(--acc);outline:none}
+.tbl th .x{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0 2px}
+.tbl th .x:hover{color:#ff6b81}
 .catpill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;color:#03130a;white-space:nowrap}
 /* ---------- big timer / stat panels ---------- */
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}

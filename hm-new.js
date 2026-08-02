@@ -142,6 +142,147 @@ window.STU=(function(){
     if(n){toast("✓ נשמרו "+n+" תוצאות למעקב (שמות אמיתיים בלבד)");go("stu");render();}
     else toast("אין תוצאות חדשות עם שם אמיתי — שנה שמות בלוח קודם");
   }
+
+  /* ============================ ציונים ============================
+     מבנה: 4 קטגוריות במשקלים (ברירת מחדל 70/10/10/10), עם עמודות מבחן
+     דינמיות בתוך קטגוריית «מבחנים ומבדקים» (ממוצע של מה שהוזן בפועל).
+     ציון סופי = סכום (ציון גולמי × משקל / 100) על כל קטגוריה שמולאה. */
+  const DEF_WEIGHTS={part:70,exams:10,improve:10,team:10};
+  const loadWeights=()=>Object.assign({},DEF_WEIGHTS,H().LS.get("grades.weights",{}));
+  const saveWeights=w=>H().LS.set("grades.weights",w);
+  const loadPeriods=()=>{ const p=H().LS.get("grades.periods",null); return (Array.isArray(p)&&p.length)?p:["רבעון 1"]; };
+  const savePeriods=p=>H().LS.set("grades.periods",p);
+  const loadExamCols=()=>H().LS.get("grades.examCols",{});
+  const saveExamCols=c=>H().LS.set("grades.examCols",c);
+  let grPeriod="",grClsF="";
+  const examColsFor=period=>loadExamCols()[period]||[];
+  const gradeOf=(s,period)=>{ const g=(s.grades=s.grades||{}); return g[period]=g[period]||{exams:{}}; };
+  function computeFinal(s,period,weights,examCols){
+    const g=(s.grades&&s.grades[period])||{};
+    const examVals=examCols.map(c=>g.exams&&g.exams[c]).filter(v=>v!=null&&v!=="").map(Number);
+    const examsAvg=examVals.length?examVals.reduce((a,b)=>a+b,0)/examVals.length:null;
+    const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team]];
+    let total=0,any=false;
+    cats.forEach(([k,v])=>{ if(v!=null&&v!==""){ total+=(+v)*weights[k]/100; any=true; } });
+    return {total:any?Math.round(total*10)/10:null,examsAvg};
+  }
+  function renderWeightsHint(){
+    const {$}=H(); const w=loadWeights();
+    $("#gr-formula").textContent=`ציון סופי = השתתפות ורצינות ${w.part}% + ממוצע מבחנים ${w.exams}% + שיפור והתמדה ${w.improve}% + עבודת צוות ${w.team}%`;
+  }
+  function updWSum(){
+    const {$}=H();
+    const sum=(+$("#gr-wPart").value||0)+(+$("#gr-wExams").value||0)+(+$("#gr-wImprove").value||0)+(+$("#gr-wTeam").value||0);
+    $("#gr-wSum").innerHTML=`סה״כ: <b style="color:${sum===100?"var(--acc)":"#ff6b81"}">${sum}%</b>`+(sum===100?"":" — צריך להסתכם ל-100");
+  }
+  function openWeights(){
+    const {$}=H(); const w=loadWeights();
+    $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve; $("#gr-wTeam").value=w.team;
+    updWSum(); H().modal("gr-weightsModal");
+  }
+  function saveWeightsForm(){
+    const {$}=H();
+    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,team:+$("#gr-wTeam").value||0};
+    const sum=w.part+w.exams+w.improve+w.team;
+    if(sum!==100){H().toast("המשקלים חייבים להסתכם ל-100 (כרגע "+sum+")");return;}
+    saveWeights(w); H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
+  }
+  function renderGrades(){
+    const {$, $$, esc}=H();
+    const list=load();
+    const classes=[...new Set(list.map(s=>s.cls).filter(Boolean))].sort();
+    $("#gr-classSel").innerHTML='<option value="">כל הכיתות</option>'+classes.map(c=>`<option ${c===grClsF?"selected":""}>${esc(c)}</option>`).join("");
+    const periods=loadPeriods();
+    if(!periods.includes(grPeriod))grPeriod=periods[0];
+    $("#gr-period").innerHTML=periods.map(p=>`<option ${p===grPeriod?"selected":""}>${esc(p)}</option>`).join("");
+    renderWeightsHint();
+    const weights=loadWeights();
+    const examCols=examColsFor(grPeriod);
+    const view=list.filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    $("#gr-empty").style.display=view.length?"none":"block";
+    if(!view.length){ $("#gr-table").innerHTML=""; return; }
+    const head=`<thead><tr><th>שם</th><th>כיתה</th><th>השתתפות ורצינות<br>(${weights.part}%)</th>${
+      examCols.map((c,i)=>`<th>${esc(c)} <button class="x" data-examdel="${i}" title="הסר עמודה">✕</button></th>`).join("")
+    }<th>ממוצע מבחנים<br>(${weights.exams}%)</th><th>שיפור והתמדה<br>(${weights.improve}%)</th><th>עבודת צוות<br>(${weights.team}%)</th><th>ציון סופי</th></tr></thead>`;
+    const body=view.map(s=>{
+      const g=gradeOf(s,grPeriod);
+      const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
+      return `<tr data-sid="${s.id}">
+        <td><b>${esc(s.name)}</b></td>
+        <td style="color:var(--muted)">${esc(s.cls||"")}</td>
+        <td><input class="gr-in" type="number" min="0" max="100" data-f="part" value="${g.part??""}"></td>
+        ${examCols.map(c=>`<td><input class="gr-in" type="number" min="0" max="100" data-exam="${esc(c)}" value="${(g.exams&&g.exams[c])??""}"></td>`).join("")}
+        <td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>
+        <td><input class="gr-in" type="number" min="0" max="100" data-f="improve" value="${g.improve??""}"></td>
+        <td><input class="gr-in" type="number" min="0" max="100" data-f="team" value="${g.team??""}"></td>
+        <td class="mono" style="font-weight:800;color:var(--acc)">${total!=null?total.toFixed(1):"—"}</td>
+      </tr>`;
+    }).join("");
+    $("#gr-table").innerHTML=head+"<tbody>"+body+"</tbody>";
+    /* עדכון שורה בודדת בלבד (בלי לבנות מחדש את כל הטבלה) — כדי לא לאבד פוקוס/מעבר Tab
+       באמצע הזנת ציונים רצופה בסגנון גיליון. */
+    function updateRowTotals(tr,s){
+      const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
+      const cells=tr.querySelectorAll("td");
+      cells[3+examCols.length].textContent=examsAvg!=null?examsAvg.toFixed(1):"—";
+      cells[cells.length-1].textContent=total!=null?total.toFixed(1):"—";
+    }
+    $$("#gr-table [data-f]").forEach(inp=>inp.addEventListener("change",()=>{
+      const tr=inp.closest("tr"), s=list.find(x=>x.id===tr.dataset.sid); if(!s)return;
+      const g=gradeOf(s,grPeriod); const v=inp.value===""?null:Math.max(0,Math.min(100,+inp.value));
+      if(v!=null)inp.value=v;
+      g[inp.dataset.f]=v; save(list); updateRowTotals(tr,s);
+    }));
+    $$("#gr-table [data-exam]").forEach(inp=>inp.addEventListener("change",()=>{
+      const tr=inp.closest("tr"), s=list.find(x=>x.id===tr.dataset.sid); if(!s)return;
+      const g=gradeOf(s,grPeriod); g.exams=g.exams||{};
+      const v=inp.value===""?null:Math.max(0,Math.min(100,+inp.value));
+      if(v!=null)inp.value=v;
+      if(v==null)delete g.exams[inp.dataset.exam]; else g.exams[inp.dataset.exam]=v;
+      save(list); updateRowTotals(tr,s);
+    }));
+    $$("#gr-table [data-examdel]").forEach(b=>b.addEventListener("click",()=>{
+      const i=+b.dataset.examdel, name=examCols[i];
+      if(!confirm(`להסיר את עמודת «${name}»? ציוני התלמידים בעמודה הזו יימחקו.`))return;
+      const cols=loadExamCols(); cols[grPeriod]=(cols[grPeriod]||[]).filter(c=>c!==name); saveExamCols(cols);
+      list.forEach(s=>{ if(s.grades&&s.grades[grPeriod]&&s.grades[grPeriod].exams)delete s.grades[grPeriod].exams[name]; });
+      save(list); renderGrades();
+    }));
+  }
+  function addExamCol(){
+    const cols=loadExamCols(); const arr=cols[grPeriod]=cols[grPeriod]||[];
+    const name=prompt("שם עמודת המבחן:","מבחן "+(arr.length+1));
+    if(!name)return; const n=name.trim(); if(!n)return;
+    if(arr.includes(n)){H().toast("כבר קיימת עמודה בשם הזה");return;}
+    arr.push(n); saveExamCols(cols); renderGrades();
+  }
+  function addPeriod(){
+    const periods=loadPeriods();
+    const name=prompt("שם תקופת ההערכה החדשה:","רבעון "+(periods.length+1));
+    if(!name)return; const n=name.trim(); if(!n||periods.includes(n))return;
+    periods.push(n); savePeriods(periods); grPeriod=n; renderGrades();
+  }
+  function delPeriod(){
+    const periods=loadPeriods();
+    if(periods.length<=1){H().toast("חייבת להישאר לפחות תקופה אחת");return;}
+    if(!confirm(`למחוק את «${grPeriod}»? כל הציונים שהוזנו בתקופה הזו יימחקו.`))return;
+    const idx=periods.indexOf(grPeriod); periods.splice(idx,1); savePeriods(periods);
+    const cols=loadExamCols(); delete cols[grPeriod]; saveExamCols(cols);
+    const list=load(); list.forEach(s=>{ if(s.grades)delete s.grades[grPeriod]; }); save(list);
+    grPeriod=periods[0]; renderGrades();
+  }
+  function exportGradesCsv(){
+    const list=load().filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    if(!list.length){H().toast("אין תלמידים");return;}
+    const weights=loadWeights(), examCols=examColsFor(grPeriod);
+    const rows=[["שם","כיתה","השתתפות ורצינות",...examCols,"ממוצע מבחנים","שיפור והתמדה","עבודת צוות","ציון סופי"]];
+    list.forEach(s=>{
+      const g=gradeOf(s,grPeriod); const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
+      rows.push([s.name,s.cls||"",g.part??"",...examCols.map(c=>(g.exams&&g.exams[c])??""),examsAvg!=null?examsAvg.toFixed(1):"",g.improve??"",g.team??"",total!=null?total.toFixed(1):""]);
+    });
+    H().dlCSV("ציונים_"+grPeriod+".csv",rows);
+  }
+
   function init(){
     if(inited){render();return;} inited=true;
     const {$}=H();
@@ -178,6 +319,23 @@ window.STU=(function(){
         rows.push([s.name,s.cls||"",s.sex==="girls"?"בת":"בן",s.age||"",b?b.toFixed(1):"",s.tests.length,lt?lt.dist:"",lt&&lt.vo2?lt.vo2.toFixed(1):"",lt?lt.zone:"",trend(s)>0?"שיפור":trend(s)<0?"ירידה":""]);});
       H().dlCSV("students_tracking.csv",rows);
     });
+    /* ---------- ציונים ---------- */
+    $$(".pf-tabs [data-st]").forEach(b=>b.addEventListener("click",()=>{
+      $$(".pf-tabs [data-st]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+      const sub=b.dataset.st;
+      $("#stu-sub-list").style.display=sub==="list"?"":"none";
+      $("#stu-sub-grades").style.display=sub==="grades"?"":"none";
+      if(sub==="grades")renderGrades();
+    }));
+    $("#gr-weightsBtn").addEventListener("click",openWeights);
+    ["#gr-wPart","#gr-wExams","#gr-wImprove","#gr-wTeam"].forEach(id=>$(id).addEventListener("input",updWSum));
+    $("#gr-wSave").addEventListener("click",saveWeightsForm);
+    $("#gr-period").addEventListener("change",e=>{grPeriod=e.target.value;renderGrades();});
+    $("#gr-periodAdd").addEventListener("click",addPeriod);
+    $("#gr-periodDel").addEventListener("click",delPeriod);
+    $("#gr-classSel").addEventListener("change",e=>{grClsF=e.target.value;renderGrades();});
+    $("#gr-examAdd").addEventListener("click",addExamCol);
+    $("#gr-csv").addEventListener("click",exportGradesCsv);
     render();
   }
   return {init,importFromBeep,count:()=>load().length};
