@@ -643,6 +643,7 @@
   <div class="pf-tabs">
     <button data-st="list" class="on">👥 רשימת תלמידים</button>
     <button data-st="grades">📊 ציונים</button>
+    <button data-st="peer">🤝 הערכת עמיתים</button>
   </div>
 
   <div id="stu-sub-list">
@@ -697,6 +698,65 @@
     </div>
     <div class="hint" id="gr-wSum" style="margin-top:9px"></div>
     <button class="btn acc big" id="gr-wSave" style="margin-top:12px">שמור מבנה ציון</button>
+  </div></div>
+
+  <div id="stu-sub-peer" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0"><span class="dot"></span> הערכה חדשה</h2>
+        <button class="btn sm ghost" id="pa-critBtn">⚙️ עריכת קריטריונים</button>
+      </div>
+      <div class="hint" style="margin-top:6px">מיועד להערכה קבוצתית בסגנון PBL — קבוצה אחת מעריכה קבוצה אחרת (או שאתה כמורה ממלא) לפי אותם קריטריונים. הציון הממוצע מתוך ההערכות בתקופה נכנס אוטומטית ל«עבודת צוות» של כל תלמיד שסומן.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field grow"><label>שם המשימה / הפרויקט</label><input type="text" id="pa-task" placeholder="לדוגמה: פרויקט PBL — תכנון טורניר כיתתי"></div>
+        <div class="field" style="width:150px"><label>תקופת הערכה</label><select id="pa-period"></select></div>
+      </div>
+      <div class="field" style="margin-top:11px">
+        <label>תלמידים מוערכים (הקבוצה שמוערכת)</label>
+        <div class="row">
+          <select id="pa-stuSel" class="grow"></select>
+          <button class="btn sm" id="pa-stuAdd" style="flex:none">+ הוסף תלמיד</button>
+        </div>
+        <div class="pa-chips" id="pa-stuChips"></div>
+      </div>
+      <div class="field" style="margin-top:11px">
+        <label>📷 צילום קבוצתי (אופציונלי)</label>
+        <div class="row">
+          <input type="file" id="pa-photoInput" accept="image/*" style="max-width:220px">
+          <button class="btn sm ghost" id="pa-photoDel" style="display:none;flex:none">🗑 הסר תמונה</button>
+        </div>
+        <img id="pa-photoPrev" style="display:none;max-width:180px;border-radius:10px;margin-top:8px;border:1px solid var(--line)">
+      </div>
+      <div id="pa-critList" style="margin-top:15px"></div>
+      <div class="field" style="margin-top:11px"><label>הערות ודגשים אישיים</label><textarea id="pa-notes" rows="2" placeholder="כתוב הערות כאן..."></textarea></div>
+      <div class="row" style="margin-top:13px;justify-content:space-between">
+        <div class="hint" id="pa-draftHint"></div>
+        <div class="row">
+          <button class="btn ghost" id="pa-cancel" style="display:none">בטל עריכה</button>
+          <button class="btn acc big" id="pa-save">💾 שמור הערכה</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:13px">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0"><span class="dot"></span> הערכות שנשמרו</h2>
+        <div class="row">
+          <div class="field" style="width:150px;margin:0"><select id="pa-periodF"></select></div>
+          <button class="btn sm acc" id="pa-applyBtn">✓ עדכן ציוני עבודת צוות</button>
+        </div>
+      </div>
+      <div id="pa-list" style="margin-top:11px"></div>
+      <div class="empty-state" id="pa-empty"><div class="big">🤝</div>עדיין אין הערכות עמיתים שמורות בתקופה הזו.</div>
+    </div>
+  </div>
+
+  <div class="modal" id="pa-critModal"><div class="box">
+    <h3>⚙️ קריטריוני הערכה<button class="x" data-close="pa-critModal">✕</button></h3>
+    <div class="hint">כל קריטריון מדורג ב-5 רמות: 100 / 80 / 60 / 40 / 20. אפשר לערוך שם ותיאור, להוסיף או להסיר.</div>
+    <div id="pa-critEdit" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto"></div>
+    <button class="btn sm" id="pa-critAdd" style="margin-top:10px">+ קריטריון</button>
+    <button class="btn acc big" id="pa-critSave" style="margin-top:12px">שמור קריטריונים</button>
   </div></div>
 </section>
 <section class="view" id="view-lesson">

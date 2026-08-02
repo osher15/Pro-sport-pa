@@ -283,6 +283,202 @@ window.STU=(function(){
     H().dlCSV("ציונים_"+grPeriod+".csv",rows);
   }
 
+  /* ============================ הערכת עמיתים קבוצתית (PBL) ============================
+     קבוצה מעריכה קבוצה: הערכה = רשומה עם קבוצת תלמידים מוערכת + ציון 100/80/60/40/20
+     לכל קריטריון + הערות + תמונה קבוצתית אופציונלית. ממוצע ההערכות של תלמיד בתקופה
+     נכנס אוטומטית לעמודת «עבודת צוות» בטבלת הציונים. */
+  const DEF_PCRIT=[
+    {id:"c1",t:"ביצוע המשימה",d:"דיוק בביצוע המיומנויות והתאמה לדרישות"},
+    {id:"c2",t:"עבודת צוות ושיתוף פעולה",d:"תקשורת, עזרה הדדית והתמודדות עם אתגרים"},
+    {id:"c3",t:"כבוד הדדי וקבלת האחר",d:"התחשבות ביכולות, יחס מכבד וסובלנות"},
+    {id:"c4",t:"אחריות אישית ומעורבות",d:"נטילת חלק פעיל ועמידה במטלות שהוטלו על התלמיד"},
+    {id:"c5",t:"מוטיבציה ומאמץ",d:"רמת מחויבות ומאמץ להצלחת המשימה"},
+    {id:"c6",t:"חשיבה יצירתית",d:"שימוש בדרכים יצירתיות ופתרון אתגרים"},
+    {id:"c7",t:"השגת המטרה",d:"עמידה ביעדים שהוגדרו בתחילה"},
+    {id:"c8",t:"בטיחות והגינות",d:"שמירה על כללים ויושרה בביצוע"}
+  ];
+  const loadPCrit=()=>{ const c=H().LS.get("grades.peerCrit",null); return (Array.isArray(c)&&c.length)?c:DEF_PCRIT; };
+  const savePCrit=c=>H().LS.set("grades.peerCrit",c);
+  const loadAssess=()=>H().LS.get("grades.peerAssess",[]);
+  const saveAssess=a=>H().LS.set("grades.peerAssess",a);
+  let paDraft=null,paEditId=null,paPeriodF="";
+  const newDraft=()=>({task:"",period:grPeriod||loadPeriods()[0],students:[],photo:null,scores:{},notes:""});
+  const paAvg=(scores,crit)=>{
+    const vals=crit.map(c=>scores[c.id]).filter(v=>v!=null);
+    return vals.length?Math.round((vals.reduce((a,b)=>a+b,0)/vals.length)*10)/10:null;
+  };
+  function renderPCritList(){
+    const {$,$$,esc}=H();
+    const crit=loadPCrit();
+    $("#pa-critList").innerHTML=crit.map((c,i)=>`<div class="pa-crit" data-cid="${c.id}">
+        <div class="pa-critH"><b>${i+1}. ${esc(c.t)}</b>${c.d?`<span class="hint">${esc(c.d)}</span>`:""}</div>
+        <div class="pa-scoreBtns">${[100,80,60,40,20].map(v=>`<button type="button" class="pa-sb pa-sb${v} ${paDraft.scores[c.id]===v?"on":""}" data-cid="${c.id}" data-v="${v}">${v}</button>`).join("")}</div>
+      </div>`).join("");
+    $$("#pa-critList .pa-sb").forEach(b=>b.addEventListener("click",()=>{
+      paDraft.scores[b.dataset.cid]=+b.dataset.v; renderPCritList();
+    }));
+  }
+  function renderPaStuUI(){
+    const {$,$$,esc}=H();
+    const list=load().sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    const avail=list.filter(s=>!paDraft.students.includes(s.id));
+    $("#pa-stuSel").innerHTML=avail.length?avail.map(s=>`<option value="${s.id}">${esc(s.name)}${s.cls?" · "+esc(s.cls):""}</option>`).join(""):'<option value="">אין תלמידים זמינים</option>';
+    $("#pa-stuChips").innerHTML=paDraft.students.map(id=>{
+      const s=list.find(x=>x.id===id); if(!s)return"";
+      return `<span class="pa-chip">${esc(s.name)}<button type="button" data-parm="${id}">✕</button></span>`;
+    }).join("")||'<span class="hint">עדיין לא נוספו תלמידים</span>';
+    $$("#pa-stuChips [data-parm]").forEach(b=>b.addEventListener("click",()=>{
+      paDraft.students=paDraft.students.filter(id=>id!==b.dataset.parm); renderPaStuUI();
+    }));
+  }
+  function paHandlePhoto(file){
+    return new Promise(resolve=>{
+      const img=new Image(),url=URL.createObjectURL(file);
+      img.onload=()=>{
+        const maxW=480,scale=Math.min(1,maxW/img.width);
+        const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+        const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+        cv.getContext("2d").drawImage(img,0,0,w,h);
+        URL.revokeObjectURL(url);
+        resolve(cv.toDataURL("image/jpeg",0.7));
+      };
+      img.src=url;
+    });
+  }
+  function renderPaPhoto(){
+    const {$}=H(); const has=!!paDraft.photo;
+    $("#pa-photoPrev").style.display=has?"":"none";
+    if(has)$("#pa-photoPrev").src=paDraft.photo;
+    $("#pa-photoDel").style.display=has?"":"none";
+  }
+  function renderPaForm(){
+    const {$,esc}=H();
+    const periods=loadPeriods();
+    $("#pa-period").innerHTML=periods.map(p=>`<option ${p===paDraft.period?"selected":""}>${esc(p)}</option>`).join("");
+    $("#pa-task").value=paDraft.task;
+    $("#pa-notes").value=paDraft.notes;
+    renderPaStuUI(); renderPaPhoto(); renderPCritList();
+    $("#pa-cancel").style.display=paEditId?"":"none";
+    $("#pa-draftHint").textContent=paEditId?"עורך הערכה קיימת":"";
+  }
+  function paSave(){
+    const {$,toast}=H();
+    paDraft.task=$("#pa-task").value.trim();
+    paDraft.period=$("#pa-period").value;
+    paDraft.notes=$("#pa-notes").value;
+    if(!paDraft.task){toast("הזן שם למשימה/פרויקט");return;}
+    if(!paDraft.students.length){toast("הוסף לפחות תלמיד אחד להערכה");return;}
+    const crit=loadPCrit();
+    if(!crit.every(c=>paDraft.scores[c.id]!=null)){toast("דרג את כל הקריטריונים לפני השמירה");return;}
+    const list=loadAssess();
+    if(paEditId){
+      const idx=list.findIndex(a=>a.id===paEditId);
+      if(idx>-1)list[idx]={...paDraft,id:paEditId,date:list[idx].date};
+    } else {
+      list.push({...paDraft,id:"pa"+Date.now()+Math.random().toString(36).slice(2,5),date:today()});
+    }
+    saveAssess(list);
+    toast("ההערכה נשמרה ✓");
+    paDraft=newDraft(); paEditId=null;
+    renderPaForm(); renderPaList();
+  }
+  function paCancelEdit(){ paDraft=newDraft(); paEditId=null; renderPaForm(); }
+  function renderPaList(){
+    const {$,$$,esc}=H();
+    const periods=loadPeriods();
+    if(!periods.includes(paPeriodF))paPeriodF=periods.includes(grPeriod)?grPeriod:periods[0];
+    $("#pa-periodF").innerHTML=periods.map(p=>`<option ${p===paPeriodF?"selected":""}>${esc(p)}</option>`).join("");
+    const crit=loadPCrit();
+    const all=loadAssess().filter(a=>a.period===paPeriodF).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+    const stuList=load();
+    $("#pa-empty").style.display=all.length?"none":"block";
+    $("#pa-list").innerHTML=all.map(a=>{
+      const names=a.students.map(id=>{const s=stuList.find(x=>x.id===id);return s?s.name:"?";}).join(", ");
+      const avg=paAvg(a.scores,crit);
+      return `<div class="pa-item" data-aid="${a.id}">
+        <div class="row">
+          <div>
+            <b>${esc(a.task||"(ללא שם)")}</b>
+            <div class="hint" style="margin-top:3px">${esc(names)} · ${esc(a.date||"")}</div>
+            ${a.notes?`<div class="hint" style="margin-top:3px">💬 ${esc(a.notes)}</div>`:""}
+          </div>
+          <div class="row" style="gap:6px">
+            ${a.photo?`<img src="${a.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">`:""}
+            <span class="pill acc" style="font-weight:800">${avg!=null?avg.toFixed(0):"—"}</span>
+            <button class="btn sm ghost" data-paedit="${a.id}">✎</button>
+            <button class="btn sm stop" data-padel="${a.id}">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+    $$("#pa-list [data-paedit]").forEach(b=>b.addEventListener("click",()=>{
+      const a=loadAssess().find(x=>x.id===b.dataset.paedit); if(!a)return;
+      paDraft={task:a.task,period:a.period,students:[...a.students],photo:a.photo,scores:{...a.scores},notes:a.notes||""};
+      paEditId=a.id;
+      renderPaForm();
+      $("#pa-task").scrollIntoView({behavior:"smooth",block:"start"});
+    }));
+    $$("#pa-list [data-padel]").forEach(b=>b.addEventListener("click",()=>{
+      if(!confirm("למחוק את ההערכה הזו?"))return;
+      saveAssess(loadAssess().filter(x=>x.id!==b.dataset.padel));
+      renderPaList();
+    }));
+  }
+  function paApplyToGrades(){
+    const {toast}=H();
+    const period=paPeriodF;
+    const assess=loadAssess().filter(a=>a.period===period);
+    if(!assess.length){toast("אין הערכות בתקופה הזו");return;}
+    const crit=loadPCrit();
+    const list=load();
+    const perStudent={};
+    assess.forEach(a=>{
+      const avg=paAvg(a.scores,crit); if(avg==null)return;
+      a.students.forEach(id=>{ (perStudent[id]=perStudent[id]||[]).push(avg); });
+    });
+    let n=0;
+    Object.keys(perStudent).forEach(id=>{
+      const s=list.find(x=>x.id===id); if(!s)return;
+      const vals=perStudent[id];
+      const g=gradeOf(s,period);
+      g.team=Math.round((vals.reduce((a,b)=>a+b,0)/vals.length)*10)/10;
+      n++;
+    });
+    save(list);
+    toast(`עודכן ציון עבודת צוות ל-${n} תלמידים לפי ${assess.length} הערכות`);
+    if(grPeriod===period)renderGrades();
+  }
+  function renderPCritEdit(){
+    const {$,$$,esc}=H();
+    const crit=loadPCrit();
+    $("#pa-critEdit").innerHTML=crit.map(c=>`<div class="row" data-cid="${c.id}" style="gap:6px">
+        <div class="field" style="width:150px;margin:0"><input type="text" data-pct="${c.id}" value="${esc(c.t)}" placeholder="שם הקריטריון"></div>
+        <div class="field grow" style="margin:0"><input type="text" data-pcd="${c.id}" value="${esc(c.d||"")}" placeholder="תיאור קצר (אופציונלי)"></div>
+        <button class="btn sm stop" data-pcdel="${c.id}" style="flex:none">🗑</button>
+      </div>`).join("");
+    $$("#pa-critEdit [data-pcdel]").forEach(b=>b.addEventListener("click",()=>{
+      const cur=loadPCrit().filter(c=>c.id!==b.dataset.pcdel);
+      if(!cur.length){H().toast("צריך להישאר לפחות קריטריון אחד");return;}
+      savePCrit(cur); renderPCritEdit();
+    }));
+  }
+  function addPCrit(){
+    const cur=loadPCrit();
+    cur.push({id:"c"+Date.now()+Math.random().toString(36).slice(2,4),t:"קריטריון חדש",d:""});
+    savePCrit(cur); renderPCritEdit();
+  }
+  function savePCritForm(){
+    const {$,$$,toast}=H();
+    const cur=loadPCrit();
+    $$("#pa-critEdit [data-pct]").forEach(inp=>{ const c=cur.find(x=>x.id===inp.dataset.pct); if(c)c.t=inp.value.trim()||c.t; });
+    $$("#pa-critEdit [data-pcd]").forEach(inp=>{ const c=cur.find(x=>x.id===inp.dataset.pcd); if(c)c.d=inp.value.trim(); });
+    savePCrit(cur);
+    H().modal("pa-critModal",false);
+    renderPCritList(); renderPaList();
+    toast("הקריטריונים נשמרו ✓");
+  }
+  function openPCritModal(){ renderPCritEdit(); H().modal("pa-critModal"); }
+
   function init(){
     if(inited){render();return;} inited=true;
     const {$}=H();
@@ -325,7 +521,9 @@ window.STU=(function(){
       const sub=b.dataset.st;
       $("#stu-sub-list").style.display=sub==="list"?"":"none";
       $("#stu-sub-grades").style.display=sub==="grades"?"":"none";
+      $("#stu-sub-peer").style.display=sub==="peer"?"":"none";
       if(sub==="grades")renderGrades();
+      if(sub==="peer"){ renderPaForm(); renderPaList(); }
     }));
     $("#gr-weightsBtn").addEventListener("click",openWeights);
     ["#gr-wPart","#gr-wExams","#gr-wImprove","#gr-wTeam"].forEach(id=>$(id).addEventListener("input",updWSum));
@@ -336,6 +534,26 @@ window.STU=(function(){
     $("#gr-classSel").addEventListener("change",e=>{grClsF=e.target.value;renderGrades();});
     $("#gr-examAdd").addEventListener("click",addExamCol);
     $("#gr-csv").addEventListener("click",exportGradesCsv);
+    /* ---------- הערכת עמיתים ---------- */
+    paDraft=newDraft();
+    $("#pa-critBtn").addEventListener("click",openPCritModal);
+    $("#pa-critAdd").addEventListener("click",addPCrit);
+    $("#pa-critSave").addEventListener("click",savePCritForm);
+    $("#pa-stuAdd").addEventListener("click",()=>{
+      const id=$("#pa-stuSel").value; if(!id)return;
+      if(!paDraft.students.includes(id))paDraft.students.push(id);
+      renderPaStuUI();
+    });
+    $("#pa-photoInput").addEventListener("change",async e=>{
+      const f=e.target.files[0]; e.target.value=""; if(!f)return;
+      paDraft.photo=await paHandlePhoto(f); renderPaPhoto();
+    });
+    $("#pa-photoDel").addEventListener("click",()=>{ paDraft.photo=null; renderPaPhoto(); });
+    $("#pa-save").addEventListener("click",paSave);
+    $("#pa-cancel").addEventListener("click",paCancelEdit);
+    $("#pa-period").addEventListener("change",()=>{ paDraft.period=$("#pa-period").value; });
+    $("#pa-periodF").addEventListener("change",e=>{ paPeriodF=e.target.value; renderPaList(); });
+    $("#pa-applyBtn").addEventListener("click",paApplyToGrades);
     render();
   }
   return {init,importFromBeep,count:()=>load().length};

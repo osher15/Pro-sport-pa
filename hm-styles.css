@@ -112,6 +112,25 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .tbl th .x{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0 2px}
 .tbl th .x:hover{color:#ff6b81}
 .catpill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;color:#03130a;white-space:nowrap}
+/* ---------- הערכת עמיתים קבוצתית ---------- */
+.pa-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pa-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 12px;font-size:12.5px}
+.pa-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;width:20px;height:20px;border-radius:50%}
+.pa-chip button:hover{color:#ff6b81;background:rgba(255,107,129,.12)}
+.pa-crit{padding:10px 0;border-bottom:1px dashed var(--line)}
+.pa-crit:last-child{border-bottom:none}
+.pa-critH{display:flex;flex-direction:column;gap:2px}
+.pa-scoreBtns{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.pa-sb{flex:1;min-width:44px;padding:9px 4px;border-radius:10px;border:2px solid transparent;font-weight:800;font-size:14px;cursor:pointer;color:#0c1c12;opacity:.55;font-family:'Share Tech Mono'}
+.pa-sb:hover{opacity:.8}
+.pa-sb100{background:#8fd96b}
+.pa-sb80{background:#7fb8f5}
+.pa-sb60{background:#f3e08a}
+.pa-sb40{background:#f3b57e}
+.pa-sb20{background:#f39aa6}
+.pa-sb.on{opacity:1;border-color:#14152a;box-shadow:0 0 0 2px rgba(255,255,255,.35) inset}
+.pa-item{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px}
+.pa-item .row{justify-content:space-between;align-items:flex-start}
 /* ---------- big timer / stat panels ---------- */
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
 .stat{background:#04110a;border:1px solid var(--line);border-radius:14px;padding:11px 13px;text-align:center}
