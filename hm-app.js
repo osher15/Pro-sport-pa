@@ -149,9 +149,11 @@ setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc
 /* ---------- settings ---------- */
 function wireSettings(){
 $("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake;
-  $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||""; modal("setModal"); });
+  $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
+  $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
+  SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
 }
@@ -1231,9 +1233,68 @@ const REC=(function(){
     });
   }
   function dbAll(){ return new Promise((res,rej)=>{ const rq=db.transaction("rec").objectStore("rec").getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); }); }
-  function dbPut(r){ return new Promise((res,rej)=>{ const rq=db.transaction("rec","readwrite").objectStore("rec").put(r); rq.onsuccess=res; rq.onerror=()=>rej(rq.error); }); }
-  function dbDel(id){ return new Promise((res,rej)=>{ const rq=db.transaction("rec","readwrite").objectStore("rec").delete(id); rq.onsuccess=res; rq.onerror=()=>rej(rq.error); }); }
+  function dbPut(r,opts){
+    opts=opts||{}; if(!opts.silent)r.mts=Date.now();
+    return new Promise((res,rej)=>{
+      const rq=db.transaction("rec","readwrite").objectStore("rec").put(r);
+      rq.onsuccess=()=>{ res(); if(!opts.silent)syncPush({action:"upsert",record:stripForSync(r)}); };
+      rq.onerror=()=>rej(rq.error);
+    });
+  }
+  function dbDel(id,opts){
+    opts=opts||{};
+    return new Promise((res,rej)=>{
+      const rq=db.transaction("rec","readwrite").objectStore("rec").delete(id);
+      rq.onsuccess=()=>{ res(); if(!opts.silent)syncPush({action:"delete",id,mts:Date.now()}); };
+      rq.onerror=()=>rej(rq.error);
+    });
+  }
   async function refresh(){ CACHE=await dbAll(); reviveOrphans(); renderGrid(); }
+
+  /* ---------- סנכרון שיאים בין כמה מורים (אופציונלי) ----------
+     שולח רק את הנתונים המובנים (שם/ענף/תוצאה/סטטוס) ל-Google Sheet משותף;
+     סרטונים אף פעם לא עוברים בסנכרון — הם נשארים במכשיר או בדרייב. */
+  function stripForSync(r){
+    return {id:r.id,sport:r.sport,name:r.name,cls:r.cls||"",value:r.value,status:r.status,
+      src:r.src||"",ts:r.ts,mts:r.mts||Date.now(),hasVideo:!!r.video};
+  }
+  async function syncPush(payload){
+    if(!SET.syncUrl)return;
+    try{
+      await fetch(SET.syncUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(Object.assign({code:SET.syncCode||""},payload))});
+    }catch(e){ /* אין אינטרנט כרגע — הרשומה נשארת מקומית, אפשר לסנכרן ידנית מאוחר יותר */ }
+  }
+  async function syncPull(){
+    if(!SET.syncUrl)return {ok:false,reason:"לא הוגדרה כתובת סנכרון"};
+    try{
+      const url=SET.syncUrl+(SET.syncUrl.includes("?")?"&":"?")+"code="+encodeURIComponent(SET.syncCode||"");
+      const res=await fetch(url);
+      const remote=await res.json();
+      if(!Array.isArray(remote)){ return {ok:false,reason:remote&&remote.error||"תשובה לא תקינה"}; }
+      let changed=0;
+      for(const rr of remote){
+        const local=CACHE.find(x=>x.id===rr.id);
+        if(rr.deleted){
+          if(local){ await dbDel(rr.id,{silent:true}); changed++; }
+          continue;
+        }
+        if(!local||Number(rr.mts||0)>Number(local.mts||0)){
+          await dbPut(Object.assign({},rr,{video:local?local.video:null}),{silent:true});
+          changed++;
+        }
+      }
+      CACHE=await dbAll(); reviveOrphans();
+      return {ok:true,changed};
+    }catch(e){ return {ok:false,reason:"שגיאת רשת"}; }
+  }
+  async function syncNow(){
+    if(!SET.syncUrl||!SET.syncCode){ toast("קודם הגדר כתובת וקוד סנכרון בהגדרות"); return; }
+    toast("🔄 מסנכרן…");
+    const r=await syncPull();
+    if(r.ok){ renderGrid(); renderAdmin(); toast(r.changed?"✓ סונכרנו "+r.changed+" עדכונים":"✓ הכול מעודכן"); }
+    else toast("סנכרון נכשל: "+r.reason);
+  }
 
   /* ---------- helpers ---------- */
   const sportById=id=>SPORTS.find(s=>s.id===id)||SPORTS[0];
@@ -1423,7 +1484,8 @@ const REC=(function(){
       const sp=sportById(e.sport);
       return `<div class="fit-station"><div class="ix">${sp.em}</div>
         <div class="grow"><b>${esc(e.name)}</b> ${e.cls?"· "+esc(e.cls):""}<div class="sb">${sp.name} · ${showVal(sp,e.value)} ${sp.unit}</div></div>
-        ${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`:'<span class="pill">בלי סרטון</span>'}
+        ${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`
+          :(e.hasVideo?'<span class="pill" title="הרשומה הגיעה בסנכרון — הסרטון נמצא במכשיר שקיבל אותה">📹 במכשיר אחר</span>':'<span class="pill">בלי סרטון</span>')}
         <button class="btn sm" data-ht="${e.sport}" title="כללי הביצוע — מה לבדוק">📋</button>
         <button class="btn sm acc" data-ok="${e.id}">✓ אשר</button>
         <button class="btn sm stop" data-no="${e.id}">✕</button></div>`;
@@ -1447,7 +1509,9 @@ const REC=(function(){
         return `<tr><td>${sp.em} ${esc(sp.name)}</td><td><b>${esc(e.name)}</b></td>
           <td style="color:var(--muted)">${esc(e.cls||"")}</td>
           <td class="mono">${showVal(sp,e.value)}</td>
-          <td>${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`:(e.src==="manual"?'<span class="pill">ידני</span>':'<span class="pill">—</span>')}</td>
+          <td>${e.video?`<button class="vbtn" data-v="${e.id}">▶</button>`
+            :(e.hasVideo?'<span class="pill" title="הרשומה הגיעה בסנכרון — הסרטון נמצא במכשיר שקיבל אותה">📹</span>'
+            :(e.src==="manual"?'<span class="pill">ידני</span>':'<span class="pill">—</span>'))}</td>
           <td><button class="btn sm" data-ed="${e.id}">✎</button>
               <button class="btn sm stop" data-rm="${e.id}">🗑</button></td></tr>`;}).join("")}</tbody></table>`
       :'<div class="hint">אין עדיין שיאים מאושרים.</div>';
@@ -1755,6 +1819,7 @@ const REC=(function(){
   async function init(){
     loadSports();               /* כעת כל הסקריפטים נטענו וברירות המחדל זמינות */
     await openDB(); await refresh();
+    if(SET.syncUrl&&SET.syncCode){ const r=await syncPull(); if(r.ok&&r.changed){ renderGrid(); } }
     $("#rec-sdSubmit").addEventListener("click",openSubmit);
     $("#rec-subSport").addEventListener("change",updSubLb);
     $("#rec-subSend").addEventListener("click",sendSub);
@@ -1767,7 +1832,9 @@ const REC=(function(){
         setPass(v); toast("🔑 קוד המורה נקבע");
       } else if(v!==pass){ toast("קוד שגוי"); return; }
       $("#rec-admLock").style.display="none"; $("#rec-admBody").style.display=""; renderAdmin();
+      if(SET.syncUrl&&SET.syncCode)syncNow();
     });
+    const syncBtn=$("#rec-syncNow"); if(syncBtn)syncBtn.addEventListener("click",syncNow);
     $("#rec-passChg").addEventListener("click",()=>{
       const p=prompt("קוד מורה חדש (4 ספרות לפחות):");
       if(p===null)return;
@@ -1828,7 +1895,7 @@ const REC=(function(){
     });
     applyRoleRec();
   }
-  return {init,countApproved,applyRole:applyRoleRec,hasPass,setPass,
+  return {init,countApproved,applyRole:applyRoleRec,hasPass,setPass,syncNow,
     _test:{SPORTS:()=>SPORTS,showVal:(id,v)=>showVal(sportById(id),v),pct:(id,v,w)=>pct(sportById(id),v,w)}};
 })();
 

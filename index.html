@@ -406,7 +406,10 @@
       <button class="btn acc big" id="rec-admEnter" style="margin-top:11px">כניסה</button>
     </div>
     <div id="rec-admBody" style="display:none">
-      <h2 style="font-size:15px"><span class="dot"></span> ממתינים לאישור</h2>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="font-size:15px;margin:0"><span class="dot"></span> ממתינים לאישור</h2>
+        <button class="btn sm ghost" id="rec-syncNow" title="מושך עדכונים ממורים אחרים, אם הוגדר סנכרון בהגדרות">🔄 סנכרן עכשיו</button>
+      </div>
       <div id="rec-pendList"></div>
 
       <h2 style="font-size:15px;margin-top:18px"><span class="dot"></span> הוספה ידנית</h2>
@@ -926,6 +929,13 @@
   <div class="field" style="margin-top:9px"><label>קישור לתיקיית הסרטונים בדרייב</label>
     <input type="url" id="set-driveFolder" placeholder="https://drive.google.com/drive/folders/..." style="direction:ltr;text-align:left;font-size:12px"></div>
   <div class="hint" style="margin-top:7px">כשממלאים את הטופס — תלמידים במצב אורח מקבלים כפתור העלאה ישיר, ואתה מקבל קיצור לתיקייה מלוח השיאים.</div>
+
+  <div class="field" style="margin-top:17px"><label>סנכרון שיאים בין כמה מורים (מתקדם, רשות)</label>
+    <input type="url" id="set-syncUrl" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr;text-align:left;font-size:12px"></div>
+  <div class="field" style="margin-top:9px"><label>קוד סנכרון (אותו קוד לכל המורים בבית הספר)</label>
+    <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
+  <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
+
   <div class="hint" style="margin-top:13px">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
 </div></div>

@@ -258,7 +258,7 @@ window.HMBootNew=function(){
       const v=$("#lock-pass").value.trim();
       if(!codeSet()){
         if(v.length<4){ toast("בחר קוד באורך 4 ספרות לפחות"); return; }
-        LS.set("rec.pass",v);
+        if(window.REC&&window.REC.setPass)window.REC.setPass(v); else LS.set("rec.pass",v);
         toast("🔑 הקוד נקבע — זכור אותו"); unlockTeacher(); return;
       }
       if(v===LS.get("rec.pass",null)) unlockTeacher();
