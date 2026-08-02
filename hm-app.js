@@ -132,7 +132,8 @@ function go(mod){
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
-  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
+  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); });
+  const hm=$("#hxMoreBtn"); if(hm)hm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"home"));
 
 /* ---------- home ---------- */

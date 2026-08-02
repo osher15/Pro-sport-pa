@@ -706,25 +706,15 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   </div>
   <div class="hx-mods">
     <div class="hx-mod primary" data-go="lesson" style="--lc:#f472b6"><div class="no">01</div>
-      <div class="tx"><b>שיעור מלא</b><span>חימום → תחנות → מדידה · מערך אוטומטי לפי שכבה ומטרה</span></div><div class="go">→</div></div>
+      <div class="tx"><b>שיעור מלא</b><span>חימום → תחנות → מדידה · מערך אוטומטי · כולל כושר ומשחקים</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">02</div>
       <div class="tx"><b>ביפ טסט</b><span>ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">03</div>
       <div class="tx"><b>פוטו־פיניש</b><span>מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="rec" style="--lc:#fbbf24"><div class="no">04</div>
       <div class="tx"><b>אלופי בית הספר</b><span>לוח שיאים · אישור מורה · מצב טלוויזיה</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="fit" style="--lc:#a78bfa"><div class="no">05</div>
-      <div class="tx"><b>מאמן כושר</b><span>אינטרוולים · תחנות לכיתה · ספריית תרגילים · קובייה</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="stu" style="--lc:#34d399"><div class="no">06</div>
-      <div class="tx"><b>התלמידים שלי</b><span>פרופיל אישי · גרף בין־מבחני · BMI · מי מתחת לנורמה</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="nut" style="--lc:#4ade80"><div class="no">07</div>
-      <div class="tx"><b>פינת תזונה</b><span>טיפ יומי לכיתה · שתייה · צלחת ספורטאי · שוברים מיתוס</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="games" style="--lc:#f87171"><div class="no">08</div>
-      <div class="tx"><b>משחקים לשעות פנאי</b><span>הסבר מלא · מטרה · למי מתאים · וריאציות · צפייה ביוטיוב</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="tools" style="--lc:#818cf8"><div class="no">09</div>
-      <div class="tx"><b>כלי כיתה</b><span>קבוצות מאוזנות · הגרלת תלמיד · נוכחות · מחוונים</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">10</div>
-      <div class="tx"><b>מאגר ידע ומקורות</b><span>משרד החינוך · WHO · תוכניות אימון מוערכות · סטנדרטים</span></div><div class="go">→</div></div>
+    <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
+      <div class="tx"><b>עוד מודולים</b><span>תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -1840,7 +1830,8 @@ function go(mod){
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
-  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
+  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); });
+  const hm=$("#hxMoreBtn"); if(hm)hm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"home"));
 
 /* ---------- home ---------- */
