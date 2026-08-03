@@ -49,6 +49,7 @@ import {
   GripVertical,
   History,
   KanbanSquare,
+  Languages,
   Lightbulb,
   ListChecks,
   Loader2,
@@ -73,6 +74,7 @@ import {
   Trash2,
   TrendingUp,
   Users,
+  Wallet,
   Wand2,
   X,
   Zap,
@@ -83,6 +85,10 @@ import {
    ================================================================== */
 
 const cx = (...parts) => parts.filter(Boolean).join(" ");
+
+/** Hebrew block (U+0590–U+05FF). One strong character is enough to switch the app to RTL. */
+const HEBREW_RE = /[֐-׿]/;
+const detectLang = (text) => (HEBREW_RE.test(text || "") ? "he" : "en");
 
 let _seq = 0;
 const uid = (prefix = "id") => `${prefix}_${Date.now().toString(36)}_${(_seq++).toString(36)}`;
@@ -279,43 +285,65 @@ const BLUEPRINTS = [
   {
     id: "invoice",
     name: "Invoice Generator",
+    nameHe: "מחולל חשבוניות",
     subtitle: "Line items, tax, totals — exportable",
+    subtitleHe: "שורות חיוב, מע״מ, סיכומים — ניתן לייצוא",
     icon: FileText,
     tags: ["Billing", "PDF export"],
-    match: /invoice|billing|bill\b|receipt|quote|estimate|freelance paperwork/i,
+    match: /invoice|billing|bill\b|receipt|quote|estimate|freelance paperwork|חשבונית|חשבוניות|קבלה|קבלות|הצעת מחיר|חיוב לקוח/i,
     prompt: "An invoice generator with editable line items, tax and discount handling, multi-currency totals and an export button.",
+  },
+  {
+    id: "budget",
+    name: "Personal Finance Manager",
+    nameHe: "ניהול כספים אישי",
+    subtitle: "Income, expenses, balance and budgets",
+    subtitleHe: "הכנסות, הוצאות, יתרה ותקציב חודשי",
+    icon: Wallet,
+    tags: ["Finance", "Charts"],
+    match:
+      /budget|expenses?|spending|personal finance|finance manager|money manage|cash ?flow|savings?|bank account|ניהול כספים|כספים|תקציב|הוצאות|הכנסות|פיננס|כסף|חסכון|חיסכון|תזרים|חשבון בנק|מעקב כספי/i,
+    prompt: "A personal finance manager that tracks income and expenses by category, shows the monthly balance and a budget progress bar.",
   },
   {
     id: "kanban",
     name: "Task Kanban Board",
+    nameHe: "לוח משימות קנבן",
     subtitle: "Drag & drop columns with WIP counts",
+    subtitleHe: "עמודות עם גרירה ומונה משימות",
     icon: KanbanSquare,
     tags: ["Productivity", "Drag & drop"],
-    match: /kanban|task|board|to-?do|backlog|sprint|ticket|project manage|workflow/i,
+    match: /kanban|task|board|to-?do|backlog|sprint|ticket|project manage|workflow|קנבן|משימ|מטלות|לוח משימות|פרויקט|ניהול משימות/i,
     prompt: "A kanban task board with three columns, drag and drop cards, priorities and a live progress bar.",
   },
   {
     id: "roi",
     name: "SaaS ROI Calculator",
+    nameHe: "מחשבון ROI ל-SaaS",
     subtitle: "MRR, LTV:CAC and payback modelling",
+    subtitleHe: "מודל הכנסות חוזרות, LTV:CAC והחזר השקעה",
     icon: TrendingUp,
     tags: ["Analytics", "Charts"],
-    match: /roi|saas metric|mrr|arr|churn|ltv|cac|payback|retention|subscription revenue|unit econ/i,
+    match: /roi|saas metric|mrr|arr|churn|ltv|cac|payback|retention|subscription revenue|unit econ|נטישה|החזר השקעה|הכנסה חוזרת|מנויים/i,
     prompt: "A SaaS ROI calculator that models MRR, ARR, LTV:CAC ratio, payback period and a 12 month revenue projection.",
   },
   {
     id: "rate",
     name: "Freelance Rate Calculator",
+    nameHe: "מחשבון תעריף לפרילנסר",
     subtitle: "Turn a salary goal into an hourly rate",
+    subtitleHe: "ממטרת הכנסה שנתית לתעריף שעתי",
     icon: Calculator,
     tags: ["Finance", "Sliders"],
-    match: /rate|freelanc|hourly|day rate|pricing|price my|how much (should|to) charge|salary/i,
+    match: /rate|freelanc|hourly|day rate|pricing|price my|how much (should|to) charge|salary|תעריף|פרילנס|עצמאי|שכר שעתי|תמחור|כמה לגבות|מחיר לשעה/i,
     prompt: "A freelance rate calculator that turns a target income, expenses and billable hours into an hourly, daily and project rate.",
   },
   {
     id: "tracker",
     name: "Idea & Habit Tracker",
+    nameHe: "מעקב הרגלים ורעיונות",
     subtitle: "Checklist with progress ring and filters",
+    subtitleHe: "רשימת מעקב עם טבעת התקדמות וסינון",
     icon: ListChecks,
     tags: ["Tracking", "Filters"],
     match: /.*/,
@@ -328,7 +356,7 @@ const BLUEPRINT_BY_ID = BLUEPRINTS.reduce((acc, bp) => {
   return acc;
 }, {});
 
-const PRESETS = ["rate", "kanban", "roi", "invoice"].map((id) => BLUEPRINT_BY_ID[id]);
+const PRESETS = ["budget", "rate", "kanban", "roi", "invoice"].map((id) => BLUEPRINT_BY_ID[id]);
 
 const SURPRISE_IDEAS = [
   "A pricing calculator for a design studio that quotes projects by scope and rush fee",
@@ -336,12 +364,30 @@ const SURPRISE_IDEAS = [
   "An invoice builder for photographers with per-image licensing rows",
   "A churn dashboard that shows whether my SaaS unit economics actually work",
   "A weekly habit tracker with streaks and a completion ring",
+  "תכין לי אפליקציה לניהול כספים עם הוצאות לפי קטגוריה",
+  "לוח משימות קנבן לניהול הפרויקטים שלי",
 ];
 
 /** Strips the imperative wrapper off a prompt so titles read like product names. */
 const STOP_WORDS = new Set(["for", "with", "that", "which", "and", "to", "of", "my", "in", "on", "a", "an", "the", "so", "it"]);
+const STOP_WORDS_HE = new Set(["של", "עם", "לפי", "כדי", "שלי", "בשביל", "על", "את", "אני", "לי", "עבור", "כמו"]);
+
+/** Hebrew imperatives that open a request: "תכין לי אפליקציה ל…", "בנה לי…". */
+const HE_LEAD_RE = /^\s*(בבקשה\s+)?(תכין|תבנה|בנה|תיצור|צור|תעשה|עשה|אני רוצה|אני צריך|אני צריכה|תפתח|פתח|הכן)\s*(לי\s+)?(את\s+)?/;
+const HE_NOUN_RE = /^\s*(אפליקציה|אפליקציית|אפליקצייה|מערכת|כלי|תוכנה|אתר|דף|מסך)\s*(ל|של|בשביל|עבור)?\s*/;
 
 const deriveTitle = (prompt, blueprint) => {
+  if (detectLang(prompt) === "he") {
+    const cleaned = prompt
+      .replace(HE_LEAD_RE, "")
+      .replace(HE_NOUN_RE, "")
+      .replace(/[.,!?].*$/, "")
+      .trim();
+    const words = cleaned.split(/\s+/).filter(Boolean).slice(0, 5);
+    while (words.length && STOP_WORDS_HE.has(words[words.length - 1])) words.pop();
+    // Hebrew has no title case — the words are used exactly as written.
+    return words.length >= 1 ? words.join(" ") : blueprint.nameHe;
+  }
   const cleaned = prompt
     .replace(/^\s*(please\s+)?(build|create|make|generate|design|give me|i want|i need)\s+(me\s+)?/i, "")
     .replace(/^\s*(an?|the)\s+/i, "")
@@ -354,9 +400,17 @@ const deriveTitle = (prompt, blueprint) => {
   return titleCase(words.join(" "));
 };
 
+/** Component/file names stay Latin even when the UI is Hebrew. */
+const componentName = (spec) => {
+  const latin = (spec.title || "").replace(/[^\x20-\x7E]/g, " ").trim();
+  const fromTitle = latin.length > 2 ? pascal(latin) : "";
+  return fromTitle && fromTitle !== "GeneratedApp" ? fromTitle : pascal(BLUEPRINT_BY_ID[spec.appId].name);
+};
+
 /**
  * The generation engine: maps freeform text onto a blueprint plus a full
  * render spec. Presets short-circuit the matcher by passing `forcedId`.
+ * Hebrew prompts produce a Hebrew, right-to-left app.
  */
 const resolveSpec = (prompt, styleId, forcedId) => {
   const blueprint =
@@ -364,17 +418,19 @@ const resolveSpec = (prompt, styleId, forcedId) => {
     BLUEPRINTS.find((bp) => bp.id !== "tracker" && bp.match.test(prompt)) ||
     BLUEPRINT_BY_ID.tracker;
   const style = STYLE_BY_ID[styleId] || STYLES[0];
-  const title = forcedId ? blueprint.name : deriveTitle(prompt, blueprint);
+  const lang = detectLang(prompt);
+  const defaultTitle = lang === "he" ? blueprint.nameHe : blueprint.name;
   return {
     appId: blueprint.id,
-    title,
-    subtitle: blueprint.subtitle,
+    lang,
+    title: forcedId ? defaultTitle : deriveTitle(prompt, blueprint),
+    subtitle: lang === "he" ? blueprint.subtitleHe : blueprint.subtitle,
     prompt: prompt.trim(),
     styleId: style.id,
     accent: style.accent,
     accent2: style.accent2,
     density: "comfortable",
-    showChart: blueprint.id === "roi",
+    showChart: blueprint.id === "roi" || blueprint.id === "budget",
     showHeader: true,
     darkToggle: false,
   };
@@ -407,6 +463,23 @@ const NAMED_COLORS = {
   white: "#e2e8f0",
 };
 
+/** Hebrew colour words map onto the same palette. */
+const NAMED_COLORS_HE = {
+  תכלת: "#22d3ee",
+  טורקיז: "#14b8a6",
+  ירוק: "#22c55e",
+  זית: "#84cc16",
+  כתום: "#f97316",
+  צהוב: "#eab308",
+  אדום: "#ef4444",
+  ורוד: "#ec4899",
+  סגול: "#a855f7",
+  כחול: "#3b82f6",
+  אפור: "#64748b",
+  שחור: "#111827",
+  לבן: "#e2e8f0",
+};
+
 /**
  * Interprets a refinement request and returns `{ patch, notes }`.
  * Unrecognised requests still produce a version — annotated honestly —
@@ -419,17 +492,22 @@ const interpretRefinement = (text, spec) => {
   const notes = [];
 
   const hex = lower.match(/#([0-9a-f]{6}|[0-9a-f]{3})\b/);
-  const colorWord = Object.keys(NAMED_COLORS).find((name) =>
-    new RegExp(`\\b${name}\\b`).test(lower)
-  );
-  if (/colou?r|accent|theme colou?r|primary|brand/.test(lower) || hex) {
+  const colorWord = Object.keys(NAMED_COLORS).find((name) => new RegExp(`\\b${name}\\b`).test(lower));
+  const colorWordHe = Object.keys(NAMED_COLORS_HE).find((name) => lower.includes(name));
+  if (/colou?r|accent|theme colou?r|primary|brand|צבע|גוון/.test(lower) || hex) {
     if (hex) {
       patch.accent = `#${hex[1]}`;
       notes.push(`accent → ${patch.accent}`);
+    } else if (colorWordHe) {
+      patch.accent = NAMED_COLORS_HE[colorWordHe];
+      notes.push(`accent → ${colorWordHe}`);
     } else if (colorWord) {
       patch.accent = NAMED_COLORS[colorWord];
       notes.push(`accent → ${colorWord}`);
     }
+  } else if (colorWordHe) {
+    patch.accent = NAMED_COLORS_HE[colorWordHe];
+    notes.push(`accent → ${colorWordHe}`);
   } else if (colorWord && /\bmake it|\bswitch|\bturn\b/.test(lower)) {
     patch.accent = NAMED_COLORS[colorWord];
     notes.push(`accent → ${colorWord}`);
@@ -443,30 +521,38 @@ const interpretRefinement = (text, spec) => {
     notes.push(`style → ${styleHit.name}`);
   }
 
-  if (/dark ?mode|light ?mode|theme (toggle|switch)|day.?night/.test(lower)) {
-    patch.darkToggle = !/remove|without|drop|no more/.test(lower);
+  const removeWord = /remove|without|drop|no more|hide|תוריד|הסר|בלי|תסיר/;
+
+  if (/dark ?mode|light ?mode|theme (toggle|switch)|day.?night|מצב לילה|מצב כהה|מצב בהיר|כפתור תאורה/.test(lower)) {
+    patch.darkToggle = !removeWord.test(lower);
     notes.push(patch.darkToggle ? "added dark mode toggle" : "removed dark mode toggle");
   }
 
-  if (/compact|dense|tighter|smaller padding|condense/.test(lower)) {
+  if (/compact|dense|tighter|smaller padding|condense|צפוף|קומפקטי|יותר קטן|צמצם/.test(lower)) {
     patch.density = "compact";
     notes.push("density → compact");
-  } else if (/spacious|roomier|more (padding|space)|comfortable|breathing/.test(lower)) {
+  } else if (/spacious|roomier|more (padding|space)|comfortable|breathing|מרווח|יותר מקום|אוורירי/.test(lower)) {
     patch.density = "comfortable";
     notes.push("density → comfortable");
   }
 
-  if (/chart|graph|visual|analytics|sparkline|breakdown/.test(lower)) {
-    patch.showChart = !/remove|hide|without|no chart/.test(lower);
+  if (/chart|graph|visual|analytics|sparkline|breakdown|גרף|תרשים|סטטיסטיק|אנליטיק|ויזואל/.test(lower)) {
+    patch.showChart = !/remove|hide|without|no chart|תוריד|הסר|בלי/.test(lower);
     notes.push(patch.showChart ? "added analytics panel" : "removed analytics panel");
   }
 
-  if (/(remove|hide|drop) (the )?(header|title bar|top bar)/.test(lower)) {
+  if (/(remove|hide|drop) (the )?(header|title bar|top bar)|(תוריד|הסר|בלי) (את )?(הכותרת|כותרת)/.test(lower)) {
     patch.showHeader = false;
     notes.push("removed header");
-  } else if (/(add|show|bring back) (the )?(header|title bar)/.test(lower)) {
+  } else if (/(add|show|bring back) (the )?(header|title bar)|(תחזיר|הוסף) (את )?(הכותרת|כותרת)/.test(lower)) {
     patch.showHeader = true;
     notes.push("restored header");
+  }
+
+  const renameHe = request.match(/(?:תקרא ל(?:זה|ו)|קרא ל(?:זה|ו)|שנה את השם ל|תשנה את השם ל|שם חדש)\s*[:"“']?\s*([^"”'.!?\n]{2,42})/);
+  if (renameHe) {
+    patch.title = renameHe[1].trim();
+    notes.push(`renamed → ${patch.title}`);
   }
 
   const rename = request.match(/(?:call it|rename (?:it )?to|name it|title it)\s+["“']?([^"”'.!?]{2,42})/i);
@@ -476,11 +562,14 @@ const interpretRefinement = (text, spec) => {
   }
 
   const swap = BLUEPRINTS.find((bp) => bp.id !== "tracker" && bp.id !== spec.appId && bp.match.test(lower));
-  if (swap && /(turn|convert|switch|make) (it|this)? ?(into|to)/.test(lower)) {
+  if (swap && /(turn|convert|switch|make) (it|this)? ?(into|to)|תהפוך|הפוך את זה|תשנה ל|שנה ל|תעשה מזה|במקום זה/.test(lower)) {
+    const previous = BLUEPRINT_BY_ID[spec.appId];
     patch.appId = swap.id;
-    patch.subtitle = swap.subtitle;
+    patch.subtitle = spec.lang === "he" ? swap.subtitleHe : swap.subtitle;
     // Keep a custom title, but retire a default one that no longer describes the app.
-    if (spec.title === BLUEPRINT_BY_ID[spec.appId].name) patch.title = swap.name;
+    if (spec.title === previous.name || spec.title === previous.nameHe) {
+      patch.title = spec.lang === "he" ? swap.nameHe : swap.name;
+    }
     notes.push(`rebuilt as ${swap.name}`);
   }
 
@@ -570,9 +659,17 @@ const chartBlock = (spec, title, indent = "      ") =>
 const darkStateLine = (spec) =>
   spec.darkToggle ? ["  const [dark, setDark] = useState(" + String(!!STYLE_BY_ID[spec.styleId].dark) + ");", ""] : [];
 
+/** Emitted code carries the same language as the preview it describes. */
+const qOf = (spec) => (hebrew, english) => (spec.lang === "he" ? hebrew : english);
+
+/** Root element of a generated app — RTL apps declare it in the source too. */
+const rootDiv = (spec, extra) =>
+  '    <div className={shell + " min-h-full p-6"}' + (spec.lang === "he" ? ' dir="rtl" lang="he"' : "") + (extra || "") + ">";
+
 const CODE_BUILDERS = {
   rate: (spec) => {
-    const name = pascal(spec.title);
+    const name = componentName(spec);
+    const q = qOf(spec);
     return [
       ...codeHeader(spec, { icons: ["Calculator", "DollarSign", "TrendingUp", "BarChart3", "Moon", "Sun"] }),
       ...themeLine(spec),
@@ -604,21 +701,21 @@ const CODE_BUILDERS = {
       "  const peak = Math.max(...series);",
       "",
       "  return (",
-      "    <div className={shell + \" min-h-full p-6\"}>",
+      rootDiv(spec),
       ...headerBlock(spec),
       "      <div className=\"grid gap-4 md:grid-cols-2\">",
       "        <section className={card}>",
-      "          <Slider label=\"Target take-home\" value={income} min={20000} max={400000} step={5000} onChange={setIncome} format={(v) => \"$\" + v.toLocaleString()} />",
-      "          <Slider label=\"Business expenses\" value={expenses} min={0} max={80000} step={1000} onChange={setExpenses} format={(v) => \"$\" + v.toLocaleString()} />",
-      "          <Slider label=\"Billable hours / week\" value={hoursPerWeek} min={5} max={50} step={1} onChange={setHoursPerWeek} />",
-      "          <Slider label=\"Weeks off per year\" value={weeksOff} min={0} max={16} step={1} onChange={setWeeksOff} />",
-      "          <Slider label=\"Effective tax rate\" value={taxRate} min={0} max={55} step={1} onChange={setTaxRate} format={(v) => v + \"%\"} />",
-      "          <Slider label=\"Profit margin\" value={margin} min={0} max={60} step={1} onChange={setMargin} format={(v) => v + \"%\"} />",
+      '          <Slider label="' + q("הכנסה שנתית רצויה", "Target take-home") + '" value={income} min={20000} max={400000} step={5000} onChange={setIncome} format={(v) => "$" + v.toLocaleString()} />',
+      '          <Slider label="' + q("הוצאות עסקיות", "Business expenses") + '" value={expenses} min={0} max={80000} step={1000} onChange={setExpenses} format={(v) => "$" + v.toLocaleString()} />',
+      '          <Slider label="' + q("שעות חיוב בשבוע", "Billable hours / week") + '" value={hoursPerWeek} min={5} max={50} step={1} onChange={setHoursPerWeek} />',
+      '          <Slider label="' + q("שבועות חופשה בשנה", "Weeks off per year") + '" value={weeksOff} min={0} max={16} step={1} onChange={setWeeksOff} />',
+      '          <Slider label="' + q("שיעור מס אפקטיבי", "Effective tax rate") + '" value={taxRate} min={0} max={55} step={1} onChange={setTaxRate} format={(v) => v + "%"} />',
+      '          <Slider label="' + q("שולי רווח", "Profit margin") + '" value={margin} min={0} max={60} step={1} onChange={setMargin} format={(v) => v + "%"} />',
       "        </section>",
       "",
       "        <section className=\"grid gap-4\">",
       "          <div className={card}>",
-      "            <p className=\"text-xs uppercase tracking-widest opacity-60\">Your hourly rate</p>",
+      '            <p className="text-xs uppercase tracking-widest opacity-60">' + q("התעריף שלך לשעה", "Your hourly rate") + "</p>",
       "            <p className=\"mt-1 text-5xl font-semibold\" style={{ color: ACCENT }}>",
       "              ${Math.round(result.hourly)}",
       "            </p>",
@@ -628,7 +725,7 @@ const CODE_BUILDERS = {
       "          </div>",
       "          <div className=\"grid grid-cols-2 gap-4\">",
       "            <div className={card}>",
-      "              <p className=\"text-xs opacity-60\">Day rate (8h)</p>",
+      '              <p className="text-xs opacity-60">' + q("תעריף יומי (8 ש׳)", "Day rate (8h)") + "</p>",
       "              <p className=\"text-2xl font-semibold\">${Math.round(result.daily)}</p>",
       "            </div>",
       "            <div className={card}>",
@@ -667,25 +764,26 @@ const CODE_BUILDERS = {
   },
 
   kanban: (spec) => {
-    const name = pascal(spec.title);
+    const name = componentName(spec);
+    const q = qOf(spec);
     return [
       ...codeHeader(spec, { icons: ["KanbanSquare", "Plus", "Trash2", "ChevronLeft", "ChevronRight", "BarChart3", "Moon", "Sun"] }),
       ...themeLine(spec),
       "const COLUMNS = [",
-      "  { id: \"backlog\", name: \"Backlog\" },",
-      "  { id: \"doing\", name: \"In Progress\" },",
-      "  { id: \"done\", name: \"Done\" },",
+      '  { id: "backlog", name: "' + q("ממתין", "Backlog") + '" },',
+      '  { id: "doing", name: "' + q("בביצוע", "In Progress") + '" },',
+      '  { id: "done", name: "' + q("הושלם", "Done") + '" },',
       "];",
       "",
-      "const PRIORITIES = [\"low\", \"medium\", \"high\"];",
+      "const PRIORITIES = [" + q('"נמוכה", "בינונית", "גבוהה"', '"low", "medium", "high"') + "];",
       "",
       "export default function " + name + "() {",
       "  const [cards, setCards] = useState([",
-      "    { id: 1, title: \"Draft onboarding copy\", column: \"backlog\", priority: \"medium\" },",
-      "    { id: 2, title: \"Ship billing webhook\", column: \"doing\", priority: \"high\" },",
-      "    { id: 3, title: \"Fix mobile nav overflow\", column: \"done\", priority: \"low\" },",
+      '    { id: 1, title: "' + q("לכתוב רצף מיילים למשתמש חדש", "Draft onboarding copy") + '", column: "backlog", priority: PRIORITIES[1] },',
+      '    { id: 2, title: "' + q("לחבר webhook לחיובים", "Ship billing webhook") + '", column: "doing", priority: PRIORITIES[2] },',
+      '    { id: 3, title: "' + q("לתקן גלישה בתפריט במובייל", "Fix mobile nav overflow") + '", column: "done", priority: PRIORITIES[0] },',
       "  ]);",
-      "  const [draft, setDraft] = useState(\"\");",
+      '  const [draft, setDraft] = useState("");',
       "  const [dragId, setDragId] = useState(null);",
       ...darkStateLine(spec),
       "  const done = cards.filter((card) => card.column === \"done\").length;",
@@ -696,8 +794,8 @@ const CODE_BUILDERS = {
       "  const addCard = () => {",
       "    const title = draft.trim();",
       "    if (!title) return;",
-      "    setCards((list) => [...list, { id: Date.now(), title, column: \"backlog\", priority: \"medium\" }]);",
-      "    setDraft(\"\");",
+      '    setCards((list) => [...list, { id: Date.now(), title, column: "backlog", priority: PRIORITIES[1] }]);',
+      '    setDraft("");',
       "  };",
       "",
       "  const move = (id, direction) =>",
@@ -717,13 +815,13 @@ const CODE_BUILDERS = {
       "  };",
       "",
       "  return (",
-      "    <div className={shell + \" min-h-full p-6\"}>",
+      rootDiv(spec),
       ...headerBlock(spec),
       "      <div className=\"mb-4 flex gap-2\">",
       "        <input",
       "          className={input}",
       "          value={draft}",
-      "          placeholder=\"Add a task and press Enter\"",
+      '          placeholder="' + q("הוסף משימה ולחץ Enter", "Add a task and press Enter") + '"',
       "          onChange={(event) => setDraft(event.target.value)}",
       "          onKeyDown={(event) => event.key === \"Enter\" && addCard()}",
       "        />",
@@ -796,7 +894,8 @@ const CODE_BUILDERS = {
   },
 
   invoice: (spec) => {
-    const name = pascal(spec.title);
+    const name = componentName(spec);
+    const q = qOf(spec);
     return [
       ...codeHeader(spec, { icons: ["FileText", "Plus", "Trash2", "Printer", "BarChart3", "Moon", "Sun"] }),
       ...themeLine(spec),
@@ -828,7 +927,7 @@ const CODE_BUILDERS = {
       "    setItems((list) => list.map((item) => (item.id === id ? { ...item, [key]: value } : item)));",
       "",
       "  return (",
-      "    <div className={shell + \" min-h-full p-6\"}>",
+      rootDiv(spec),
       ...headerBlock(spec),
       "      <div className={card}>",
       "        <div className=\"grid gap-3 md:grid-cols-3\">",
@@ -840,10 +939,10 @@ const CODE_BUILDERS = {
       "        <table className=\"mt-5 w-full text-sm\">",
       "          <thead>",
       "            <tr className=\"text-left opacity-60\">",
-      "              <th className=\"pb-2\">Description</th>",
-      "              <th className=\"w-20 pb-2\">Qty</th>",
-      "              <th className=\"w-28 pb-2\">Rate</th>",
-      "              <th className=\"w-28 pb-2 text-right\">Amount</th>",
+      '              <th className="pb-2">' + q("תיאור", "Description") + "</th>",
+      '              <th className="w-20 pb-2">' + q("כמות", "Qty") + "</th>",
+      '              <th className="w-28 pb-2">' + q("מחיר", "Rate") + "</th>",
+      '              <th className="w-28 pb-2 text-end">' + q("סה״כ", "Amount") + "</th>",
       "              <th className=\"w-8\" />",
       "            </tr>",
       "          </thead>",
@@ -875,13 +974,13 @@ const CODE_BUILDERS = {
       "          className=\"mt-3 flex items-center gap-1 text-sm\"",
       "          style={{ color: ACCENT }}",
       "        >",
-      "          <Plus size={14} /> Add line",
+      '          <Plus size={14} /> ' + q("הוסף שורה", "Add line"),
       "        </button>",
       "",
       "        <div className=\"mt-5 flex justify-end\">",
       "          <dl className=\"w-64 space-y-1 text-sm\">",
       "            <div className=\"flex justify-between opacity-70\">",
-      "              <dt>Subtotal</dt>",
+      '              <dt>' + q("ביניים", "Subtotal") + "</dt>",
       "              <dd>{currency + totals.subtotal.toLocaleString()}</dd>",
       "            </div>",
       "            <div className=\"flex justify-between opacity-70\">",
@@ -889,7 +988,7 @@ const CODE_BUILDERS = {
       "              <dd>{currency + Math.round(totals.tax).toLocaleString()}</dd>",
       "            </div>",
       "            <div className=\"flex justify-between border-t border-current/10 pt-2 text-lg font-semibold\">",
-      "              <dt>Total</dt>",
+      '              <dt>' + q("סה״כ לתשלום", "Total") + "</dt>",
       "              <dd style={{ color: ACCENT }}>{currency + Math.round(totals.total).toLocaleString()}</dd>",
       "            </div>",
       "          </dl>",
@@ -903,7 +1002,8 @@ const CODE_BUILDERS = {
   },
 
   roi: (spec) => {
-    const name = pascal(spec.title);
+    const name = componentName(spec);
+    const q = qOf(spec);
     return [
       ...codeHeader(spec, { icons: ["TrendingUp", "Users", "Target", "BarChart3", "Moon", "Sun"] }),
       ...themeLine(spec),
@@ -934,7 +1034,7 @@ const CODE_BUILDERS = {
       "  const healthy = model.ratio >= 3;",
       "",
       "  return (",
-      "    <div className={shell + \" min-h-full p-6\"}>",
+      rootDiv(spec),
       ...headerBlock(spec),
       "      <div className=\"grid gap-4 md:grid-cols-4\">",
       "        <Stat label=\"MRR\" value={\"$\" + Math.round(model.mrr).toLocaleString()} />",
@@ -945,16 +1045,16 @@ const CODE_BUILDERS = {
       "",
       "      <div className=\"mt-4 grid gap-4 md:grid-cols-2\">",
       "        <section className={card}>",
-      "          <Slider label=\"Paying seats\" value={seats} min={10} max={2000} step={10} onChange={setSeats} />",
-      "          <Slider label=\"Price per seat\" value={price} min={5} max={400} step={1} onChange={setPrice} format={(v) => \"$\" + v} />",
-      "          <Slider label=\"Monthly churn\" value={churn} min={0.5} max={12} step={0.1} onChange={setChurn} format={(v) => v.toFixed(1) + \"%\"} />",
-      "          <Slider label=\"CAC\" value={cac} min={50} max={3000} step={10} onChange={setCac} format={(v) => \"$\" + v} />",
-      "          <Slider label=\"Monthly growth\" value={growth} min={0} max={25} step={0.5} onChange={setGrowth} format={(v) => v + \"%\"} />",
-      "          <Slider label=\"Gross margin\" value={grossMargin} min={40} max={95} step={1} onChange={setGrossMargin} format={(v) => v + \"%\"} />",
+      '          <Slider label="' + q("מנויים משלמים", "Paying seats") + '" value={seats} min={10} max={2000} step={10} onChange={setSeats} />',
+      '          <Slider label="' + q("מחיר למנוי", "Price per seat") + '" value={price} min={5} max={400} step={1} onChange={setPrice} format={(v) => \"$\" + v} />',
+      '          <Slider label="' + q("נטישה חודשית", "Monthly churn") + '" value={churn} min={0.5} max={12} step={0.1} onChange={setChurn} format={(v) => v.toFixed(1) + \"%\"} />',
+      '          <Slider label="' + q("עלות גיוס לקוח", "CAC") + '" value={cac} min={50} max={3000} step={10} onChange={setCac} format={(v) => \"$\" + v} />',
+      '          <Slider label="' + q("צמיחה חודשית", "Monthly growth") + '" value={growth} min={0} max={25} step={0.5} onChange={setGrowth} format={(v) => v + \"%\"} />',
+      '          <Slider label="' + q("רווח גולמי", "Gross margin") + '" value={grossMargin} min={40} max={95} step={1} onChange={setGrossMargin} format={(v) => v + \"%\"} />',
       "        </section>",
       "",
       "        <section className={card}>",
-      "          <p className=\"mb-3 text-sm font-medium\">12 month MRR projection</p>",
+      '          <p className="mb-3 text-sm font-medium">' + q("תחזית הכנסות ל-12 חודשים", "12 month MRR projection") + "</p>",
       "          <div className=\"flex h-40 items-end gap-1.5\">",
       "            {series.map((value, index) => (",
       "              <div",
@@ -1008,26 +1108,172 @@ const CODE_BUILDERS = {
     ].join("\n");
   },
 
+  budget: (spec) => {
+    const name = componentName(spec);
+    const he = spec.lang === "he";
+    const q = (hebrew, english) => (he ? hebrew : english);
+    return [
+      ...codeHeader(spec, { icons: ["Wallet", "Plus", "Trash2", "BarChart3", "Moon", "Sun"] }),
+      ...themeLine(spec),
+      "const CATEGORIES = [",
+      '  { id: "housing", label: "' + q("דיור", "Housing") + '", color: "#8b5cf6" },',
+      '  { id: "food", label: "' + q("מזון", "Food") + '", color: "#22c55e" },',
+      '  { id: "transport", label: "' + q("תחבורה", "Transport") + '", color: "#0ea5e9" },',
+      '  { id: "fun", label: "' + q("פנאי", "Leisure") + '", color: "#f59e0b" },',
+      '  { id: "bills", label: "' + q("חשבונות", "Bills") + '", color: "#ef4444" },',
+      "];",
+      "",
+      "export default function " + name + "() {",
+      "  const [income, setIncome] = useState(14500);",
+      "  const [budget, setBudget] = useState(9000);",
+      "  const [entries, setEntries] = useState([",
+      '    { id: 1, label: "' + q("שכר דירה", "Rent") + '", amount: 4200, category: "housing" },',
+      '    { id: 2, label: "' + q("קניות בסופר", "Groceries") + '", amount: 1850, category: "food" },',
+      '    { id: 3, label: "' + q("דלק וחניה", "Fuel & parking") + '", amount: 720, category: "transport" },',
+      "  ]);",
+      '  const [draft, setDraft] = useState({ label: "", amount: "", category: "food" });',
+      ...darkStateLine(spec),
+      "  const spent = entries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);",
+      "  const balance = income - spent;",
+      "  const budgetUsed = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;",
+      "  const overBudget = spent > budget;",
+      "",
+      "  const byCategory = useMemo(",
+      "    () =>",
+      "      CATEGORIES.map((category) => ({",
+      "        ...category,",
+      "        total: entries",
+      "          .filter((entry) => entry.category === category.id)",
+      "          .reduce((sum, entry) => sum + Number(entry.amount || 0), 0),",
+      "      })).filter((category) => category.total > 0),",
+      "    [entries]",
+      "  );",
+      "",
+      "  const series = byCategory.map((category) => category.total);",
+      "  const peak = Math.max(1, ...series);",
+      "",
+      "  const addEntry = () => {",
+      "    const label = draft.label.trim();",
+      "    const amount = Number(draft.amount);",
+      "    if (!label || !(amount > 0)) return;",
+      "    setEntries((list) => [{ id: Date.now(), label, amount, category: draft.category }, ...list]);",
+      '    setDraft({ label: "", amount: "", category: draft.category });',
+      "  };",
+      "",
+      "  return (",
+      '    <div className={shell + " min-h-full p-6"}' + (he ? ' dir="rtl" lang="he"' : "") + ">",
+      ...headerBlock(spec),
+      '      <div className="grid gap-4 sm:grid-cols-3">',
+      '        <Stat label="' + q("הכנסה חודשית", "Monthly income") + '" value={"₪" + income.toLocaleString()} />',
+      '        <Stat label="' + q("סך ההוצאות", "Total spent") + '" value={"₪" + spent.toLocaleString()} />',
+      '        <Stat label="' + q("יתרה", "Balance") + '" value={"₪" + balance.toLocaleString()} tone={balance < 0 ? "warn" : undefined} />',
+      "      </div>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      '        <div className="grid gap-2 sm:grid-cols-[1fr_120px_auto]">',
+      "          <input",
+      "            className={input}",
+      "            value={draft.label}",
+      '            placeholder="' + q("על מה הוצאת?", "What did you spend on?") + '"',
+      "            onChange={(event) => setDraft({ ...draft, label: event.target.value })}",
+      '            onKeyDown={(event) => event.key === "Enter" && addEntry()}',
+      "          />",
+      "          <input",
+      '            type="number"',
+      "            className={input}",
+      "            value={draft.amount}",
+      '            placeholder="' + q("סכום", "Amount") + '"',
+      "            onChange={(event) => setDraft({ ...draft, amount: event.target.value })}",
+      "          />",
+      '          <button onClick={addEntry} className="px-4" style={{ background: ACCENT, color: "#fff" }}>',
+      "            <Plus size={16} />",
+      "          </button>",
+      "        </div>",
+      "",
+      '        <div className="mt-2.5 flex flex-wrap gap-1.5">',
+      "          {CATEGORIES.map((category) => (",
+      "            <button",
+      "              key={category.id}",
+      "              onClick={() => setDraft({ ...draft, category: category.id })}",
+      '              className="rounded-full border border-current/15 px-2.5 py-1 text-xs"',
+      '              style={draft.category === category.id ? { background: category.color, color: "#fff" } : undefined}',
+      "            >",
+      "              {category.label}",
+      "            </button>",
+      "          ))}",
+      "        </div>",
+      "",
+      '        <ul className="mt-4 space-y-2">',
+      "          {entries.map((entry) => {",
+      "            const category = CATEGORIES.find((item) => item.id === entry.category) || CATEGORIES[4];",
+      "            return (",
+      '              <li key={entry.id} className="flex items-center gap-3 rounded-lg border border-current/10 p-3">',
+      '                <span className="h-8 w-1 rounded-full" style={{ background: category.color }} />',
+      '                <span className="min-w-0 flex-1">',
+      '                  <span className="block truncate text-sm">{entry.label}</span>',
+      '                  <span className="block text-[11px] opacity-60">{category.label}</span>',
+      "                </span>",
+      '                <bdi className="text-sm font-semibold tabular-nums">{"₪" + Number(entry.amount).toLocaleString()}</bdi>',
+      "                <button onClick={() => setEntries((list) => list.filter((row) => row.id !== entry.id))}>",
+      "                  <Trash2 size={14} />",
+      "                </button>",
+      "              </li>",
+      "            );",
+      "          })}",
+      "        </ul>",
+      "      </section>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      '        <p className="mb-1.5 flex items-center justify-between text-xs opacity-70">',
+      "          <span>" + q("ניצול התקציב", "Budget used") + "</span>",
+      "          <bdi>{Math.round(budgetUsed)}%</bdi>",
+      "        </p>",
+      '        <div className="h-2 w-full overflow-hidden rounded-full bg-current/10">',
+      "          <div",
+      '            className="h-full rounded-full transition-all duration-500"',
+      '            style={{ width: budgetUsed + "%", background: overBudget ? "#ef4444" : ACCENT }}',
+      "          />",
+      "        </div>",
+      "      </section>",
+      ...chartBlock(spec, q("פילוח לפי קטגוריה", "Breakdown by category")),
+      "    </div>",
+      "  );",
+      "}",
+      "",
+      "function Stat({ label, value, tone }) {",
+      "  return (",
+      "    <div className={card}>",
+      '      <p className="text-xs uppercase tracking-widest opacity-60">{label}</p>',
+      '      <p className="mt-1 text-2xl font-semibold" style={{ color: tone === "warn" ? "#f59e0b" : ACCENT }}>',
+      "        <bdi>{value}</bdi>",
+      "      </p>",
+      "    </div>",
+      "  );",
+      "}",
+    ].join("\n");
+  },
+
   tracker: (spec) => {
-    const name = pascal(spec.title);
+    const name = componentName(spec);
+    const q = qOf(spec);
     return [
       ...codeHeader(spec, { icons: ["ListChecks", "Plus", "Trash2", "BarChart3", "Moon", "Sun"] }),
       ...themeLine(spec),
-      "const FILTERS = [\"all\", \"active\", \"done\"];",
+      "const FILTERS = [" + q('"הכול", "פתוחות", "הושלמו"', '"all", "active", "done"') + "];",
       "",
       "export default function " + name + "() {",
       "  const [items, setItems] = useState([",
-      "    { id: 1, label: \"Validate the idea with 5 users\", done: true },",
-      "    { id: 2, label: \"Sketch the core flow\", done: false },",
-      "    { id: 3, label: \"Ship the landing page\", done: false },",
+      '    { id: 1, label: "' + q("לאמת את הרעיון מול 5 משתמשים", "Validate the idea with 5 users") + '", done: true },',
+      '    { id: 2, label: "' + q("לשרטט את הזרימה המרכזית", "Sketch the core flow") + '", done: false },',
+      '    { id: 3, label: "' + q("להעלות דף נחיתה", "Ship the landing page") + '", done: false },',
       "  ]);",
-      "  const [draft, setDraft] = useState(\"\");",
-      "  const [filter, setFilter] = useState(\"all\");",
+      '  const [draft, setDraft] = useState("");',
+      "  const [filter, setFilter] = useState(FILTERS[0]);",
       ...darkStateLine(spec),
       "  const done = items.filter((item) => item.done).length;",
       "  const percent = items.length ? Math.round((done / items.length) * 100) : 0;",
       "  const visible = items.filter((item) =>",
-      "    filter === \"all\" ? true : filter === \"done\" ? item.done : !item.done",
+      "    filter === FILTERS[0] ? true : filter === FILTERS[2] ? item.done : !item.done",
       "  );",
       "  const series = [2, 4, 3, 5, done + 1, 6, done + 2];",
       "  const peak = Math.max(...series);",
@@ -1040,7 +1286,7 @@ const CODE_BUILDERS = {
       "  };",
       "",
       "  return (",
-      "    <div className={shell + \" min-h-full p-6\"}>",
+      rootDiv(spec),
       ...headerBlock(spec),
       "      <div className=\"grid gap-4 md:grid-cols-[1fr_220px]\">",
       "        <section className={card}>",
@@ -1048,7 +1294,7 @@ const CODE_BUILDERS = {
       "            <input",
       "              className={input}",
       "              value={draft}",
-      "              placeholder=\"What needs doing?\"",
+      '              placeholder="' + q("מה צריך לעשות?", "What needs doing?") + '"',
       "              onChange={(event) => setDraft(event.target.value)}",
       "              onKeyDown={(event) => event.key === \"Enter\" && add()}",
       "            />",
@@ -1204,6 +1450,18 @@ function CodeViewer({ code, changed }) {
 const ThemeCtx = createContext(STYLES[0]);
 const useT = () => useContext(ThemeCtx);
 
+/**
+ * Generated apps speak the language of the prompt. `L("עברית", "English")`
+ * picks the right string; the preview root sets dir="rtl" so the bidi
+ * algorithm — not manual alignment — lays Hebrew out correctly.
+ */
+const LangCtx = createContext("en");
+const useL = () => {
+  const lang = useContext(LangCtx);
+  return (he, en) => (lang === "he" ? he : en);
+};
+const useIsHe = () => useContext(LangCtx) === "he";
+
 function Card({ className, children, ...rest }) {
   const t = useT();
   return (
@@ -1307,10 +1565,11 @@ function MiniBars({ data, label, caption }) {
 
 function AppHeader({ spec, dark, onToggleDark }) {
   const t = useT();
+  const L = useL();
   if (!spec.showHeader) return null;
   return (
     <header className="mb-5 flex items-start justify-between gap-4">
-      <div>
+      <div className="min-w-0">
         <h1 className={cx("text-xl font-semibold tracking-tight", t.heading)}>{spec.title}</h1>
         <p className={cx("mt-0.5 text-sm", t.muted)}>{spec.subtitle}</p>
       </div>
@@ -1318,7 +1577,7 @@ function AppHeader({ spec, dark, onToggleDark }) {
         <button
           type="button"
           onClick={onToggleDark}
-          aria-label="Toggle dark mode"
+          aria-label={L("החלפת מצב כהה", "Toggle dark mode")}
           className={cx("grid h-9 w-9 shrink-0 place-items-center transition", t.btnGhost)}
         >
           {dark ? <Sun size={15} /> : <Moon size={15} />}
@@ -1334,6 +1593,7 @@ function AppHeader({ spec, dark, onToggleDark }) {
 
 function RateCalculatorApp({ spec, dark, onToggleDark }) {
   const t = useT();
+  const L = useL();
   const [income, setIncome] = useState(120000);
   const [expenses, setExpenses] = useState(18000);
   const [hoursPerWeek, setHoursPerWeek] = useState(25);
@@ -1359,10 +1619,10 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
   }, [income, expenses, hoursPerWeek, weeksOff, taxRate, margin, projectHours]);
 
   const breakdown = [
-    { label: "Take-home", value: income, color: "var(--a)" },
-    { label: "Tax", value: result.tax, color: "#f59e0b" },
-    { label: "Expenses", value: expenses, color: "#64748b" },
-    { label: "Profit", value: Math.max(0, result.profit), color: "#10b981" },
+    { label: L("נטו לכיס", "Take-home"), value: income, color: "var(--a)" },
+    { label: L("מס", "Tax"), value: result.tax, color: "#f59e0b" },
+    { label: L("הוצאות", "Expenses"), value: expenses, color: "#64748b" },
+    { label: L("רווח", "Profit"), value: Math.max(0, result.profit), color: "#10b981" },
   ];
   const totalBreakdown = Math.max(1, breakdown.reduce((sum, part) => sum + part.value, 0));
 
@@ -1372,13 +1632,35 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <Slider label="Target take-home" value={income} min={20000} max={400000} step={5000} onChange={setIncome} format={(v) => money(v)} />
-          <Slider label="Business expenses" value={expenses} min={0} max={80000} step={1000} onChange={setExpenses} format={(v) => money(v)} />
-          <Slider label="Billable hours / week" value={hoursPerWeek} min={5} max={50} onChange={setHoursPerWeek} format={(v) => `${v} h`} />
-          <Slider label="Weeks off per year" value={weeksOff} min={0} max={16} onChange={setWeeksOff} format={(v) => `${v} wk`} />
-          <Slider label="Effective tax rate" value={taxRate} min={0} max={55} onChange={setTaxRate} format={(v) => `${v}%`} />
-          <Slider label="Profit margin" value={margin} min={0} max={60} onChange={setMargin} format={(v) => `${v}%`} />
-          <Slider label="Sample project size" value={projectHours} min={4} max={200} step={2} onChange={setProjectHours} format={(v) => `${v} h`} />
+          <Slider label={L("הכנסה שנתית רצויה", "Target take-home")} value={income} min={20000} max={400000} step={5000} onChange={setIncome} format={(v) => money(v)} />
+          <Slider label={L("הוצאות עסקיות", "Business expenses")} value={expenses} min={0} max={80000} step={1000} onChange={setExpenses} format={(v) => money(v)} />
+          <Slider
+            label={L("שעות חיוב בשבוע", "Billable hours / week")}
+            value={hoursPerWeek}
+            min={5}
+            max={50}
+            onChange={setHoursPerWeek}
+            format={(v) => L(`${v} ש׳`, `${v} h`)}
+          />
+          <Slider
+            label={L("שבועות חופשה בשנה", "Weeks off per year")}
+            value={weeksOff}
+            min={0}
+            max={16}
+            onChange={setWeeksOff}
+            format={(v) => L(`${v} שב׳`, `${v} wk`)}
+          />
+          <Slider label={L("שיעור מס אפקטיבי", "Effective tax rate")} value={taxRate} min={0} max={55} onChange={setTaxRate} format={(v) => `${v}%`} />
+          <Slider label={L("שולי רווח", "Profit margin")} value={margin} min={0} max={60} onChange={setMargin} format={(v) => `${v}%`} />
+          <Slider
+            label={L("גודל פרויקט לדוגמה", "Sample project size")}
+            value={projectHours}
+            min={4}
+            max={200}
+            step={2}
+            onChange={setProjectHours}
+            format={(v) => L(`${v} ש׳`, `${v} h`)}
+          />
         </Card>
 
         <div className="grid content-start gap-4">
@@ -1387,16 +1669,17 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
               className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl"
               style={{ background: "var(--a)", opacity: 0.18 }}
             />
-            <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>Charge this per hour</p>
-            <p className="mt-1 text-5xl font-semibold tabular-nums" style={{ color: "var(--a)" }}>
-              {money(result.hourly)}
+            <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("התעריף שלך לשעה", "Charge this per hour")}</p>
+            <p className="mt-1 text-5xl font-semibold" style={{ color: "var(--a)" }}>
+              <bdi className="tabular-nums">{money(result.hourly)}</bdi>
             </p>
             <p className={cx("mt-2 text-sm", t.muted)}>
-              {Math.round(result.billableHours).toLocaleString()} billable hours · {money(result.revenue)} revenue target
+              <bdi className="tabular-nums">{Math.round(result.billableHours).toLocaleString()}</bdi> {L("שעות חיוב בשנה", "billable hours")} ·{" "}
+              <bdi className="tabular-nums">{money(result.revenue)}</bdi> {L("יעד הכנסות", "revenue target")}
             </p>
             <div className="mt-4 flex gap-2">
-              <PreviewButton onClick={() => copyText(`${money(result.hourly)}/hour`)}>
-                <Copy size={14} /> Copy rate
+              <PreviewButton onClick={() => copyText(L(`${money(result.hourly)} לשעה`, `${money(result.hourly)}/hour`))}>
+                <Copy size={14} /> {L("העתק תעריף", "Copy rate")}
               </PreviewButton>
               <PreviewButton
                 variant="ghost"
@@ -1409,18 +1692,22 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
                   setMargin(15);
                 }}
               >
-                <RefreshCw size={14} /> Reset
+                <RefreshCw size={14} /> {L("איפוס", "Reset")}
               </PreviewButton>
             </div>
           </Card>
 
           <div className="grid grid-cols-2 gap-4">
-            <Stat label="Day rate (8h)" value={money(result.daily)} hint="Standard working day" />
-            <Stat label={`${projectHours}h project`} value={money(result.project)} hint="Fixed-bid guidance" />
+            <Stat label={L("תעריף יומי (8 ש׳)", "Day rate (8h)")} value={money(result.daily)} hint={L("יום עבודה מלא", "Standard working day")} />
+            <Stat
+              label={L(`פרויקט ${projectHours} שעות`, `${projectHours}h project`)}
+              value={money(result.project)}
+              hint={L("להצעת מחיר קבועה", "Fixed-bid guidance")}
+            />
           </div>
 
           <Card>
-            <p className={cx("mb-3 text-sm font-medium", t.heading)}>Where every invoiced dollar goes</p>
+            <p className={cx("mb-3 text-sm font-medium", t.heading)}>{L("לאן הולך כל שקל שחויב", "Where every invoiced dollar goes")}</p>
             <div className={cx("flex h-3 w-full overflow-hidden rounded-full", t.track)}>
               {breakdown.map((part) => (
                 <div
@@ -1434,8 +1721,8 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
               {breakdown.map((part) => (
                 <li key={part.label} className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full" style={{ background: part.color }} />
-                  <span className={t.muted}>{part.label}</span>
-                  <span className="ml-auto tabular-nums font-medium">{money(part.value)}</span>
+                  <span className={cx("flex-1", t.muted)}>{part.label}</span>
+                  <bdi className="font-medium tabular-nums">{money(part.value)}</bdi>
                 </li>
               ))}
             </ul>
@@ -1445,12 +1732,15 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
 
       {spec.showChart ? (
         <MiniBars
-          label="Rate sensitivity to billable hours"
-          caption="Fewer billable hours means a higher rate is required to hit the same take-home."
+          label={L("רגישות התעריף לשעות החיוב", "Rate sensitivity to billable hours")}
+          caption={L(
+            "פחות שעות חיוב מחייבות תעריף גבוה יותר כדי להגיע לאותה הכנסה נטו.",
+            "Fewer billable hours means a higher rate is required to hit the same take-home."
+          )}
           data={[15, 20, 25, 30, 35, 40].map((hours) => {
             const billable = Math.max(1, (52 - weeksOff) * hours);
             const value = ((income / Math.max(0.05, 1 - taxRate / 100)) + expenses) * (1 + margin / 100) / billable;
-            return { label: `${hours}h`, value, display: money(value) };
+            return { label: L(`${hours} ש׳`, `${hours}h`), value, display: money(value) };
           })}
         />
       ) : null}
@@ -1458,25 +1748,231 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
   );
 }
 
+const BUDGET_CATEGORIES = [
+  { id: "housing", he: "דיור", en: "Housing", color: "#8b5cf6" },
+  { id: "food", he: "מזון", en: "Food", color: "#22c55e" },
+  { id: "transport", he: "תחבורה", en: "Transport", color: "#0ea5e9" },
+  { id: "fun", he: "פנאי", en: "Leisure", color: "#f59e0b" },
+  { id: "bills", he: "חשבונות", en: "Bills", color: "#ef4444" },
+  { id: "other", he: "אחר", en: "Other", color: "#64748b" },
+];
+
+const MONTHS_HE = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ"];
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+function BudgetApp({ spec, dark, onToggleDark }) {
+  const t = useT();
+  const L = useL();
+  const [income, setIncome] = useState(14500);
+  const [budget, setBudget] = useState(9000);
+  const [entries, setEntries] = useState([
+    { id: uid("tx"), label: L("שכר דירה", "Rent"), amount: 4200, category: "housing" },
+    { id: uid("tx"), label: L("קניות בסופר", "Groceries"), amount: 1850, category: "food" },
+    { id: uid("tx"), label: L("דלק וחניה", "Fuel & parking"), amount: 720, category: "transport" },
+    { id: uid("tx"), label: L("מנוי חדר כושר", "Gym membership"), amount: 249, category: "fun" },
+    { id: uid("tx"), label: L("חשמל ומים", "Utilities"), amount: 610, category: "bills" },
+  ]);
+  const [draft, setDraft] = useState({ label: "", amount: "", category: "food" });
+
+  const spent = entries.reduce((sum, entry) => sum + num(entry.amount), 0);
+  const balance = income - spent;
+  const budgetUsed = budget > 0 ? clamp((spent / budget) * 100, 0, 100) : 0;
+  const overBudget = spent > budget;
+
+  const byCategory = BUDGET_CATEGORIES.map((category) => ({
+    ...category,
+    total: entries.filter((entry) => entry.category === category.id).reduce((sum, entry) => sum + num(entry.amount), 0),
+  })).filter((category) => category.total > 0);
+
+  const addEntry = () => {
+    const label = draft.label.trim();
+    const amount = num(draft.amount);
+    if (!label || amount <= 0) return;
+    setEntries((list) => [{ id: uid("tx"), label, amount, category: draft.category }, ...list]);
+    setDraft({ label: "", amount: "", category: draft.category });
+  };
+
+  const shekel = (value) => money(value, "₪");
+
+  return (
+    <div className="p-[var(--pad)] md:p-6">
+      <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label={L("הכנסה חודשית", "Monthly income")} value={shekel(income)} hint={L("נטו לחודש", "Net per month")} />
+        <Stat label={L("סך ההוצאות", "Total spent")} value={shekel(spent)} tone="warn" hint={`${entries.length} ${L("תנועות", "transactions")}`} />
+        <Stat
+          label={L("יתרה", "Balance")}
+          value={shekel(balance)}
+          tone={balance < 0 ? "warn" : undefined}
+          hint={balance < 0 ? L("חריגה מההכנסה", "Over your income") : L("נשאר החודש", "Left this month")}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_300px]">
+        <Card>
+          <div className="grid gap-2 sm:grid-cols-[1fr_120px_auto]">
+            <input
+              className={t.input}
+              value={draft.label}
+              placeholder={L("על מה הוצאת?", "What did you spend on?")}
+              onChange={(event) => setDraft({ ...draft, label: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") addEntry();
+              }}
+            />
+            <input
+              type="number"
+              min="0"
+              className={t.input}
+              value={draft.amount}
+              placeholder={L("סכום", "Amount")}
+              onChange={(event) => setDraft({ ...draft, amount: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") addEntry();
+              }}
+            />
+            <PreviewButton onClick={addEntry} className="shrink-0">
+              <Plus size={15} /> {L("הוסף", "Add")}
+            </PreviewButton>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {BUDGET_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setDraft({ ...draft, category: category.id })}
+                className={cx("px-2.5 py-1 text-xs font-medium transition", draft.category === category.id ? t.btn : t.chip)}
+                style={draft.category === category.id ? { background: category.color, color: "#fff" } : undefined}
+              >
+                {L(category.he, category.en)}
+              </button>
+            ))}
+          </div>
+
+          <ul className="mt-4 space-y-2">
+            {entries.map((entry) => {
+              const category = BUDGET_CATEGORIES.find((item) => item.id === entry.category) || BUDGET_CATEGORIES[5];
+              return (
+                <li key={entry.id} className={cx(t.surfaceAlt, "flex items-center gap-3 p-3")}>
+                  <span className="h-8 w-1 shrink-0 rounded-full" style={{ background: category.color }} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm">{entry.label}</span>
+                    <span className={cx("block text-[11px]", t.faint)}>{L(category.he, category.en)}</span>
+                  </span>
+                  <bdi className="shrink-0 text-sm font-semibold tabular-nums">{shekel(entry.amount)}</bdi>
+                  <IconAction label={L("מחיקה", "Delete")} onClick={() => setEntries((list) => list.filter((row) => row.id !== entry.id))}>
+                    <Trash2 size={13} />
+                  </IconAction>
+                </li>
+              );
+            })}
+            {entries.length === 0 ? (
+              <li className={cx("border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>
+                {L("אין עדיין הוצאות החודש", "No expenses logged yet")}
+              </li>
+            ) : null}
+          </ul>
+        </Card>
+
+        <div className="grid content-start gap-4">
+          <Card>
+            <Slider
+              label={L("הכנסה חודשית", "Monthly income")}
+              value={income}
+              min={0}
+              max={60000}
+              step={250}
+              onChange={setIncome}
+              format={shekel}
+            />
+            <Slider label={L("תקציב הוצאות", "Spending budget")} value={budget} min={0} max={60000} step={250} onChange={setBudget} format={shekel} />
+
+            <p className={cx("mb-1.5 mt-4 flex items-center justify-between text-xs", t.muted)}>
+              <span>{L("ניצול התקציב", "Budget used")}</span>
+              <bdi className="font-semibold" style={{ color: overBudget ? "#ef4444" : "var(--a)" }}>
+                {Math.round(budgetUsed)}%
+              </bdi>
+            </p>
+            <div className={cx("h-2 w-full overflow-hidden rounded-full", t.track)}>
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${budgetUsed}%`, background: overBudget ? "#ef4444" : "var(--a)" }}
+              />
+            </div>
+            <p className={cx("mt-2 text-xs", t.muted)}>
+              {overBudget
+                ? L(`חרגת ב-${shekel(spent - budget)}`, `Over budget by ${shekel(spent - budget)}`)
+                : L(`נותרו ${shekel(budget - spent)} בתקציב`, `${shekel(budget - spent)} left in budget`)}
+            </p>
+          </Card>
+
+          <Card>
+            <p className={cx("mb-3 text-sm font-medium", t.heading)}>{L("פילוח לפי קטגוריה", "Breakdown by category")}</p>
+            <div className={cx("flex h-3 w-full overflow-hidden rounded-full", t.track)}>
+              {byCategory.map((category) => (
+                <div
+                  key={category.id}
+                  style={{ width: `${(category.total / Math.max(1, spent)) * 100}%`, background: category.color }}
+                  title={`${L(category.he, category.en)}: ${shekel(category.total)}`}
+                />
+              ))}
+            </div>
+            <ul className="mt-3 space-y-1.5 text-xs">
+              {byCategory.map((category) => (
+                <li key={category.id} className="flex items-center gap-2">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: category.color }} />
+                  <span className={cx("flex-1", t.muted)}>{L(category.he, category.en)}</span>
+                  <bdi className="font-medium tabular-nums">{shekel(category.total)}</bdi>
+                </li>
+              ))}
+              {byCategory.length === 0 ? <li className={t.faint}>{L("אין נתונים להצגה", "Nothing to show yet")}</li> : null}
+            </ul>
+          </Card>
+        </div>
+      </div>
+
+      {spec.showChart ? (
+        <MiniBars
+          label={L("מגמת הוצאות בחצי השנה האחרונה", "Spending over the last six months")}
+          caption={L("ההוצאה של החודש הנוכחי מחושבת מהתנועות שהזנת.", "The final bar is calculated from the transactions you entered.")}
+          data={L(MONTHS_HE, MONTHS_EN).map((month, index) => ({
+            label: month,
+            value: index === 5 ? spent : Math.round(spent * (0.72 + index * 0.06)),
+            display: shekel(index === 5 ? spent : Math.round(spent * (0.72 + index * 0.06))),
+          }))}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 const KANBAN_COLUMNS = [
-  { id: "backlog", name: "Backlog" },
-  { id: "doing", name: "In Progress" },
-  { id: "done", name: "Done" },
+  { id: "backlog", name: "Backlog", nameHe: "ממתין" },
+  { id: "doing", name: "In Progress", nameHe: "בביצוע" },
+  { id: "done", name: "Done", nameHe: "הושלם" },
 ];
 const PRIORITIES = ["low", "medium", "high"];
 const PRIORITY_COLOR = { low: "#64748b", medium: "#f59e0b", high: "#ef4444" };
+const PRIORITY_HE = { low: "נמוכה", medium: "בינונית", high: "גבוהה" };
 
 function KanbanApp({ spec, dark, onToggleDark }) {
   const t = useT();
+  const L = useL();
   const [cards, setCards] = useState([
-    { id: uid("card"), title: "Draft onboarding email sequence", column: "backlog", priority: "medium" },
-    { id: uid("card"), title: "Ship Stripe billing webhook", column: "doing", priority: "high" },
-    { id: uid("card"), title: "Fix mobile nav overflow", column: "doing", priority: "low" },
-    { id: uid("card"), title: "Publish changelog v2.4", column: "done", priority: "medium" },
+    { id: uid("card"), title: L("לכתוב רצף מיילים למשתמש חדש", "Draft onboarding email sequence"), column: "backlog", priority: "medium" },
+    { id: uid("card"), title: L("לחבר webhook לחיובים", "Ship Stripe billing webhook"), column: "doing", priority: "high" },
+    { id: uid("card"), title: L("לתקן גלישה בתפריט במובייל", "Fix mobile nav overflow"), column: "doing", priority: "low" },
+    { id: uid("card"), title: L("לפרסם יומן שינויים 2.4", "Publish changelog v2.4"), column: "done", priority: "medium" },
   ]);
   const [draft, setDraft] = useState("");
   const [dragId, setDragId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
+  // Under dir="rtl" the board flows right-to-left, so the chevrons swap too.
+  const isHe = useIsHe();
+  const BackIcon = isHe ? ChevronRight : ChevronLeft;
+  const ForwardIcon = isHe ? ChevronLeft : ChevronRight;
 
   const done = cards.filter((card) => card.column === "done").length;
   const progress = cards.length ? Math.round((done / cards.length) * 100) : 0;
@@ -1520,14 +2016,14 @@ function KanbanApp({ spec, dark, onToggleDark }) {
         <input
           className={t.input}
           value={draft}
-          placeholder="Add a task and press Enter…"
+          placeholder={L("הוסף משימה ולחץ Enter…", "Add a task and press Enter…")}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") addCard();
           }}
         />
         <PreviewButton onClick={addCard} className="shrink-0">
-          <Plus size={15} /> Add
+          <Plus size={15} /> {L("הוסף", "Add")}
         </PreviewButton>
       </div>
 
@@ -1535,8 +2031,11 @@ function KanbanApp({ spec, dark, onToggleDark }) {
         <div className={cx("h-1.5 flex-1 overflow-hidden rounded-full", t.track)}>
           <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress}%`, background: "var(--a)" }} />
         </div>
-        <span className={cx("text-xs tabular-nums", t.muted)}>
-          {done}/{cards.length} done
+        <span className={cx("shrink-0 text-xs", t.muted)}>
+          <bdi className="tabular-nums">
+            {done}/{cards.length}
+          </bdi>{" "}
+          {L("הושלמו", "done")}
         </span>
       </div>
 
@@ -1559,7 +2058,7 @@ function KanbanApp({ spec, dark, onToggleDark }) {
               )}
             >
               <div className="mb-3 flex items-center justify-between">
-                <span className={cx("text-sm font-medium", t.heading)}>{column.name}</span>
+                <span className={cx("text-sm font-medium", t.heading)}>{L(column.nameHe, column.name)}</span>
                 <span className={cx("rounded-full px-2 py-0.5 text-[11px] tabular-nums", t.chip)}>{columnCards.length}</span>
               </div>
 
@@ -1586,22 +2085,26 @@ function KanbanApp({ spec, dark, onToggleDark }) {
                         onClick={() => cyclePriority(card.id)}
                         className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition"
                         style={{ color: PRIORITY_COLOR[card.priority], background: `${PRIORITY_COLOR[card.priority]}1f` }}
-                        title="Click to change priority"
+                        title={L("לחץ לשינוי עדיפות", "Click to change priority")}
                       >
-                        {card.priority}
+                        {L(PRIORITY_HE[card.priority], card.priority)}
                       </button>
                       <span className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-                        <IconAction disabled={column.id === KANBAN_COLUMNS[0].id} onClick={() => move(card.id, -1)} label="Move left">
-                          <ChevronLeft size={13} />
+                        <IconAction
+                          disabled={column.id === KANBAN_COLUMNS[0].id}
+                          onClick={() => move(card.id, -1)}
+                          label={L("העבר אחורה", "Move back")}
+                        >
+                          <BackIcon size={13} />
                         </IconAction>
                         <IconAction
                           disabled={column.id === KANBAN_COLUMNS[KANBAN_COLUMNS.length - 1].id}
                           onClick={() => move(card.id, 1)}
-                          label="Move right"
+                          label={L("העבר קדימה", "Move forward")}
                         >
-                          <ChevronRight size={13} />
+                          <ForwardIcon size={13} />
                         </IconAction>
-                        <IconAction onClick={() => setCards((list) => list.filter((item) => item.id !== card.id))} label="Delete">
+                        <IconAction onClick={() => setCards((list) => list.filter((item) => item.id !== card.id))} label={L("מחיקה", "Delete")}>
                           <Trash2 size={13} />
                         </IconAction>
                       </span>
@@ -1609,7 +2112,9 @@ function KanbanApp({ spec, dark, onToggleDark }) {
                   </article>
                 ))}
                 {columnCards.length === 0 ? (
-                  <p className={cx("rounded-lg border border-dashed p-4 text-center text-xs", t.divider, t.faint)}>Drop a card here</p>
+                  <p className={cx("rounded-lg border border-dashed p-4 text-center text-xs", t.divider, t.faint)}>
+                    {L("גרור לכאן כרטיס", "Drop a card here")}
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -1619,10 +2124,13 @@ function KanbanApp({ spec, dark, onToggleDark }) {
 
       {spec.showChart ? (
         <MiniBars
-          label="Work in progress by column"
-          caption="Keep the middle column lean — that is your true throughput limit."
+          label={L("עומס משימות לפי עמודה", "Work in progress by column")}
+          caption={L(
+            "כדאי לשמור על עמודת הביצוע רזה — זו תקרת התפוקה האמיתית.",
+            "Keep the middle column lean — that is your true throughput limit."
+          )}
           data={KANBAN_COLUMNS.map((column) => ({
-            label: column.name.split(" ")[0],
+            label: L(column.nameHe, column.name.split(" ")[0]),
             value: cards.filter((card) => card.column === column.id).length,
           }))}
         />
@@ -1651,13 +2159,19 @@ const CURRENCIES = ["$", "€", "£", "₪"];
 
 function InvoiceApp({ spec, dark, onToggleDark }) {
   const t = useT();
-  const [currency, setCurrency] = useState("$");
-  const [client, setClient] = useState({ name: "Northwind Studio", email: "ap@northwind.co", address: "12 Harbour Rd, Lisbon" });
+  const L = useL();
+  const [currency, setCurrency] = useState(L("₪", "$"));
+  const [client, setClient] = useState(
+    L(
+      { name: "סטודיו צפון רוח", email: "hanhala@studio.co.il", address: "הרצל 12, תל אביב" },
+      { name: "Northwind Studio", email: "ap@northwind.co", address: "12 Harbour Rd, Lisbon" }
+    )
+  );
   const [meta, setMeta] = useState({ number: "INV-0042", issued: "2026-08-03", due: "2026-08-17" });
   const [items, setItems] = useState([
-    { id: uid("row"), description: "Product design sprint", qty: 1, rate: 4800 },
-    { id: uid("row"), description: "Front-end implementation", qty: 32, rate: 145 },
-    { id: uid("row"), description: "Analytics instrumentation", qty: 6, rate: 145 },
+    { id: uid("row"), description: L("ספרינט עיצוב מוצר", "Product design sprint"), qty: 1, rate: 4800 },
+    { id: uid("row"), description: L("פיתוח צד לקוח", "Front-end implementation"), qty: 32, rate: 145 },
+    { id: uid("row"), description: L("הטמעת אנליטיקס", "Analytics instrumentation"), qty: 6, rate: 145 },
   ]);
   const [taxRate, setTaxRate] = useState(17);
   const [discount, setDiscount] = useState(0);
@@ -1678,20 +2192,20 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
       .map((item) => `${item.description}\t${item.qty}\t${currency}${item.rate}\t${money(num(item.qty) * num(item.rate), currency, 2)}`)
       .join("\n");
     const doc = [
-      `INVOICE ${meta.number}`,
-      `Issued ${meta.issued} · Due ${meta.due}`,
+      L(`חשבונית ${meta.number}`, `INVOICE ${meta.number}`),
+      L(`הופקה ${meta.issued} · לתשלום עד ${meta.due}`, `Issued ${meta.issued} · Due ${meta.due}`),
       "",
-      `Bill to: ${client.name} <${client.email}>`,
+      L(`לכבוד: ${client.name} <${client.email}>`, `Bill to: ${client.name} <${client.email}>`),
       client.address,
       "",
-      "Description\tQty\tRate\tAmount",
+      L("תיאור\tכמות\tמחיר\tסה״כ", "Description\tQty\tRate\tAmount"),
       rows,
       "",
-      `Subtotal\t${money(totals.subtotal, currency, 2)}`,
-      `Discount ${discount}%\t-${money(totals.discountValue, currency, 2)}`,
-      `Tax ${taxRate}%\t${money(totals.tax, currency, 2)}`,
-      `TOTAL\t${money(totals.total, currency, 2)}`,
-      paid ? "\nSTATUS: PAID" : "\nSTATUS: OUTSTANDING",
+      L("ביניים", "Subtotal") + `\t${money(totals.subtotal, currency, 2)}`,
+      L(`הנחה ${discount}%`, `Discount ${discount}%`) + `\t-${money(totals.discountValue, currency, 2)}`,
+      L(`מע״מ ${taxRate}%`, `Tax ${taxRate}%`) + `\t${money(totals.tax, currency, 2)}`,
+      L("סה״כ לתשלום", "TOTAL") + `\t${money(totals.total, currency, 2)}`,
+      paid ? L("\nסטטוס: שולם", "\nSTATUS: PAID") : L("\nסטטוס: ממתין לתשלום", "\nSTATUS: OUTSTANDING"),
     ].join("\n");
     downloadFile(`${meta.number}.txt`, doc);
   };
@@ -1711,10 +2225,10 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
               }}
             >
               {paid ? <Check size={12} /> : <Clock size={12} />}
-              {paid ? "Paid" : "Outstanding"}
+              {paid ? L("שולם", "Paid") : L("ממתין לתשלום", "Outstanding")}
             </span>
             <button type="button" onClick={() => setPaid((value) => !value)} className={cx("text-xs underline-offset-2 hover:underline", t.muted)}>
-              toggle
+              {L("שינוי", "toggle")}
             </button>
           </div>
           <div className="flex gap-1">
@@ -1732,22 +2246,22 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
-          <LabeledInput label="Bill to" value={client.name} onChange={(value) => setClient({ ...client, name: value })} />
-          <LabeledInput label="Email" value={client.email} onChange={(value) => setClient({ ...client, email: value })} />
-          <LabeledInput label="Invoice #" value={meta.number} onChange={(value) => setMeta({ ...meta, number: value })} />
-          <LabeledInput label="Address" value={client.address} onChange={(value) => setClient({ ...client, address: value })} />
-          <LabeledInput label="Issued" type="date" value={meta.issued} onChange={(value) => setMeta({ ...meta, issued: value })} />
-          <LabeledInput label="Due" type="date" value={meta.due} onChange={(value) => setMeta({ ...meta, due: value })} />
+          <LabeledInput label={L("לכבוד", "Bill to")} value={client.name} onChange={(value) => setClient({ ...client, name: value })} />
+          <LabeledInput label={L("דוא״ל", "Email")} value={client.email} onChange={(value) => setClient({ ...client, email: value })} />
+          <LabeledInput label={L("מס׳ חשבונית", "Invoice #")} value={meta.number} onChange={(value) => setMeta({ ...meta, number: value })} />
+          <LabeledInput label={L("כתובת", "Address")} value={client.address} onChange={(value) => setClient({ ...client, address: value })} />
+          <LabeledInput label={L("תאריך הפקה", "Issued")} type="date" value={meta.issued} onChange={(value) => setMeta({ ...meta, issued: value })} />
+          <LabeledInput label={L("לתשלום עד", "Due")} type="date" value={meta.due} onChange={(value) => setMeta({ ...meta, due: value })} />
         </div>
 
         <div className="mt-5 overflow-x-auto">
           <table className="w-full min-w-[520px] text-sm">
             <thead>
-              <tr className={cx("text-left text-[11px] uppercase tracking-wider", t.faint)}>
-                <th className="pb-2 font-medium">Description</th>
-                <th className="w-20 pb-2 font-medium">Qty</th>
-                <th className="w-28 pb-2 font-medium">Rate</th>
-                <th className="w-28 pb-2 text-right font-medium">Amount</th>
+              <tr className={cx("text-start text-[11px] uppercase tracking-wider", t.faint)}>
+                <th className="pb-2 font-medium">{L("תיאור", "Description")}</th>
+                <th className="w-20 pb-2 font-medium">{L("כמות", "Qty")}</th>
+                <th className="w-28 pb-2 font-medium">{L("מחיר", "Rate")}</th>
+                <th className="w-28 pb-2 text-end font-medium">{L("סה״כ", "Amount")}</th>
                 <th className="w-8 pb-2" />
               </tr>
             </thead>
@@ -1775,9 +2289,11 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
                       onChange={(event) => update(item.id, "rate", event.target.value)}
                     />
                   </td>
-                  <td className="py-2 text-right font-semibold tabular-nums">{money(num(item.qty) * num(item.rate), currency, 2)}</td>
-                  <td className="py-2 text-right">
-                    <IconAction label="Remove line" onClick={() => setItems((list) => list.filter((row) => row.id !== item.id))}>
+                  <td className="py-2 text-end font-semibold">
+                    <bdi className="tabular-nums">{money(num(item.qty) * num(item.rate), currency, 2)}</bdi>
+                  </td>
+                  <td className="py-2 text-end">
+                    <IconAction label={L("מחיקת שורה", "Remove line")} onClick={() => setItems((list) => list.filter((row) => row.id !== item.id))}>
                       <Trash2 size={13} />
                     </IconAction>
                   </td>
@@ -1789,27 +2305,29 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
 
         <button
           type="button"
-          onClick={() => setItems((list) => [...list, { id: uid("row"), description: "New line item", qty: 1, rate: 0 }])}
+          onClick={() => setItems((list) => [...list, { id: uid("row"), description: L("שורה חדשה", "New line item"), qty: 1, rate: 0 }])}
           className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium"
           style={{ color: "var(--a)" }}
         >
-          <Plus size={14} /> Add line item
+          <Plus size={14} /> {L("הוסף שורה", "Add line item")}
         </button>
 
         <div className={cx("mt-5 flex flex-col gap-4 border-t pt-4 md:flex-row md:items-end md:justify-between", t.divider)}>
           <div className="flex gap-3">
-            <LabeledInput label="Tax %" type="number" value={taxRate} onChange={(value) => setTaxRate(num(value))} className="w-24" />
-            <LabeledInput label="Discount %" type="number" value={discount} onChange={(value) => setDiscount(num(value))} className="w-28" />
+            <LabeledInput label={L("מע״מ %", "Tax %")} type="number" value={taxRate} onChange={(value) => setTaxRate(num(value))} className="w-24" />
+            <LabeledInput label={L("הנחה %", "Discount %")} type="number" value={discount} onChange={(value) => setDiscount(num(value))} className="w-28" />
           </div>
 
           <dl className="w-full space-y-1.5 text-sm md:w-72">
-            <Row label="Subtotal" value={money(totals.subtotal, currency, 2)} muted={t.muted} />
-            {discount > 0 ? <Row label={`Discount ${discount}%`} value={`-${money(totals.discountValue, currency, 2)}`} muted={t.muted} /> : null}
-            <Row label={`Tax ${taxRate}%`} value={money(totals.tax, currency, 2)} muted={t.muted} />
+            <Row label={L("ביניים", "Subtotal")} value={money(totals.subtotal, currency, 2)} muted={t.muted} />
+            {discount > 0 ? (
+              <Row label={L(`הנחה ${discount}%`, `Discount ${discount}%`)} value={`-${money(totals.discountValue, currency, 2)}`} muted={t.muted} />
+            ) : null}
+            <Row label={L(`מע״מ ${taxRate}%`, `Tax ${taxRate}%`)} value={money(totals.tax, currency, 2)} muted={t.muted} />
             <div className={cx("flex items-center justify-between border-t pt-2", t.divider)}>
-              <dt className="font-semibold">Total due</dt>
-              <dd className="text-xl font-semibold tabular-nums" style={{ color: "var(--a)" }}>
-                {money(totals.total, currency, 2)}
+              <dt className="font-semibold">{L("סה״כ לתשלום", "Total due")}</dt>
+              <dd className="text-xl font-semibold" style={{ color: "var(--a)" }}>
+                <bdi className="tabular-nums">{money(totals.total, currency, 2)}</bdi>
               </dd>
             </div>
           </dl>
@@ -1817,17 +2335,17 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
 
         <div className="mt-4 flex flex-wrap gap-2">
           <PreviewButton onClick={exportInvoice}>
-            <Download size={14} /> Export invoice
+            <Download size={14} /> {L("ייצוא חשבונית", "Export invoice")}
           </PreviewButton>
           <PreviewButton variant="ghost" onClick={() => window.print()}>
-            <Printer size={14} /> Print
+            <Printer size={14} /> {L("הדפסה", "Print")}
           </PreviewButton>
         </div>
       </Card>
 
       {spec.showChart ? (
         <MiniBars
-          label="Revenue by line item"
+          label={L("הכנסה לפי שורת חיוב", "Revenue by line item")}
           data={items.map((item) => ({
             label: item.description.split(" ")[0].slice(0, 6),
             value: num(item.qty) * num(item.rate),
@@ -1860,6 +2378,7 @@ function LabeledInput({ label, value, onChange, type = "text", className }) {
 
 function RoiApp({ spec, dark, onToggleDark }) {
   const t = useT();
+  const L = useL();
   const [seats, setSeats] = useState(180);
   const [price, setPrice] = useState(39);
   const [churn, setChurn] = useState(3.5);
@@ -1898,34 +2417,38 @@ function RoiApp({ spec, dark, onToggleDark }) {
       <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="MRR" value={money(model.mrr)} hint={`${seats} seats × ${money(price)}`} />
-        <Stat label="ARR" value={money(model.arr)} hint="Current run rate" />
-        <Stat label="LTV" value={money(model.ltv)} hint={`${model.lifetimeMonths.toFixed(0)} month lifetime`} />
+        <Stat label="MRR" value={money(model.mrr)} hint={L(`${seats} מנויים × ${money(price)}`, `${seats} seats × ${money(price)}`)} />
+        <Stat label="ARR" value={money(model.arr)} hint={L("קצב שנתי נוכחי", "Current run rate")} />
+        <Stat
+          label="LTV"
+          value={money(model.ltv)}
+          hint={L(`${model.lifetimeMonths.toFixed(0)} חודשי חיים ממוצעים`, `${model.lifetimeMonths.toFixed(0)} month lifetime`)}
+        />
         <Stat
           label="LTV : CAC"
           value={`${model.ratio.toFixed(1)}×`}
           tone={healthy ? undefined : "warn"}
-          hint={healthy ? "Healthy — above 3×" : "Below 3× — CAC too high"}
+          hint={healthy ? L("בריא — מעל 3×", "Healthy — above 3×") : L("מתחת ל-3× — עלות גיוס גבוהה", "Below 3× — CAC too high")}
         />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <p className={cx("mb-4 flex items-center gap-2 text-sm font-medium", t.heading)}>
-            <Gauge size={15} style={{ color: "var(--a)" }} /> Model inputs
+            <Gauge size={15} style={{ color: "var(--a)" }} /> {L("נתוני המודל", "Model inputs")}
           </p>
-          <Slider label="Paying seats" value={seats} min={10} max={2000} step={10} onChange={setSeats} />
-          <Slider label="Price per seat / mo" value={price} min={5} max={400} onChange={setPrice} format={(v) => money(v)} />
-          <Slider label="Monthly churn" value={churn} min={0.5} max={12} step={0.1} onChange={setChurn} format={(v) => `${v.toFixed(1)}%`} />
-          <Slider label="Blended CAC" value={cac} min={50} max={3000} step={10} onChange={setCac} format={(v) => money(v)} />
-          <Slider label="Monthly growth" value={growth} min={0} max={25} step={0.5} onChange={setGrowth} format={(v) => `${v}%`} />
-          <Slider label="Gross margin" value={grossMargin} min={40} max={95} onChange={setGrossMargin} format={(v) => `${v}%`} />
+          <Slider label={L("מנויים משלמים", "Paying seats")} value={seats} min={10} max={2000} step={10} onChange={setSeats} />
+          <Slider label={L("מחיר למנוי לחודש", "Price per seat / mo")} value={price} min={5} max={400} onChange={setPrice} format={(v) => money(v)} />
+          <Slider label={L("נטישה חודשית", "Monthly churn")} value={churn} min={0.5} max={12} step={0.1} onChange={setChurn} format={(v) => `${v.toFixed(1)}%`} />
+          <Slider label={L("עלות גיוס לקוח", "Blended CAC")} value={cac} min={50} max={3000} step={10} onChange={setCac} format={(v) => money(v)} />
+          <Slider label={L("צמיחה חודשית", "Monthly growth")} value={growth} min={0} max={25} step={0.5} onChange={setGrowth} format={(v) => `${v}%`} />
+          <Slider label={L("רווח גולמי", "Gross margin")} value={grossMargin} min={40} max={95} onChange={setGrossMargin} format={(v) => `${v}%`} />
         </Card>
 
         <div className="grid content-start gap-4">
           <Card className="flex h-full flex-col">
             <p className={cx("mb-3 flex items-center gap-2 text-sm font-medium", t.heading)}>
-              <TrendingUp size={15} style={{ color: "var(--a)" }} /> 12-month MRR projection
+              <TrendingUp size={15} style={{ color: "var(--a)" }} /> {L("תחזית הכנסות ל-12 חודשים", "12-month MRR projection")}
             </p>
             <div className="flex h-40 items-end gap-1.5">
               {model.projection.map((value, index) => (
@@ -1937,16 +2460,16 @@ function RoiApp({ spec, dark, onToggleDark }) {
                     background: "var(--a)",
                     opacity: 0.4 + (index / 12) * 0.6,
                   }}
-                  title={`Month ${index + 1}: ${money(value)}`}
+                  title={L(`חודש ${index + 1}: ${money(value)}`, `Month ${index + 1}: ${money(value)}`)}
                 />
               ))}
             </div>
             <div className={cx("mt-3 flex flex-wrap items-center justify-between gap-x-3 text-xs", t.muted)}>
-              <span>Month 1</span>
+              <span>{L("חודש 1", "Month 1")}</span>
               <span className="font-medium" style={{ color: "var(--a)" }}>
-                Exit ARR {money(model.exitArr)}
+                {L("ARR בסוף התקופה", "Exit ARR")} <bdi className="tabular-nums">{money(model.exitArr)}</bdi>
               </span>
-              <span>Month 12</span>
+              <span>{L("חודש 12", "Month 12")}</span>
             </div>
           </Card>
         </div>
@@ -1954,21 +2477,31 @@ function RoiApp({ spec, dark, onToggleDark }) {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <Stat
-          label="CAC payback"
-          value={`${model.payback.toFixed(1)} mo`}
-          hint={model.payback <= 12 ? "Under 12 months — fundable" : "Slower than 12 months"}
+          label={L("החזר עלות גיוס", "CAC payback")}
+          value={L(`${model.payback.toFixed(1)} חוד׳`, `${model.payback.toFixed(1)} mo`)}
+          hint={
+            model.payback <= 12
+              ? L("מתחת ל-12 חודשים — בר מימון", "Under 12 months — fundable")
+              : L("איטי מ-12 חודשים", "Slower than 12 months")
+          }
           tone={model.payback <= 12 ? undefined : "warn"}
         />
         <Card className="sm:col-span-2">
-          <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>Verdict</p>
+          <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("שורה תחתונה", "Verdict")}</p>
           <p className="mt-1.5 flex items-center gap-2 text-sm font-medium">
             {healthy ? <ShieldCheck size={16} style={{ color: "#10b981" }} /> : <Flame size={16} style={{ color: "#f59e0b" }} />}
-            {healthy ? "Scale acquisition" : "Fix retention before scaling"}
+            {healthy ? L("אפשר להגדיל גיוס לקוחות", "Scale acquisition") : L("קודם לטפל בנטישה", "Fix retention before scaling")}
           </p>
           <p className={cx("mt-1 text-xs leading-relaxed", t.muted)}>
             {healthy
-              ? `Each customer returns ${model.ratio.toFixed(1)}× their acquisition cost over a ${model.lifetimeMonths.toFixed(0)} month lifetime — spend more on what already works.`
-              : `At ${churn.toFixed(1)}% monthly churn a customer is only worth ${money(model.ltv)} against ${money(cac)} of CAC. Lower churn or raise price first.`}
+              ? L(
+                  `כל לקוח מחזיר פי ${model.ratio.toFixed(1)} מעלות הגיוס שלו לאורך ${model.lifetimeMonths.toFixed(0)} חודשים — שווה להשקיע יותר במה שכבר עובד.`,
+                  `Each customer returns ${model.ratio.toFixed(1)}× their acquisition cost over a ${model.lifetimeMonths.toFixed(0)} month lifetime — spend more on what already works.`
+                )
+              : L(
+                  `בנטישה של ${churn.toFixed(1)}% בחודש, לקוח שווה ${money(model.ltv)} מול עלות גיוס של ${money(cac)}. צריך להוריד נטישה או להעלות מחיר.`,
+                  `At ${churn.toFixed(1)}% monthly churn a customer is only worth ${money(model.ltv)} against ${money(cac)} of CAC. Lower churn or raise price first.`
+                )}
           </p>
         </Card>
       </div>
@@ -1977,14 +2510,16 @@ function RoiApp({ spec, dark, onToggleDark }) {
 }
 
 const TRACKER_FILTERS = ["all", "active", "done"];
+const TRACKER_FILTERS_HE = { all: "הכול", active: "פתוחות", done: "הושלמו" };
 
 function TrackerApp({ spec, dark, onToggleDark }) {
   const t = useT();
+  const L = useL();
   const [items, setItems] = useState([
-    { id: uid("item"), label: "Validate the idea with 5 target users", done: true, priority: "high" },
-    { id: uid("item"), label: "Sketch the core flow end to end", done: false, priority: "medium" },
-    { id: uid("item"), label: "Ship the landing page", done: false, priority: "high" },
-    { id: uid("item"), label: "Set up analytics + error tracking", done: false, priority: "low" },
+    { id: uid("item"), label: L("לאמת את הרעיון מול 5 משתמשים", "Validate the idea with 5 target users"), done: true, priority: "high" },
+    { id: uid("item"), label: L("לשרטט את הזרימה המרכזית", "Sketch the core flow end to end"), done: false, priority: "medium" },
+    { id: uid("item"), label: L("להעלות דף נחיתה", "Ship the landing page"), done: false, priority: "high" },
+    { id: uid("item"), label: L("להטמיע אנליטיקס ומעקב שגיאות", "Set up analytics + error tracking"), done: false, priority: "low" },
   ]);
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("all");
@@ -2012,14 +2547,14 @@ function TrackerApp({ spec, dark, onToggleDark }) {
             <input
               className={t.input}
               value={draft}
-              placeholder="What needs doing?"
+              placeholder={L("מה צריך לעשות?", "What needs doing?")}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") add();
               }}
             />
             <PreviewButton onClick={add} className="shrink-0">
-              <Plus size={15} /> Add
+              <Plus size={15} /> {L("הוסף", "Add")}
             </PreviewButton>
           </div>
 
@@ -2035,10 +2570,10 @@ function TrackerApp({ spec, dark, onToggleDark }) {
                   filter === value ? "" : "hover:opacity-80"
                 )}
               >
-                {value}
-                <span className="ml-1.5 opacity-60 tabular-nums">
+                {L(TRACKER_FILTERS_HE[value], value)}
+                <bdi className="ms-1.5 opacity-60 tabular-nums">
                   {value === "all" ? items.length : value === "done" ? done : items.length - done}
-                </span>
+                </bdi>
               </button>
             ))}
           </div>
@@ -2058,15 +2593,17 @@ function TrackerApp({ spec, dark, onToggleDark }) {
                   className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
                   style={{ color: PRIORITY_COLOR[item.priority], background: `${PRIORITY_COLOR[item.priority]}1f` }}
                 >
-                  {item.priority}
+                  {L(PRIORITY_HE[item.priority], item.priority)}
                 </span>
-                <IconAction label="Delete" onClick={() => setItems((list) => list.filter((row) => row.id !== item.id))}>
+                <IconAction label={L("מחיקה", "Delete")} onClick={() => setItems((list) => list.filter((row) => row.id !== item.id))}>
                   <Trash2 size={13} />
                 </IconAction>
               </li>
             ))}
             {visible.length === 0 ? (
-              <li className={cx("rounded-lg border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>Nothing here yet.</li>
+              <li className={cx("rounded-lg border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>
+                {L("אין כאן כלום עדיין.", "Nothing here yet.")}
+              </li>
             ) : null}
           </ul>
         </Card>
@@ -2087,20 +2624,22 @@ function TrackerApp({ spec, dark, onToggleDark }) {
               className="transition-all duration-700 ease-out"
             />
           </svg>
-          <p className="-mt-2 text-3xl font-semibold tabular-nums">{percent}%</p>
+          <p className="-mt-2 text-3xl font-semibold">
+            <bdi className="tabular-nums">{percent}%</bdi>
+          </p>
           <p className={cx("text-sm", t.muted)}>
-            {done} of {items.length} complete
+            {L(`${done} מתוך ${items.length} הושלמו`, `${done} of ${items.length} complete`)}
           </p>
           <PreviewButton variant="ghost" className="mt-3" onClick={() => setItems((list) => list.map((item) => ({ ...item, done: false })))}>
-            <RefreshCw size={13} /> Reset week
+            <RefreshCw size={13} /> {L("איפוס השבוע", "Reset week")}
           </PreviewButton>
         </Card>
       </div>
 
       {spec.showChart ? (
         <MiniBars
-          label="Completions this week"
-          data={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => ({
+          label={L("השלמות השבוע", "Completions this week")}
+          data={L(["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"], ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]).map((day, index) => ({
             label: day,
             value: [2, 4, 3, 5, done + 1, 6, done + 2][index],
           }))}
@@ -2115,6 +2654,7 @@ const APP_RENDERERS = {
   kanban: KanbanApp,
   invoice: InvoiceApp,
   roi: RoiApp,
+  budget: BudgetApp,
   tracker: TrackerApp,
 };
 
@@ -2357,9 +2897,15 @@ function Landing({ state, dispatch, onGenerate }) {
       </header>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-8 text-center sm:pt-14">
-        <div className="aab-rise inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur">
-          <Zap size={13} className="text-violet-300" />
-          Ships working React, not screenshots
+        <div className="aab-rise flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur">
+            <Zap size={13} className="text-violet-300" />
+            Ships working React, not screenshots
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur">
+            <Languages size={13} className="text-cyan-300" />
+            <bdi dir="rtl" lang="he">עברית ו‑RTL נתמכים</bdi>
+          </span>
         </div>
 
         <h1
@@ -2390,7 +2936,8 @@ function Landing({ state, dispatch, onGenerate }) {
                 if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && canGenerate) onGenerate(state.prompt);
               }}
               rows={4}
-              placeholder="e.g. A freelance rate calculator that turns my salary goal into an hourly rate, with sliders for tax and time off…"
+              dir="auto"
+              placeholder="e.g. A freelance rate calculator that turns my salary goal into an hourly rate — or write in Hebrew: תכין לי אפליקציה לניהול כספים"
               className="relative w-full resize-none bg-transparent px-4 py-3.5 text-left text-[15px] leading-relaxed text-white outline-none placeholder:text-slate-500"
             />
             <div className="relative flex flex-wrap items-center justify-between gap-3 px-2 pb-1 pt-1">
@@ -2442,6 +2989,8 @@ function Landing({ state, dispatch, onGenerate }) {
                   onDoubleClick={() => onGenerate(preset.prompt, preset.id)}
                   className={cx(
                     "group relative overflow-hidden rounded-2xl border p-4 text-left transition",
+                    // An odd preset count would leave a lonely half-width card.
+                    index === PRESETS.length - 1 && PRESETS.length % 2 === 1 ? "sm:col-span-2" : "",
                     active
                       ? "border-violet-400/60 bg-violet-500/10 shadow-[0_10px_40px_-18px_rgba(139,92,246,0.9)]"
                       : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
@@ -2512,9 +3061,13 @@ function Landing({ state, dispatch, onGenerate }) {
 
         <div id="pricing" className="mt-16 grid gap-3 sm:grid-cols-3">
           {[
-            { icon: Boxes, title: "5 app archetypes", body: "Calculators, boards, invoices, dashboards and trackers, all interactive." },
+            {
+              icon: Boxes,
+              title: `${BLUEPRINTS.length} app archetypes`,
+              body: "Finance, calculators, boards, invoices and trackers — all interactive.",
+            },
             { icon: Terminal, title: "Readable source", body: "Every render ships with the matching Tailwind + React code." },
-            { icon: History, title: "Versioned refinements", body: "Every prompt you send becomes a restorable version." },
+            { icon: Languages, title: "Hebrew & RTL", body: "Prompt in Hebrew and the app, labels and code come back right-to-left." },
           ].map((feature) => (
             <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left">
               <feature.icon size={16} className="text-violet-300" />
@@ -2554,7 +3107,9 @@ function Generating({ state, onCancel }) {
             </span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white">Building your app</p>
-              <p className="truncate text-xs text-slate-400">{state.prompt}</p>
+              <p dir="auto" className="truncate text-xs text-slate-400">
+                {state.prompt}
+              </p>
             </div>
             <button
               type="button"
@@ -2656,6 +3211,7 @@ function PreviewCanvas({ spec }) {
   const theme = STYLE_BY_ID[effectiveStyleId];
   const Renderer = APP_RENDERERS[spec.appId] || TrackerApp;
   const activeDevice = DEVICES.find((item) => item.id === device) || DEVICES[0];
+  const isHebrew = spec.lang === "he";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -2667,7 +3223,7 @@ function PreviewCanvas({ spec }) {
         </span>
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5">
           <ShieldCheck size={12} className="shrink-0 text-emerald-400/80" />
-          <span className="truncate font-mono text-[11px] text-slate-400">preview://apps/{slugify(spec.title)}</span>
+          <span className="truncate font-mono text-[11px] text-slate-400">preview://apps/{slugify(componentName(spec))}</span>
         </div>
         <div className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
           {DEVICES.map((item) => (
@@ -2690,16 +3246,26 @@ function PreviewCanvas({ spec }) {
       <div className="aab-scroll min-h-0 flex-1 overflow-auto bg-[#0d0d15] p-4">
         <div className="mx-auto transition-all duration-300" style={{ width: activeDevice.width, maxWidth: "100%" }}>
           <ThemeCtx.Provider value={theme}>
-            <div
-              className={cx("overflow-hidden shadow-[0_30px_80px_-40px_rgba(0,0,0,1)]", theme.canvas, theme.radius, theme.font)}
-              style={{
-                "--a": spec.accent,
-                "--a2": spec.accent2,
-                "--pad": spec.density === "compact" ? "0.75rem" : "1.25rem",
-              }}
-            >
-              <Renderer key={`${spec.appId}-${effectiveStyleId}`} spec={spec} dark={dark} onToggleDark={() => setDark((value) => !value)} />
-            </div>
+            <LangCtx.Provider value={spec.lang || "en"}>
+              <div
+                dir={isHebrew ? "rtl" : "ltr"}
+                lang={isHebrew ? "he" : "en"}
+                className={cx(
+                  "overflow-hidden shadow-[0_30px_80px_-40px_rgba(0,0,0,1)]",
+                  theme.canvas,
+                  theme.radius,
+                  // The mono stack has poor Hebrew coverage, so RTL apps use the Hebrew stack.
+                  isHebrew ? "font-hebrew" : theme.font
+                )}
+                style={{
+                  "--a": spec.accent,
+                  "--a2": spec.accent2,
+                  "--pad": spec.density === "compact" ? "0.75rem" : "1.25rem",
+                }}
+              >
+                <Renderer key={`${spec.appId}-${effectiveStyleId}`} spec={spec} dark={dark} onToggleDark={() => setDark((value) => !value)} />
+              </div>
+            </LangCtx.Provider>
           </ThemeCtx.Provider>
         </div>
       </div>
@@ -2712,7 +3278,8 @@ const REFINE_SUGGESTIONS = [
   "Add a dark mode toggle",
   "Make the layout more compact",
   "Add an analytics chart",
-  "Rename it to Studio Pricing",
+  "שנה את צבע הדגש לירוק",
+  "תוריד את הכותרת",
 ];
 
 function CodeInspector({ state, dispatch, onCopy, onRefine }) {
@@ -2737,7 +3304,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
       <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
         <span className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-medium text-slate-300">
           <Code2 size={12} className="text-violet-300" />
-          {pascal(state.spec.title)}.jsx
+          {componentName(state.spec)}.jsx
         </span>
         <span className="font-mono text-[11px] text-slate-600">{lineCount} lines</span>
 
@@ -2772,6 +3339,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
             <button
               key={suggestion}
               type="button"
+              dir="auto"
               onClick={() => submit(suggestion)}
               className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-400 transition hover:border-violet-400/40 hover:text-violet-200"
             >
@@ -2786,6 +3354,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
           </span>
           <input
             ref={inputRef}
+            dir="auto"
             value={state.refine}
             disabled={pending}
             onChange={(event) => dispatch({ type: "SET_REFINE", value: event.target.value })}
@@ -2843,7 +3412,9 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
         <div className="hidden min-w-0 items-center gap-2 border-l border-white/10 pl-3 sm:flex">
           <BlueprintIcon size={14} className="shrink-0 text-violet-300" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-white">{spec.title}</p>
+            <p dir="auto" className="truncate text-sm font-medium text-white">
+              {spec.title}
+            </p>
             <p className="truncate text-[11px] text-slate-500">
               {blueprint.name} · {STYLE_BY_ID[spec.styleId].name}
             </p>
@@ -2976,14 +3547,16 @@ export default function AIAppBuilder() {
   }, [state.code, notify]);
 
   const handleDownload = useCallback(() => {
-    downloadFile(`${pascal(state.spec.title)}.jsx`, state.code, "text/jsx;charset=utf-8");
-    notify(`${pascal(state.spec.title)}.jsx downloaded`);
+    downloadFile(`${componentName(state.spec)}.jsx`, state.code, "text/jsx;charset=utf-8");
+    notify(`${componentName(state.spec)}.jsx downloaded`);
   }, [state.spec, state.code, notify]);
 
   const handleShare = useCallback(async () => {
     const payload = {
       prompt: state.spec.prompt,
       appId: state.spec.appId,
+      lang: state.spec.lang,
+      subtitle: state.spec.subtitle,
       styleId: state.spec.styleId,
       accent: state.spec.accent,
       accent2: state.spec.accent2,

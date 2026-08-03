@@ -41,12 +41,23 @@ dependencies, no props and no global state.
 ## How it actually works
 
 **Blueprint matching.** `resolveSpec()` runs the prompt through an ordered list of
-`BLUEPRINTS` regexes (invoice → kanban → roi → rate → tracker fallback) and derives a product
-title from the prompt itself. Preset cards short-circuit the matcher.
+`BLUEPRINTS` regexes (invoice → budget → kanban → roi → rate → tracker fallback) and derives a
+product title from the prompt itself. Each blueprint matches English *and* Hebrew keywords.
+Preset cards short-circuit the matcher.
 
-**Five interactive renderers.** Every archetype is a real, stateful component — not a
+**Hebrew and RTL.** `detectLang()` looks for a single character in the Hebrew Unicode block;
+one is enough to set `spec.lang = "he"`. From there the preview root gets `dir="rtl"`,
+`lang="he"` and a web-safe Hebrew font stack (David/Narkisim are Office fonts and unreliable in
+browsers), every renderer resolves its labels through `L("עברית", "English")`, directional
+chevrons flip, numbers and currency sit in `<bdi>` so bidi never scrambles them, and the
+generated source carries the Hebrew strings and `dir="rtl"` too. Component and file names stay
+Latin (`PersonalFinanceManager.jsx`). Refinements are bilingual — "שנה את צבע הדגש לירוק"
+works exactly like "change the accent to green".
+
+**Six interactive renderers.** Every archetype is a real, stateful component — not a
 mockup:
 
+- **Personal Finance Manager** — income vs. expenses, six spend categories, live balance, budget-usage bar and a six-month trend chart.
 - **Freelance Rate Calculator** — seven inputs → hourly / day / project rate, a where-the-money-goes bar, and a rate-sensitivity chart.
 - **Task Kanban Board** — HTML5 drag & drop between columns, keyboard-free move buttons, priority cycling, live WIP counts.
 - **Invoice Generator** — editable line items, four currencies, tax + discount, paid toggle, and a real file export.
@@ -80,11 +91,11 @@ single self-cancelling `useEffect` that advances `stepIndex` and commits on the 
 Generated apps keep their own local `useState`, remounted via `key` when the archetype or theme
 changes.
 
-## Adding a sixth archetype
+## Adding a seventh archetype
 
-1. Add an entry to `BLUEPRINTS` (id, name, subtitle, icon, tags, match regex, example prompt).
-2. Write the renderer using the themed primitives (`Card`, `Slider`, `Stat`, `MiniBars`, `PreviewButton`) and register it in `APP_RENDERERS`.
-3. Add a matching entry to `CODE_BUILDERS` so the code panel stays truthful.
+1. Add an entry to `BLUEPRINTS` — id, `name`/`nameHe`, `subtitle`/`subtitleHe`, icon, tags, a match regex covering both languages, and an example prompt.
+2. Write the renderer with the themed primitives (`Card`, `Slider`, `Stat`, `MiniBars`, `PreviewButton`), wrap every visible string in `L(he, en)`, and register it in `APP_RENDERERS`.
+3. Add a matching entry to `CODE_BUILDERS`, using `qOf(spec)` and `rootDiv(spec)` so the emitted code follows the same language and direction.
 
 Nothing else needs to change — presets, refinements, versioning, sharing and export all key
 off the spec.
