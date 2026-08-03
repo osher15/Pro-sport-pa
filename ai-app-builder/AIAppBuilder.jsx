@@ -302,7 +302,7 @@ const BLUEPRINTS = [
     icon: Wallet,
     tags: ["Finance", "Charts"],
     match:
-      /budget|expenses?|spending|personal finance|finance manager|money manage|cash ?flow|savings?|bank account|ניהול כספים|כספים|תקציב|הוצאות|הכנסות|פיננס|כסף|חסכון|חיסכון|תזרים|חשבון בנק|מעקב כספי/i,
+      /budget|expenses?|spending|personal financ|financ(e|ial) (manage|track)|money manage|money manager|manag\w* (my |the |our )?(money|finances?|budget)|where (my|the) money|cash ?flow|savings?|bank account|ניהול כספים|כספים|תקציב|הוצאות|הכנסות|פיננס|כסף|חסכון|חיסכון|תזרים|חשבון בנק|מעקב כספי/i,
     prompt: "A personal finance manager that tracks income and expenses by category, shows the monthly balance and a budget progress bar.",
   },
   {
