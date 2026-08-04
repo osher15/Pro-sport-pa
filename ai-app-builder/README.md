@@ -45,6 +45,14 @@ dependencies, no props and no global state.
 tracker fallback) and derives a product title from the prompt itself. Each blueprint matches English *and* Hebrew keywords.
 Preset cards short-circuit the matcher.
 
+**Reviewed.** The three newest archetypes went through a three-way review — RTL/Hebrew, money
+and date correctness, and landing-page output quality. Every finding that survived checking was
+fixed: the card-freeze switch now actually blocks transfers, the card has a credit limit,
+amounts settle to whole agorot and reject malformed input, booking keys use the local calendar
+date instead of `toISOString()` (which files bookings a day early east of Greenwich), direction
+arrows mirror under RTL, opening-hour ranges are bidi-isolated so `09:00–19:00` cannot render
+reversed, and the exported page's previously invisible bottom button is fixed.
+
 **Hebrew and RTL.** `detectLang()` looks for a single character in the Hebrew Unicode block;
 one is enough to set `spec.lang = "he"`. From there the preview root gets `dir="rtl"`,
 `lang="he"` and a web-safe Hebrew font stack (David/Narkisim are Office fonts and unreliable in
@@ -57,7 +65,7 @@ works exactly like "change the accent to green".
 **Nine interactive renderers.** Every archetype is a real, stateful component — not a
 mockup:
 
-- **Business Landing Page** — fill in name, tagline, services, hours and contact details; a finished page renders live in an iframe and downloads as one standalone HTML file (no host, no builder account, no external requests). All values are HTML-escaped on the way in.
+- **Business Landing Page** — fill in name, tagline, services, hours and contact details; a finished page renders live in a sandboxed iframe and downloads as one standalone HTML file (no host, no builder account, no external requests). The exported page carries Open Graph tags, `LocalBusiness` JSON-LD, an inline SVG favicon, a print stylesheet, focus-visible styles and a sticky mobile action bar (WhatsApp with a prefilled message, tap-to-call, Waze). Ink on the accent is computed for contrast rather than assumed, so a light accent does not produce white-on-white. Empty fields are omitted instead of emitting dead `tel:`/`mailto:` links, and nothing is claimed on the business's behalf that they did not type.
 - **Banking Dashboard** — three accounts, transfers that validate the source balance and refuse same-account moves, a searchable and filterable transaction feed, a card-freeze switch, and a money-in vs money-out chart.
 - **Appointment Booking** — selectable services with duration and price, a rolling seven-day strip with closed days, a slot grid that disables what is taken, confirmed bookings with cancel, and expected revenue.
 - **Personal Finance Manager** — income vs. expenses, six spend categories, live balance, budget-usage bar and a six-month trend chart.

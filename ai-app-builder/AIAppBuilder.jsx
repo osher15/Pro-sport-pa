@@ -17,6 +17,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useDeferredValue,
   useMemo,
   useReducer,
   useRef,
@@ -25,6 +26,8 @@ import React, {
 import {
   Activity,
   ArrowDownLeft,
+  ArrowDownRight,
+  ArrowUpLeft,
   ArrowUpRight,
   BarChart3,
   Blocks,
@@ -100,16 +103,24 @@ const uid = (prefix = "id") => `${prefix}_${Date.now().toString(36)}_${(_seq++).
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 const num = (value, fallback = 0) => {
-  const parsed = typeof value === "number" ? value : parseFloat(String(value).replace(/[^0-9.\-]/g, ""));
+  // Strict: a value that is not a well-formed number becomes the fallback rather
+  // than being salvaged character-by-character ("1.2.3" must not read as 1.2).
+  if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+  const text = String(value).trim();
+  if (text === "") return fallback;
+  const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const money = (value, symbol = "$", digits = 0) =>
-  symbol +
-  Number(Number.isFinite(value) ? value : 0).toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+const money = (value, symbol = "$", digits = 0) => {
+  const amount = Number.isFinite(value) ? value : 0;
+  // "-₪3,820.40", never "₪-3,820.40".
+  return (
+    (amount < 0 ? "-" : "") +
+    symbol +
+    Math.abs(amount).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })
+  );
+};
 
 const titleCase = (text) =>
   text
@@ -430,7 +441,9 @@ const STOP_WORDS_HE = new Set(["של", "עם", "לפי", "כדי", "שלי", "ב
 
 /** Hebrew imperatives that open a request: "תכין לי אפליקציה ל…", "בנה לי…". */
 const HE_LEAD_RE = /^\s*(בבקשה\s+)?(תכין|תבנה|בנה|תיצור|צור|תעשה|עשה|אני רוצה|אני צריך|אני צריכה|תפתח|פתח|הכן)\s*(לי\s+)?(את\s+)?/;
-const HE_NOUN_RE = /^\s*(אפליקציה|אפליקציית|אפליקצייה|מערכת|כלי|תוכנה|אתר|דף|מסך)\s*(ל|של|בשביל|עבור)?\s*/;
+// The preposition is required: "אפליקציה לניהול כספים" drops the noun, but
+// "דף נחיתה לעסק" keeps it — there the noun is part of the product name.
+const HE_NOUN_RE = /^\s*(אפליקציה|אפליקציית|אפליקצייה|מערכת|כלי|תוכנה|אתר|מסך)\s*(ל|של|בשביל|עבור)\s*/;
 
 const deriveTitle = (prompt, blueprint) => {
   if (detectLang(prompt) === "he") {
@@ -1177,7 +1190,9 @@ const CODE_BUILDERS = {
       "];",
       "",
       "const shekel = (value) =>",
-      '  "₪" + Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });',
+      '  (value < 0 ? "-" : "") +',
+      '  "₪" +',
+      '  Math.abs(Number(value)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });',
       "",
       "export default function " + name + "() {",
       "  const [accounts, setAccounts] = useState(SEED_ACCOUNTS);",
@@ -1212,11 +1227,11 @@ const CODE_BUILDERS = {
       "    const from = byId(transfer.from);",
       "    const to = byId(transfer.to);",
       "    if (!from || !to || from.id === to.id) {",
-      '      setNotice({ ok: false, text: "' + q("בחר שני חשבונות שונים", "Pick two different accounts") + '" });',
+      '      setNotice({ ok: false, text: "' + q("בחרו שני חשבונות שונים", "Pick two different accounts") + '" });',
       "      return;",
       "    }",
       "    if (!(amount > 0)) {",
-      '      setNotice({ ok: false, text: "' + q("הזן סכום גדול מאפס", "Enter an amount above zero") + '" });',
+      '      setNotice({ ok: false, text: "' + q("הזינו סכום גדול מאפס", "Enter an amount above zero") + '" });',
       "      return;",
       "    }",
       '    if (from.kind === "cash" && from.balance < amount) {',
@@ -1243,7 +1258,7 @@ const CODE_BUILDERS = {
       rootDiv(spec),
       ...headerBlock(spec),
       "      <section className={card}>",
-      '        <p className="text-xs uppercase tracking-widest opacity-60">' + q("סך הנכסים", "Total balance") + "</p>",
+      '        <p className="text-xs uppercase tracking-widest opacity-60">' + q("יתרה כוללת", "Total balance") + "</p>",
       '        <p className="mt-1 text-4xl font-semibold" style={{ color: ACCENT }}>',
       "          <bdi>{shekel(netWorth)}</bdi>",
       "        </p>",
@@ -1311,7 +1326,7 @@ const CODE_BUILDERS = {
       "          onChange={(event) => setTransfer({ ...transfer, amount: event.target.value })}",
       "        />",
       '        <button onClick={send} className="mt-3 w-full py-2" style={{ background: ACCENT, color: "#fff" }}>',
-      "          <Send size={14} /> " + q("בצע העברה", "Send transfer"),
+      "          <Send size={14} /> " + q("בצעו העברה", "Send transfer"),
       "        </button>",
       "        {notice ? (",
       '          <p className="mt-2 text-xs font-medium" role="status" style={{ color: notice.ok ? "#0ca30c" : "#d03b3b" }}>',
@@ -1354,7 +1369,7 @@ const CODE_BUILDERS = {
       '      .map((service) => `<article class="card"><h3>${service.name}</h3><p>${service.detail}</p><p>${service.price}</p></article>`)',
       '      .join("")}',
       "  </main>",
-      "  <footer><p>${biz.phone} · ${biz.email} · ${biz.address}</p></footer>",
+      "  <footer><p><bdi>${biz.phone}</bdi> · <bdi>${biz.email}</bdi> · ${biz.address}</p></footer>",
       "</body></html>`;",
       "",
       "export default function " + name + "() {",
@@ -1428,13 +1443,17 @@ const CODE_BUILDERS = {
       'const SLOTS = ["09:00", "09:45", "10:30", "11:15", "12:00", "13:30", "14:15", "15:00", "15:45", "16:30"];',
       "const DAY_NAMES = [" + q('"א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"', '"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"') + "];",
       "",
+      "// Local calendar date — toISOString() would shift the day east of Greenwich.",
+      "const dayKey = (date) =>",
+      '  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;',
+      "",
       "export default function " + name + "() {",
       "  const days = useMemo(() => {",
       "    const today = new Date();",
       "    return Array.from({ length: 7 }, (_, offset) => {",
       "      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);",
       "      return {",
-      "        key: date.toISOString().slice(0, 10),",
+      "        key: dayKey(date),",
       "        dayName: DAY_NAMES[date.getDay()],",
       "        dayNum: date.getDate(),",
       "        closed: date.getDay() === 6,",
@@ -1472,7 +1491,7 @@ const CODE_BUILDERS = {
       ...headerBlock(spec),
       '      <div className="grid gap-4 sm:grid-cols-2">',
       "        <div className={card}>",
-      '          <p className="text-xs uppercase tracking-widest opacity-60">' + q("תורים ביום", "Bookings today") + "</p>",
+      '          <p className="text-xs uppercase tracking-widest opacity-60">' + q("תורים ביום הנבחר", "Bookings on this day") + "</p>",
       '          <p className="mt-1 text-2xl font-semibold" style={{ color: ACCENT }}>{dayBookings.length}</p>',
       "        </div>",
       "        <div className={card}>",
@@ -2209,7 +2228,49 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
 
 /* --------------------------------------------------- Business landing page */
 
-/** Builds a complete, standalone landing page document from the form values. */
+/* Contrast helpers — the accent is user-chosen, so ink on top of it has to be
+   computed rather than assumed. A cyan accent with white text is 1.29:1. */
+const hexToRgb = (hex) => {
+  const clean = String(hex).replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  return { r: parseInt(full.slice(0, 2), 16) || 0, g: parseInt(full.slice(2, 4), 16) || 0, b: parseInt(full.slice(4, 6), 16) || 0 };
+};
+const toLinear = (channel) => (channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4));
+const luminance = ({ r, g, b }) => 0.2126 * toLinear(r / 255) + 0.7152 * toLinear(g / 255) + 0.0722 * toLinear(b / 255);
+const contrastRatio = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+const rgbToHex = ({ r, g, b }) => `#${[r, g, b].map((c) => clamp(Math.round(c), 0, 255).toString(16).padStart(2, "0")).join("")}`;
+
+/** Ink that stays legible on the accent — white on dark accents, near-black on light ones. */
+const inkOn = (hex) => (contrastRatio(hexToRgb(hex), { r: 255, g: 255, b: 255 }) >= 3.5 ? "#ffffff" : "#10131a");
+
+/** A darkened accent for text on white, stepped down until it clears 4.5:1. */
+const accentForText = (hex) => {
+  let rgb = hexToRgb(hex);
+  for (let step = 0; step < 24 && contrastRatio(rgb, { r: 255, g: 255, b: 255 }) < 4.5; step += 1) {
+    rgb = { r: rgb.r * 0.88, g: rgb.g * 0.88, b: rgb.b * 0.88 };
+  }
+  return rgbToHex(rgb);
+};
+
+/** First phone number in a field that may hold several, normalised for wa.me. */
+const waNumber = (raw, isHe) => {
+  const first = String(raw || "").split(/[,;/]|\sאו\s|\sor\s/)[0];
+  let digits = first.replace(/[^0-9]/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  else if (isHe && digits.startsWith("0")) digits = `972${digits.slice(1)}`;
+  return digits;
+};
+
+/**
+ * Builds a complete, standalone landing page document from the form values.
+ * Everything is inline: no fonts, no scripts, no images, no analytics — the
+ * file works from a USB stick. Empty fields are omitted rather than emitted as
+ * dead links, and nothing is claimed on the business's behalf that they did not
+ * type themselves.
+ */
 const buildLandingHtml = (biz, accent, isHe) => {
   const dir = isHe ? "rtl" : "ltr";
   const lang = isHe ? "he" : "en";
@@ -2217,115 +2278,208 @@ const buildLandingHtml = (biz, accent, isHe) => {
     ? "'Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif"
     : "Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   const esc = (value) =>
-    String(value || "")
+    String(value === 0 ? "0" : value || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   const t = (he, en) => (isHe ? he : en);
+  const has = (value) => String(value || "").trim().length > 0;
+  // "09:00–19:00" unisolated in an RTL document renders as "19:00–09:00".
+  const isolateRanges = (value) =>
+    String(value).replace(/\d{1,2}:\d{2}\s*[–—-]\s*\d{1,2}:\d{2}/g, (range) => `<bdi dir="ltr">${range}</bdi>`);
+
+  const name = has(biz.name) ? biz.name : t("העסק שלי", "My business");
+  const onAccent = inkOn(accent);
+  const accentInk = accentForText(accent);
+  const telDigits = String(biz.phone || "").split(/[,;/]|\sאו\s|\sor\s/)[0].replace(/[^0-9+]/g, "");
+  const wa = waNumber(biz.phone, isHe);
+  const waText = encodeURIComponent(t(`היי, הגעתי מהאתר של ${name}`, `Hi, I found you through the ${name} page`));
+  const mapQuery = encodeURIComponent(biz.address || "");
+
   const services = biz.services
-    .filter((service) => service.name.trim())
+    .filter((service) => has(service.name))
     .map(
-      (service) => `      <article class="card">
-        <h3>${esc(service.name)}</h3>
-        <p>${esc(service.detail)}</p>
-        <p class="price">${esc(service.price)}</p>
-      </article>`
+      (service) => `        <article class="card">
+          <h3>${esc(service.name)}</h3>
+          ${has(service.detail) ? `<p>${esc(service.detail)}</p>` : ""}
+          ${has(service.price) ? `<p class="price">${esc(service.price)}</p>` : ""}
+        </article>`
     )
     .join("\n");
-  const telHref = `tel:${String(biz.phone).replace(/[^0-9+]/g, "")}`;
-  const waHref = `https://wa.me/${String(biz.phone).replace(/[^0-9]/g, "").replace(/^0/, "972")}`;
+
+  // Chips carry facts the owner actually entered — never invented claims.
+  const chips = [
+    has(biz.hours) ? `<span class="chip">${isolateRanges(esc(biz.hours))}</span>` : "",
+    has(biz.address) ? `<span class="chip">${esc(biz.address)}</span>` : "",
+    has(biz.phone) ? `<span class="chip"><bdi>${esc(biz.phone)}</bdi></span>` : "",
+  ]
+    .filter(Boolean)
+    .join("\n        ");
+
+  const contactRows = [
+    has(biz.phone) ? `<li><span class="k">${t("טלפון", "Phone")}</span> <a href="tel:${esc(telDigits)}"><bdi>${esc(biz.phone)}</bdi></a></li>` : "",
+    has(biz.email) ? `<li><span class="k">${t("אימייל", "Email")}</span> <a href="mailto:${esc(biz.email)}"><bdi>${esc(biz.email)}</bdi></a></li>` : "",
+    has(biz.address)
+      ? `<li><span class="k">${t("כתובת", "Address")}</span> <a href="https://waze.com/ul?q=${mapQuery}" target="_blank" rel="noopener">${esc(biz.address)}</a></li>`
+      : "",
+    has(biz.hours) ? `<li><span class="k">${t("שעות פעילות", "Hours")}</span> ${isolateRanges(esc(biz.hours))}</li>` : "",
+  ]
+    .filter(Boolean)
+    .join("\n        ");
+
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name,
+    description: biz.tagline || undefined,
+    telephone: telDigits || undefined,
+    email: has(biz.email) ? biz.email : undefined,
+    address: has(biz.address) ? { "@type": "PostalAddress", streetAddress: biz.address } : undefined,
+  });
+
+  const initial = esc(String(name).trim().charAt(0) || "•");
+  const favicon =
+    `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='${encodeURIComponent(accent)}'/%3E%3Ctext x='32' y='45' font-size='34' font-family='Arial' font-weight='bold' fill='${encodeURIComponent(onAccent)}' text-anchor='middle'%3E${encodeURIComponent(initial)}%3C/text%3E%3C/svg%3E`;
 
   return `<!DOCTYPE html>
 <html lang="${lang}" dir="${dir}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(biz.name)} — ${esc(biz.tagline)}</title>
+<title>${esc(name)}${has(biz.tagline) ? ` — ${esc(biz.tagline)}` : ""}</title>
 <meta name="description" content="${esc(biz.tagline)}">
+<meta name="theme-color" content="${esc(accent)}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(name)}">
+<meta property="og:description" content="${esc(biz.tagline)}">
+<meta property="og:locale" content="${isHe ? "he_IL" : "en_US"}">
+<meta property="og:site_name" content="${esc(name)}">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="${favicon}">
+<script type="application/ld+json">${jsonLd}</script>
 <style>
-  :root { --accent: ${accent}; --ink: #14161a; --muted: #5b6472; --line: #e6e8ec; }
+  :root { --accent: ${accent}; --on-accent: ${onAccent}; --accent-ink: ${accentInk};
+          --ink: #14161a; --muted: #5b6472; --line: #e6e8ec; --surface: #fff; --sunken: #f6f7f9; }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: ${font}; color: var(--ink); background: #fff; line-height: 1.6; }
+  body { margin: 0; font-family: ${font}; color: var(--ink); background: var(--surface); line-height: 1.6;
+         overflow-wrap: anywhere; }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-  header.hero { background: linear-gradient(160deg, var(--accent) 0%, #0b0c10 130%); color: #fff; padding: 88px 0 72px; }
-  header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: -0.02em; }
-  header.hero p { font-size: clamp(16px, 2.4vw, 20px); opacity: .92; margin: 0 0 28px; max-width: 46ch; }
-  .cta { display: inline-block; background: #fff; color: var(--accent); font-weight: 700; padding: 14px 30px; border-radius: 999px; text-decoration: none; }
-  .cta.ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.55); margin-inline-start: 10px; }
-  section { padding: 64px 0; }
+  header.hero { background: linear-gradient(160deg, var(--accent) 0%, #0b0c10 165%); color: var(--on-accent); padding: 84px 0 68px; }
+  header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: ${isHe ? "normal" : "-0.02em"}; }
+  header.hero p.tagline { font-size: clamp(16px, 2.4vw, 20px); opacity: .93; margin: 0 0 28px; max-width: 46ch; }
+  .cta { display: inline-block; background: var(--surface); color: var(--accent-ink); font-weight: 700;
+         padding: 14px 30px; border-radius: 999px; text-decoration: none; border: 2px solid transparent; }
+  .cta.ghost { background: transparent; color: var(--on-accent); border-color: currentColor; margin-inline-start: 10px; }
+  main { display: block; }
+  section { padding: 56px 0; }
+  section + section { padding-top: 0; }
   h2 { font-size: clamp(22px, 3.4vw, 32px); margin: 0 0 8px; }
-  .sub { color: var(--muted); margin: 0 0 32px; }
-  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
   .card { border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
   .card h3 { margin: 0 0 6px; font-size: 18px; }
   .card p { margin: 0; color: var(--muted); }
-  .card .price { margin-top: 12px; color: var(--accent); font-weight: 700; font-size: 18px; }
-  .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-  .badge { border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
-  blockquote { margin: 0; background: #f6f7f9; border-radius: 18px; padding: 32px; font-size: 19px; }
+  .card .price { margin-top: 12px; color: var(--accent-ink); font-weight: 700; font-size: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
+  blockquote { margin: 0; background: var(--sunken); border-radius: 18px; padding: 32px; font-size: 19px; }
   blockquote footer { margin-top: 12px; font-size: 14px; color: var(--muted); }
   .contact { background: #0f1116; color: #fff; }
   .contact a { color: #fff; }
+  .contact .cta { color: var(--accent-ink); background: #fff; }
   .rows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-  .rows li { display: flex; gap: 10px; align-items: center; }
-  .foot { padding: 26px 0; font-size: 13px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); }
+  .rows .k { color: #b9c0cc; }
+  footer.foot { padding: 26px 0; font-size: 13px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); }
+  :where(a, button):focus-visible { outline: 3px solid currentColor; outline-offset: 3px; border-radius: 6px; }
+  .actionbar { position: fixed; inset-inline: 0; bottom: 0; z-index: 50; display: none;
+               grid-auto-flow: column; grid-auto-columns: 1fr; gap: 1px; background: var(--line);
+               padding-bottom: env(safe-area-inset-bottom); }
+  .actionbar a { background: var(--surface); color: var(--ink); text-align: center; padding: 14px 8px;
+                 min-height: 48px; font-weight: 700; text-decoration: none; font-size: 15px; }
+  .actionbar a.wa { background: #25d366; color: #05230f; }
+  @media (max-width: 720px) { .actionbar { display: grid; } body { padding-bottom: 68px; } }
   @media (prefers-color-scheme: dark) {
-    body { background: #0d0f13; color: #eef1f6; }
-    :root { --ink: #eef1f6; --muted: #9aa4b2; --line: #232833; }
-    blockquote { background: #161a21; }
+    :root { --ink: #eef1f6; --muted: #9aa4b2; --line: #232833; --surface: #0d0f13; --sunken: #161a21; }
     .card { background: #12151b; }
+    .card .price { color: #fff; }
+    .contact { background: #171b23; }
+    .actionbar a { background: #12151b; color: #eef1f6; }
+  }
+  @media print {
+    .actionbar, .cta { display: none !important; }
+    header.hero, .contact { background: #fff !important; color: #000 !important; }
+    header.hero *, .contact *, .contact a, .contact .k { color: #000 !important; }
+    section { padding: 16px 0 !important; break-inside: avoid; }
+    .card { border: 1px solid #999; }
+    .rows li { display: block; }
   }
 </style>
 </head>
 <body>
 <header class="hero">
   <div class="wrap">
-    <h1>${esc(biz.name)}</h1>
-    <p>${esc(biz.tagline)}</p>
-    <a class="cta" href="${telHref}">${esc(biz.cta)}</a>
-    <a class="cta ghost" href="${waHref}">${t("וואטסאפ", "WhatsApp")}</a>
+    <h1>${esc(name)}</h1>
+    ${has(biz.tagline) ? `<p class="tagline">${esc(biz.tagline)}</p>` : ""}
+    ${has(telDigits) ? `<a class="cta" href="tel:${esc(telDigits)}">${esc(has(biz.cta) ? biz.cta : t("התקשרו אלינו", "Call us"))}</a>` : ""}
+    ${wa ? `<a class="cta ghost" href="https://wa.me/${wa}?text=${waText}">${t("וואטסאפ", "WhatsApp")}</a>` : ""}
   </div>
 </header>
 
-<section>
-  <div class="wrap">
-    <h2>${t("השירותים שלנו", "What we do")}</h2>
-    <p class="sub">${esc(biz.about)}</p>
-    <div class="grid">
+<main>
+${
+  services
+    ? `  <section aria-labelledby="services">
+    <div class="wrap">
+      <h2 id="services">${t("השירותים שלנו", "What we do")}</h2>
+      ${has(biz.about) ? `<p class="sub">${esc(biz.about)}</p>` : ""}
+      <div class="grid">
 ${services}
+      </div>
+      ${chips ? `<div class="chips">\n        ${chips}\n      </div>` : ""}
     </div>
-    <div class="badges">
-      <span class="badge">${t("שירות אישי", "Personal service")}</span>
-      <span class="badge">${t("מחירים הוגנים", "Fair pricing")}</span>
-      <span class="badge">${t("זמינות גבוהה", "Highly available")}</span>
+  </section>`
+    : ""
+}
+${
+  has(biz.testimonial)
+    ? `  <section>
+    <div class="wrap">
+      <blockquote>
+        ${t("״", "“")}${esc(biz.testimonial)}${t("״", "”")}
+        ${has(biz.testimonialBy) ? `<footer>— ${esc(biz.testimonialBy)}</footer>` : ""}
+      </blockquote>
     </div>
-  </div>
-</section>
+  </section>`
+    : ""
+}
+${
+  contactRows
+    ? `  <section class="contact" aria-labelledby="contact">
+    <div class="wrap">
+      <h2 id="contact">${t("דברו איתנו", "Get in touch")}</h2>
+      <ul class="rows">
+        ${contactRows}
+      </ul>
+      ${has(telDigits) ? `<p style="margin-top:26px"><a class="cta" href="tel:${esc(telDigits)}">${esc(has(biz.cta) ? biz.cta : t("התקשרו אלינו", "Call us"))}</a></p>` : ""}
+    </div>
+  </section>`
+    : ""
+}
+</main>
 
-<section>
-  <div class="wrap">
-    <blockquote>
-      “${esc(biz.testimonial)}”
-      <footer>— ${esc(biz.testimonialBy)}</footer>
-    </blockquote>
-  </div>
-</section>
+<footer class="foot">© ${new Date().getFullYear()} ${esc(name)}</footer>
 
-<section class="contact">
-  <div class="wrap">
-    <h2>${t("דברו איתנו", "Get in touch")}</h2>
-    <ul class="rows">
-      <li>${t("טלפון", "Phone")}: <a href="${telHref}"><bdi>${esc(biz.phone)}</bdi></a></li>
-      <li>${t("אימייל", "Email")}: <a href="mailto:${esc(biz.email)}"><bdi>${esc(biz.email)}</bdi></a></li>
-      <li>${t("כתובת", "Address")}: ${esc(biz.address)}</li>
-      <li>${t("שעות", "Hours")}: ${esc(biz.hours)}</li>
-    </ul>
-    <p style="margin-top:26px"><a class="cta" href="${telHref}">${esc(biz.cta)}</a></p>
-  </div>
-</section>
-
-<p class="foot">© ${new Date().getFullYear()} ${esc(biz.name)}</p>
+${
+  wa || telDigits || has(biz.address)
+    ? `<nav class="actionbar" aria-label="${t("צרו קשר", "Contact")}">
+  ${wa ? `<a class="wa" href="https://wa.me/${wa}?text=${waText}" aria-label="${t("שליחת הודעה בוואטסאפ", "Message on WhatsApp")}">${t("וואטסאפ", "WhatsApp")}</a>` : ""}
+  ${has(telDigits) ? `<a href="tel:${esc(telDigits)}" aria-label="${t("חיוג לעסק", "Call the business")}">${t("חיוג", "Call")}</a>` : ""}
+  ${has(biz.address) ? `<a href="https://waze.com/ul?q=${mapQuery}" target="_blank" rel="noopener" aria-label="${t("ניווט בוויז", "Navigate with Waze")}">${t("ניווט", "Directions")}</a>` : ""}
+</nav>`
+    : ""
+}
 </body>
 </html>
 `;
@@ -2345,7 +2499,7 @@ function LandingApp({ spec, dark, onToggleDark }) {
       { name: L("חבילת חתן", "Groom package"), detail: L("תספורת, זקן וטיפוח פנים", "Cut, beard and facial"), price: L("₪240", "$85") },
     ],
     testimonial: L("נכנסתי בלי תור ויצאתי אחרי עשרים דקות מסופר. שירות אלוף.", "Walked in with no appointment and left twenty minutes later. Brilliant service."),
-    testimonialBy: L("דני כ., לקוח קבוע", "Danny K., regular"),
+    testimonialBy: L("דני כ׳, לקוח קבוע", "Danny K., regular"),
     phone: L("052-1234567", "+1 555 0134"),
     email: "hello@avi.co.il",
     address: L("הרצל 24, תל אביב", "24 High Street, Bristol"),
@@ -2360,7 +2514,10 @@ function LandingApp({ spec, dark, onToggleDark }) {
       services: current.services.map((service, i) => (i === index ? { ...service, [key]: value } : service)),
     }));
 
-  const html = buildLandingHtml(biz, spec.accent, isHe);
+  // Without this the iframe reparses a full document on every keystroke, which
+  // blanks the preview and throws away its scroll position.
+  const deferredBiz = useDeferredValue(biz);
+  const html = useMemo(() => buildLandingHtml(deferredBiz, spec.accent, isHe), [deferredBiz, spec.accent, isHe]);
 
   return (
     <div className="p-[var(--pad)] md:p-6">
@@ -2369,9 +2526,12 @@ function LandingApp({ spec, dark, onToggleDark }) {
       <Card>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <p className={cx("me-auto flex items-center gap-2 text-sm font-medium", t.heading)}>
-            <PanelsTopLeft size={15} style={{ color: "var(--a)" }} /> {L("פרטי העסק", "Your business details")}
+            <PanelsTopLeft size={15} className={isHe ? "-scale-x-100" : undefined} style={{ color: "var(--a)" }} /> {L("פרטי העסק", "Your business details")}
           </p>
-          <PreviewButton onClick={() => downloadFile(`${slugify(biz.name) || "landing"}.html`, html, "text/html;charset=utf-8")}>
+          <PreviewButton onClick={() => {
+              const slug = slugify(biz.name);
+              downloadFile(`${slug === "generated-app" ? "landing-page" : slug}.html`, html, "text/html;charset=utf-8");
+            }}>
             <Download size={14} /> {L("הורדת הדף", "Download page")}
           </PreviewButton>
           <PreviewButton variant="ghost" onClick={() => copyText(html)}>
@@ -2381,7 +2541,7 @@ function LandingApp({ spec, dark, onToggleDark }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <LabeledInput label={L("שם העסק", "Business name")} value={biz.name} onChange={(value) => set("name", value)} />
-          <LabeledInput label={L("משפט מכירה", "Tagline")} value={biz.tagline} onChange={(value) => set("tagline", value)} />
+          <LabeledInput label={L("סלוגן", "Tagline")} value={biz.tagline} onChange={(value) => set("tagline", value)} />
           <LabeledInput label={L("טלפון", "Phone")} value={biz.phone} onChange={(value) => set("phone", value)} />
           <LabeledInput label={L("אימייל", "Email")} value={biz.email} onChange={(value) => set("email", value)} />
           <LabeledInput label={L("כתובת", "Address")} value={biz.address} onChange={(value) => set("address", value)} />
@@ -2452,6 +2612,10 @@ const BOOKING_SERVICES = [
   { id: "beard", he: "עיצוב זקן", en: "Beard trim", minutes: 20, price: 50 },
   { id: "combo", he: "תספורת + זקן", en: "Cut + beard", minutes: 45, price: 120 },
 ];
+/** Local calendar date as YYYY-MM-DD — never via toISOString(). */
+const localDayKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 const SLOT_TIMES = ["09:00", "09:45", "10:30", "11:15", "12:00", "13:30", "14:15", "15:00", "15:45", "16:30", "17:15", "18:00"];
 const DAY_NAMES_HE = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
 const DAY_NAMES_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -2461,23 +2625,34 @@ function BookingApp({ spec, dark, onToggleDark }) {
   const L = useL();
   const palette = useSeries();
 
+  // toISOString() converts local midnight to UTC and files every booking under
+  // the wrong date east of Greenwich — Israel included. Key on the local
+  // calendar date, and re-derive the strip when the day rolls over.
+  const [todayKey, setTodayKey] = useState(() => localDayKey(new Date()));
   const days = useMemo(() => {
-    const today = new Date();
+    const base = new Date();
     return Array.from({ length: 7 }, (_, offset) => {
-      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+      const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset);
       return {
-        key: date.toISOString().slice(0, 10),
+        key: localDayKey(date),
         dayName: L(DAY_NAMES_HE[date.getDay()], DAY_NAMES_EN[date.getDay()]),
         dayNum: date.getDate(),
         closed: date.getDay() === 6,
       };
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [todayKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setTodayKey(localDayKey(new Date())), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Seeding onto a closed day would show a confirmed booking beside "Closed".
+  const firstOpen = (days.find((item) => !item.closed) || days[0]).key;
   const [service, setService] = useState(BOOKING_SERVICES[0].id);
-  const [day, setDay] = useState(days[0].key);
+  const [day, setDay] = useState(firstOpen);
   const [customer, setCustomer] = useState("");
-  const [bookings, setBookings] = useState([{ id: uid("bk"), day: days[0].key, time: "10:30", service: "combo", customer: L("רונית ל.", "Ronit L.") }]);
+  const [bookings, setBookings] = useState([{ id: uid("bk"), day: firstOpen, time: "10:30", service: "combo", customer: L("רונית ל׳", "Ronit L.") }]);
 
   const selectedDay = days.find((item) => item.key === day) || days[0];
   const selectedService = BOOKING_SERVICES.find((item) => item.id === service) || BOOKING_SERVICES[0];
@@ -2491,7 +2666,12 @@ function BookingApp({ spec, dark, onToggleDark }) {
 
   const book = (time) => {
     if (taken.has(time) || selectedDay.closed) return;
-    setBookings((list) => [...list, { id: uid("bk"), day, time, service, customer: customer.trim() || L("לקוח חדש", "New customer") }]);
+    setBookings((list) =>
+      // Re-checked inside the updater so a double click cannot double-book.
+      list.some((entry) => entry.day === day && entry.time === time)
+        ? list
+        : [...list, { id: uid("bk"), day, time, service, customer: customer.trim() || L("לקוח חדש", "New customer") }]
+    );
     setCustomer("");
   };
 
@@ -2507,7 +2687,7 @@ function BookingApp({ spec, dark, onToggleDark }) {
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label={L("תורים ביום הנבחר", "Bookings on this day")} value={String(dayBookings.length)} />
         <Stat label={L("הכנסה צפויה", "Expected revenue")} value={money(revenue, "₪")} />
-        <Stat label={L("שעות פנויות", "Free slots")} value={String(selectedDay.closed ? 0 : SLOT_TIMES.length - taken.size)} tone="plain" />
+        <Stat label={L("תורים פנויים", "Free slots")} value={String(selectedDay.closed ? 0 : SLOT_TIMES.length - taken.size)} tone="plain" />
       </div>
 
       <Card className="mt-4">
@@ -2607,7 +2787,7 @@ function BookingApp({ spec, dark, onToggleDark }) {
             })}
           {dayBookings.length === 0 ? (
             <li className={cx("border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>
-              {L("אין עדיין תורים ליום הזה", "Nothing booked for this day yet")}
+              {L("אין עדיין תורים ליום זה", "Nothing booked for this day yet")}
             </li>
           ) : null}
         </ul>
@@ -2620,13 +2800,19 @@ function BookingApp({ spec, dark, onToggleDark }) {
 
 /* ---------------------------------------------------------------- Banking */
 
-const MONTHS_SHORT_HE = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ"];
+const CARD_LIMIT = 20000;
+const MONTHS_SHORT_HE = ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני"];
 const MONTHS_SHORT_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
 function BankingApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const isHe = useIsHe();
   const series = useSeries();
+  // Under RTL, money arriving points down-right and leaving points up-left.
+  const InIcon = isHe ? ArrowDownRight : ArrowDownLeft;
+  const OutIcon = isHe ? ArrowUpLeft : ArrowUpRight;
+  const mirror = isHe ? "-scale-x-100" : undefined;
 
   const [accounts, setAccounts] = useState([
     { id: "checking", he: "עובר ושב", en: "Checking", number: "12-441-88210", balance: 18430.5, kind: "cash" },
@@ -2667,19 +2853,33 @@ function BankingApp({ spec, dark, onToggleDark }) {
   const flowPeak = Math.max(...monthlyFlow.map((month) => Math.max(month.in, month.out)));
 
   const doTransfer = () => {
-    const amount = num(transfer.amount);
+    // Money is settled in whole agorot — a sub-cent amount would move a balance
+    // by less than the tiles can display and desync them from the header total.
+    const amount = Math.round(num(transfer.amount) * 100) / 100;
     const from = byId(transfer.from);
     const to = byId(transfer.to);
     if (!from || !to || from.id === to.id) {
-      setNotice({ tone: "critical", text: L("בחר שני חשבונות שונים", "Pick two different accounts") });
+      setNotice({ tone: "critical", text: L("בחרו שני חשבונות שונים", "Pick two different accounts") });
       return;
     }
     if (!(amount > 0)) {
-      setNotice({ tone: "critical", text: L("הזן סכום גדול מאפס", "Enter an amount above zero") });
+      setNotice({ tone: "critical", text: L("הזינו סכום גדול מאפס", "Enter an amount above zero") });
       return;
     }
-    if (from.kind === "cash" && from.balance < amount) {
-      setNotice({ tone: "critical", text: L("אין מספיק יתרה בחשבון המקור", "Not enough balance in the source account") });
+    if (frozen && (from.kind === "card" || to.kind === "card")) {
+      setNotice({ tone: "critical", text: L("הכרטיס מוקפא — בטלו את ההקפאה כדי להעביר", "The card is frozen — unfreeze it to transfer") });
+      return;
+    }
+    // A card may run negative, but only down to its credit limit.
+    const floor = from.kind === "card" ? -CARD_LIMIT : 0;
+    if (from.balance - amount < floor) {
+      setNotice({
+        tone: "critical",
+        text:
+          from.kind === "card"
+            ? L(`חריגה ממסגרת האשראי (${money(CARD_LIMIT, "₪")})`, `Over the card limit (${money(CARD_LIMIT, "₪")})`)
+            : L("אין מספיק יתרה בחשבון המקור", "Not enough balance in the source account"),
+      });
       return;
     }
     setAccounts((list) =>
@@ -2705,7 +2905,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
 
       <Card className="relative overflow-hidden">
         <div className="pointer-events-none absolute -inset-x-10 -top-24 h-48 rounded-full blur-3xl" style={{ background: "var(--a)", opacity: 0.16 }} />
-        <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("סך הנכסים", "Total balance")}</p>
+        <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("יתרה כוללת", "Total balance")}</p>
         <p className="mt-1 text-4xl font-semibold" style={{ color: "var(--a)" }}>
           <bdi className="tabular-nums">{shekel(netWorth)}</bdi>
         </p>
@@ -2728,7 +2928,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: series[index] }} />
                 <span className={cx("text-sm font-medium", t.heading)}>{accountName(account)}</span>
               </span>
-              <bdi className={cx("mt-1.5 block text-lg font-semibold tabular-nums", account.balance < 0 ? "" : "")} style={account.balance < 0 ? { color: STATUS.critical } : undefined}>
+              <bdi className="mt-1.5 block text-lg font-semibold tabular-nums" style={account.balance < 0 ? { color: STATUS.critical } : undefined}>
                 {shekel(account.balance)}
               </bdi>
               <bdi className={cx("block font-mono text-[11px]", t.faint)}>{account.number}</bdi>
@@ -2746,7 +2946,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
         <Card>
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <p className={cx("me-auto text-sm font-medium", t.heading)}>
-              {L("תנועות ב", "Transactions · ")}
+              {L("תנועות · ", "Transactions · ")}
               {accountName(activeAccount)}
             </p>
             {["all", "in", "out"].map((value) => (
@@ -2775,7 +2975,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-full"
                   style={{ background: `${tx.kind === "in" ? STATUS.good : series[1]}22`, color: tx.kind === "in" ? STATUS.good : series[1] }}
                 >
-                  {tx.kind === "in" ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                  {tx.kind === "in" ? <InIcon size={14} /> : <OutIcon size={14} />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm">{tx.label}</span>
@@ -2798,7 +2998,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
         <div className="grid content-start gap-4">
           <Card>
             <p className={cx("mb-3 flex items-center gap-2 text-sm font-medium", t.heading)}>
-              <Send size={14} style={{ color: "var(--a)" }} /> {L("העברה בין חשבונות", "Transfer between accounts")}
+              <Send size={14} className={mirror} style={{ color: "var(--a)" }} /> {L("העברה בין חשבונות", "Transfer between accounts")}
             </p>
             <label className="mb-2 block">
               <span className={cx("mb-1 block text-[11px] uppercase tracking-wider", t.faint)}>{L("מחשבון", "From")}</span>
@@ -2835,7 +3035,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
               />
             </label>
             <PreviewButton onClick={doTransfer} className="w-full">
-              <Send size={14} /> {L("בצע העברה", "Send transfer")}
+              <Send size={14} className={mirror} /> {L("בצעו העברה", "Send transfer")}
             </PreviewButton>
 
             {notice ? (
@@ -2875,13 +3075,13 @@ function BankingApp({ spec, dark, onToggleDark }) {
       {spec.showChart ? (
         <Card className="mt-4">
           <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-            <p className={cx("text-sm font-medium", t.heading)}>{L("כניסות מול יציאות לפי חודש", "Money in vs money out by month")}</p>
+            <p className={cx("text-sm font-medium", t.heading)}>{L("הכנסות מול הוצאות לפי חודש", "Money in vs money out by month")}</p>
             <span className="flex items-center gap-3 text-[11px]">
               <span className={cx("flex items-center gap-1.5", t.muted)}>
-                <span className="h-2 w-2 rounded-full" style={{ background: series[0] }} /> {L("נכנס", "In")}
+                <span className="h-2 w-2 rounded-full" style={{ background: series[0] }} /> {L("הכנסות", "In")}
               </span>
               <span className={cx("flex items-center gap-1.5", t.muted)}>
-                <span className="h-2 w-2 rounded-full" style={{ background: series[1] }} /> {L("יצא", "Out")}
+                <span className="h-2 w-2 rounded-full" style={{ background: series[1] }} /> {L("הוצאות", "Out")}
               </span>
             </span>
           </div>
@@ -2892,12 +3092,12 @@ function BankingApp({ spec, dark, onToggleDark }) {
                   <div
                     className="w-1/2 rounded-t-[4px] transition-all duration-500"
                     style={{ height: `${(month.in / flowPeak) * 100}%`, background: series[0] }}
-                    title={`${month.label} · ${L("נכנס", "In")} ${money(month.in, "₪")}`}
+                    title={`${month.label} · ${L("הכנסות", "In")} ${money(month.in, "₪")}`}
                   />
                   <div
                     className="w-1/2 rounded-t-[4px] transition-all duration-500"
                     style={{ height: `${(month.out / flowPeak) * 100}%`, background: series[1] }}
-                    title={`${month.label} · ${L("יצא", "Out")} ${money(month.out, "₪")}`}
+                    title={`${month.label} · ${L("הוצאות", "Out")} ${money(month.out, "₪")}`}
                   />
                 </div>
                 <span className={cx("text-[10px]", t.faint)}>{month.label}</span>
