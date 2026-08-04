@@ -205,24 +205,25 @@ const STATUS = { good: "#0ca30c", warning: "#fab219", serious: "#ec835a", critic
 const STYLES = [
   {
     id: "modern-dark",
-    name: "Modern Dark",
-    blurb: "Glass panels, violet glow",
-    accent: "#8b5cf6",
-    accent2: "#22d3ee",
+    name: "Nebula",
+    blurb: "Deep space navy, aurora accents",
+    accent: "#7c8cff",
+    accent2: "#31e6d6",
     dark: true,
-    canvas: "bg-[#0a0a12] text-slate-100",
-    surface: "bg-white/[0.04] border border-white/10 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]",
-    surfaceAlt: "bg-white/[0.02] border border-white/[0.07] rounded-xl",
+    canvas: "bg-[#0c1330] text-slate-100",
+    surface:
+      "bg-[#141c42]/70 border border-[#8fa4ff]/15 backdrop-blur-xl rounded-2xl shadow-[0_24px_70px_-34px_rgba(5,8,25,0.95)]",
+    surfaceAlt: "bg-[#101838]/70 border border-[#8fa4ff]/10 rounded-xl",
     heading: "text-white",
-    muted: "text-slate-400",
-    faint: "text-slate-500",
+    muted: "text-[#9aa8d4]",
+    faint: "text-[#6b7aa8]",
     input:
-      "w-full rounded-xl bg-white/[0.05] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-[var(--a)] focus:ring-2 focus:ring-[var(--a)]/25",
-    btn: "rounded-xl bg-[var(--a)] text-white shadow-[0_10px_30px_-10px_var(--a)] hover:brightness-110",
-    btnGhost: "rounded-xl border border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08]",
-    chip: "rounded-full border border-white/10 bg-white/[0.05] text-slate-300",
-    divider: "border-white/10",
-    track: "bg-white/10",
+      "w-full rounded-xl bg-[#0a1030]/80 border border-[#8fa4ff]/20 px-3 py-2 text-sm text-white placeholder:text-[#6b7aa8] outline-none transition focus:border-[var(--a)] focus:ring-2 focus:ring-[var(--a)]/30",
+    btn: "rounded-xl bg-[var(--a)] text-[#0a1030] font-semibold shadow-[0_12px_34px_-12px_var(--a)] hover:brightness-110",
+    btnGhost: "rounded-xl border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.06] text-slate-200 hover:bg-[#8fa4ff]/[0.12]",
+    chip: "rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] text-[#c3cdf0]",
+    divider: "border-[#8fa4ff]/15",
+    track: "bg-[#8fa4ff]/15",
     font: "",
     radius: "rounded-2xl",
   },
@@ -424,6 +425,9 @@ const BLUEPRINT_BY_ID = BLUEPRINTS.reduce((acc, bp) => {
 }, {});
 
 const PRESETS = ["landing", "banking", "budget", "booking", "invoice", "kanban", "roi", "rate"].map((id) => BLUEPRINT_BY_ID[id]);
+
+/** Chrome-only accents for the template cards — scannability, not data encoding. */
+const PRESET_HUES = ["#31e6d6", "#7c8cff", "#c98aff", "#ffb454", "#ff7a9c", "#5ad2ff", "#8fe388", "#ffd166"];
 
 const SURPRISE_IDEAS = [
   "A pricing calculator for a design studio that quotes projects by scope and rush fee",
@@ -2243,8 +2247,26 @@ const contrastRatio = (a, b) => {
 };
 const rgbToHex = ({ r, g, b }) => `#${[r, g, b].map((c) => clamp(Math.round(c), 0, 255).toString(16).padStart(2, "0")).join("")}`;
 
-/** Ink that stays legible on the accent — white on dark accents, near-black on light ones. */
-const inkOn = (hex) => (contrastRatio(hexToRgb(hex), { r: 255, g: 255, b: 255 }) >= 3.5 ? "#ffffff" : "#10131a");
+/** Blend towards deep space navy — never towards black. */
+const mixToNavy = (hex, amount) => {
+  const a = hexToRgb(hex);
+  const b = hexToRgb("#0d1436");
+  return rgbToHex({ r: a.r + (b.r - a.r) * amount, g: a.g + (b.g - a.g) * amount, b: a.b + (b.b - a.b) * amount });
+};
+
+/**
+ * Ink that stays legible across every stop of a gradient, not just its lightest.
+ * Picks whichever of white / deep navy holds up worst-case.
+ */
+const bestInk = (colors) => {
+  const white = { r: 255, g: 255, b: 255 };
+  const navy = hexToRgb("#0a1030");
+  const worst = (target) => Math.min(...colors.map((hex) => contrastRatio(hexToRgb(hex), target)));
+  return worst(white) >= worst(navy) ? "#ffffff" : "#0a1030";
+};
+
+/** Ink that stays legible on a flat accent field. */
+const inkOn = (hex) => bestInk([hex]);
 
 /** A darkened accent for text on white, stepped down until it clears 4.5:1. */
 const accentForText = (hex) => {
@@ -2291,7 +2313,9 @@ const buildLandingHtml = (biz, accent, isHe) => {
     String(value).replace(/\d{1,2}:\d{2}\s*[–—-]\s*\d{1,2}:\d{2}/g, (range) => `<bdi dir="ltr">${range}</bdi>`);
 
   const name = has(biz.name) ? biz.name : t("העסק שלי", "My business");
-  const onAccent = inkOn(accent);
+  const accentDeep = mixToNavy(accent, 0.42);
+  const accentGlow = mixToNavy(accent, -0.18);
+  const onAccent = bestInk([accent, accentDeep]);
   const accentInk = accentForText(accent);
   const telDigits = String(biz.phone || "").split(/[,;/]|\sאו\s|\sor\s/)[0].replace(/[^0-9+]/g, "");
   const wa = waNumber(biz.phone, isHe);
@@ -2366,7 +2390,24 @@ const buildLandingHtml = (biz, accent, isHe) => {
   body { margin: 0; font-family: ${font}; color: var(--ink); background: var(--surface); line-height: 1.6;
          overflow-wrap: anywhere; }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-  header.hero { background: linear-gradient(160deg, var(--accent) 0%, #0b0c10 165%); color: var(--on-accent); padding: 84px 0 68px; }
+  header.hero {
+    position: relative; overflow: hidden; color: var(--on-accent); padding: 88px 0 72px;
+    background:
+      radial-gradient(90% 120% at 12% 0%, ${accentGlow} 0%, transparent 62%),
+      radial-gradient(80% 110% at 88% 6%, ${accent} 0%, transparent 60%),
+      linear-gradient(158deg, ${accent} 0%, ${accentDeep} 100%);
+  }
+  /* Starfield: two radial layers, no image request. */
+  header.hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background:
+      radial-gradient(1.5px 1.5px at 14% 22%, rgba(255,255,255,.75), transparent),
+      radial-gradient(1.2px 1.2px at 38% 68%, rgba(255,255,255,.55), transparent),
+      radial-gradient(1.6px 1.6px at 62% 30%, rgba(255,255,255,.65), transparent),
+      radial-gradient(1.2px 1.2px at 82% 74%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1.4px 1.4px at 92% 40%, rgba(255,255,255,.6), transparent);
+  }
+  header.hero > .wrap { position: relative; z-index: 1; }
   header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: ${isHe ? "normal" : "-0.02em"}; }
   header.hero p.tagline { font-size: clamp(16px, 2.4vw, 20px); opacity: .93; margin: 0 0 28px; max-width: 46ch; }
   .cta { display: inline-block; background: var(--surface); color: var(--accent-ink); font-weight: 700;
@@ -2386,7 +2427,7 @@ const buildLandingHtml = (biz, accent, isHe) => {
   .chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
   blockquote { margin: 0; background: var(--sunken); border-radius: 18px; padding: 32px; font-size: 19px; }
   blockquote footer { margin-top: 12px; font-size: 14px; color: var(--muted); }
-  .contact { background: #0f1116; color: #fff; }
+  .contact { background: #101a3f; color: #fff; }
   .contact a { color: #fff; }
   .contact .cta { color: var(--accent-ink); background: #fff; }
   .rows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
@@ -2401,11 +2442,11 @@ const buildLandingHtml = (biz, accent, isHe) => {
   .actionbar a.wa { background: #25d366; color: #05230f; }
   @media (max-width: 720px) { .actionbar { display: grid; } body { padding-bottom: 68px; } }
   @media (prefers-color-scheme: dark) {
-    :root { --ink: #eef1f6; --muted: #9aa4b2; --line: #232833; --surface: #0d0f13; --sunken: #161a21; }
-    .card { background: #12151b; }
+    :root { --ink: #eef1f6; --muted: #9aa8c4; --line: #222b4d; --surface: #0c1330; --sunken: #141c42; }
+    .card { background: #141c42; }
     .card .price { color: #fff; }
-    .contact { background: #171b23; }
-    .actionbar a { background: #12151b; color: #eef1f6; }
+    .contact { background: #172050; }
+    .actionbar a { background: #141c42; color: #eef1f6; }
   }
   @media print {
     .actionbar, .cta { display: none !important; }
@@ -4176,10 +4217,49 @@ const KEYFRAMES = `
 }
 .aab-caret::after { content: "▌"; animation: aab-blink 1s step-end infinite; margin-left: 2px; }
 .aab-grid {
-  background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  background-image: linear-gradient(rgba(143,164,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(143,164,255,.07) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 35%, transparent 100%);
+}
+/* Static starfield — two radial-gradient layers, no images, no requests. */
+.aab-stars {
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,.55), transparent),
+    radial-gradient(1.2px 1.2px at 34% 62%, rgba(190,215,255,.45), transparent),
+    radial-gradient(1.6px 1.6px at 58% 26%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.2px 1.2px at 76% 71%, rgba(180,205,255,.4), transparent),
+    radial-gradient(1.5px 1.5px at 88% 34%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1.1px 1.1px at 22% 84%, rgba(200,220,255,.4), transparent),
+    radial-gradient(1.3px 1.3px at 66% 92%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.2px 1.2px at 45% 8%, rgba(210,225,255,.4), transparent);
+  background-size: 100% 100%;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 10%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 10%, #000 30%, transparent 100%);
+}
+/* The aurora that replaces the flat black backdrop. */
+.aab-aurora::before,
+.aab-aurora::after {
+  content: "";
+  position: absolute;
+  inset: -25% -15% auto -15%;
+  height: 120vh;
+  pointer-events: none;
+  filter: blur(100px);
+}
+.aab-aurora::before {
+  opacity: .95;
+  background:
+    radial-gradient(38% 34% at 16% 12%, rgba(124,140,255,.95), transparent 68%),
+    radial-gradient(34% 30% at 82% 8%, rgba(49,230,214,.72), transparent 68%),
+    radial-gradient(40% 32% at 50% 46%, rgba(146,110,255,.55), transparent 70%),
+    radial-gradient(32% 26% at 12% 68%, rgba(49,230,214,.4), transparent 70%),
+    radial-gradient(34% 28% at 88% 76%, rgba(226,120,255,.45), transparent 70%);
+}
+.aab-aurora::after {
+  opacity: .8;
+  background: radial-gradient(34% 26% at 52% 2%, rgba(226,120,255,.6), transparent 72%);
+  animation: aab-float 15s ease-in-out infinite;
 }
 .aab-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
 .aab-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -4195,7 +4275,7 @@ function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
-      <div className="aab-pop flex items-center gap-2.5 rounded-full border border-white/15 bg-slate-900/90 px-4 py-2.5 text-sm text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+      <div className="aab-pop flex items-center gap-2.5 rounded-full border border-[#8fa4ff]/25 bg-[#111a44]/95 px-4 py-2.5 text-sm text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl">
         <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-400/20 text-emerald-300">
           <Check size={12} />
         </span>
@@ -4208,13 +4288,13 @@ function Toast({ toast }) {
 function Logo({ compact }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-[0_8px_24px_-8px_rgba(139,92,246,0.9)]">
-        <Sparkles size={17} className="text-white" />
+      <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#7c8cff] via-[#8f7bff] to-[#31e6d6] shadow-[0_10px_28px_-8px_rgba(124,140,255,0.95)]">
+        <Sparkles size={17} className="text-[#08102c]" />
       </span>
       {!compact ? (
         <span className="text-[15px] font-semibold tracking-tight text-white">
           AI App Builder
-          <span className="ml-1.5 rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 align-middle text-[10px] font-medium text-slate-400">
+          <span className="ml-1.5 rounded-md border border-[#8fa4ff]/25 bg-[#8fa4ff]/10 px-1.5 py-0.5 align-middle text-[10px] font-medium text-[#a9b6e0]">
             beta
           </span>
         </span>
@@ -4239,27 +4319,25 @@ function Landing({ state, dispatch, onGenerate }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07070c] text-slate-200">
+    <div className="relative min-h-screen overflow-hidden bg-[#0b1130] text-slate-200">
+      <div className="pointer-events-none absolute inset-0 aab-aurora" />
       <div className="pointer-events-none absolute inset-0 aab-grid" />
+      <div className="pointer-events-none absolute inset-0 aab-stars" />
       <div
-        className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full blur-[130px] aab-float"
-        style={{ background: "radial-gradient(circle, rgba(139,92,246,.45), transparent 65%)" }}
-      />
-      <div
-        className="pointer-events-none absolute -right-32 top-24 h-[460px] w-[460px] rounded-full blur-[130px] aab-float"
-        style={{ background: "radial-gradient(circle, rgba(34,211,238,.32), transparent 65%)", animationDelay: "-4s" }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-[520px]"
+        style={{ background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(49,230,214,.16), transparent 70%)" }}
       />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Logo />
         <nav className="flex items-center gap-2">
-          <span className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400 sm:flex">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+          <span className="hidden items-center gap-1.5 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3 py-1.5 text-xs text-[#94a2ce] sm:flex">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#31e6d6]" />
             Generator online
           </span>
           <a
             href="#pricing"
-            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+            className="rounded-xl border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-2 text-sm text-slate-200 transition hover:bg-[#8fa4ff]/15"
           >
             Pricing
           </a>
@@ -4268,36 +4346,36 @@ function Landing({ state, dispatch, onGenerate }) {
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-8 text-center sm:pt-14">
         <div className="aab-rise flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur">
-            <Zap size={13} className="text-violet-300" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-1.5 text-xs text-[#c3cdf0] backdrop-blur">
+            <Zap size={13} className="text-[#8fa4ff]" />
             Ships working React, not screenshots
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur">
-            <Languages size={13} className="text-cyan-300" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-1.5 text-xs text-[#c3cdf0] backdrop-blur">
+            <Languages size={13} className="text-[#31e6d6]" />
             <bdi dir="rtl" lang="he">עברית ו‑RTL נתמכים</bdi>
           </span>
         </div>
 
         <h1
-          className="aab-rise mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl"
+          className="aab-rise mx-auto mt-7 max-w-[16ch] text-[2.4rem] font-semibold leading-[1.06] tracking-[-0.03em] text-white sm:max-w-none sm:text-[3.35rem]"
           style={{ animationDelay: "60ms" }}
         >
           Turn any idea into a
           <br className="hidden sm:block" />{" "}
-          <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#8fa4ff] via-[#c9a6ff] to-[#31e6d6] bg-clip-text text-transparent">
             functional app
           </span>{" "}
           in seconds
         </h1>
 
-        <p className="aab-rise mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-slate-400" style={{ animationDelay: "120ms" }}>
+        <p className="aab-rise mx-auto mt-6 max-w-[34rem] text-base leading-[1.7] text-[#9aa8d4]" style={{ animationDelay: "120ms" }}>
           Describe the tool you wish existed. Watch it get architected, generated and rendered — then keep refining it in plain English until
           it is exactly right.
         </p>
 
         <div className="aab-rise mt-9" style={{ animationDelay: "180ms" }}>
-          <div className="group relative rounded-3xl border border-white/10 bg-white/[0.035] p-2 shadow-[0_40px_120px_-50px_rgba(139,92,246,0.8)] backdrop-blur-xl transition focus-within:border-violet-400/50">
-            <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-r from-violet-500/10 via-transparent to-cyan-500/10 opacity-0 transition group-focus-within:opacity-100" />
+          <div className="group relative rounded-[26px] border border-[#8fa4ff]/28 bg-[#161f4c]/70 p-2 shadow-[0_44px_130px_-52px_rgba(124,140,255,0.85)] backdrop-blur-2xl transition focus-within:border-[#8fa4ff]/55">
+            <div className="pointer-events-none absolute inset-0 rounded-[26px] bg-gradient-to-r from-[#7c8cff]/15 via-transparent to-[#31e6d6]/15 opacity-0 transition group-focus-within:opacity-100" />
             <textarea
               ref={textareaRef}
               value={state.prompt}
@@ -4328,8 +4406,8 @@ function Landing({ state, dispatch, onGenerate }) {
                 className={cx(
                   "inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold transition",
                   canGenerate
-                    ? "bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-[0_14px_40px_-14px_rgba(139,92,246,1)] hover:brightness-110 active:scale-[0.98]"
-                    : "cursor-not-allowed bg-white/5 text-slate-500"
+                    ? "bg-gradient-to-r from-[#7c8cff] via-[#8f7bff] to-[#31e6d6] text-[#08102c] shadow-[0_16px_44px_-14px_rgba(124,140,255,1)] hover:brightness-110 active:scale-[0.98]"
+                    : "cursor-not-allowed bg-white/[0.06] text-[#5d6a96]"
                 )}
               >
                 <Wand2 size={15} />
@@ -4344,7 +4422,7 @@ function Landing({ state, dispatch, onGenerate }) {
         </div>
 
         <div className="aab-rise mt-10 text-left" style={{ animationDelay: "240ms" }}>
-          <p className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+          <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c8cff]">
             <Lightbulb size={13} /> Start from a template
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -4362,17 +4440,19 @@ function Landing({ state, dispatch, onGenerate }) {
                     // An odd preset count would leave a lonely half-width card.
                     index === PRESETS.length - 1 && PRESETS.length % 2 === 1 ? "sm:col-span-2" : "",
                     active
-                      ? "border-violet-400/60 bg-violet-500/10 shadow-[0_10px_40px_-18px_rgba(139,92,246,0.9)]"
-                      : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
+                      ? "border-[#8fa4ff]/60 bg-[#7c8cff]/12 shadow-[0_12px_46px_-18px_rgba(124,140,255,0.95)]"
+                      : "border-[#8fa4ff]/18 bg-[#1a2352]/60 backdrop-blur-xl hover:border-[#8fa4ff]/38 hover:bg-[#202a63]/75"
                   )}
                   style={{ animationDelay: `${260 + index * 40}ms` }}
                 >
                   <div className="flex items-start gap-3">
                     <span
-                      className={cx(
-                        "grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition",
-                        active ? "border-violet-400/40 bg-violet-500/20 text-violet-200" : "border-white/10 bg-white/5 text-slate-300"
-                      )}
+                      className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition"
+                      style={{
+                        borderColor: `${PRESET_HUES[index % PRESET_HUES.length]}55`,
+                        background: `${PRESET_HUES[index % PRESET_HUES.length]}22`,
+                        color: PRESET_HUES[index % PRESET_HUES.length],
+                      }}
                     >
                       <Icon size={17} />
                     </span>
@@ -4381,10 +4461,10 @@ function Landing({ state, dispatch, onGenerate }) {
                         {preset.name}
                         <ArrowUpRight size={13} className="opacity-0 transition group-hover:opacity-60" />
                       </p>
-                      <p className="mt-0.5 truncate text-xs text-slate-400">{preset.subtitle}</p>
+                      <p className="mt-1 truncate text-xs text-[#94a2ce]">{preset.subtitle}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {preset.tags.map((tag) => (
-                          <span key={tag} className="rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-400">
+                          <span key={tag} className="rounded-md border border-[#8fa4ff]/15 bg-[#8fa4ff]/[0.07] px-1.5 py-0.5 text-[10px] text-[#94a2ce]">
                             {tag}
                           </span>
                         ))}
@@ -4398,7 +4478,7 @@ function Landing({ state, dispatch, onGenerate }) {
         </div>
 
         <div className="aab-rise mt-10 text-left" style={{ animationDelay: "300ms" }}>
-          <p className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+          <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c8cff]">
             <Palette size={13} /> Output style
           </p>
           <div className="flex flex-wrap gap-2">
@@ -4412,21 +4492,21 @@ function Landing({ state, dispatch, onGenerate }) {
                   className={cx(
                     "group flex items-center gap-2.5 rounded-full border px-3.5 py-2 text-sm transition",
                     active
-                      ? "border-white/25 bg-white/10 text-white shadow-[0_8px_30px_-14px_rgba(255,255,255,0.6)]"
-                      : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200"
+                      ? "border-[#8fa4ff]/45 bg-[#8fa4ff]/15 text-white shadow-[0_10px_32px_-14px_rgba(124,140,255,0.8)]"
+                      : "border-[#8fa4ff]/18 bg-[#1a2352]/60 text-[#a9b6e0] backdrop-blur-xl hover:border-[#8fa4ff]/38 hover:text-white"
                   )}
                 >
                   <span className="flex -space-x-1">
-                    <span className="h-3.5 w-3.5 rounded-full ring-2 ring-[#07070c]" style={{ background: option.accent }} />
+                    <span className="h-3.5 w-3.5 rounded-full ring-2 ring-[#0b1130]" style={{ background: option.accent }} />
                     <span className="h-3.5 w-3.5 rounded-full ring-2 ring-[#07070c]" style={{ background: option.accent2 }} />
                   </span>
                   {option.name}
-                  {active ? <Check size={13} className="text-violet-300" /> : null}
+                  {active ? <Check size={13} className="text-[#31e6d6]" /> : null}
                 </button>
               );
             })}
           </div>
-          <p className="mt-2.5 text-xs text-slate-500">{style.blurb}</p>
+          <p className="mt-3 text-xs text-[#7c8aba]">{style.blurb}</p>
         </div>
 
         <div id="pricing" className="mt-16 grid gap-3 sm:grid-cols-3">
@@ -4439,10 +4519,10 @@ function Landing({ state, dispatch, onGenerate }) {
             { icon: Terminal, title: "Readable source", body: "Every render ships with the matching Tailwind + React code." },
             { icon: Languages, title: "Hebrew & RTL", body: "Prompt in Hebrew and the app, labels and code come back right-to-left." },
           ].map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left">
-              <feature.icon size={16} className="text-violet-300" />
-              <p className="mt-2.5 text-sm font-medium text-white">{feature.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-400">{feature.body}</p>
+            <div key={feature.title} className="rounded-2xl border border-[#8fa4ff]/18 bg-[#1a2352]/60 p-5 text-left backdrop-blur-xl">
+              <feature.icon size={16} className="text-[#31e6d6]" />
+              <p className="mt-3 text-sm font-medium text-white">{feature.title}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-[#94a2ce]">{feature.body}</p>
             </div>
           ))}
         </div>
@@ -4462,18 +4542,19 @@ function Generating({ state, onCancel }) {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#07070c] px-6 text-slate-200">
-      <div className="pointer-events-none absolute inset-0 aab-grid" />
+      <div className="pointer-events-none absolute inset-0 aab-aurora" />
+      <div className="pointer-events-none absolute inset-0 aab-stars" />
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(circle, rgba(139,92,246,.35), transparent 65%)" }}
+        style={{ background: "radial-gradient(circle, rgba(124,140,255,.4), transparent 65%)" }}
       />
 
       <div className="relative z-10 w-full max-w-2xl">
-        <div className="aab-pop rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_50px_120px_-40px_rgba(0,0,0,1)] backdrop-blur-2xl sm:p-8">
+        <div className="aab-pop rounded-3xl border border-[#8fa4ff]/20 bg-[#111a44]/70 p-6 shadow-[0_54px_130px_-42px_rgba(5,8,25,1)] backdrop-blur-2xl sm:p-8">
           <div className="flex items-center gap-3">
-            <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600">
-              <Loader2 size={19} className="animate-spin text-white" />
-              <span className="absolute inset-0 animate-ping rounded-2xl bg-violet-500/30" />
+            <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#7c8cff] to-[#31e6d6]">
+              <Loader2 size={19} className="animate-spin text-[#08102c]" />
+              <span className="absolute inset-0 animate-ping rounded-2xl bg-[#7c8cff]/35" />
             </span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white">Building your app</p>
@@ -4493,7 +4574,7 @@ function Generating({ state, onCancel }) {
 
           <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-violet-400 to-cyan-300 transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-[#7c8cff] via-[#a78bfa] to-[#31e6d6] transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -4516,10 +4597,10 @@ function Generating({ state, onCancel }) {
                     className={cx(
                       "grid h-7 w-7 shrink-0 place-items-center rounded-full border transition",
                       done
-                        ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
+                        ? "border-[#31e6d6]/45 bg-[#31e6d6]/15 text-[#7ff0e4]"
                         : active
-                        ? "border-violet-400/50 bg-violet-500/15 text-violet-200"
-                        : "border-white/10 text-slate-500"
+                        ? "border-[#8fa4ff]/55 bg-[#7c8cff]/20 text-[#cdd6ff]"
+                        : "border-[#8fa4ff]/15 text-[#6b7aa8]"
                     )}
                   >
                     {done ? <Check size={13} /> : active ? <Loader2 size={13} className="animate-spin" /> : <Icon size={13} />}
@@ -4536,7 +4617,7 @@ function Generating({ state, onCancel }) {
             })}
           </ol>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-4 font-mono text-[11.5px] leading-relaxed text-slate-400">
+          <div className="mt-6 rounded-2xl border border-[#8fa4ff]/18 bg-[#070c24]/80 p-4 font-mono text-[11.5px] leading-relaxed text-[#94a2ce]">
             <p className="text-slate-500">$ builder generate --style={state.styleId}</p>
             {GEN_STEPS.slice(0, state.stepIndex).map((step) => (
               <p key={step.id} className="text-emerald-300/90">
@@ -4585,17 +4666,17 @@ function PreviewCanvas({ spec }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-2 border-b border-white/10 bg-[#0b0b12] px-3 py-2">
+      <div className="flex items-center gap-2 border-b border-[#8fa4ff]/15 bg-[#0d1436] px-3 py-2">
         <span className="flex gap-1.5 pl-1 pr-2">
           <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
         </span>
-        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5">
-          <ShieldCheck size={12} className="shrink-0 text-emerald-400/80" />
-          <span className="truncate font-mono text-[11px] text-slate-400">preview://apps/{slugify(componentName(spec))}</span>
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.06] px-2.5 py-1.5">
+          <ShieldCheck size={12} className="shrink-0 text-[#31e6d6]" />
+          <span className="truncate font-mono text-[11px] text-[#94a2ce]">preview://apps/{slugify(componentName(spec))}</span>
         </div>
-        <div className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+        <div className="flex items-center gap-0.5 rounded-lg border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.06] p-0.5">
           {DEVICES.map((item) => (
             <button
               key={item.id}
@@ -4604,7 +4685,7 @@ function PreviewCanvas({ spec }) {
               onClick={() => setDevice(item.id)}
               className={cx(
                 "grid h-7 w-7 place-items-center rounded-md transition",
-                device === item.id ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+                device === item.id ? "bg-[#8fa4ff]/22 text-white" : "text-[#7c8aba] hover:text-slate-300"
               )}
             >
               <item.icon size={13} />
@@ -4613,7 +4694,7 @@ function PreviewCanvas({ spec }) {
         </div>
       </div>
 
-      <div className="aab-scroll min-h-0 flex-1 overflow-auto bg-[#0d0d15] p-4">
+      <div className="aab-scroll min-h-0 flex-1 overflow-auto bg-[#0a1030] p-4">
         <div className="mx-auto transition-all duration-300" style={{ width: activeDevice.width, maxWidth: "100%" }}>
           <ThemeCtx.Provider value={theme}>
             <LangCtx.Provider value={spec.lang || "en"}>
@@ -4670,10 +4751,10 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
   const lineCount = state.code.split("\n").length;
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#0a0a12]">
-      <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
-        <span className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-medium text-slate-300">
-          <Code2 size={12} className="text-violet-300" />
+    <div className="flex h-full min-h-0 flex-col bg-[#090f2a]">
+      <div className="flex items-center gap-2 border-b border-[#8fa4ff]/15 px-3 py-2">
+        <span className="flex items-center gap-1.5 rounded-lg border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-[#c3cdf0]">
+          <Code2 size={12} className="text-[#31e6d6]" />
           {componentName(state.spec)}.jsx
         </span>
         <span className="font-mono text-[11px] text-slate-600">{lineCount} lines</span>
@@ -4689,8 +4770,8 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
               className={cx(
                 "shrink-0 rounded-md border px-2 py-1 font-mono text-[11px] transition",
                 index === state.activeVersion
-                  ? "border-violet-400/50 bg-violet-500/15 text-violet-200"
-                  : "border-white/10 bg-white/[0.03] text-slate-500 hover:text-slate-300"
+                  ? "border-[#8fa4ff]/55 bg-[#7c8cff]/20 text-[#cdd6ff]"
+                  : "border-[#8fa4ff]/15 bg-[#8fa4ff]/[0.05] text-[#7c8aba] hover:text-slate-300"
               )}
             >
               {version.label}
@@ -4703,7 +4784,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
         <CodeViewer code={state.code} changed={state.changedLines} />
       </div>
 
-      <div className="border-t border-white/10 bg-[#0b0b14] p-3">
+      <div className="border-t border-[#8fa4ff]/15 bg-[#0c1232] p-3">
         <div className="mb-2.5 flex flex-wrap gap-1.5">
           {REFINE_SUGGESTIONS.map((suggestion) => (
             <button
@@ -4711,16 +4792,16 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
               type="button"
               dir="auto"
               onClick={() => submit(suggestion)}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-400 transition hover:border-violet-400/40 hover:text-violet-200"
+              className="rounded-full border border-[#8fa4ff]/16 bg-[#8fa4ff]/[0.06] px-2.5 py-1 text-[11px] text-[#94a2ce] transition hover:border-[#31e6d6]/50 hover:text-[#a8f4ec]"
             >
               {suggestion}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 transition focus-within:border-violet-400/50">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600">
-            <Wand2 size={14} className="text-white" />
+        <div className="flex items-center gap-2 rounded-2xl border border-[#8fa4ff]/20 bg-[#111a44]/70 p-1.5 transition focus-within:border-[#8fa4ff]/55">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#7c8cff] to-[#31e6d6]">
+            <Wand2 size={14} className="text-[#08102c]" />
           </span>
           <input
             ref={inputRef}
@@ -4741,8 +4822,8 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
             className={cx(
               "inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition",
               pending || !state.refine.trim()
-                ? "cursor-not-allowed bg-white/5 text-slate-500"
-                : "bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:brightness-110 active:scale-[0.98]"
+                ? "cursor-not-allowed bg-white/[0.06] text-[#5d6a96]"
+                : "bg-gradient-to-r from-[#7c8cff] to-[#31e6d6] text-[#08102c] hover:brightness-110 active:scale-[0.98]"
             )}
           >
             {pending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
@@ -4773,25 +4854,25 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
   ];
 
   return (
-    <div className="flex h-screen flex-col bg-[#07070c] text-slate-200">
-      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-white/10 bg-[#0a0a12] px-4 py-3">
+    <div className="flex h-screen flex-col bg-[#0b1130] text-slate-200">
+      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-[#8fa4ff]/15 bg-[#0d1436]/90 px-4 py-3 backdrop-blur-xl">
         <button type="button" onClick={() => dispatch({ type: "RESET" })} className="flex items-center gap-2.5" title="New app">
           <Logo compact />
         </button>
 
-        <div className="hidden min-w-0 items-center gap-2 border-l border-white/10 pl-3 sm:flex">
-          <BlueprintIcon size={14} className="shrink-0 text-violet-300" />
+        <div className="hidden min-w-0 items-center gap-2 border-l border-[#8fa4ff]/15 pl-3 sm:flex">
+          <BlueprintIcon size={14} className="shrink-0 text-[#31e6d6]" />
           <div className="min-w-0">
             <p dir="auto" className="truncate text-sm font-medium text-white">
               {spec.title}
             </p>
-            <p className="truncate text-[11px] text-slate-500">
+            <p className="truncate text-[11px] text-[#7c8aba]">
               {blueprint.name} · {STYLE_BY_ID[spec.styleId].name}
             </p>
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+        <div className="ml-auto flex items-center gap-1 rounded-xl border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.07] p-1">
           {views.map((item) => (
             <button
               key={item.id}
@@ -4799,7 +4880,7 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
               onClick={() => dispatch({ type: "SET_VIEW", value: item.id })}
               className={cx(
                 "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition",
-                view === item.id ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                view === item.id ? "bg-[#8fa4ff]/22 text-white shadow-sm" : "text-[#94a2ce] hover:text-slate-200"
               )}
             >
               <item.icon size={13} />
@@ -4815,7 +4896,7 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
           <button
             type="button"
             onClick={() => dispatch({ type: "RESET" })}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-2 text-xs font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#7c8cff] to-[#31e6d6] px-3 py-2 text-xs font-semibold text-[#08102c] transition hover:brightness-110 active:scale-[0.98]"
           >
             <Rocket size={13} />
             <span className="hidden sm:inline">New app</span>
@@ -4851,7 +4932,7 @@ function ToolbarButton({ onClick, icon: Icon, label }) {
       type="button"
       onClick={onClick}
       title={label}
-      className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+      className="inline-flex items-center gap-1.5 rounded-xl border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.07] px-2.5 py-2 text-xs font-medium text-[#c3cdf0] transition hover:bg-[#8fa4ff]/15 hover:text-white active:scale-[0.98]"
     >
       <Icon size={13} />
       <span className="hidden md:inline">{label}</span>

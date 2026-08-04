@@ -83,7 +83,7 @@ order and never cycled, so a category keeps its hue when the set is filtered. St
 (good / warning / serious / critical) are reserved, never reused as a series, and always ship
 with an icon or a label so meaning never rests on colour alone.
 
-**Styling engine.** The four output styles (Modern Dark, Minimalist, Corporate, Cyberpunk)
+**Styling engine.** The four output styles (Nebula, Minimalist, Corporate, Cyberpunk)
 are complete Tailwind class strings in `STYLES`, handed to renderers through a React context.
 The accent colour rides on a `--a` CSS variable set on the preview root, so "make the accent
 cyan" is a one-field state change that repaints the whole app — and the exported code gets the
