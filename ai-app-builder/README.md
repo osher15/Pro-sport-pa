@@ -34,15 +34,15 @@ dependencies, no props and no global state.
 
 | State | What happens |
 | --- | --- |
-| **A · Landing** | Hero, freeform textarea (⌘/Ctrl+Enter to submit), four preset quick-cards, four output-style chips, "Surprise me" |
+| **A · Landing** | Hero, freeform textarea (⌘/Ctrl+Enter to submit), eight preset quick-cards, four output-style chips, "Surprise me" |
 | **B · Generating** | Four-step animated pipeline — architecture → components → state & mock data → preview canvas — with a live terminal log and progress bar |
 | **C · Workspace** | Preview / Code / Split toggle, Copy · Download .JSX · Share, device-width switcher, code inspector with version history and a natural-language refinement bar |
 
 ## How it actually works
 
 **Blueprint matching.** `resolveSpec()` runs the prompt through an ordered list of
-`BLUEPRINTS` regexes (invoice → budget → kanban → roi → rate → tracker fallback) and derives a
-product title from the prompt itself. Each blueprint matches English *and* Hebrew keywords.
+`BLUEPRINTS` regexes (invoice → budget → banking → landing → booking → kanban → roi → rate →
+tracker fallback) and derives a product title from the prompt itself. Each blueprint matches English *and* Hebrew keywords.
 Preset cards short-circuit the matcher.
 
 **Hebrew and RTL.** `detectLang()` looks for a single character in the Hebrew Unicode block;
@@ -54,15 +54,26 @@ generated source carries the Hebrew strings and `dir="rtl"` too. Component and f
 Latin (`PersonalFinanceManager.jsx`). Refinements are bilingual — "שנה את צבע הדגש לירוק"
 works exactly like "change the accent to green".
 
-**Six interactive renderers.** Every archetype is a real, stateful component — not a
+**Nine interactive renderers.** Every archetype is a real, stateful component — not a
 mockup:
 
+- **Business Landing Page** — fill in name, tagline, services, hours and contact details; a finished page renders live in an iframe and downloads as one standalone HTML file (no host, no builder account, no external requests). All values are HTML-escaped on the way in.
+- **Banking Dashboard** — three accounts, transfers that validate the source balance and refuse same-account moves, a searchable and filterable transaction feed, a card-freeze switch, and a money-in vs money-out chart.
+- **Appointment Booking** — selectable services with duration and price, a rolling seven-day strip with closed days, a slot grid that disables what is taken, confirmed bookings with cancel, and expected revenue.
 - **Personal Finance Manager** — income vs. expenses, six spend categories, live balance, budget-usage bar and a six-month trend chart.
 - **Freelance Rate Calculator** — seven inputs → hourly / day / project rate, a where-the-money-goes bar, and a rate-sensitivity chart.
 - **Task Kanban Board** — HTML5 drag & drop between columns, keyboard-free move buttons, priority cycling, live WIP counts.
 - **Invoice Generator** — editable line items, four currencies, tax + discount, paid toggle, and a real file export.
 - **SaaS ROI Calculator** — MRR/ARR/LTV/CAC modelling with a 12-month projection chart and a unit-economics verdict.
 - **Idea & Habit Tracker** — the fallback for freeform prompts: add/complete/filter with an animated SVG progress ring.
+
+**Chart colour.** Categorical hues come from a fixed eight-slot order (`SERIES_LIGHT` /
+`SERIES_DARK`) chosen for whichever surface the preview is on, and validated with the data-viz
+palette validator against this app's own surfaces — lightness band, chroma floor,
+colour-blind separation, normal-vision separation and contrast. Slots are assigned in fixed
+order and never cycled, so a category keeps its hue when the set is filtered. Status colours
+(good / warning / serious / critical) are reserved, never reused as a series, and always ship
+with an icon or a label so meaning never rests on colour alone.
 
 **Styling engine.** The four output styles (Modern Dark, Minimalist, Corporate, Cyberpunk)
 are complete Tailwind class strings in `STYLES`, handed to renderers through a React context.
@@ -91,7 +102,7 @@ single self-cancelling `useEffect` that advances `stepIndex` and commits on the 
 Generated apps keep their own local `useState`, remounted via `key` when the archetype or theme
 changes.
 
-## Adding a seventh archetype
+## Adding a tenth archetype
 
 1. Add an entry to `BLUEPRINTS` — id, `name`/`nameHe`, `subtitle`/`subtitleHe`, icon, tags, a match regex covering both languages, and an example prompt.
 2. Write the renderer with the themed primitives (`Card`, `Slider`, `Stat`, `MiniBars`, `PreviewButton`), wrap every visible string in `L(he, en)`, and register it in `APP_RENDERERS`.

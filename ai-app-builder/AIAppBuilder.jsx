@@ -24,12 +24,14 @@ import React, {
 } from "react";
 import {
   Activity,
+  ArrowDownLeft,
   ArrowUpRight,
   BarChart3,
   Blocks,
   Boxes,
   Braces,
   Calculator,
+  CalendarClock,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -49,6 +51,7 @@ import {
   GripVertical,
   History,
   KanbanSquare,
+  Landmark,
   Languages,
   Lightbulb,
   ListChecks,
@@ -57,6 +60,7 @@ import {
   Moon,
   MousePointerClick,
   Palette,
+  PanelsTopLeft,
   Plus,
   Printer,
   RefreshCw,
@@ -172,6 +176,20 @@ const downloadFile = (filename, contents, mime = "text/plain;charset=utf-8") => 
    on CSS variables applied to the preview root, which keeps refinement
    ("change accent to cyan") a one-line state change.
    ================================================================== */
+
+/**
+ * Categorical chart slots. Assigned in fixed order, never cycled — a series
+ * keeps its hue when the set is filtered. Both columns were checked with the
+ * data-viz palette validator against this app's real surfaces (light #fbfbfa,
+ * dark #0a0a12): lightness band, chroma floor, CVD separation, normal-vision
+ * floor and contrast all pass. Three light slots sit below 3:1, so every chart
+ * that uses them ships direct labels (the relief rule).
+ */
+const SERIES_LIGHT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+const SERIES_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+
+/** Status colours are reserved: never reused as a categorical slot, always paired with an icon or label. */
+const STATUS = { good: "#0ca30c", warning: "#fab219", serious: "#ec835a", critical: "#d03b3b" };
 
 const STYLES = [
   {
@@ -306,6 +324,44 @@ const BLUEPRINTS = [
     prompt: "A personal finance manager that tracks income and expenses by category, shows the monthly balance and a budget progress bar.",
   },
   {
+    id: "banking",
+    name: "Banking Dashboard",
+    nameHe: "דשבורד בנקאי",
+    subtitle: "Accounts, transfers and a live transaction feed",
+    subtitleHe: "חשבונות, העברות ותנועות בזמן אמת",
+    icon: Landmark,
+    tags: ["Banking", "Transfers"],
+    match:
+      /bank(ing|ers)?\b|checking account|current account|savings account|iban|wire|transfer money|money transfer|debit card|credit card|statement|overdraft|בנק|בנקאות|עו"?ש|עובר ושב|העבר(ה|ות) כספ|חשבון עו|כרטיס אשראי|יתרה בחשבון|תנועות בחשבון|משיכת יתר/i,
+    prompt:
+      "A digital banking dashboard with multiple accounts, transfers between them, a searchable transaction feed and a monthly money-in vs money-out chart.",
+  },
+  {
+    id: "landing",
+    name: "Business Landing Page",
+    nameHe: "דף נחיתה לעסק",
+    subtitle: "Fill in your details, get a ready page",
+    subtitleHe: "ממלאים פרטים ומקבלים דף מוכן",
+    icon: PanelsTopLeft,
+    tags: ["Marketing", "HTML export"],
+    match:
+      /landing ?page|website for (my|a) business|business (site|page|website)|one ?pager|marketing page|sales page|micro ?site|homepage for|דף נחיתה|דפי נחיתה|אתר תדמית|אתר לעסק|עמוד מכירה|אתר בשניות|נוכחות דיגיטלית/i,
+    prompt:
+      "A landing page builder for small businesses: fill in the business details and instantly get a finished page with hero, services, testimonial and contact section, exportable as HTML.",
+  },
+  {
+    id: "booking",
+    name: "Appointment Booking",
+    nameHe: "מערכת זימון תורים",
+    subtitle: "Services, day strip, slots and bookings",
+    subtitleHe: "שירותים, ימים, שעות פנויות וזימון",
+    icon: CalendarClock,
+    tags: ["Scheduling", "Slots"],
+    match:
+      /appointment|booking|schedul(e|ing) (system|app|tool)|reservation|calendar app|time ?slots?|barber|salon|clinic|תורים|זימון תור|קביעת תור|יומן פגישות|הזמנת מקום|מספרה|קליניקה|תיאום פגישות/i,
+    prompt: "An appointment booking system with selectable services, a seven day strip, available time slots and a list of confirmed bookings.",
+  },
+  {
     id: "kanban",
     name: "Task Kanban Board",
     nameHe: "לוח משימות קנבן",
@@ -356,7 +412,7 @@ const BLUEPRINT_BY_ID = BLUEPRINTS.reduce((acc, bp) => {
   return acc;
 }, {});
 
-const PRESETS = ["budget", "rate", "kanban", "roi", "invoice"].map((id) => BLUEPRINT_BY_ID[id]);
+const PRESETS = ["landing", "banking", "budget", "booking", "invoice", "kanban", "roi", "rate"].map((id) => BLUEPRINT_BY_ID[id]);
 
 const SURPRISE_IDEAS = [
   "A pricing calculator for a design studio that quotes projects by scope and rush fee",
@@ -430,7 +486,7 @@ const resolveSpec = (prompt, styleId, forcedId) => {
     accent: style.accent,
     accent2: style.accent2,
     density: "comfortable",
-    showChart: blueprint.id === "roi" || blueprint.id === "budget",
+    showChart: ["roi", "budget", "banking", "booking"].includes(blueprint.id),
     showHeader: true,
     darkToggle: false,
   };
@@ -1108,6 +1164,402 @@ const CODE_BUILDERS = {
     ].join("\n");
   },
 
+  banking: (spec) => {
+    const name = componentName(spec);
+    const q = qOf(spec);
+    return [
+      ...codeHeader(spec, { icons: ["Landmark", "Send", "ArrowDownLeft", "ArrowUpRight", "BarChart3", "Moon", "Sun"] }),
+      ...themeLine(spec),
+      "const SEED_ACCOUNTS = [",
+      '  { id: "checking", name: "' + q("עובר ושב", "Checking") + '", number: "12-441-88210", balance: 18430.5, kind: "cash" },',
+      '  { id: "savings", name: "' + q("חיסכון", "Savings") + '", number: "12-441-90077", balance: 62150, kind: "cash" },',
+      '  { id: "card", name: "' + q("כרטיס אשראי", "Credit card") + '", number: "•••• 4417", balance: -3820.4, kind: "card" },',
+      "];",
+      "",
+      "const shekel = (value) =>",
+      '  "₪" + Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });',
+      "",
+      "export default function " + name + "() {",
+      "  const [accounts, setAccounts] = useState(SEED_ACCOUNTS);",
+      '  const [active, setActive] = useState("checking");',
+      '  const [flow, setFlow] = useState("all");',
+      '  const [query, setQuery] = useState("");',
+      '  const [transfer, setTransfer] = useState({ from: "checking", to: "savings", amount: "" });',
+      "  const [notice, setNotice] = useState(null);",
+      "  const [txs, setTxs] = useState([",
+      '    { id: 1, account: "checking", label: "' + q("משכורת חודשית", "Monthly salary") + '", amount: 16200, date: "01/08", kind: "in" },',
+      '    { id: 2, account: "checking", label: "' + q("שכר דירה", "Rent") + '", amount: -4200, date: "02/08", kind: "out" },',
+      '    { id: 3, account: "card", label: "' + q("תדלוק", "Fuel") + '", amount: -310, date: "03/08", kind: "out" },',
+      "  ]);",
+      ...darkStateLine(spec),
+      "  const byId = (id) => accounts.find((account) => account.id === id);",
+      "  const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);",
+      "",
+      "  const visible = useMemo(",
+      "    () =>",
+      "      txs",
+      "        .filter((tx) => tx.account === active)",
+      '        .filter((tx) => (flow === "all" ? true : tx.kind === flow))',
+      "        .filter((tx) => tx.label.toLowerCase().includes(query.trim().toLowerCase())),",
+      "    [txs, active, flow, query]",
+      "  );",
+      "",
+      "  const series = [14200, 14840, 15480, 16120, 16760, 17400];",
+      "  const peak = Math.max(...series);",
+      "",
+      "  const send = () => {",
+      "    const amount = Number(transfer.amount);",
+      "    const from = byId(transfer.from);",
+      "    const to = byId(transfer.to);",
+      "    if (!from || !to || from.id === to.id) {",
+      '      setNotice({ ok: false, text: "' + q("בחר שני חשבונות שונים", "Pick two different accounts") + '" });',
+      "      return;",
+      "    }",
+      "    if (!(amount > 0)) {",
+      '      setNotice({ ok: false, text: "' + q("הזן סכום גדול מאפס", "Enter an amount above zero") + '" });',
+      "      return;",
+      "    }",
+      '    if (from.kind === "cash" && from.balance < amount) {',
+      '      setNotice({ ok: false, text: "' + q("אין מספיק יתרה", "Not enough balance") + '" });',
+      "      return;",
+      "    }",
+      "    setAccounts((list) =>",
+      "      list.map((account) => {",
+      "        if (account.id === from.id) return { ...account, balance: account.balance - amount };",
+      "        if (account.id === to.id) return { ...account, balance: account.balance + amount };",
+      "        return account;",
+      "      })",
+      "    );",
+      "    setTxs((list) => [",
+      '      { id: Date.now(), account: to.id, label: "' + q("העברה נכנסת", "Incoming transfer") + '", amount, date: "04/08", kind: "in" },',
+      '      { id: Date.now() + 1, account: from.id, label: "' + q("העברה יוצאת", "Outgoing transfer") + '", amount: -amount, date: "04/08", kind: "out" },',
+      "      ...list,",
+      "    ]);",
+      '    setTransfer({ ...transfer, amount: "" });',
+      '    setNotice({ ok: true, text: shekel(amount) + " ' + q("הועברו בהצלחה", "transferred") + '" });',
+      "  };",
+      "",
+      "  return (",
+      rootDiv(spec),
+      ...headerBlock(spec),
+      "      <section className={card}>",
+      '        <p className="text-xs uppercase tracking-widest opacity-60">' + q("סך הנכסים", "Total balance") + "</p>",
+      '        <p className="mt-1 text-4xl font-semibold" style={{ color: ACCENT }}>',
+      "          <bdi>{shekel(netWorth)}</bdi>",
+      "        </p>",
+      "      </section>",
+      "",
+      '      <div className="mt-4 grid gap-3 sm:grid-cols-3">',
+      "        {accounts.map((account) => (",
+      "          <button",
+      "            key={account.id}",
+      "            onClick={() => setActive(account.id)}",
+      '            className={card + " text-start"}',
+      "            style={active === account.id ? { outline: \"2px solid \" + ACCENT } : undefined}",
+      "          >",
+      '            <span className="text-sm font-medium">{account.name}</span>',
+      '            <bdi className="mt-1 block text-lg font-semibold">{shekel(account.balance)}</bdi>',
+      '            <bdi className="block font-mono text-[11px] opacity-60">{account.number}</bdi>',
+      "          </button>",
+      "        ))}",
+      "      </div>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      "        <input",
+      "          className={input}",
+      "          value={query}",
+      '          placeholder="' + q("חיפוש בתנועות…", "Search transactions…") + '"',
+      "          onChange={(event) => setQuery(event.target.value)}",
+      "        />",
+      '        <ul className="mt-3 space-y-2">',
+      "          {visible.map((tx) => (",
+      '            <li key={tx.id} className="flex items-center gap-3 rounded-lg border border-current/10 p-3">',
+      '              <span className="grid h-8 w-8 place-items-center rounded-full border border-current/15">',
+      "                {tx.kind === \"in\" ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}",
+      "              </span>",
+      '              <span className="min-w-0 flex-1">',
+      '                <span className="block truncate text-sm">{tx.label}</span>',
+      '                <bdi className="block text-[11px] opacity-60">{tx.date}</bdi>',
+      "              </span>",
+      '              <bdi className="text-sm font-semibold tabular-nums">{shekel(tx.amount)}</bdi>',
+      "            </li>",
+      "          ))}",
+      "        </ul>",
+      "      </section>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      '        <p className="mb-3 text-sm font-medium">' + q("העברה בין חשבונות", "Transfer between accounts") + "</p>",
+      "        <select className={input} value={transfer.from} onChange={(event) => setTransfer({ ...transfer, from: event.target.value })}>",
+      "          {accounts.map((account) => (",
+      "            <option key={account.id} value={account.id}>{account.name}</option>",
+      "          ))}",
+      "        </select>",
+      "        <select",
+      '          className={input + " mt-2"}',
+      "          value={transfer.to}",
+      "          onChange={(event) => setTransfer({ ...transfer, to: event.target.value })}",
+      "        >",
+      "          {accounts.map((account) => (",
+      "            <option key={account.id} value={account.id}>{account.name}</option>",
+      "          ))}",
+      "        </select>",
+      "        <input",
+      '          type="number"',
+      '          className={input + " mt-2"}',
+      "          value={transfer.amount}",
+      '          placeholder="0.00"',
+      "          onChange={(event) => setTransfer({ ...transfer, amount: event.target.value })}",
+      "        />",
+      '        <button onClick={send} className="mt-3 w-full py-2" style={{ background: ACCENT, color: "#fff" }}>',
+      "          <Send size={14} /> " + q("בצע העברה", "Send transfer"),
+      "        </button>",
+      "        {notice ? (",
+      '          <p className="mt-2 text-xs font-medium" role="status" style={{ color: notice.ok ? "#0ca30c" : "#d03b3b" }}>',
+      "            {notice.text}",
+      "          </p>",
+      "        ) : null}",
+      "      </section>",
+      ...chartBlock(spec, q("תזרים חודשי", "Monthly cash flow")),
+      "    </div>",
+      "  );",
+      "}",
+    ].join("\n");
+  },
+
+  landing: (spec) => {
+    const name = componentName(spec);
+    const q = qOf(spec);
+    return [
+      ...codeHeader(spec, { icons: ["PanelsTopLeft", "Download", "Copy", "Moon", "Sun"] }),
+      ...themeLine(spec),
+      "// The generated page is a standalone HTML document — no framework, no host.",
+      "const buildPage = (biz, accent) => `<!DOCTYPE html>",
+      '<html lang="' + q("he", "en") + '" dir="' + q("rtl", "ltr") + '">',
+      '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
+      "<title>${biz.name}</title>",
+      "<style>",
+      "  body { margin:0; font-family:" + q("'Noto Sans Hebrew',Arial,sans-serif", "Inter,system-ui,sans-serif") + "; color:#14161a; }",
+      "  .hero { background:linear-gradient(160deg, ${accent}, #0b0c10 130%); color:#fff; padding:80px 20px; }",
+      "  .wrap { max-width:1080px; margin:0 auto; }",
+      "  .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); padding:56px 20px; }",
+      "  .card { border:1px solid #e6e8ec; border-radius:16px; padding:24px; }",
+      "  .cta { display:inline-block; background:#fff; color:${accent}; font-weight:700; padding:14px 30px; border-radius:999px; text-decoration:none; }",
+      "</style></head>",
+      "<body>",
+      '  <header class="hero"><div class="wrap"><h1>${biz.name}</h1><p>${biz.tagline}</p>',
+      '  <a class="cta" href="tel:${biz.phone}">${biz.cta}</a></div></header>',
+      '  <main class="wrap grid">',
+      "    ${biz.services",
+      "      .filter((service) => service.name)",
+      '      .map((service) => `<article class="card"><h3>${service.name}</h3><p>${service.detail}</p><p>${service.price}</p></article>`)',
+      '      .join("")}',
+      "  </main>",
+      "  <footer><p>${biz.phone} · ${biz.email} · ${biz.address}</p></footer>",
+      "</body></html>`;",
+      "",
+      "export default function " + name + "() {",
+      "  const [biz, setBiz] = useState({",
+      '    name: "' + q("מספרת אבי", "Avi's Barbershop") + '",',
+      '    tagline: "' + q("תספורת מדויקת, בלי להמתין בתור", "A sharp cut, with no waiting around") + '",',
+      '    phone: "' + q("052-1234567", "+1 555 0134") + '",',
+      '    email: "hello@example.com",',
+      '    address: "' + q("הרצל 24, תל אביב", "24 High Street, Bristol") + '",',
+      '    cta: "' + q("קבעו תור עכשיו", "Book now") + '",',
+      "    services: [",
+      '      { name: "' + q("תספורת גברים", "Men\\u2019s cut") + '", detail: "' + q("כולל שטיפה", "Includes wash") + '", price: "' + q("₪80", "$28") + '" },',
+      '      { name: "' + q("עיצוב זקן", "Beard trim") + '", detail: "' + q("קווים חדים", "Sharp lines") + '", price: "' + q("₪50", "$18") + '" },',
+      "    ],",
+      "  });",
+      ...darkStateLine(spec),
+      "  const html = useMemo(() => buildPage(biz, ACCENT), [biz]);",
+      "  const set = (key, value) => setBiz((current) => ({ ...current, [key]: value }));",
+      "",
+      "  const download = () => {",
+      '    const blob = new Blob([html], { type: "text/html;charset=utf-8" });',
+      "    const url = URL.createObjectURL(blob);",
+      '    const anchor = document.createElement("a");',
+      "    anchor.href = url;",
+      '    anchor.download = "landing.html";',
+      "    anchor.click();",
+      "    URL.revokeObjectURL(url);",
+      "  };",
+      "",
+      "  return (",
+      rootDiv(spec),
+      ...headerBlock(spec),
+      "      <section className={card}>",
+      '        <div className="grid gap-3 sm:grid-cols-2">',
+      '          {["name", "tagline", "phone", "email", "address", "cta"].map((key) => (',
+      '            <label key={key} className="block">',
+      '              <span className="mb-1 block text-[11px] uppercase tracking-wider opacity-60">{key}</span>',
+      "              <input className={input} value={biz[key]} onChange={(event) => set(key, event.target.value)} />",
+      "            </label>",
+      "          ))}",
+      "        </div>",
+      '        <button onClick={download} className="mt-3 px-4 py-2" style={{ background: ACCENT, color: "#fff" }}>',
+      "          <Download size={14} /> " + q("הורדת הדף", "Download page"),
+      "        </button>",
+      "      </section>",
+      "",
+      "      <iframe",
+      '        title="' + q("תצוגת דף הנחיתה", "Landing page preview") + '"',
+      "        srcDoc={html}",
+      '        className="mt-4 h-[520px] w-full rounded-xl border-0 bg-white"',
+      '        sandbox="allow-same-origin"',
+      "      />",
+      "    </div>",
+      "  );",
+      "}",
+    ].join("\n");
+  },
+
+  booking: (spec) => {
+    const name = componentName(spec);
+    const q = qOf(spec);
+    return [
+      ...codeHeader(spec, { icons: ["CalendarClock", "Trash2", "BarChart3", "Moon", "Sun"] }),
+      ...themeLine(spec),
+      "const SERVICES = [",
+      '  { id: "cut", name: "' + q("תספורת", "Haircut") + '", minutes: 30, price: 80 },',
+      '  { id: "beard", name: "' + q("עיצוב זקן", "Beard trim") + '", minutes: 20, price: 50 },',
+      '  { id: "combo", name: "' + q("תספורת + זקן", "Cut + beard") + '", minutes: 45, price: 120 },',
+      "];",
+      "",
+      'const SLOTS = ["09:00", "09:45", "10:30", "11:15", "12:00", "13:30", "14:15", "15:00", "15:45", "16:30"];',
+      "const DAY_NAMES = [" + q('"א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"', '"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"') + "];",
+      "",
+      "export default function " + name + "() {",
+      "  const days = useMemo(() => {",
+      "    const today = new Date();",
+      "    return Array.from({ length: 7 }, (_, offset) => {",
+      "      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);",
+      "      return {",
+      "        key: date.toISOString().slice(0, 10),",
+      "        dayName: DAY_NAMES[date.getDay()],",
+      "        dayNum: date.getDate(),",
+      "        closed: date.getDay() === 6,",
+      "      };",
+      "    });",
+      "  }, []);",
+      "",
+      "  const [service, setService] = useState(SERVICES[0].id);",
+      "  const [day, setDay] = useState(days[0].key);",
+      '  const [customer, setCustomer] = useState("");',
+      "  const [bookings, setBookings] = useState([]);",
+      ...darkStateLine(spec),
+      "  const selectedDay = days.find((item) => item.key === day) || days[0];",
+      "  const dayBookings = bookings.filter((booking) => booking.day === day);",
+      "  const taken = new Set(dayBookings.map((booking) => booking.time));",
+      "  const revenue = dayBookings.reduce((sum, booking) => {",
+      "    const found = SERVICES.find((item) => item.id === booking.service);",
+      "    return sum + (found ? found.price : 0);",
+      "  }, 0);",
+      "",
+      "  const series = days.map((item) => bookings.filter((booking) => booking.day === item.key).length);",
+      "  const peak = Math.max(1, ...series);",
+      "",
+      "  const book = (time) => {",
+      "    if (taken.has(time) || selectedDay.closed) return;",
+      "    setBookings((list) => [",
+      "      ...list,",
+      '      { id: Date.now(), day, time, service, customer: customer.trim() || "' + q("לקוח חדש", "New customer") + '" },',
+      "    ]);",
+      '    setCustomer("");',
+      "  };",
+      "",
+      "  return (",
+      rootDiv(spec),
+      ...headerBlock(spec),
+      '      <div className="grid gap-4 sm:grid-cols-2">',
+      "        <div className={card}>",
+      '          <p className="text-xs uppercase tracking-widest opacity-60">' + q("תורים ביום", "Bookings today") + "</p>",
+      '          <p className="mt-1 text-2xl font-semibold" style={{ color: ACCENT }}>{dayBookings.length}</p>',
+      "        </div>",
+      "        <div className={card}>",
+      '          <p className="text-xs uppercase tracking-widest opacity-60">' + q("הכנסה צפויה", "Expected revenue") + "</p>",
+      '          <bdi className="mt-1 block text-2xl font-semibold" style={{ color: ACCENT }}>{"₪" + revenue}</bdi>',
+      "        </div>",
+      "      </div>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      '        <div className="flex flex-wrap gap-2">',
+      "          {SERVICES.map((item) => (",
+      "            <button",
+      "              key={item.id}",
+      "              onClick={() => setService(item.id)}",
+      '              className="rounded-lg border border-current/15 px-3 py-2 text-start text-sm"',
+      '              style={service === item.id ? { background: ACCENT, color: "#fff" } : undefined}',
+      "            >",
+      '              <span className="block font-medium">{item.name}</span>',
+      '              <bdi className="block text-[11px] opacity-75">{item.minutes} ' + q("דק׳", "min") + ' · {"₪" + item.price}</bdi>',
+      "            </button>",
+      "          ))}",
+      "        </div>",
+      "",
+      '        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">',
+      "          {days.map((item) => (",
+      "            <button",
+      "              key={item.key}",
+      "              onClick={() => setDay(item.key)}",
+      '              className="min-w-[64px] shrink-0 rounded-lg border border-current/15 px-3 py-2 text-center"',
+      '              style={day === item.key ? { background: ACCENT, color: "#fff" } : undefined}',
+      "            >",
+      '              <span className="block text-[11px]">{item.dayName}</span>',
+      '              <bdi className="block text-lg font-semibold">{item.dayNum}</bdi>',
+      "            </button>",
+      "          ))}",
+      "        </div>",
+      "",
+      "        {selectedDay.closed ? (",
+      '          <p className="mt-4 border border-dashed border-current/20 p-6 text-center text-sm opacity-60">',
+      "            " + q("העסק סגור ביום זה", "Closed on this day"),
+      "          </p>",
+      "        ) : (",
+      '          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">',
+      "            {SLOTS.map((time) => (",
+      "              <button",
+      "                key={time}",
+      "                disabled={taken.has(time)}",
+      "                onClick={() => book(time)}",
+      '                className="rounded-lg border border-current/15 px-2 py-2 text-sm tabular-nums disabled:opacity-40 disabled:line-through"',
+      "              >",
+      "                <bdi>{time}</bdi>",
+      "              </button>",
+      "            ))}",
+      "          </div>",
+      "        )}",
+      "",
+      "        <input",
+      '          className={input + " mt-3"}',
+      "          value={customer}",
+      '          placeholder="' + q("שם הלקוח", "Customer name") + '"',
+      "          onChange={(event) => setCustomer(event.target.value)}",
+      "        />",
+      "      </section>",
+      "",
+      '      <section className={card + " mt-4"}>',
+      '        <ul className="space-y-2">',
+      "          {dayBookings",
+      "            .slice()",
+      "            .sort((a, b) => a.time.localeCompare(b.time))",
+      "            .map((booking) => (",
+      '              <li key={booking.id} className="flex items-center gap-3 rounded-lg border border-current/10 p-3">',
+      '                <bdi className="text-sm font-semibold" style={{ color: ACCENT }}>{booking.time}</bdi>',
+      '                <span className="flex-1 truncate text-sm">{booking.customer}</span>',
+      "                <button onClick={() => setBookings((list) => list.filter((entry) => entry.id !== booking.id))}>",
+      "                  <Trash2 size={14} />",
+      "                </button>",
+      "              </li>",
+      "            ))}",
+      "        </ul>",
+      "      </section>",
+      ...chartBlock(spec, q("תורים לפי יום", "Bookings per day")),
+      "    </div>",
+      "  );",
+      "}",
+    ].join("\n");
+  },
+
   budget: (spec) => {
     const name = componentName(spec);
     const he = spec.lang === "he";
@@ -1196,7 +1648,7 @@ const CODE_BUILDERS = {
       "              key={category.id}",
       "              onClick={() => setDraft({ ...draft, category: category.id })}",
       '              className="rounded-full border border-current/15 px-2.5 py-1 text-xs"',
-      '              style={draft.category === category.id ? { background: category.color, color: "#fff" } : undefined}',
+      '              style={draft.category === category.id ? { background: hue(category), color: "#fff" } : undefined}',
       "            >",
       "              {category.label}",
       "            </button>",
@@ -1462,6 +1914,12 @@ const useL = () => {
 };
 const useIsHe = () => useContext(LangCtx) === "he";
 
+/** Categorical slots stepped for whichever surface the preview is currently on. */
+const useSeries = () => {
+  const t = useT();
+  return t.dark ? SERIES_DARK : SERIES_LIGHT;
+};
+
 function Card({ className, children, ...rest }) {
   const t = useT();
   return (
@@ -1506,7 +1964,7 @@ function Stat({ label, value, hint, tone }) {
       <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{label}</p>
       <p
         className="mt-1 text-2xl font-semibold tabular-nums"
-        style={{ color: tone === "warn" ? "#f59e0b" : tone === "plain" ? undefined : "var(--a)" }}
+        style={{ color: tone === "warn" ? STATUS.warning : tone === "plain" ? undefined : "var(--a)" }}
       >
         {value}
       </p>
@@ -1594,6 +2052,7 @@ function AppHeader({ spec, dark, onToggleDark }) {
 function RateCalculatorApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const palette = useSeries();
   const [income, setIncome] = useState(120000);
   const [expenses, setExpenses] = useState(18000);
   const [hoursPerWeek, setHoursPerWeek] = useState(25);
@@ -1619,10 +2078,10 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
   }, [income, expenses, hoursPerWeek, weeksOff, taxRate, margin, projectHours]);
 
   const breakdown = [
-    { label: L("נטו לכיס", "Take-home"), value: income, color: "var(--a)" },
-    { label: L("מס", "Tax"), value: result.tax, color: "#f59e0b" },
-    { label: L("הוצאות", "Expenses"), value: expenses, color: "#64748b" },
-    { label: L("רווח", "Profit"), value: Math.max(0, result.profit), color: "#10b981" },
+    { label: L("נטו לכיס", "Take-home"), value: income, color: palette[0] },
+    { label: L("מס", "Tax"), value: result.tax, color: palette[1] },
+    { label: L("הוצאות", "Expenses"), value: expenses, color: palette[2] },
+    { label: L("רווח", "Profit"), value: Math.max(0, result.profit), color: palette[3] },
   ];
   const totalBreakdown = Math.max(1, breakdown.reduce((sum, part) => sum + part.value, 0));
 
@@ -1748,13 +2207,718 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
   );
 }
 
+/* --------------------------------------------------- Business landing page */
+
+/** Builds a complete, standalone landing page document from the form values. */
+const buildLandingHtml = (biz, accent, isHe) => {
+  const dir = isHe ? "rtl" : "ltr";
+  const lang = isHe ? "he" : "en";
+  const font = isHe
+    ? "'Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif"
+    : "Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const esc = (value) =>
+    String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  const t = (he, en) => (isHe ? he : en);
+  const services = biz.services
+    .filter((service) => service.name.trim())
+    .map(
+      (service) => `      <article class="card">
+        <h3>${esc(service.name)}</h3>
+        <p>${esc(service.detail)}</p>
+        <p class="price">${esc(service.price)}</p>
+      </article>`
+    )
+    .join("\n");
+  const telHref = `tel:${String(biz.phone).replace(/[^0-9+]/g, "")}`;
+  const waHref = `https://wa.me/${String(biz.phone).replace(/[^0-9]/g, "").replace(/^0/, "972")}`;
+
+  return `<!DOCTYPE html>
+<html lang="${lang}" dir="${dir}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(biz.name)} — ${esc(biz.tagline)}</title>
+<meta name="description" content="${esc(biz.tagline)}">
+<style>
+  :root { --accent: ${accent}; --ink: #14161a; --muted: #5b6472; --line: #e6e8ec; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ${font}; color: var(--ink); background: #fff; line-height: 1.6; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header.hero { background: linear-gradient(160deg, var(--accent) 0%, #0b0c10 130%); color: #fff; padding: 88px 0 72px; }
+  header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: -0.02em; }
+  header.hero p { font-size: clamp(16px, 2.4vw, 20px); opacity: .92; margin: 0 0 28px; max-width: 46ch; }
+  .cta { display: inline-block; background: #fff; color: var(--accent); font-weight: 700; padding: 14px 30px; border-radius: 999px; text-decoration: none; }
+  .cta.ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.55); margin-inline-start: 10px; }
+  section { padding: 64px 0; }
+  h2 { font-size: clamp(22px, 3.4vw, 32px); margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); }
+  .card .price { margin-top: 12px; color: var(--accent); font-weight: 700; font-size: 18px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .badge { border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 14px; color: var(--muted); }
+  blockquote { margin: 0; background: #f6f7f9; border-radius: 18px; padding: 32px; font-size: 19px; }
+  blockquote footer { margin-top: 12px; font-size: 14px; color: var(--muted); }
+  .contact { background: #0f1116; color: #fff; }
+  .contact a { color: #fff; }
+  .rows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .rows li { display: flex; gap: 10px; align-items: center; }
+  .foot { padding: 26px 0; font-size: 13px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d0f13; color: #eef1f6; }
+    :root { --ink: #eef1f6; --muted: #9aa4b2; --line: #232833; }
+    blockquote { background: #161a21; }
+    .card { background: #12151b; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>${esc(biz.name)}</h1>
+    <p>${esc(biz.tagline)}</p>
+    <a class="cta" href="${telHref}">${esc(biz.cta)}</a>
+    <a class="cta ghost" href="${waHref}">${t("וואטסאפ", "WhatsApp")}</a>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>${t("השירותים שלנו", "What we do")}</h2>
+    <p class="sub">${esc(biz.about)}</p>
+    <div class="grid">
+${services}
+    </div>
+    <div class="badges">
+      <span class="badge">${t("שירות אישי", "Personal service")}</span>
+      <span class="badge">${t("מחירים הוגנים", "Fair pricing")}</span>
+      <span class="badge">${t("זמינות גבוהה", "Highly available")}</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <blockquote>
+      “${esc(biz.testimonial)}”
+      <footer>— ${esc(biz.testimonialBy)}</footer>
+    </blockquote>
+  </div>
+</section>
+
+<section class="contact">
+  <div class="wrap">
+    <h2>${t("דברו איתנו", "Get in touch")}</h2>
+    <ul class="rows">
+      <li>${t("טלפון", "Phone")}: <a href="${telHref}"><bdi>${esc(biz.phone)}</bdi></a></li>
+      <li>${t("אימייל", "Email")}: <a href="mailto:${esc(biz.email)}"><bdi>${esc(biz.email)}</bdi></a></li>
+      <li>${t("כתובת", "Address")}: ${esc(biz.address)}</li>
+      <li>${t("שעות", "Hours")}: ${esc(biz.hours)}</li>
+    </ul>
+    <p style="margin-top:26px"><a class="cta" href="${telHref}">${esc(biz.cta)}</a></p>
+  </div>
+</section>
+
+<p class="foot">© ${new Date().getFullYear()} ${esc(biz.name)}</p>
+</body>
+</html>
+`;
+};
+
+function LandingApp({ spec, dark, onToggleDark }) {
+  const t = useT();
+  const L = useL();
+  const isHe = useIsHe();
+  const [biz, setBiz] = useState({
+    name: L("מספרת אבי", "Avi's Barbershop"),
+    tagline: L("תספורת מדויקת, בלי להמתין בתור", "A sharp cut, with no waiting around"),
+    about: L("עשרים שנה של מקצועיות, בלב העיר.", "Twenty years of craft, right in the town centre."),
+    services: [
+      { name: L("תספורת גברים", "Men's cut"), detail: L("כולל שטיפה וסידור", "Includes wash and styling"), price: L("₪80", "$28") },
+      { name: L("עיצוב זקן", "Beard trim"), detail: L("קווים חדים ושמן טיפוח", "Sharp lines and beard oil"), price: L("₪50", "$18") },
+      { name: L("חבילת חתן", "Groom package"), detail: L("תספורת, זקן וטיפוח פנים", "Cut, beard and facial"), price: L("₪240", "$85") },
+    ],
+    testimonial: L("נכנסתי בלי תור ויצאתי אחרי עשרים דקות מסופר. שירות אלוף.", "Walked in with no appointment and left twenty minutes later. Brilliant service."),
+    testimonialBy: L("דני כ., לקוח קבוע", "Danny K., regular"),
+    phone: L("052-1234567", "+1 555 0134"),
+    email: "hello@avi.co.il",
+    address: L("הרצל 24, תל אביב", "24 High Street, Bristol"),
+    hours: L("א׳–ה׳ 09:00–19:00, ו׳ 08:00–14:00", "Mon–Fri 9am–7pm, Sat 8am–2pm"),
+    cta: L("קבעו תור עכשיו", "Book now"),
+  });
+
+  const set = (key, value) => setBiz((current) => ({ ...current, [key]: value }));
+  const setService = (index, key, value) =>
+    setBiz((current) => ({
+      ...current,
+      services: current.services.map((service, i) => (i === index ? { ...service, [key]: value } : service)),
+    }));
+
+  const html = buildLandingHtml(biz, spec.accent, isHe);
+
+  return (
+    <div className="p-[var(--pad)] md:p-6">
+      <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
+
+      <Card>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <p className={cx("me-auto flex items-center gap-2 text-sm font-medium", t.heading)}>
+            <PanelsTopLeft size={15} style={{ color: "var(--a)" }} /> {L("פרטי העסק", "Your business details")}
+          </p>
+          <PreviewButton onClick={() => downloadFile(`${slugify(biz.name) || "landing"}.html`, html, "text/html;charset=utf-8")}>
+            <Download size={14} /> {L("הורדת הדף", "Download page")}
+          </PreviewButton>
+          <PreviewButton variant="ghost" onClick={() => copyText(html)}>
+            <Copy size={14} /> {L("העתקת HTML", "Copy HTML")}
+          </PreviewButton>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <LabeledInput label={L("שם העסק", "Business name")} value={biz.name} onChange={(value) => set("name", value)} />
+          <LabeledInput label={L("משפט מכירה", "Tagline")} value={biz.tagline} onChange={(value) => set("tagline", value)} />
+          <LabeledInput label={L("טלפון", "Phone")} value={biz.phone} onChange={(value) => set("phone", value)} />
+          <LabeledInput label={L("אימייל", "Email")} value={biz.email} onChange={(value) => set("email", value)} />
+          <LabeledInput label={L("כתובת", "Address")} value={biz.address} onChange={(value) => set("address", value)} />
+          <LabeledInput label={L("שעות פעילות", "Opening hours")} value={biz.hours} onChange={(value) => set("hours", value)} />
+          <LabeledInput label={L("טקסט הכפתור", "Button text")} value={biz.cta} onChange={(value) => set("cta", value)} />
+          <LabeledInput label={L("תיאור קצר", "Short description")} value={biz.about} onChange={(value) => set("about", value)} />
+        </div>
+
+        <p className={cx("mb-2 mt-4 text-[11px] font-medium uppercase tracking-wider", t.faint)}>{L("שירותים", "Services")}</p>
+        <div className="space-y-2">
+          {biz.services.map((service, index) => (
+            <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_110px]">
+              <input
+                className={t.input}
+                value={service.name}
+                placeholder={L("שם השירות", "Service name")}
+                onChange={(event) => setService(index, "name", event.target.value)}
+              />
+              <input
+                className={t.input}
+                value={service.detail}
+                placeholder={L("פירוט קצר", "Short detail")}
+                onChange={(event) => setService(index, "detail", event.target.value)}
+              />
+              <input
+                className={t.input}
+                value={service.price}
+                placeholder={L("מחיר", "Price")}
+                onChange={(event) => setService(index, "price", event.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <LabeledInput label={L("המלצת לקוח", "Testimonial")} value={biz.testimonial} onChange={(value) => set("testimonial", value)} />
+          <LabeledInput label={L("שם הממליץ", "Testimonial by")} value={biz.testimonialBy} onChange={(value) => set("testimonialBy", value)} />
+        </div>
+      </Card>
+
+      <div className="mt-4">
+        <p className={cx("mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider", t.faint)}>
+          <Eye size={12} /> {L("תצוגה חיה של הדף", "Live page preview")}
+        </p>
+        <div className={cx("overflow-hidden", t.surface)} style={{ padding: 0 }}>
+          <iframe
+            title={L("תצוגת דף הנחיתה", "Landing page preview")}
+            srcDoc={html}
+            className="h-[520px] w-full border-0 bg-white"
+            sandbox="allow-same-origin"
+          />
+        </div>
+        <p className={cx("mt-2 text-xs", t.muted)}>
+          {L(
+            "הדף שלמעלה הוא קובץ HTML עצמאי — הורידו אותו והעלו לכל אחסון, בלי תלות בשום שירות.",
+            "The page above is a standalone HTML file — download it and host it anywhere, with no service to depend on."
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- Appointment booking */
+
+const BOOKING_SERVICES = [
+  { id: "cut", he: "תספורת", en: "Haircut", minutes: 30, price: 80 },
+  { id: "beard", he: "עיצוב זקן", en: "Beard trim", minutes: 20, price: 50 },
+  { id: "combo", he: "תספורת + זקן", en: "Cut + beard", minutes: 45, price: 120 },
+];
+const SLOT_TIMES = ["09:00", "09:45", "10:30", "11:15", "12:00", "13:30", "14:15", "15:00", "15:45", "16:30", "17:15", "18:00"];
+const DAY_NAMES_HE = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+const DAY_NAMES_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function BookingApp({ spec, dark, onToggleDark }) {
+  const t = useT();
+  const L = useL();
+  const palette = useSeries();
+
+  const days = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+      return {
+        key: date.toISOString().slice(0, 10),
+        dayName: L(DAY_NAMES_HE[date.getDay()], DAY_NAMES_EN[date.getDay()]),
+        dayNum: date.getDate(),
+        closed: date.getDay() === 6,
+      };
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [service, setService] = useState(BOOKING_SERVICES[0].id);
+  const [day, setDay] = useState(days[0].key);
+  const [customer, setCustomer] = useState("");
+  const [bookings, setBookings] = useState([{ id: uid("bk"), day: days[0].key, time: "10:30", service: "combo", customer: L("רונית ל.", "Ronit L.") }]);
+
+  const selectedDay = days.find((item) => item.key === day) || days[0];
+  const selectedService = BOOKING_SERVICES.find((item) => item.id === service) || BOOKING_SERVICES[0];
+  const taken = new Set(bookings.filter((booking) => booking.day === day).map((booking) => booking.time));
+
+  const dayBookings = bookings.filter((booking) => booking.day === day);
+  const revenue = dayBookings.reduce((sum, booking) => {
+    const found = BOOKING_SERVICES.find((item) => item.id === booking.service);
+    return sum + (found ? found.price : 0);
+  }, 0);
+
+  const book = (time) => {
+    if (taken.has(time) || selectedDay.closed) return;
+    setBookings((list) => [...list, { id: uid("bk"), day, time, service, customer: customer.trim() || L("לקוח חדש", "New customer") }]);
+    setCustomer("");
+  };
+
+  const perDay = days.map((item) => ({
+    label: `${item.dayName} ${item.dayNum}`,
+    value: bookings.filter((booking) => booking.day === item.key).length,
+  }));
+
+  return (
+    <div className="p-[var(--pad)] md:p-6">
+      <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label={L("תורים ביום הנבחר", "Bookings on this day")} value={String(dayBookings.length)} />
+        <Stat label={L("הכנסה צפויה", "Expected revenue")} value={money(revenue, "₪")} />
+        <Stat label={L("שעות פנויות", "Free slots")} value={String(selectedDay.closed ? 0 : SLOT_TIMES.length - taken.size)} tone="plain" />
+      </div>
+
+      <Card className="mt-4">
+        <p className={cx("mb-2 text-[11px] font-medium uppercase tracking-wider", t.faint)}>{L("בחרו שירות", "Pick a service")}</p>
+        <div className="flex flex-wrap gap-2">
+          {BOOKING_SERVICES.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setService(item.id)}
+              className={cx("px-3 py-2 text-start text-sm transition", service === item.id ? t.btn : t.chip)}
+              style={service === item.id ? { background: palette[index], color: "#fff" } : undefined}
+            >
+              <span className="block font-medium">{L(item.he, item.en)}</span>
+              <bdi className="block text-[11px] opacity-75">
+                {item.minutes} {L("דק׳", "min")} · {money(item.price, "₪")}
+              </bdi>
+            </button>
+          ))}
+        </div>
+
+        <p className={cx("mb-2 mt-4 text-[11px] font-medium uppercase tracking-wider", t.faint)}>{L("בחרו יום", "Pick a day")}</p>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {days.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setDay(item.key)}
+              className={cx(
+                "min-w-[64px] shrink-0 px-3 py-2 text-center transition",
+                day === item.key ? t.btn : t.chip,
+                item.closed ? "opacity-45" : ""
+              )}
+            >
+              <span className="block text-[11px]">{item.dayName}</span>
+              <bdi className="block text-lg font-semibold tabular-nums">{item.dayNum}</bdi>
+            </button>
+          ))}
+        </div>
+
+        <p className={cx("mb-2 mt-4 text-[11px] font-medium uppercase tracking-wider", t.faint)}>{L("שעות פנויות", "Available times")}</p>
+        {selectedDay.closed ? (
+          <p className={cx("border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>{L("העסק סגור ביום זה", "Closed on this day")}</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+            {SLOT_TIMES.map((time) => {
+              const isTaken = taken.has(time);
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  disabled={isTaken}
+                  onClick={() => book(time)}
+                  className={cx("px-2 py-2 text-sm font-medium tabular-nums transition", isTaken ? t.chip : t.btnGhost, isTaken ? "opacity-40 line-through" : "hover:-translate-y-0.5")}
+                >
+                  <bdi>{time}</bdi>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-3 flex gap-2">
+          <input
+            className={t.input}
+            value={customer}
+            placeholder={L("שם הלקוח (לא חובה)", "Customer name (optional)")}
+            onChange={(event) => setCustomer(event.target.value)}
+          />
+        </div>
+      </Card>
+
+      <Card className="mt-4">
+        <p className={cx("mb-3 text-sm font-medium", t.heading)}>{L("תורים מאושרים", "Confirmed bookings")}</p>
+        <ul className="space-y-2">
+          {dayBookings
+            .slice()
+            .sort((a, b) => a.time.localeCompare(b.time))
+            .map((booking) => {
+              const item = BOOKING_SERVICES.find((entry) => entry.id === booking.service) || BOOKING_SERVICES[0];
+              return (
+                <li key={booking.id} className={cx(t.surfaceAlt, "flex items-center gap-3 p-3")}>
+                  <bdi className="shrink-0 text-sm font-semibold tabular-nums" style={{ color: "var(--a)" }}>
+                    {booking.time}
+                  </bdi>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm">{booking.customer}</span>
+                    <span className={cx("block text-[11px]", t.faint)}>
+                      {L(item.he, item.en)} · <bdi>{item.minutes} {L("דק׳", "min")}</bdi>
+                    </span>
+                  </span>
+                  <IconAction label={L("ביטול תור", "Cancel booking")} onClick={() => setBookings((list) => list.filter((entry) => entry.id !== booking.id))}>
+                    <Trash2 size={13} />
+                  </IconAction>
+                </li>
+              );
+            })}
+          {dayBookings.length === 0 ? (
+            <li className={cx("border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>
+              {L("אין עדיין תורים ליום הזה", "Nothing booked for this day yet")}
+            </li>
+          ) : null}
+        </ul>
+      </Card>
+
+      {spec.showChart ? <MiniBars label={L("תורים לפי יום", "Bookings per day")} data={perDay} /> : null}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- Banking */
+
+const MONTHS_SHORT_HE = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ"];
+const MONTHS_SHORT_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+function BankingApp({ spec, dark, onToggleDark }) {
+  const t = useT();
+  const L = useL();
+  const series = useSeries();
+
+  const [accounts, setAccounts] = useState([
+    { id: "checking", he: "עובר ושב", en: "Checking", number: "12-441-88210", balance: 18430.5, kind: "cash" },
+    { id: "savings", he: "חיסכון", en: "Savings", number: "12-441-90077", balance: 62150, kind: "cash" },
+    { id: "card", he: "כרטיס אשראי", en: "Credit card", number: "•••• 4417", balance: -3820.4, kind: "card" },
+  ]);
+  const [active, setActive] = useState("checking");
+  const [frozen, setFrozen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [flow, setFlow] = useState("all");
+  const [transfer, setTransfer] = useState({ from: "checking", to: "savings", amount: "" });
+  const [notice, setNotice] = useState(null);
+  const [txs, setTxs] = useState([
+    { id: uid("tx"), account: "checking", label: L("משכורת חודשית", "Monthly salary"), amount: 16200, date: "01/08", kind: "in" },
+    { id: uid("tx"), account: "checking", label: L("שכר דירה", "Rent"), amount: -4200, date: "02/08", kind: "out" },
+    { id: uid("tx"), account: "checking", label: L("סופרמרקט", "Supermarket"), amount: -612.9, date: "03/08", kind: "out" },
+    { id: uid("tx"), account: "card", label: L("תדלוק", "Fuel"), amount: -310, date: "03/08", kind: "out" },
+    { id: uid("tx"), account: "savings", label: L("הפקדה חודשית", "Monthly deposit"), amount: 1500, date: "01/08", kind: "in" },
+    { id: uid("tx"), account: "card", label: L("בית קפה", "Coffee shop"), amount: -48.5, date: "04/08", kind: "out" },
+  ]);
+
+  const shekel = (value) => money(value, "₪", 2);
+  const accountName = (account) => L(account.he, account.en);
+  const byId = (id) => accounts.find((account) => account.id === id);
+  const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const activeAccount = byId(active) || accounts[0];
+
+  const visibleTxs = txs
+    .filter((tx) => tx.account === active)
+    .filter((tx) => (flow === "all" ? true : tx.kind === flow))
+    .filter((tx) => tx.label.toLowerCase().includes(query.trim().toLowerCase()));
+
+  const monthlyFlow = MONTHS_SHORT_EN.map((_, index) => ({
+    label: L(MONTHS_SHORT_HE[index], MONTHS_SHORT_EN[index]),
+    in: Math.round(14200 + index * 640),
+    out: Math.round(11800 + (index % 3) * 900 + index * 320),
+  }));
+  const flowPeak = Math.max(...monthlyFlow.map((month) => Math.max(month.in, month.out)));
+
+  const doTransfer = () => {
+    const amount = num(transfer.amount);
+    const from = byId(transfer.from);
+    const to = byId(transfer.to);
+    if (!from || !to || from.id === to.id) {
+      setNotice({ tone: "critical", text: L("בחר שני חשבונות שונים", "Pick two different accounts") });
+      return;
+    }
+    if (!(amount > 0)) {
+      setNotice({ tone: "critical", text: L("הזן סכום גדול מאפס", "Enter an amount above zero") });
+      return;
+    }
+    if (from.kind === "cash" && from.balance < amount) {
+      setNotice({ tone: "critical", text: L("אין מספיק יתרה בחשבון המקור", "Not enough balance in the source account") });
+      return;
+    }
+    setAccounts((list) =>
+      list.map((account) => {
+        if (account.id === from.id) return { ...account, balance: account.balance - amount };
+        if (account.id === to.id) return { ...account, balance: account.balance + amount };
+        return account;
+      })
+    );
+    const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" });
+    setTxs((list) => [
+      { id: uid("tx"), account: to.id, label: L(`העברה מ${accountName(from)}`, `Transfer from ${accountName(from)}`), amount, date: stamp, kind: "in" },
+      { id: uid("tx"), account: from.id, label: L(`העברה ל${accountName(to)}`, `Transfer to ${accountName(to)}`), amount: -amount, date: stamp, kind: "out" },
+      ...list,
+    ]);
+    setTransfer({ ...transfer, amount: "" });
+    setNotice({ tone: "good", text: L(`הועברו ${shekel(amount)} בהצלחה`, `${shekel(amount)} transferred`) });
+  };
+
+  return (
+    <div className="p-[var(--pad)] md:p-6">
+      <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
+
+      <Card className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -inset-x-10 -top-24 h-48 rounded-full blur-3xl" style={{ background: "var(--a)", opacity: 0.16 }} />
+        <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("סך הנכסים", "Total balance")}</p>
+        <p className="mt-1 text-4xl font-semibold" style={{ color: "var(--a)" }}>
+          <bdi className="tabular-nums">{shekel(netWorth)}</bdi>
+        </p>
+        <p className={cx("mt-1 text-xs", t.muted)}>
+          {L(`${accounts.length} חשבונות מקושרים`, `${accounts.length} linked accounts`)}
+        </p>
+      </Card>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {accounts.map((account, index) => {
+          const selected = account.id === active;
+          return (
+            <button
+              key={account.id}
+              type="button"
+              onClick={() => setActive(account.id)}
+              className={cx(t.surface, "p-[var(--pad)] text-start transition", selected ? "ring-2 ring-[var(--a)]" : "hover:-translate-y-0.5")}
+            >
+              <span className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: series[index] }} />
+                <span className={cx("text-sm font-medium", t.heading)}>{accountName(account)}</span>
+              </span>
+              <bdi className={cx("mt-1.5 block text-lg font-semibold tabular-nums", account.balance < 0 ? "" : "")} style={account.balance < 0 ? { color: STATUS.critical } : undefined}>
+                {shekel(account.balance)}
+              </bdi>
+              <bdi className={cx("block font-mono text-[11px]", t.faint)}>{account.number}</bdi>
+              {account.kind === "card" && frozen ? (
+                <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: STATUS.serious }}>
+                  <ShieldCheck size={11} /> {L("הכרטיס מוקפא", "Card frozen")}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
+        <Card>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <p className={cx("me-auto text-sm font-medium", t.heading)}>
+              {L("תנועות ב", "Transactions · ")}
+              {accountName(activeAccount)}
+            </p>
+            {["all", "in", "out"].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFlow(value)}
+                className={cx("px-2.5 py-1 text-xs font-medium transition", flow === value ? t.btn : t.chip)}
+              >
+                {L({ all: "הכול", in: "זיכויים", out: "חיובים" }[value], { all: "All", in: "In", out: "Out" }[value])}
+              </button>
+            ))}
+          </div>
+
+          <input
+            className={t.input}
+            value={query}
+            placeholder={L("חיפוש בתנועות…", "Search transactions…")}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+
+          <ul className="mt-3 space-y-2">
+            {visibleTxs.map((tx) => (
+              <li key={tx.id} className={cx(t.surfaceAlt, "flex items-center gap-3 p-3")}>
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full"
+                  style={{ background: `${tx.kind === "in" ? STATUS.good : series[1]}22`, color: tx.kind === "in" ? STATUS.good : series[1] }}
+                >
+                  {tx.kind === "in" ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm">{tx.label}</span>
+                  <bdi className={cx("block text-[11px]", t.faint)}>{tx.date}</bdi>
+                </span>
+                <bdi className="shrink-0 text-sm font-semibold tabular-nums" style={{ color: tx.amount > 0 ? STATUS.good : undefined }}>
+                  {tx.amount > 0 ? "+" : ""}
+                  {shekel(tx.amount)}
+                </bdi>
+              </li>
+            ))}
+            {visibleTxs.length === 0 ? (
+              <li className={cx("border border-dashed p-6 text-center text-sm", t.divider, t.faint)}>
+                {L("לא נמצאו תנועות", "No transactions found")}
+              </li>
+            ) : null}
+          </ul>
+        </Card>
+
+        <div className="grid content-start gap-4">
+          <Card>
+            <p className={cx("mb-3 flex items-center gap-2 text-sm font-medium", t.heading)}>
+              <Send size={14} style={{ color: "var(--a)" }} /> {L("העברה בין חשבונות", "Transfer between accounts")}
+            </p>
+            <label className="mb-2 block">
+              <span className={cx("mb-1 block text-[11px] uppercase tracking-wider", t.faint)}>{L("מחשבון", "From")}</span>
+              <select className={t.input} value={transfer.from} onChange={(event) => setTransfer({ ...transfer, from: event.target.value })}>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {accountName(account)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="mb-2 block">
+              <span className={cx("mb-1 block text-[11px] uppercase tracking-wider", t.faint)}>{L("לחשבון", "To")}</span>
+              <select className={t.input} value={transfer.to} onChange={(event) => setTransfer({ ...transfer, to: event.target.value })}>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {accountName(account)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="mb-3 block">
+              <span className={cx("mb-1 block text-[11px] uppercase tracking-wider", t.faint)}>{L("סכום", "Amount")}</span>
+              <input
+                type="number"
+                min="0"
+                className={t.input}
+                value={transfer.amount}
+                placeholder="0.00"
+                onChange={(event) => setTransfer({ ...transfer, amount: event.target.value })}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") doTransfer();
+                }}
+              />
+            </label>
+            <PreviewButton onClick={doTransfer} className="w-full">
+              <Send size={14} /> {L("בצע העברה", "Send transfer")}
+            </PreviewButton>
+
+            {notice ? (
+              <p
+                className="mt-2.5 flex items-start gap-1.5 text-xs font-medium"
+                style={{ color: notice.tone === "good" ? STATUS.good : STATUS.critical }}
+                role="status"
+              >
+                {notice.tone === "good" ? <Check size={13} className="mt-px shrink-0" /> : <X size={13} className="mt-px shrink-0" />}
+                <span>{notice.text}</span>
+              </p>
+            ) : null}
+          </Card>
+
+          <Card>
+            <p className={cx("mb-2 text-sm font-medium", t.heading)}>{L("אבטחת כרטיס", "Card security")}</p>
+            <label className="flex items-center justify-between gap-3">
+              <span className={cx("text-sm", t.muted)}>{L("הקפאת כרטיס האשראי", "Freeze the credit card")}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={frozen}
+                onClick={() => setFrozen((value) => !value)}
+                className="relative h-6 w-11 shrink-0 rounded-full transition"
+                style={{ background: frozen ? STATUS.serious : "rgba(128,128,128,0.35)" }}
+              >
+                <span
+                  className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+                  style={frozen ? { insetInlineEnd: "0.125rem" } : { insetInlineStart: "0.125rem" }}
+                />
+              </button>
+            </label>
+          </Card>
+        </div>
+      </div>
+
+      {spec.showChart ? (
+        <Card className="mt-4">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+            <p className={cx("text-sm font-medium", t.heading)}>{L("כניסות מול יציאות לפי חודש", "Money in vs money out by month")}</p>
+            <span className="flex items-center gap-3 text-[11px]">
+              <span className={cx("flex items-center gap-1.5", t.muted)}>
+                <span className="h-2 w-2 rounded-full" style={{ background: series[0] }} /> {L("נכנס", "In")}
+              </span>
+              <span className={cx("flex items-center gap-1.5", t.muted)}>
+                <span className="h-2 w-2 rounded-full" style={{ background: series[1] }} /> {L("יצא", "Out")}
+              </span>
+            </span>
+          </div>
+          <div className="mt-3 flex h-32 items-end gap-3">
+            {monthlyFlow.map((month) => (
+              <div key={month.label} className="flex flex-1 flex-col items-center gap-1.5">
+                <div className="flex h-full w-full items-end justify-center gap-[2px]">
+                  <div
+                    className="w-1/2 rounded-t-[4px] transition-all duration-500"
+                    style={{ height: `${(month.in / flowPeak) * 100}%`, background: series[0] }}
+                    title={`${month.label} · ${L("נכנס", "In")} ${money(month.in, "₪")}`}
+                  />
+                  <div
+                    className="w-1/2 rounded-t-[4px] transition-all duration-500"
+                    style={{ height: `${(month.out / flowPeak) * 100}%`, background: series[1] }}
+                    title={`${month.label} · ${L("יצא", "Out")} ${money(month.out, "₪")}`}
+                  />
+                </div>
+                <span className={cx("text-[10px]", t.faint)}>{month.label}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
+// Categorical identity — slot order is fixed so a category keeps its hue even
+// when the filtered set changes size.
 const BUDGET_CATEGORIES = [
-  { id: "housing", he: "דיור", en: "Housing", color: "#8b5cf6" },
-  { id: "food", he: "מזון", en: "Food", color: "#22c55e" },
-  { id: "transport", he: "תחבורה", en: "Transport", color: "#0ea5e9" },
-  { id: "fun", he: "פנאי", en: "Leisure", color: "#f59e0b" },
-  { id: "bills", he: "חשבונות", en: "Bills", color: "#ef4444" },
-  { id: "other", he: "אחר", en: "Other", color: "#64748b" },
+  { id: "housing", he: "דיור", en: "Housing", slot: 0 },
+  { id: "food", he: "מזון", en: "Food", slot: 1 },
+  { id: "transport", he: "תחבורה", en: "Transport", slot: 2 },
+  { id: "fun", he: "פנאי", en: "Leisure", slot: 3 },
+  { id: "bills", he: "חשבונות", en: "Bills", slot: 4 },
+  { id: "other", he: "אחר", en: "Other", slot: 5 },
 ];
 
 const MONTHS_HE = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ"];
@@ -1763,6 +2927,8 @@ const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 function BudgetApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const palette = useSeries();
+  const hue = (category) => palette[category.slot];
   const [income, setIncome] = useState(14500);
   const [budget, setBudget] = useState(9000);
   const [entries, setEntries] = useState([
@@ -1856,7 +3022,7 @@ function BudgetApp({ spec, dark, onToggleDark }) {
               const category = BUDGET_CATEGORIES.find((item) => item.id === entry.category) || BUDGET_CATEGORIES[5];
               return (
                 <li key={entry.id} className={cx(t.surfaceAlt, "flex items-center gap-3 p-3")}>
-                  <span className="h-8 w-1 shrink-0 rounded-full" style={{ background: category.color }} />
+                  <span className="h-8 w-1 shrink-0 rounded-full" style={{ background: hue(category) }} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{entry.label}</span>
                     <span className={cx("block text-[11px]", t.faint)}>{L(category.he, category.en)}</span>
@@ -1891,14 +3057,14 @@ function BudgetApp({ spec, dark, onToggleDark }) {
 
             <p className={cx("mb-1.5 mt-4 flex items-center justify-between text-xs", t.muted)}>
               <span>{L("ניצול התקציב", "Budget used")}</span>
-              <bdi className="font-semibold" style={{ color: overBudget ? "#ef4444" : "var(--a)" }}>
+              <bdi className="font-semibold" style={{ color: overBudget ? STATUS.critical : "var(--a)" }}>
                 {Math.round(budgetUsed)}%
               </bdi>
             </p>
             <div className={cx("h-2 w-full overflow-hidden rounded-full", t.track)}>
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${budgetUsed}%`, background: overBudget ? "#ef4444" : "var(--a)" }}
+                style={{ width: `${budgetUsed}%`, background: overBudget ? STATUS.critical : "var(--a)" }}
               />
             </div>
             <p className={cx("mt-2 text-xs", t.muted)}>
@@ -1914,7 +3080,7 @@ function BudgetApp({ spec, dark, onToggleDark }) {
               {byCategory.map((category) => (
                 <div
                   key={category.id}
-                  style={{ width: `${(category.total / Math.max(1, spent)) * 100}%`, background: category.color }}
+                  style={{ width: `${(category.total / Math.max(1, spent)) * 100}%`, background: hue(category), outline: "2px solid var(--surface-gap, transparent)" }}
                   title={`${L(category.he, category.en)}: ${shekel(category.total)}`}
                 />
               ))}
@@ -1922,7 +3088,7 @@ function BudgetApp({ spec, dark, onToggleDark }) {
             <ul className="mt-3 space-y-1.5 text-xs">
               {byCategory.map((category) => (
                 <li key={category.id} className="flex items-center gap-2">
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: category.color }} />
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: hue(category) }} />
                   <span className={cx("flex-1", t.muted)}>{L(category.he, category.en)}</span>
                   <bdi className="font-medium tabular-nums">{shekel(category.total)}</bdi>
                 </li>
@@ -1954,7 +3120,8 @@ const KANBAN_COLUMNS = [
   { id: "done", name: "Done", nameHe: "הושלם" },
 ];
 const PRIORITIES = ["low", "medium", "high"];
-const PRIORITY_COLOR = { low: "#64748b", medium: "#f59e0b", high: "#ef4444" };
+// Priority is a state, so it takes the reserved status palette (never a series slot)
+const PRIORITY_COLOR = { low: "#7c7c76", medium: STATUS.warning, high: STATUS.critical };
 const PRIORITY_HE = { low: "נמוכה", medium: "בינונית", high: "גבוהה" };
 
 function KanbanApp({ spec, dark, onToggleDark }) {
@@ -2220,8 +3387,8 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
             <span
               className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider")}
               style={{
-                background: paid ? "#10b98122" : "#f59e0b22",
-                color: paid ? "#10b981" : "#f59e0b",
+                background: paid ? `${STATUS.good}22` : `${STATUS.warning}22`,
+                color: paid ? STATUS.good : STATUS.warning,
               }}
             >
               {paid ? <Check size={12} /> : <Clock size={12} />}
@@ -2489,7 +3656,7 @@ function RoiApp({ spec, dark, onToggleDark }) {
         <Card className="sm:col-span-2">
           <p className={cx("text-[10px] font-semibold uppercase tracking-[0.14em]", t.faint)}>{L("שורה תחתונה", "Verdict")}</p>
           <p className="mt-1.5 flex items-center gap-2 text-sm font-medium">
-            {healthy ? <ShieldCheck size={16} style={{ color: "#10b981" }} /> : <Flame size={16} style={{ color: "#f59e0b" }} />}
+            {healthy ? <ShieldCheck size={16} style={{ color: STATUS.good }} /> : <Flame size={16} style={{ color: STATUS.warning }} />}
             {healthy ? L("אפשר להגדיל גיוס לקוחות", "Scale acquisition") : L("קודם לטפל בנטישה", "Fix retention before scaling")}
           </p>
           <p className={cx("mt-1 text-xs leading-relaxed", t.muted)}>
@@ -2650,6 +3817,9 @@ function TrackerApp({ spec, dark, onToggleDark }) {
 }
 
 const APP_RENDERERS = {
+  banking: BankingApp,
+  landing: LandingApp,
+  booking: BookingApp,
   rate: RateCalculatorApp,
   kanban: KanbanApp,
   invoice: InvoiceApp,
