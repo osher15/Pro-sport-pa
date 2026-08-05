@@ -86,16 +86,26 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import {
+  LANGUAGES,
+  makeF,
+  DEFAULT_LANG,
+  detectLang,
+  preferredLang,
+  dirOf,
+  isRtlLang,
+  fontOf,
+  localeOf,
+  needsScriptFont,
+  makeT,
+  makeQ,
+} from "./i18n.js";
 
 /* ==================================================================
    0. Tiny utilities
    ================================================================== */
 
 const cx = (...parts) => parts.filter(Boolean).join(" ");
-
-/** Hebrew block (U+0590–U+05FF). One strong character is enough to switch the app to RTL. */
-const HEBREW_RE = /[֐-׿]/;
-const detectLang = (text) => (HEBREW_RE.test(text || "") ? "he" : "en");
 
 let _seq = 0;
 const uid = (prefix = "id") => `${prefix}_${Date.now().toString(36)}_${(_seq++).toString(36)}`;
@@ -452,8 +462,8 @@ const HE_LEAD_RE = /^\s*(בבקשה\s+)?(תכין|תבנה|בנה|תיצור|צ�
 // "דף נחיתה לעסק" keeps it — there the noun is part of the product name.
 const HE_NOUN_RE = /^\s*(אפליקציה|אפליקציית|אפליקצייה|מערכת|כלי|תוכנה|אתר|מסך)\s*(ל|של|בשביל|עבור)\s*/;
 
-const deriveTitle = (prompt, blueprint) => {
-  if (detectLang(prompt) === "he") {
+const deriveTitle = (prompt, blueprint, lang = DEFAULT_LANG) => {
+  if (lang === "he") {
     const cleaned = prompt
       .replace(HE_LEAD_RE, "")
       .replace(HE_NOUN_RE, "")
@@ -472,8 +482,12 @@ const deriveTitle = (prompt, blueprint) => {
     .trim();
   const words = cleaned.split(/\s+/).filter(Boolean).slice(0, 5);
   while (words.length && STOP_WORDS.has(words[words.length - 1].toLowerCase())) words.pop();
-  if (words.length < 2) return blueprint.name;
-  return titleCase(words.join(" "));
+  // Scripts without word spacing yield a single token, and the English
+  // clean-up above does not apply to them at all — the blueprint name in the
+  // target language is a better title than a mangled fragment.
+  if (words.length < 2) return makeT(lang)(blueprint.name);
+  // Title Case is an English convention; elsewhere keep the words as written.
+  return lang === "en" ? titleCase(words.join(" ")) : words.join(" ");
 };
 
 /** Component/file names stay Latin even when the UI is Hebrew. */
@@ -488,19 +502,19 @@ const componentName = (spec) => {
  * render spec. Presets short-circuit the matcher by passing `forcedId`.
  * Hebrew prompts produce a Hebrew, right-to-left app.
  */
-const resolveSpec = (prompt, styleId, forcedId) => {
+const resolveSpec = (prompt, styleId, forcedId, uiLang = DEFAULT_LANG) => {
   const blueprint =
     (forcedId && BLUEPRINT_BY_ID[forcedId]) ||
     BLUEPRINTS.find((bp) => bp.id !== "tracker" && bp.match.test(prompt)) ||
     BLUEPRINT_BY_ID.tracker;
   const style = STYLE_BY_ID[styleId] || STYLES[0];
-  const lang = detectLang(prompt);
-  const defaultTitle = lang === "he" ? blueprint.nameHe : blueprint.name;
+  const lang = detectLang(prompt, uiLang);
+  const defaultTitle = lang === "he" ? blueprint.nameHe : makeT(lang)(blueprint.name);
   return {
     appId: blueprint.id,
     lang,
-    title: forcedId ? defaultTitle : deriveTitle(prompt, blueprint),
-    subtitle: lang === "he" ? blueprint.subtitleHe : blueprint.subtitle,
+    title: forcedId ? defaultTitle : deriveTitle(prompt, blueprint, lang),
+    subtitle: lang === "he" ? blueprint.subtitleHe : makeT(lang)(blueprint.subtitle),
     prompt: prompt.trim(),
     styleId: style.id,
     accent: style.accent,
@@ -736,11 +750,14 @@ const darkStateLine = (spec) =>
   spec.darkToggle ? ["  const [dark, setDark] = useState(" + String(!!STYLE_BY_ID[spec.styleId].dark) + ");", ""] : [];
 
 /** Emitted code carries the same language as the preview it describes. */
-const qOf = (spec) => (hebrew, english) => (spec.lang === "he" ? hebrew : english);
+const qOf = (spec) => makeQ(spec.lang);
 
 /** Root element of a generated app — RTL apps declare it in the source too. */
+const langAttrs = (lang) =>
+  (isRtlLang(lang) ? ' dir="rtl"' : "") + (lang && lang !== "en" ? ` lang="${lang}"` : "");
+
 const rootDiv = (spec, extra) =>
-  '    <div className={shell + " min-h-full p-6"}' + (spec.lang === "he" ? ' dir="rtl" lang="he"' : "") + (extra || "") + ">";
+  '    <div className={shell + " min-h-full p-6"}' + langAttrs(spec.lang) + (extra || "") + ">";
 
 const CODE_BUILDERS = {
   rate: (spec) => {
@@ -1639,7 +1656,7 @@ const CODE_BUILDERS = {
       "  };",
       "",
       "  return (",
-      '    <div className={shell + " min-h-full p-6"}' + (he ? ' dir="rtl" lang="he"' : "") + ">",
+      '    <div className={shell + " min-h-full p-6"}' + langAttrs(spec.lang) + ">",
       ...headerBlock(spec),
       '      <div className="grid gap-4 sm:grid-cols-3">',
       '        <Stat label="' + q("הכנסה חודשית", "Monthly income") + '" value={"₪" + income.toLocaleString()} />',
@@ -1892,7 +1909,7 @@ function CodeViewer({ code, changed }) {
   const changedSet = useMemo(() => new Set(changed || []), [changed]);
 
   return (
-    <pre className="min-h-full overflow-auto p-4 font-mono text-[12.5px] leading-[1.65] text-slate-300">
+    <pre dir="ltr" className="min-h-full overflow-auto p-4 text-start font-mono text-[12.5px] leading-[1.65] text-slate-300">
       <code className="block">
         {lines.map((line, index) => {
           const isChanged = line.trim().length > 0 && changedSet.has(line);
@@ -1933,12 +1950,36 @@ const useT = () => useContext(ThemeCtx);
  * picks the right string; the preview root sets dir="rtl" so the bidi
  * algorithm — not manual alignment — lays Hebrew out correctly.
  */
-const LangCtx = createContext("en");
+const LANG_STORAGE_KEY = "madaf.lang";
+
+/** A remembered choice wins; otherwise follow the browser's own preference. */
+const initialUiLang = () => {
+  try {
+    const saved = window.localStorage.getItem(LANG_STORAGE_KEY);
+    if (saved && LANGUAGES.some((entry) => entry.id === saved)) return saved;
+  } catch (error) {
+    /* Private mode can deny storage — the browser preference still applies. */
+  }
+  const nav = window.navigator || {};
+  return preferredLang(nav.languages || [nav.language]);
+};
+
+/** Madaf's own chrome. Separate from LangCtx, which is the generated app's. */
+const UiCtx = createContext({ t: makeT(DEFAULT_LANG), lang: DEFAULT_LANG, dir: "ltr" });
+const useUi = () => useContext(UiCtx);
+
+const LangCtx = createContext(DEFAULT_LANG);
 const useL = () => {
   const lang = useContext(LangCtx);
-  return (he, en) => (lang === "he" ? he : en);
+  return useMemo(() => makeQ(lang), [lang]);
 };
-const useIsHe = () => useContext(LangCtx) === "he";
+const useLang = () => useContext(LangCtx);
+/** Interpolating twin of useL, for strings that carry a value inside them. */
+const useF = () => {
+  const lang = useContext(LangCtx);
+  return useMemo(() => makeF(lang), [lang]);
+};
+const useIsRtl = () => isRtlLang(useContext(LangCtx));
 
 /** Categorical slots stepped for whichever surface the preview is currently on. */
 const useSeries = () => {
@@ -2078,6 +2119,7 @@ function AppHeader({ spec, dark, onToggleDark }) {
 function RateCalculatorApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const F = useF();
   const palette = useSeries();
   const [income, setIncome] = useState(120000);
   const [expenses, setExpenses] = useState(18000);
@@ -2125,7 +2167,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
             min={5}
             max={50}
             onChange={setHoursPerWeek}
-            format={(v) => L(`${v} ש׳`, `${v} h`)}
+            format={(v) => F("{v} ש׳", "{v} h", { v })}
           />
           <Slider
             label={L("שבועות חופשה בשנה", "Weeks off per year")}
@@ -2133,7 +2175,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
             min={0}
             max={16}
             onChange={setWeeksOff}
-            format={(v) => L(`${v} שב׳`, `${v} wk`)}
+            format={(v) => F("{v} שב׳", "{v} wk", { v })}
           />
           <Slider label={L("שיעור מס אפקטיבי", "Effective tax rate")} value={taxRate} min={0} max={55} onChange={setTaxRate} format={(v) => `${v}%`} />
           <Slider label={L("שולי רווח", "Profit margin")} value={margin} min={0} max={60} onChange={setMargin} format={(v) => `${v}%`} />
@@ -2144,7 +2186,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
             max={200}
             step={2}
             onChange={setProjectHours}
-            format={(v) => L(`${v} ש׳`, `${v} h`)}
+            format={(v) => F("{v} ש׳", "{v} h", { v })}
           />
         </Card>
 
@@ -2163,7 +2205,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
               <bdi className="tabular-nums">{money(result.revenue)}</bdi> {L("יעד הכנסות", "revenue target")}
             </p>
             <div className="mt-4 flex gap-2">
-              <PreviewButton onClick={() => copyText(L(`${money(result.hourly)} לשעה`, `${money(result.hourly)}/hour`))}>
+              <PreviewButton onClick={() => copyText(F("{rate} לשעה", "{rate}/hour", { rate: money(result.hourly) }))}>
                 <Copy size={14} /> {L("העתק תעריף", "Copy rate")}
               </PreviewButton>
               <PreviewButton
@@ -2185,7 +2227,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
           <div className="grid grid-cols-2 gap-4">
             <Stat label={L("תעריף יומי (8 ש׳)", "Day rate (8h)")} value={money(result.daily)} hint={L("יום עבודה מלא", "Standard working day")} />
             <Stat
-              label={L(`פרויקט ${projectHours} שעות`, `${projectHours}h project`)}
+              label={F("פרויקט {hours} שעות", "{hours}h project", { hours: projectHours })}
               value={money(result.project)}
               hint={L("להצעת מחיר קבועה", "Fixed-bid guidance")}
             />
@@ -2225,7 +2267,7 @@ function RateCalculatorApp({ spec, dark, onToggleDark }) {
           data={[15, 20, 25, 30, 35, 40].map((hours) => {
             const billable = Math.max(1, (52 - weeksOff) * hours);
             const value = ((income / Math.max(0.05, 1 - taxRate / 100)) + expenses) * (1 + margin / 100) / billable;
-            return { label: L(`${hours} ש׳`, `${hours}h`), value, display: money(value) };
+            return { label: F("{hours} ש׳", "{hours}h", { hours }), value, display: money(value) };
           })}
         />
       ) : null}
@@ -2296,12 +2338,10 @@ const waNumber = (raw, isHe) => {
  * dead links, and nothing is claimed on the business's behalf that they did not
  * type themselves.
  */
-const buildLandingHtml = (biz, accent, isHe) => {
-  const dir = isHe ? "rtl" : "ltr";
-  const lang = isHe ? "he" : "en";
-  const font = isHe
-    ? "'Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif"
-    : "Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const buildLandingHtml = (biz, accent, lang) => {
+  const dir = dirOf(lang);
+  const isRtl = dir === "rtl";
+  const font = fontOf(lang);
   const esc = (value) =>
     String(value === 0 ? "0" : value || "")
       .replace(/&/g, "&amp;")
@@ -2309,7 +2349,7 @@ const buildLandingHtml = (biz, accent, isHe) => {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
-  const t = (he, en) => (isHe ? he : en);
+  const t = makeQ(lang);
   const has = (value) => String(value || "").trim().length > 0;
   // "09:00–19:00" unisolated in an RTL document renders as "19:00–09:00".
   const isolateRanges = (value) =>
@@ -2321,7 +2361,7 @@ const buildLandingHtml = (biz, accent, isHe) => {
   const onAccent = bestInk([accent, accentDeep]);
   const accentInk = accentForText(accent);
   const telDigits = String(biz.phone || "").split(/[,;/]|\sאו\s|\sor\s/)[0].replace(/[^0-9+]/g, "");
-  const wa = waNumber(biz.phone, isHe);
+  const wa = waNumber(biz.phone, lang === "he");
   const waText = encodeURIComponent(t(`היי, הגעתי מהאתר של ${name}`, `Hi, I found you through the ${name} page`));
   const mapQuery = encodeURIComponent(biz.address || "");
 
@@ -2381,7 +2421,7 @@ const buildLandingHtml = (biz, accent, isHe) => {
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(name)}">
 <meta property="og:description" content="${esc(biz.tagline)}">
-<meta property="og:locale" content="${isHe ? "he_IL" : "en_US"}">
+<meta property="og:locale" content="${localeOf(lang)}">
 <meta property="og:site_name" content="${esc(name)}">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="${favicon}">
@@ -2411,7 +2451,7 @@ const buildLandingHtml = (biz, accent, isHe) => {
       radial-gradient(1.4px 1.4px at 92% 40%, rgba(255,255,255,.6), transparent);
   }
   header.hero > .wrap { position: relative; z-index: 1; }
-  header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: ${isHe ? "normal" : "-0.02em"}; }
+  header.hero h1 { font-size: clamp(30px, 6vw, 52px); margin: 0 0 12px; letter-spacing: ${isRtl ? "normal" : "-0.02em"}; }
   header.hero p.tagline { font-size: clamp(16px, 2.4vw, 20px); opacity: .93; margin: 0 0 28px; max-width: 46ch; }
   .cta { display: inline-block; background: var(--surface); color: var(--accent-ink); font-weight: 700;
          padding: 14px 30px; border-radius: 999px; text-decoration: none; border: 2px solid transparent; }
@@ -2532,7 +2572,8 @@ ${
 function LandingApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
-  const isHe = useIsHe();
+  const lang = useLang();
+  const isRtl = useIsRtl();
   const [biz, setBiz] = useState({
     name: L("מספרת אבי", "Avi's Barbershop"),
     tagline: L("תספורת מדויקת, בלי להמתין בתור", "A sharp cut, with no waiting around"),
@@ -2561,7 +2602,7 @@ function LandingApp({ spec, dark, onToggleDark }) {
   // Without this the iframe reparses a full document on every keystroke, which
   // blanks the preview and throws away its scroll position.
   const deferredBiz = useDeferredValue(biz);
-  const html = useMemo(() => buildLandingHtml(deferredBiz, spec.accent, isHe), [deferredBiz, spec.accent, isHe]);
+  const html = useMemo(() => buildLandingHtml(deferredBiz, spec.accent, lang), [deferredBiz, spec.accent, lang]);
 
   return (
     <div className="p-[var(--pad)] md:p-6">
@@ -2570,7 +2611,7 @@ function LandingApp({ spec, dark, onToggleDark }) {
       <Card>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <p className={cx("me-auto flex items-center gap-2 text-sm font-medium", t.heading)}>
-            <PanelsTopLeft size={15} className={isHe ? "-scale-x-100" : undefined} style={{ color: "var(--a)" }} /> {L("פרטי העסק", "Your business details")}
+            <PanelsTopLeft size={15} className={isRtl ? "-scale-x-100" : undefined} style={{ color: "var(--a)" }} /> {L("פרטי העסק", "Your business details")}
           </p>
           <PreviewButton onClick={() => {
               const slug = slugify(biz.name);
@@ -2851,12 +2892,13 @@ const MONTHS_SHORT_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 function BankingApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
-  const isHe = useIsHe();
+  const F = useF();
+  const isRtl = useIsRtl();
   const series = useSeries();
   // Under RTL, money arriving points down-right and leaving points up-left.
-  const InIcon = isHe ? ArrowDownRight : ArrowDownLeft;
-  const OutIcon = isHe ? ArrowUpLeft : ArrowUpRight;
-  const mirror = isHe ? "-scale-x-100" : undefined;
+  const InIcon = isRtl ? ArrowDownRight : ArrowDownLeft;
+  const OutIcon = isRtl ? ArrowUpLeft : ArrowUpRight;
+  const mirror = isRtl ? "-scale-x-100" : undefined;
 
   const [accounts, setAccounts] = useState([
     { id: "checking", he: "עובר ושב", en: "Checking", number: "12-441-88210", balance: 18430.5, kind: "cash" },
@@ -2921,7 +2963,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
         tone: "critical",
         text:
           from.kind === "card"
-            ? L(`חריגה ממסגרת האשראי (${money(CARD_LIMIT, "₪")})`, `Over the card limit (${money(CARD_LIMIT, "₪")})`)
+            ? F("חריגה ממסגרת האשראי ({limit})", "Over the card limit ({limit})", { limit: money(CARD_LIMIT, "₪") })
             : L("אין מספיק יתרה בחשבון המקור", "Not enough balance in the source account"),
       });
       return;
@@ -2935,12 +2977,12 @@ function BankingApp({ spec, dark, onToggleDark }) {
     );
     const stamp = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" });
     setTxs((list) => [
-      { id: uid("tx"), account: to.id, label: L(`העברה מ${accountName(from)}`, `Transfer from ${accountName(from)}`), amount, date: stamp, kind: "in" },
-      { id: uid("tx"), account: from.id, label: L(`העברה ל${accountName(to)}`, `Transfer to ${accountName(to)}`), amount: -amount, date: stamp, kind: "out" },
+      { id: uid("tx"), account: to.id, label: F("העברה מ{account}", "Transfer from {account}", { account: accountName(from) }), amount, date: stamp, kind: "in" },
+      { id: uid("tx"), account: from.id, label: F("העברה ל{account}", "Transfer to {account}", { account: accountName(to) }), amount: -amount, date: stamp, kind: "out" },
       ...list,
     ]);
     setTransfer({ ...transfer, amount: "" });
-    setNotice({ tone: "good", text: L(`הועברו ${shekel(amount)} בהצלחה`, `${shekel(amount)} transferred`) });
+    setNotice({ tone: "good", text: F("הועברו {amount} בהצלחה", "{amount} transferred", { amount: shekel(amount) }) });
   };
 
   return (
@@ -2954,7 +2996,7 @@ function BankingApp({ spec, dark, onToggleDark }) {
           <bdi className="tabular-nums">{shekel(netWorth)}</bdi>
         </p>
         <p className={cx("mt-1 text-xs", t.muted)}>
-          {L(`${accounts.length} חשבונות מקושרים`, `${accounts.length} linked accounts`)}
+          {F("{count} חשבונות מקושרים", "{count} linked accounts", { count: accounts.length })}
         </p>
       </Card>
 
@@ -3171,6 +3213,7 @@ const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 function BudgetApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const F = useF();
   const palette = useSeries();
   const hue = (category) => palette[category.slot];
   const [income, setIncome] = useState(14500);
@@ -3313,8 +3356,8 @@ function BudgetApp({ spec, dark, onToggleDark }) {
             </div>
             <p className={cx("mt-2 text-xs", t.muted)}>
               {overBudget
-                ? L(`חרגת ב-${shekel(spent - budget)}`, `Over budget by ${shekel(spent - budget)}`)
-                : L(`נותרו ${shekel(budget - spent)} בתקציב`, `${shekel(budget - spent)} left in budget`)}
+                ? F("חרגת ב-{amount}", "Over budget by {amount}", { amount: shekel(spent - budget) })
+                : F("נותרו {amount} בתקציב", "{amount} left in budget", { amount: shekel(budget - spent) })}
             </p>
           </Card>
 
@@ -3381,9 +3424,9 @@ function KanbanApp({ spec, dark, onToggleDark }) {
   const [dragId, setDragId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
   // Under dir="rtl" the board flows right-to-left, so the chevrons swap too.
-  const isHe = useIsHe();
-  const BackIcon = isHe ? ChevronRight : ChevronLeft;
-  const ForwardIcon = isHe ? ChevronLeft : ChevronRight;
+  const isRtl = useIsRtl();
+  const BackIcon = isRtl ? ChevronRight : ChevronLeft;
+  const ForwardIcon = isRtl ? ChevronLeft : ChevronRight;
 
   const done = cards.filter((card) => card.column === "done").length;
   const progress = cards.length ? Math.round((done / cards.length) * 100) : 0;
@@ -3571,6 +3614,7 @@ const CURRENCIES = ["$", "€", "£", "₪"];
 function InvoiceApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const F = useF();
   const [currency, setCurrency] = useState(L("₪", "$"));
   const [client, setClient] = useState(
     L(
@@ -3603,18 +3647,18 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
       .map((item) => `${item.description}\t${item.qty}\t${currency}${item.rate}\t${money(num(item.qty) * num(item.rate), currency, 2)}`)
       .join("\n");
     const doc = [
-      L(`הצעת מחיר ${meta.number}`, `QUOTE ${meta.number}`),
-      L(`הופקה ${meta.issued} · בתוקף עד ${meta.due}`, `Issued ${meta.issued} · Valid until ${meta.due}`),
+      F("הצעת מחיר {number}", "QUOTE {number}", { number: meta.number }),
+      F("הופקה {issued} · בתוקף עד {due}", "Issued {issued} · Valid until {due}", { issued: meta.issued, due: meta.due }),
       "",
-      L(`לכבוד: ${client.name} <${client.email}>`, `Bill to: ${client.name} <${client.email}>`),
+      F("לכבוד: {name} <{email}>", "Bill to: {name} <{email}>", { name: client.name, email: client.email }),
       client.address,
       "",
       L("תיאור\tכמות\tמחיר\tסה״כ", "Description\tQty\tRate\tAmount"),
       rows,
       "",
       L("ביניים", "Subtotal") + `\t${money(totals.subtotal, currency, 2)}`,
-      L(`הנחה ${discount}%`, `Discount ${discount}%`) + `\t-${money(totals.discountValue, currency, 2)}`,
-      L(`מע״מ ${taxRate}%`, `Tax ${taxRate}%`) + `\t${money(totals.tax, currency, 2)}`,
+      F("הנחה {percent}%", "Discount {percent}%", { percent: discount }) + `\t-${money(totals.discountValue, currency, 2)}`,
+      F("מע״מ {percent}%", "Tax {percent}%", { percent: taxRate }) + `\t${money(totals.tax, currency, 2)}`,
       L("סה״כ", "TOTAL") + `\t${money(totals.total, currency, 2)}`,
       paid ? L("\nסטטוס: אושרה", "\nSTATUS: ACCEPTED") : L("\nסטטוס: ממתינה לאישור", "\nSTATUS: PENDING"),
       L("\nמסמך זה הוא הצעת מחיר בלבד ואינו מהווה חשבונית מס.", "\nThis document is a price quote only and is not a tax invoice."),
@@ -3733,9 +3777,9 @@ function InvoiceApp({ spec, dark, onToggleDark }) {
           <dl className="w-full space-y-1.5 text-sm md:w-72">
             <Row label={L("ביניים", "Subtotal")} value={money(totals.subtotal, currency, 2)} muted={t.muted} />
             {discount > 0 ? (
-              <Row label={L(`הנחה ${discount}%`, `Discount ${discount}%`)} value={`-${money(totals.discountValue, currency, 2)}`} muted={t.muted} />
+              <Row label={F("הנחה {percent}%", "Discount {percent}%", { percent: discount })} value={`-${money(totals.discountValue, currency, 2)}`} muted={t.muted} />
             ) : null}
-            <Row label={L(`מע״מ ${taxRate}%`, `Tax ${taxRate}%`)} value={money(totals.tax, currency, 2)} muted={t.muted} />
+            <Row label={F("מע״מ {percent}%", "Tax {percent}%", { percent: taxRate })} value={money(totals.tax, currency, 2)} muted={t.muted} />
             <div className={cx("flex items-center justify-between border-t pt-2", t.divider)}>
               <dt className="font-semibold">{L("סה״כ", "Total")}</dt>
               <dd className="text-xl font-semibold" style={{ color: "var(--a)" }}>
@@ -3798,6 +3842,7 @@ function LabeledInput({ label, value, onChange, type = "text", className }) {
 function RoiApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const F = useF();
   const [seats, setSeats] = useState(180);
   const [price, setPrice] = useState(39);
   const [churn, setChurn] = useState(3.5);
@@ -3836,12 +3881,12 @@ function RoiApp({ spec, dark, onToggleDark }) {
       <AppHeader spec={spec} dark={dark} onToggleDark={onToggleDark} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="MRR" value={money(model.mrr)} hint={L(`${seats} מנויים × ${money(price)}`, `${seats} seats × ${money(price)}`)} />
+        <Stat label="MRR" value={money(model.mrr)} hint={F("{seats} מנויים × {price}", "{seats} seats × {price}", { seats, price: money(price) })} />
         <Stat label="ARR" value={money(model.arr)} hint={L("קצב שנתי נוכחי", "Current run rate")} />
         <Stat
           label="LTV"
           value={money(model.ltv)}
-          hint={L(`${model.lifetimeMonths.toFixed(0)} חודשי חיים ממוצעים`, `${model.lifetimeMonths.toFixed(0)} month lifetime`)}
+          hint={F("{months} חודשי חיים ממוצעים", "{months} month lifetime", { months: model.lifetimeMonths.toFixed(0) })}
         />
         <Stat
           label="LTV : CAC"
@@ -3879,7 +3924,7 @@ function RoiApp({ spec, dark, onToggleDark }) {
                     background: "var(--a)",
                     opacity: 0.4 + (index / 12) * 0.6,
                   }}
-                  title={L(`חודש ${index + 1}: ${money(value)}`, `Month ${index + 1}: ${money(value)}`)}
+                  title={F("חודש {index}: {value}", "Month {index}: {value}", { index: index + 1, value: money(value) })}
                 />
               ))}
             </div>
@@ -3897,7 +3942,7 @@ function RoiApp({ spec, dark, onToggleDark }) {
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <Stat
           label={L("החזר עלות גיוס", "CAC payback")}
-          value={L(`${model.payback.toFixed(1)} חוד׳`, `${model.payback.toFixed(1)} mo`)}
+          value={F("{months} חוד׳", "{months} mo", { months: model.payback.toFixed(1) })}
           hint={
             model.payback <= 12
               ? L("מתחת ל-12 חודשים — בר מימון", "Under 12 months — fundable")
@@ -3913,13 +3958,15 @@ function RoiApp({ spec, dark, onToggleDark }) {
           </p>
           <p className={cx("mt-1 text-xs leading-relaxed", t.muted)}>
             {healthy
-              ? L(
-                  `כל לקוח מחזיר פי ${model.ratio.toFixed(1)} מעלות הגיוס שלו לאורך ${model.lifetimeMonths.toFixed(0)} חודשים — שווה להשקיע יותר במה שכבר עובד.`,
-                  `Each customer returns ${model.ratio.toFixed(1)}× their acquisition cost over a ${model.lifetimeMonths.toFixed(0)} month lifetime — spend more on what already works.`
+              ? F(
+                  "כל לקוח מחזיר פי {ratio} מעלות הגיוס שלו לאורך {months} חודשים — שווה להשקיע יותר במה שכבר עובד.",
+                  "Each customer returns {ratio}× their acquisition cost over a {months} month lifetime — spend more on what already works.",
+                  { ratio: model.ratio.toFixed(1), months: model.lifetimeMonths.toFixed(0) }
                 )
-              : L(
-                  `בנטישה של ${churn.toFixed(1)}% בחודש, לקוח שווה ${money(model.ltv)} מול עלות גיוס של ${money(cac)}. צריך להוריד נטישה או להעלות מחיר.`,
-                  `At ${churn.toFixed(1)}% monthly churn a customer is only worth ${money(model.ltv)} against ${money(cac)} of CAC. Lower churn or raise price first.`
+              : F(
+                  "בנטישה של {churn}% בחודש, לקוח שווה {ltv} מול עלות גיוס של {cac}. צריך להוריד נטישה או להעלות מחיר.",
+                  "At {churn}% monthly churn a customer is only worth {ltv} against {cac} of CAC. Lower churn or raise price first.",
+                  { churn: churn.toFixed(1), ltv: money(model.ltv), cac: money(cac) }
                 )}
           </p>
         </Card>
@@ -3934,6 +3981,7 @@ const TRACKER_FILTERS_HE = { all: "הכול", active: "פתוחות", done: "ה�
 function TrackerApp({ spec, dark, onToggleDark }) {
   const t = useT();
   const L = useL();
+  const F = useF();
   const [items, setItems] = useState([
     { id: uid("item"), label: L("לאמת את הרעיון מול 5 משתמשים", "Validate the idea with 5 target users"), done: true, priority: "high" },
     { id: uid("item"), label: L("לשרטט את הזרימה המרכזית", "Sketch the core flow end to end"), done: false, priority: "medium" },
@@ -4047,7 +4095,7 @@ function TrackerApp({ spec, dark, onToggleDark }) {
             <bdi className="tabular-nums">{percent}%</bdi>
           </p>
           <p className={cx("text-sm", t.muted)}>
-            {L(`${done} מתוך ${items.length} הושלמו`, `${done} of ${items.length} complete`)}
+            {F("{done} מתוך {total} הושלמו", "{done} of {total} complete", { done, total: items.length })}
           </p>
           <PreviewButton variant="ghost" className="mt-3" onClick={() => setItems((list) => list.map((item) => ({ ...item, done: false })))}>
             <RefreshCw size={13} /> {L("איפוס השבוע", "Reset week")}
@@ -4105,10 +4153,13 @@ const initialState = {
   versions: [],
   activeVersion: 0,
   refine: "",
+  uiLang: DEFAULT_LANG,
 };
 
 function reducer(state, action) {
   switch (action.type) {
+    case "SET_LANG":
+      return { ...state, uiLang: action.value };
     case "SET_PROMPT":
       return { ...state, prompt: action.value, forcedId: null };
 
@@ -4119,7 +4170,7 @@ function reducer(state, action) {
       return { ...state, styleId: action.value };
 
     case "START": {
-      const spec = resolveSpec(action.prompt, state.styleId, state.forcedId);
+      const spec = resolveSpec(action.prompt, state.styleId, state.forcedId, state.uiLang);
       return { ...state, phase: "generating", prompt: action.prompt, pendingSpec: spec, stepIndex: 0 };
     }
 
@@ -4296,6 +4347,27 @@ function Toast({ toast }) {
   );
 }
 
+function LanguageSwitcher({ value, onChange }) {
+  const { t } = useUi();
+  return (
+    <label className="inline-flex items-center gap-1.5 rounded-xl border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-2.5 py-1.5 text-sm text-slate-200 transition hover:bg-[#8fa4ff]/15">
+      <Languages size={13} className="shrink-0 text-[#31e6d6]" />
+      <span className="sr-only">{t("Language")}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="cursor-pointer appearance-none bg-transparent pe-1 text-sm text-slate-200 outline-none"
+      >
+        {LANGUAGES.map((entry) => (
+          <option key={entry.id} value={entry.id} className="bg-[#161f4c] text-slate-100">
+            {entry.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function Logo({ compact }) {
   return (
     <div className="flex items-center gap-2.5">
@@ -4319,6 +4391,7 @@ function Logo({ compact }) {
    ================================================================== */
 
 function Landing({ state, dispatch, onGenerate }) {
+  const { t } = useUi();
   const textareaRef = useRef(null);
   const style = STYLE_BY_ID[state.styleId];
   const canGenerate = state.prompt.trim().length > 3;
@@ -4342,15 +4415,16 @@ function Landing({ state, dispatch, onGenerate }) {
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Logo />
         <nav className="flex items-center gap-2">
+          <LanguageSwitcher value={state.uiLang} onChange={(value) => dispatch({ type: "SET_LANG", value })} />
           <span className="hidden items-center gap-1.5 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3 py-1.5 text-xs text-[#94a2ce] sm:flex">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#31e6d6]" />
-            Generator online
+            {t("Generator online")}
           </span>
           <a
             href="#pricing"
             className="rounded-xl border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-2 text-sm text-slate-200 transition hover:bg-[#8fa4ff]/15"
           >
-            Pricing
+            {t("Pricing")}
           </a>
         </nav>
       </header>
@@ -4359,11 +4433,11 @@ function Landing({ state, dispatch, onGenerate }) {
         <div className="aab-rise flex flex-wrap items-center justify-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-1.5 text-xs text-[#c3cdf0] backdrop-blur">
             <Zap size={13} className="text-[#8fa4ff]" />
-            Ships working React, not screenshots
+            {t("Ships working React, not screenshots")}
           </span>
           <span className="inline-flex items-center gap-2 rounded-full border border-[#8fa4ff]/20 bg-[#8fa4ff]/[0.08] px-3.5 py-1.5 text-xs text-[#c3cdf0] backdrop-blur">
             <Languages size={13} className="text-[#31e6d6]" />
-            <bdi dir="rtl" lang="he">עברית ו‑RTL נתמכים</bdi>
+            {t("8 languages, RTL included")}
           </span>
         </div>
 
@@ -4371,17 +4445,17 @@ function Landing({ state, dispatch, onGenerate }) {
           className="aab-rise mx-auto mt-7 max-w-[16ch] text-[2.4rem] font-semibold leading-[1.06] tracking-[-0.03em] text-white sm:max-w-none sm:text-[3.35rem]"
           style={{ animationDelay: "60ms" }}
         >
-          The tool your business needs,
+          {t("The tool your business needs,")}
           <br className="hidden sm:block" />{" "}
           <span className="bg-gradient-to-r from-[#8fa4ff] via-[#c9a6ff] to-[#31e6d6] bg-clip-text text-transparent">
-            working
-          </span>{" "}
-          in seconds
+            {t("working in seconds")}
+          </span>
         </h1>
 
         <p className="aab-rise mx-auto mt-6 max-w-[34rem] text-base leading-[1.7] text-[#9aa8d4]" style={{ animationDelay: "120ms" }}>
-          Nine finished business tools, not an empty prompt box. Say what you need, get a working app in
-          seconds — then keep refining it in plain Hebrew or English.
+          {t(
+            "Nine finished business tools, not an empty prompt box. Say what you need, get a working app in seconds — then keep refining it in your own language."
+          )}
         </p>
 
         <div className="aab-rise mt-9" style={{ animationDelay: "180ms" }}>
@@ -4396,8 +4470,8 @@ function Landing({ state, dispatch, onGenerate }) {
               }}
               rows={4}
               dir="auto"
-              placeholder="e.g. A freelance rate calculator that turns my salary goal into an hourly rate — or write in Hebrew: תכין לי אפליקציה לניהול כספים"
-              className="relative w-full resize-none bg-transparent px-4 py-3.5 text-left text-[15px] leading-relaxed text-white outline-none placeholder:text-slate-500"
+              placeholder={t("e.g. A freelance rate calculator that turns my salary goal into an hourly rate")}
+              className="relative w-full resize-none bg-transparent px-4 py-3.5 text-start text-[15px] leading-relaxed text-white outline-none placeholder:text-slate-500"
             />
             <div className="relative flex flex-wrap items-center justify-between gap-3 px-2 pb-1 pt-1">
               <div className="flex items-center gap-2">
@@ -4406,9 +4480,9 @@ function Landing({ state, dispatch, onGenerate }) {
                   onClick={surprise}
                   className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-white/5 hover:text-slate-200"
                 >
-                  <Shuffle size={13} /> Surprise me
+                  <Shuffle size={13} /> {t("Surprise me")}
                 </button>
-                <span className="hidden text-xs text-slate-600 sm:inline">{state.prompt.trim().length} characters</span>
+                <span className="hidden text-xs text-slate-600 sm:inline">{state.prompt.trim().length} {t("characters")}</span>
               </div>
               <button
                 type="button"
@@ -4422,7 +4496,7 @@ function Landing({ state, dispatch, onGenerate }) {
                 )}
               >
                 <Wand2 size={15} />
-                Generate App
+                {t("Generate App")}
                 <kbd className="ml-1 hidden items-center gap-0.5 rounded border border-white/20 px-1.5 py-0.5 text-[10px] font-medium opacity-80 sm:inline-flex">
                   <Command size={9} />
                   <CornerDownLeft size={9} />
@@ -4432,9 +4506,9 @@ function Landing({ state, dispatch, onGenerate }) {
           </div>
         </div>
 
-        <div className="aab-rise mt-10 text-left" style={{ animationDelay: "240ms" }}>
+        <div className="aab-rise mt-10 text-start" style={{ animationDelay: "240ms" }}>
           <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c8cff]">
-            <Lightbulb size={13} /> Start from a template
+            <Lightbulb size={13} /> {t("Start from a template")}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {PRESETS.map((preset, index) => {
@@ -4447,7 +4521,7 @@ function Landing({ state, dispatch, onGenerate }) {
                   onClick={() => dispatch({ type: "PICK_PRESET", blueprint: preset })}
                   onDoubleClick={() => onGenerate(preset.prompt, preset.id)}
                   className={cx(
-                    "group relative overflow-hidden rounded-2xl border p-4 text-left transition",
+                    "group relative overflow-hidden rounded-2xl border p-4 text-start transition",
                     // An odd preset count would leave a lonely half-width card.
                     index === PRESETS.length - 1 && PRESETS.length % 2 === 1 ? "sm:col-span-2" : "",
                     active
@@ -4469,14 +4543,14 @@ function Landing({ state, dispatch, onGenerate }) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 text-sm font-medium text-white">
-                        {preset.name}
+                        {t(preset.name)}
                         <ArrowUpRight size={13} className="opacity-0 transition group-hover:opacity-60" />
                       </p>
-                      <p className="mt-1 truncate text-xs text-[#94a2ce]">{preset.subtitle}</p>
+                      <p className="mt-1 truncate text-xs text-[#94a2ce]">{t(preset.subtitle)}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {preset.tags.map((tag) => (
                           <span key={tag} className="rounded-md border border-[#8fa4ff]/15 bg-[#8fa4ff]/[0.07] px-1.5 py-0.5 text-[10px] text-[#94a2ce]">
-                            {tag}
+                            {t(tag)}
                           </span>
                         ))}
                       </div>
@@ -4488,9 +4562,9 @@ function Landing({ state, dispatch, onGenerate }) {
           </div>
         </div>
 
-        <div className="aab-rise mt-10 text-left" style={{ animationDelay: "300ms" }}>
+        <div className="aab-rise mt-10 text-start" style={{ animationDelay: "300ms" }}>
           <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c8cff]">
-            <Palette size={13} /> Output style
+            <Palette size={13} /> {t("Output style")}
           </p>
           <div className="flex flex-wrap gap-2">
             {STYLES.map((option) => {
@@ -4511,26 +4585,30 @@ function Landing({ state, dispatch, onGenerate }) {
                     <span className="h-3.5 w-3.5 rounded-full ring-2 ring-[#0b1130]" style={{ background: option.accent }} />
                     <span className="h-3.5 w-3.5 rounded-full ring-2 ring-[#07070c]" style={{ background: option.accent2 }} />
                   </span>
-                  {option.name}
+                  {t(option.name)}
                   {active ? <Check size={13} className="text-[#31e6d6]" /> : null}
                 </button>
               );
             })}
           </div>
-          <p className="mt-3 text-xs text-[#7c8aba]">{style.blurb}</p>
+          <p className="mt-3 text-xs text-[#7c8aba]">{t(style.blurb)}</p>
         </div>
 
         <div id="pricing" className="mt-16 grid gap-3 sm:grid-cols-3">
           {[
             {
               icon: Boxes,
-              title: `${BLUEPRINTS.length} app archetypes`,
-              body: "Finance, calculators, boards, invoices and trackers — all interactive.",
+              title: `${BLUEPRINTS.length} ${t("app archetypes")}`,
+              body: t("Finance, calculators, boards, invoices and trackers — all interactive."),
             },
-            { icon: Terminal, title: "Finished, not sketched", body: "Each tool is built to the last 5% — the part generators skip." },
-            { icon: Languages, title: "Hebrew & RTL", body: "Prompt in Hebrew and the app, labels and code come back right-to-left." },
+            { icon: Terminal, title: t("Finished, not sketched"), body: t("Each tool is built to the last 5% — the part generators skip.") },
+            {
+              icon: Languages,
+              title: t("Every language, RTL included"),
+              body: t("Prompt in any supported language and the app, labels and code come back in it."),
+            },
           ].map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-[#8fa4ff]/18 bg-[#1a2352]/60 p-5 text-left backdrop-blur-xl">
+            <div key={feature.title} className="rounded-2xl border border-[#8fa4ff]/18 bg-[#1a2352]/60 p-5 text-start backdrop-blur-xl">
               <feature.icon size={16} className="text-[#31e6d6]" />
               <p className="mt-3 text-sm font-medium text-white">{feature.title}</p>
               <p className="mt-1.5 text-xs leading-relaxed text-[#94a2ce]">{feature.body}</p>
@@ -4547,6 +4625,7 @@ function Landing({ state, dispatch, onGenerate }) {
    ================================================================== */
 
 function Generating({ state, onCancel }) {
+  const { t } = useUi();
   const spec = state.pendingSpec;
   const blueprint = spec ? BLUEPRINT_BY_ID[spec.appId] : BLUEPRINTS[0];
   const progress = Math.round((state.stepIndex / GEN_STEPS.length) * 100);
@@ -4568,7 +4647,7 @@ function Generating({ state, onCancel }) {
               <span className="absolute inset-0 animate-ping rounded-2xl bg-[#7c8cff]/35" />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">Building your app</p>
+              <p className="text-sm font-semibold text-white">{t("Building your app")}</p>
               <p dir="auto" className="truncate text-xs text-slate-400">
                 {state.prompt}
               </p>
@@ -4576,8 +4655,8 @@ function Generating({ state, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white"
-              aria-label="Cancel generation"
+              className="ms-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 text-slate-400 transition hover:bg-white/5 hover:text-white"
+              aria-label={t("Cancel generation")}
             >
               <X size={15} />
             </button>
@@ -4642,8 +4721,8 @@ function Generating({ state, onCancel }) {
         </div>
 
         <p className="mt-4 text-center text-xs text-slate-500">
-          Matched blueprint: <span className="text-slate-300">{blueprint.name}</span> · style{" "}
-          <span className="text-slate-300">{STYLE_BY_ID[state.styleId].name}</span>
+          {t("Matched blueprint:")} <span className="text-slate-300">{t(blueprint.name)}</span> ·{" "}
+          <span className="text-slate-300">{t(STYLE_BY_ID[state.styleId].name)}</span>
         </p>
       </div>
     </div>
@@ -4661,6 +4740,7 @@ const DEVICES = [
 ];
 
 function PreviewCanvas({ spec }) {
+  const { t } = useUi();
   const [device, setDevice] = useState("desktop");
   const baseStyle = STYLE_BY_ID[spec.styleId];
   const [dark, setDark] = useState(baseStyle.dark);
@@ -4673,7 +4753,7 @@ function PreviewCanvas({ spec }) {
   const theme = STYLE_BY_ID[effectiveStyleId];
   const Renderer = APP_RENDERERS[spec.appId] || TrackerApp;
   const activeDevice = DEVICES.find((item) => item.id === device) || DEVICES[0];
-  const isHebrew = spec.lang === "he";
+  const specLang = spec.lang || DEFAULT_LANG;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -4692,7 +4772,7 @@ function PreviewCanvas({ spec }) {
             <button
               key={item.id}
               type="button"
-              title={item.label}
+              title={t(item.label)}
               onClick={() => setDevice(item.id)}
               className={cx(
                 "grid h-7 w-7 place-items-center rounded-md transition",
@@ -4708,18 +4788,20 @@ function PreviewCanvas({ spec }) {
       <div className="aab-scroll min-h-0 flex-1 overflow-auto bg-[#0a1030] p-4">
         <div className="mx-auto transition-all duration-300" style={{ width: activeDevice.width, maxWidth: "100%" }}>
           <ThemeCtx.Provider value={theme}>
-            <LangCtx.Provider value={spec.lang || "en"}>
+            <LangCtx.Provider value={specLang}>
               <div
-                dir={isHebrew ? "rtl" : "ltr"}
-                lang={isHebrew ? "he" : "en"}
+                dir={dirOf(specLang)}
+                lang={specLang}
                 className={cx(
                   "overflow-hidden shadow-[0_30px_80px_-40px_rgba(0,0,0,1)]",
                   theme.canvas,
                   theme.radius,
-                  // The mono stack has poor Hebrew coverage, so RTL apps use the Hebrew stack.
-                  isHebrew ? "font-hebrew" : theme.font
+                  // Theme fonts cover Latin and Cyrillic only; other scripts
+                  // would render as tofu, so they bring their own stack.
+                  needsScriptFont(specLang) ? "" : theme.font
                 )}
                 style={{
+                  fontFamily: needsScriptFont(specLang) ? fontOf(specLang) : undefined,
                   "--a": spec.accent,
                   "--a2": spec.accent2,
                   "--pad": spec.density === "compact" ? "0.75rem" : "1.25rem",
@@ -4740,11 +4822,10 @@ const REFINE_SUGGESTIONS = [
   "Add a dark mode toggle",
   "Make the layout more compact",
   "Add an analytics chart",
-  "שנה את צבע הדגש לירוק",
-  "תוריד את הכותרת",
 ];
 
 function CodeInspector({ state, dispatch, onCopy, onRefine }) {
+  const { t } = useUi();
   const inputRef = useRef(null);
   const [pending, setPending] = useState(false);
 
@@ -4770,7 +4851,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
         </span>
         <span className="font-mono text-[11px] text-slate-600">{lineCount} lines</span>
 
-        <div className="ml-auto flex items-center gap-1.5 overflow-x-auto">
+        <div className="ms-auto flex items-center gap-1.5 overflow-x-auto">
           <History size={12} className="shrink-0 text-slate-600" />
           {state.versions.map((version, index) => (
             <button
@@ -4805,7 +4886,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
               onClick={() => submit(suggestion)}
               className="rounded-full border border-[#8fa4ff]/16 bg-[#8fa4ff]/[0.06] px-2.5 py-1 text-[11px] text-[#94a2ce] transition hover:border-[#31e6d6]/50 hover:text-[#a8f4ec]"
             >
-              {suggestion}
+              {t(suggestion)}
             </button>
           ))}
         </div>
@@ -4823,7 +4904,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
             onKeyDown={(event) => {
               if (event.key === "Enter") submit();
             }}
-            placeholder="Refine it — “make the accent emerald and add a chart”"
+            placeholder={t("Refine it — “make the accent emerald and add a chart”")}
             className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500 disabled:opacity-50"
           />
           <button
@@ -4838,14 +4919,14 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
             )}
           >
             {pending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-            {pending ? "Applying" : "Refine"}
+            {pending ? t("Applying") : t("Refine")}
           </button>
         </div>
 
         {state.versions[state.activeVersion] ? (
           <p className="mt-2 flex items-center gap-1.5 truncate px-1 text-[11px] text-slate-500">
             <Activity size={11} className="shrink-0 text-emerald-400/70" />
-            {state.versions[state.activeVersion].label}: {state.versions[state.activeVersion].notes.join(" · ")}
+            {state.versions[state.activeVersion].label}: {state.versions[state.activeVersion].notes.map((note) => t(note)).join(" · ")}
           </p>
         ) : null}
       </div>
@@ -4854,36 +4935,37 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
 }
 
 function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
+  const { t } = useUi();
   const { spec, view } = state;
   const blueprint = BLUEPRINT_BY_ID[spec.appId];
   const BlueprintIcon = blueprint.icon;
 
   const views = [
-    { id: "preview", icon: Eye, label: "Preview" },
-    { id: "code", icon: Code2, label: "Code" },
-    { id: "split", icon: Columns2, label: "Split" },
+    { id: "preview", icon: Eye, label: t("Preview") },
+    { id: "code", icon: Code2, label: t("Code") },
+    { id: "split", icon: Columns2, label: t("Split") },
   ];
 
   return (
     <div className="flex h-screen flex-col bg-[#0b1130] text-slate-200">
       <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-[#8fa4ff]/15 bg-[#0d1436]/90 px-4 py-3 backdrop-blur-xl">
-        <button type="button" onClick={() => dispatch({ type: "RESET" })} className="flex items-center gap-2.5" title="New app">
+        <button type="button" onClick={() => dispatch({ type: "RESET" })} className="flex items-center gap-2.5" title={t("New app")}>
           <Logo compact />
         </button>
 
-        <div className="hidden min-w-0 items-center gap-2 border-l border-[#8fa4ff]/15 pl-3 sm:flex">
+        <div className="hidden min-w-0 items-center gap-2 border-s border-[#8fa4ff]/15 ps-3 sm:flex">
           <BlueprintIcon size={14} className="shrink-0 text-[#31e6d6]" />
           <div className="min-w-0">
             <p dir="auto" className="truncate text-sm font-medium text-white">
               {spec.title}
             </p>
             <p className="truncate text-[11px] text-[#7c8aba]">
-              {blueprint.name} · {STYLE_BY_ID[spec.styleId].name}
+              {t(blueprint.name)} · {t(STYLE_BY_ID[spec.styleId].name)}
             </p>
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 rounded-xl border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.07] p-1">
+        <div className="ms-auto flex items-center gap-1 rounded-xl border border-[#8fa4ff]/18 bg-[#8fa4ff]/[0.07] p-1">
           {views.map((item) => (
             <button
               key={item.id}
@@ -4901,16 +4983,16 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <ToolbarButton onClick={onCopy} icon={Copy} label="Copy code" />
-          <ToolbarButton onClick={onDownload} icon={Download} label="Download .JSX" />
-          <ToolbarButton onClick={onShare} icon={Share2} label="Share" />
+          <ToolbarButton onClick={onCopy} icon={Copy} label={t("Copy code")} />
+          <ToolbarButton onClick={onDownload} icon={Download} label={t("Download .JSX")} />
+          <ToolbarButton onClick={onShare} icon={Share2} label={t("Share")} />
           <button
             type="button"
             onClick={() => dispatch({ type: "RESET" })}
             className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#7c8cff] to-[#31e6d6] px-3 py-2 text-xs font-semibold text-[#08102c] transition hover:brightness-110 active:scale-[0.98]"
           >
             <Rocket size={13} />
-            <span className="hidden sm:inline">New app</span>
+            <span className="hidden sm:inline">{t("New app")}</span>
           </button>
         </div>
       </header>
@@ -4956,7 +5038,23 @@ function ToolbarButton({ onClick, icon: Icon, label }) {
    ================================================================== */
 
 export default function AIAppBuilder() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (base) => ({ ...base, uiLang: initialUiLang() }));
+  const ui = useMemo(
+    () => ({ t: makeT(state.uiLang), lang: state.uiLang, dir: dirOf(state.uiLang) }),
+    [state.uiLang]
+  );
+
+  /* The shell is laid out by the bidi algorithm, so the document owns dir. */
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("lang", state.uiLang);
+    root.setAttribute("dir", dirOf(state.uiLang));
+    try {
+      window.localStorage.setItem(LANG_STORAGE_KEY, state.uiLang);
+    } catch (error) {
+      /* Not being able to remember the choice is not worth failing over. */
+    }
+  }, [state.uiLang]);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
@@ -4974,9 +5072,9 @@ export default function AIAppBuilder() {
     if (!hash.startsWith("app=")) return;
     try {
       const payload = JSON.parse(decodeURIComponent(escape(atob(hash.slice(4)))));
-      const base = resolveSpec(payload.prompt || "", payload.styleId || "modern-dark", payload.appId);
+      const base = resolveSpec(payload.prompt || "", payload.styleId || "modern-dark", payload.appId, initialUiLang());
       dispatch({ type: "HYDRATE", spec: { ...base, ...payload } });
-      notify("Shared app restored");
+      notify(makeT(initialUiLang())("Shared app restored"));
     } catch (error) {
       /* A malformed link simply falls back to the landing page. */
     }
@@ -5005,13 +5103,13 @@ export default function AIAppBuilder() {
 
   const handleCopy = useCallback(async () => {
     const ok = await copyText(state.code);
-    notify(ok ? "Code copied to clipboard" : "Copy failed — select the code manually");
-  }, [state.code, notify]);
+    notify(ui.t(ok ? "Code copied to clipboard" : "Copy failed — select the code manually"));
+  }, [state.code, notify, ui]);
 
   const handleDownload = useCallback(() => {
     downloadFile(`${componentName(state.spec)}.jsx`, state.code, "text/jsx;charset=utf-8");
-    notify(`${componentName(state.spec)}.jsx downloaded`);
-  }, [state.spec, state.code, notify]);
+    notify(`${componentName(state.spec)}.jsx ${ui.t("downloaded")}`);
+  }, [state.spec, state.code, notify, ui]);
 
   const handleShare = useCallback(async () => {
     const payload = {
@@ -5032,18 +5130,19 @@ export default function AIAppBuilder() {
     const url = `${window.location.origin}${window.location.pathname}#app=${encoded}`;
     window.history.replaceState(null, "", `#app=${encoded}`);
     const ok = await copyText(url);
-    notify(ok ? "Share link copied" : "Share link is in the address bar");
-  }, [state.spec, notify]);
+    notify(ui.t(ok ? "Share link copied" : "Share link is in the address bar"));
+  }, [state.spec, notify, ui]);
 
   const handleRefine = useCallback(
     (text) => {
       dispatch({ type: "REFINE", text });
-      notify("Refinement applied — new version saved");
+      notify(ui.t("Refinement applied — new version saved"));
     },
-    [notify]
+    [notify, ui]
   );
 
   return (
+    <UiCtx.Provider value={ui}>
     <div className="antialiased">
       <GlobalStyles />
       {state.phase === "landing" ? <Landing state={state} dispatch={dispatch} onGenerate={handleGenerate} /> : null}
@@ -5060,5 +5159,6 @@ export default function AIAppBuilder() {
       ) : null}
       <Toast toast={toast} />
     </div>
+    </UiCtx.Provider>
   );
 }

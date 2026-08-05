@@ -2,7 +2,7 @@
 
 A single-page React app that turns a plain-language description into a **working** business
 tool: say what you need, watch the pipeline run, then interact with a live preview sitting next
-to its syntax-highlighted source — and keep refining it in Hebrew or English.
+to its syntax-highlighted source — and keep refining it in any of eight languages.
 
 **Positioning note.** This is deliberately *not* an open-ended app generator. The funded field
 (Lovable, Replit, Bolt, v0, Base44/Wix, ChatGPT Sites) owns open-ended generation and cannot be
@@ -65,14 +65,29 @@ date instead of `toISOString()` (which files bookings a day early east of Greenw
 arrows mirror under RTL, opening-hour ranges are bidi-isolated so `09:00–19:00` cannot render
 reversed, and the exported page's previously invisible bottom button is fixed.
 
-**Hebrew and RTL.** `detectLang()` looks for a single character in the Hebrew Unicode block;
-one is enough to set `spec.lang = "he"`. From there the preview root gets `dir="rtl"`,
-`lang="he"` and a web-safe Hebrew font stack (David/Narkisim are Office fonts and unreliable in
-browsers), every renderer resolves its labels through `L("עברית", "English")`, directional
-chevrons flip, numbers and currency sit in `<bdi>` so bidi never scrambles them, and the
-generated source carries the Hebrew strings and `dir="rtl"` too. Component and file names stay
-Latin (`PersonalFinanceManager.jsx`). Refinements are bilingual — "שנה את צבע הדגש לירוק"
-works exactly like "change the accent to green".
+**Eight languages, two surfaces.** English, Hebrew, Arabic, Chinese, Russian, Hindi, Spanish
+and French, held in `i18n.js` and keyed by the English source string so a missing entry ships
+as readable English rather than a blank or a raw identifier.
+
+The two surfaces are deliberately separate. *Madaf's own interface* follows the switcher in the
+header, remembered in `localStorage` and seeded from the browser's `navigator.languages`;
+`UI[lang]` resolves it through `t()`. *Generated apps* follow *the prompt*: `detectLang()` reads
+the script — one Hebrew, Arabic, CJK, Cyrillic or Devanagari character decides it — and falls
+back to the interface language when the script is Latin and ambiguous. So a Chinese prompt
+typed against an English interface returns a Chinese app.
+
+Every renderer still resolves labels through `L("עברית", "English")`; the second argument is now
+the lookup key, which is why all 300-odd call sites were left untouched. `F(he, en, vars)` is its
+twin for strings that carry a value inside them, because word order around an interpolated
+number differs per language and cannot be concatenated.
+
+Direction is a property of the language, not of Hebrew: `dirOf()` drives `dir`, chevrons and
+arrows mirror under any RTL language, and Hebrew, Arabic, Chinese and Devanagari bring their own
+font stacks since the theme fonts cover Latin and Cyrillic only. Numbers and currency sit in
+`<bdi>` so bidi never scrambles them. Source code is pinned `dir="ltr"` — it reads
+left-to-right whatever the interface is doing. Component and file names stay Latin
+(`PersonalFinanceManager.jsx`), and refinement phrases are parsed in English and Hebrew, so the
+suggestion chips display translated but submit English.
 
 **Nine interactive renderers.** Every archetype is a real, stateful component — not a
 mockup:
@@ -125,8 +140,13 @@ changes.
 ## Adding a tenth archetype
 
 1. Add an entry to `BLUEPRINTS` — id, `name`/`nameHe`, `subtitle`/`subtitleHe`, icon, tags, a match regex covering both languages, and an example prompt.
-2. Write the renderer with the themed primitives (`Card`, `Slider`, `Stat`, `MiniBars`, `PreviewButton`), wrap every visible string in `L(he, en)`, and register it in `APP_RENDERERS`.
+2. Write the renderer with the themed primitives (`Card`, `Slider`, `Stat`, `MiniBars`, `PreviewButton`), wrap every visible string in `L(he, en)` — or `F(he, en, vars)` when a value sits inside the sentence — and register it in `APP_RENDERERS`.
 3. Add a matching entry to `CODE_BUILDERS`, using `qOf(spec)` and `rootDiv(spec)` so the emitted code follows the same language and direction.
+4. Add the new English strings to each block of `GEN` in `i18n.js`, and the blueprint's name and subtitle to each block of `UI`. Anything you skip falls back to English.
+
+Adding a ninth *language* is three edits in `i18n.js` — one row in `LANGUAGES`, one block in
+`UI`, one in `GEN` — plus a script range in `SCRIPT_TESTS` if it needs one. Nothing outside that
+file has to know the list grew.
 
 Nothing else needs to change — presets, refinements, versioning, sharing and export all key
 off the spec.

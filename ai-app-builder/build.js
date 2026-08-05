@@ -47,7 +47,7 @@ const html = `<!DOCTYPE html>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b1130">
 <title>Madaf · מדף — ready-made business tools</title>
-<meta name="description" content="Nine finished, Hebrew-first business tools — booking, quotes, landing pages and more — working in seconds.">
+<meta name="description" content="Nine finished business tools in eight languages — booking, quotes, landing pages and more — working in seconds.">
 <style>
 ${css}
 </style>
