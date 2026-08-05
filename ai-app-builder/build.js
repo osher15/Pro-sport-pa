@@ -46,8 +46,8 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b1130">
-<title>AI App Builder — turn any idea into a functional app</title>
-<meta name="description" content="Describe an app, watch it get generated, then interact with the live preview and refine it in plain English.">
+<title>Madaf · מדף — ready-made business tools</title>
+<meta name="description" content="Nine finished, Hebrew-first business tools — booking, quotes, landing pages and more — working in seconds.">
 <style>
 ${css}
 </style>

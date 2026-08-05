@@ -1,8 +1,20 @@
-# AI App Builder — Micro-SaaS Generator
+# Madaf (מדף) — ready-made business tools
 
-A single-page React app that turns a plain-English idea into a **working** app: describe it,
-watch the generation pipeline run, then interact with a live preview sitting next to its
-syntax-highlighted source — and keep refining it in natural language.
+A single-page React app that turns a plain-language description into a **working** business
+tool: say what you need, watch the pipeline run, then interact with a live preview sitting next
+to its syntax-highlighted source — and keep refining it in Hebrew or English.
+
+**Positioning note.** This is deliberately *not* an open-ended app generator. The funded field
+(Lovable, Replit, Bolt, v0, Base44/Wix, ChatGPT Sites) owns open-ended generation and cannot be
+beaten on it by a small team. What they structurally cannot do — because their valuations
+require unlimited scope — is build a *small* number of archetypes all the way to the last 5%,
+in correct Hebrew RTL, and keep them maintained. That is what this is. The name says it: a
+shelf of finished tools, not an empty prompt box.
+
+**One legal constraint is baked into the product.** In Israel, software that issues tax invoices
+must be entered in the Tax Authority's software registry (מרשם התוכנות), which requires a
+uniform-file export module and certification. The billing archetype is therefore a **price
+quote** builder, not an invoice one, and says so on the document itself. Do not relabel it back.
 
 ```
 ai-app-builder/
@@ -71,7 +83,7 @@ mockup:
 - **Personal Finance Manager** — income vs. expenses, six spend categories, live balance, budget-usage bar and a six-month trend chart.
 - **Freelance Rate Calculator** — seven inputs → hourly / day / project rate, a where-the-money-goes bar, and a rate-sensitivity chart.
 - **Task Kanban Board** — HTML5 drag & drop between columns, keyboard-free move buttons, priority cycling, live WIP counts.
-- **Invoice Generator** — editable line items, four currencies, tax + discount, paid toggle, and a real file export.
+- **Quote & Estimate Builder** — editable line items, four currencies, VAT + discount, accepted/pending toggle, a real file export, and a visible "not a tax invoice" notice (see the legal note above).
 - **SaaS ROI Calculator** — MRR/ARR/LTV/CAC modelling with a 12-month projection chart and a unit-economics verdict.
 - **Idea & Habit Tracker** — the fallback for freeform prompts: add/complete/filter with an animated SVG progress ring.
 
