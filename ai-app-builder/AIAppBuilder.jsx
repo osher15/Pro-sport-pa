@@ -148,11 +148,22 @@ const pascal = (text) => {
 };
 
 const slugify = (text) =>
-  text
+  String(text || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 42) || "generated-app";
+
+/**
+ * A hosting project needs a Latin name. A title written in any non-Latin
+ * script slugifies to nothing, so the archetype id — "booking", "invoice" —
+ * stands in: still meaningful, and distinct per app rather than one shared
+ * "generated-app" for every user who does not write in Latin.
+ */
+const projectSlug = (spec) => {
+  const fromTitle = slugify(spec.title);
+  return fromTitle === "generated-app" ? spec.appId || fromTitle : fromTitle;
+};
 
 const copyText = async (text) => {
   try {
@@ -4768,6 +4779,252 @@ ${guard(js)}
 `;
 };
 
+
+/* ------------------------------------------------------------------
+   Deployment kit — Cloudflare Pages, and optionally a backend
+   ------------------------------------------------------------------ */
+
+/**
+ * Store-only ZIP. No compression, which keeps this to a table and two record
+ * layouts instead of a dependency — the payload is already-minified text and
+ * would barely shrink anyway.
+ */
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i += 1) {
+    let c = i;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+const crc32 = (bytes) => {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i += 1) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+};
+
+const zipStore = (files) => {
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const central = [];
+  let offset = 0;
+
+  const u16 = (value) => [value & 0xff, (value >>> 8) & 0xff];
+  const u32 = (value) => [value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff];
+
+  files.forEach(({ name, body }) => {
+    const nameBytes = encoder.encode(name);
+    const data = encoder.encode(body);
+    const sum = crc32(data);
+    // DOS epoch: the timestamp is not meaningful here, so it stays fixed.
+    const header = [
+      ...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(sum), ...u32(data.length), ...u32(data.length),
+      ...u16(nameBytes.length), ...u16(0),
+    ];
+    chunks.push(new Uint8Array(header), nameBytes, data);
+    central.push({ name: nameBytes, sum, size: data.length, offset });
+    offset += header.length + nameBytes.length + data.length;
+  });
+
+  const dirStart = offset;
+  central.forEach((entry) => {
+    const header = [
+      ...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21),
+      ...u32(entry.sum), ...u32(entry.size), ...u32(entry.size),
+      ...u16(entry.name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(entry.offset),
+    ];
+    chunks.push(new Uint8Array(header), entry.name);
+    offset += header.length + entry.name.length;
+  });
+
+  chunks.push(new Uint8Array([
+    ...u32(0x06054b50), ...u16(0), ...u16(0),
+    ...u16(central.length), ...u16(central.length),
+    ...u32(offset - dirStart), ...u32(dirStart), ...u16(0),
+  ]));
+
+  return new Blob(chunks, { type: "application/zip" });
+};
+
+const downloadBlob = (filename, blob) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+/**
+ * Everything needed to deploy the app *with* a backend in a single Pages
+ * deploy. Pages Functions run on Workers, so one upload gives both hosting and
+ * an endpoint — deploying a separate Worker would be a second thing to keep
+ * in sync for no benefit.
+ */
+const buildDeployKit = (spec, html) => {
+  const slug = projectSlug(spec);
+  const submit = [
+    "/**",
+    " * POST /api/submit — stores one submission.",
+    " * The table holds the payload as JSON so the form can change without a",
+    " * migration; add columns once you know what you actually query by.",
+    " */",
+    "const json = (body, status = 200) =>",
+    '  new Response(JSON.stringify(body), {',
+    '    status,',
+    '    headers: { "content-type": "application/json; charset=utf-8" },',
+    "  });",
+    "",
+    "export async function onRequestPost({ request, env }) {",
+    "  if (!env.DB) return json({ error: \"No database is bound to this project\" }, 500);",
+    "  let data;",
+    "  try {",
+    "    data = await request.json();",
+    "  } catch (error) {",
+    '    return json({ error: "Expected a JSON body" }, 400);',
+    "  }",
+    '  if (!data || typeof data !== "object" || Array.isArray(data)) {',
+    '    return json({ error: "Expected a JSON object" }, 400);',
+    "  }",
+    "  try {",
+    '    await env.DB.prepare("INSERT INTO submissions (received_at, payload) VALUES (?, ?)")',
+    "      .bind(new Date().toISOString(), JSON.stringify(data))",
+    "      .run();",
+    "  } catch (error) {",
+    '    return json({ error: "Could not save the submission" }, 500);',
+    "  }",
+    "  return json({ ok: true });",
+    "}",
+    "",
+    "/** GET /api/submit?token=… — reads them back. Without a token, nothing. */",
+    "export async function onRequestGet({ request, env }) {",
+    '  const token = new URL(request.url).searchParams.get("token");',
+    "  if (!env.READ_TOKEN || token !== env.READ_TOKEN) {",
+    '    return json({ error: "Unauthorized" }, 401);',
+    "  }",
+    "  const { results } = await env.DB",
+    '    .prepare("SELECT id, received_at, payload FROM submissions ORDER BY id DESC LIMIT 200")',
+    "    .all();",
+    "  return json({ submissions: results });",
+    "}",
+    "",
+  ].join("\n");
+
+  const schema = [
+    "-- One row per submission. payload is the form's JSON, kept whole so the",
+    "-- form can gain fields without a migration.",
+    "CREATE TABLE IF NOT EXISTS submissions (",
+    "  id INTEGER PRIMARY KEY AUTOINCREMENT,",
+    "  received_at TEXT NOT NULL,",
+    "  payload TEXT NOT NULL",
+    ");",
+    "",
+    "CREATE INDEX IF NOT EXISTS submissions_received_at ON submissions (received_at);",
+    "",
+  ].join("\n");
+
+  const toml = [
+    `name = "${slug}"`,
+    'compatibility_date = "2026-01-01"',
+    'pages_build_output_dir = "public"',
+    "",
+    "[[d1_databases]]",
+    'binding = "DB"',
+    `database_name = "${slug}-db"`,
+    '# Paste the id printed by `wrangler d1 create` in step 2.',
+    'database_id = "PASTE_DATABASE_ID_HERE"',
+    "",
+  ].join("\n");
+
+  const readme = [
+    `# ${spec.title} — deploy to Cloudflare`,
+    "",
+    "Two ways to use this folder. Both are on Cloudflare's free tier.",
+    "",
+    "## A. Just put it online (no terminal)",
+    "",
+    "1. Sign in at dash.cloudflare.com and open **Workers & Pages → Create → Pages**.",
+    "2. Choose **Upload assets**, then drag in the `public` folder.",
+    "3. You get a live URL. Done — the app works and remembers data in each",
+    "   visitor's own browser.",
+    "",
+    "Nothing in `functions/` runs on this path, and that is fine.",
+    "",
+    "## B. Add a backend, so submissions reach you",
+    "",
+    "Needs Node.js and a terminal, once.",
+    "",
+    "```",
+    "npm install -g wrangler",
+    "wrangler login",
+    `wrangler d1 create ${slug}-db          # copy the database_id it prints`,
+    "#   → paste that id into wrangler.toml",
+    `wrangler d1 execute ${slug}-db --remote --file=./schema.sql`,
+    "wrangler pages deploy public",
+    "```",
+    "",
+    "Then set a read token so only you can read the submissions:",
+    "",
+    "```",
+    `wrangler pages secret put READ_TOKEN --project-name ${slug}`,
+    "```",
+    "",
+    "### Sending a submission",
+    "",
+    "Any form on the page can post to it:",
+    "",
+    "```html",
+    '<form id="contact">',
+    '  <input name="name" required>',
+    '  <input name="phone" required>',
+    '  <button type="submit">Send</button>',
+    "</form>",
+    "<script>",
+    'document.getElementById("contact").addEventListener("submit", async (event) => {',
+    "  event.preventDefault();",
+    "  const body = Object.fromEntries(new FormData(event.target));",
+    "  const res = await fetch(\"/api/submit\", {",
+    '    method: "POST",',
+    '    headers: { "content-type": "application/json" },',
+    "    body: JSON.stringify(body),",
+    "  });",
+    '  event.target.reset();',
+    '  alert(res.ok ? "Thanks — we got it." : "That did not go through. Please try again.");',
+    "});",
+    "</script>",
+    "```",
+    "",
+    "### Reading them back",
+    "",
+    "```",
+    `curl "https://${slug}.pages.dev/api/submit?token=YOUR_TOKEN"`,
+    "```",
+    "",
+    "## What this does not do",
+    "",
+    "There are no user accounts. The read token is the only lock on the data, so",
+    "treat it like a password. Anyone who can reach the page can post to",
+    "`/api/submit` — add Cloudflare Turnstile if that becomes a problem.",
+    "",
+  ].join("\n");
+
+  return {
+    slug,
+    files: [
+      { name: "public/index.html", body: html },
+      { name: "functions/api/submit.js", body: submit },
+      { name: "schema.sql", body: schema },
+      { name: "wrangler.toml", body: toml },
+      { name: "README.md", body: readme },
+    ],
+  };
+};
+
 /* ==================================================================
    11. State B — Generation
    ================================================================== */
@@ -5149,7 +5406,71 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
   );
 }
 
-function Workspace({ state, dispatch, onCopy, onDownload, onDownloadApp, onShare, onRefine }) {
+function PublishPanel({ spec, onClose, onPage, onKit }) {
+  const { t } = useUi();
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#050817]/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="aab-scroll max-h-full w-full max-w-lg overflow-auto rounded-2xl border border-[#8fa4ff]/25 bg-[#111a44] p-6 text-start shadow-[0_40px_120px_-40px_rgba(0,0,0,1)]">
+        <div className="mb-1 flex items-start justify-between gap-4">
+          <h2 className="text-lg font-semibold text-white">{t("Put this online")}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("Close")}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <p className="mb-5 text-sm leading-relaxed text-[#9aa8d4]">
+          {t("Cloudflare Pages hosts both of these free. Pick how far you need to go.")}
+        </p>
+
+        <div className="grid gap-3">
+          <div className="rounded-xl border border-[#8fa4ff]/22 bg-[#8fa4ff]/[0.06] p-4">
+            <p className="text-sm font-medium text-white">{t("Just put it online")}</p>
+            <p className="mt-1 text-xs leading-relaxed text-[#94a2ce]">
+              {t("One file, dragged into the browser. No terminal, about a minute.")}
+            </p>
+            <ol className="mt-3 grid gap-1.5 ps-4 text-xs leading-relaxed text-[#94a2ce]" style={{ listStyle: "decimal" }}>
+              <li>{t("Download the file below.")}</li>
+              <li>{t("Open dash.cloudflare.com → Workers & Pages → Create → Pages.")}</li>
+              <li>{t("Choose Upload assets and drag the file in.")}</li>
+              <li>{t("You get a live address. That is the whole thing.")}</li>
+            </ol>
+            <button
+              type="button"
+              onClick={onPage}
+              className="mt-3.5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#7c8cff] to-[#31e6d6] px-4 py-2 text-sm font-semibold text-[#08102c] transition hover:brightness-110"
+            >
+              <FileDown size={14} /> {t("Download index.html")}
+            </button>
+          </div>
+
+          <div className="rounded-xl border border-[#8fa4ff]/18 bg-[#1a2352]/60 p-4">
+            <p className="text-sm font-medium text-white">{t("Add a backend, so submissions reach you")}</p>
+            <p className="mt-1 text-xs leading-relaxed text-[#94a2ce]">
+              {t("A folder with the page, a submissions endpoint, a database schema and four commands. Needs a terminal, once.")}
+            </p>
+            <button
+              type="button"
+              onClick={onKit}
+              className="mt-3.5 inline-flex items-center gap-2 rounded-xl border border-[#8fa4ff]/30 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/5"
+            >
+              <FileDown size={14} /> {t("Download deploy folder")}
+            </button>
+          </div>
+        </div>
+
+        <p className="mt-4 text-[11px] leading-relaxed text-[#7c8aba]">
+          {t("Netlify, GitHub Pages and any static host work the same way — nothing here is specific to Cloudflare except the backend folder.")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Workspace({ state, dispatch, onCopy, onDownload, onDownloadApp, onPublish, onShare, onRefine }) {
   const { t } = useUi();
   const { spec, view } = state;
   const blueprint = BLUEPRINT_BY_ID[spec.appId];
@@ -5199,6 +5520,7 @@ function Workspace({ state, dispatch, onCopy, onDownload, onDownloadApp, onShare
 
         <div className="flex items-center gap-1.5">
           <ToolbarButton onClick={onCopy} icon={Copy} label={t("Copy code")} />
+          <ToolbarButton onClick={onPublish} icon={Rocket} label={t("Publish")} />
           <ToolbarButton onClick={onDownloadApp} icon={FileDown} label={t("Download app")} />
           <ToolbarButton onClick={onDownload} icon={Download} label={t("Download .JSX")} />
           <ToolbarButton onClick={onShare} icon={Share2} label={t("Share")} />
@@ -5333,6 +5655,30 @@ function Builder() {
     notify(`${componentName(state.spec)}.jsx ${ui.t("downloaded")}`);
   }, [state.spec, state.code, notify, ui]);
 
+  const [publishing, setPublishing] = useState(false);
+
+  /* Pages serves a folder's index.html at its root, so the name matters. */
+  const handlePublishPage = useCallback(() => {
+    const html = buildStandaloneApp(state.spec);
+    if (!html) {
+      notify(ui.t("This build cannot export a standalone app"));
+      return;
+    }
+    downloadFile("index.html", html, "text/html;charset=utf-8");
+    notify(`index.html ${ui.t("downloaded")}`);
+  }, [state.spec, notify, ui]);
+
+  const handlePublishKit = useCallback(() => {
+    const html = buildStandaloneApp(state.spec);
+    if (!html) {
+      notify(ui.t("This build cannot export a standalone app"));
+      return;
+    }
+    const kit = buildDeployKit(state.spec, html);
+    downloadBlob(`${kit.slug}-cloudflare.zip`, zipStore(kit.files));
+    notify(`${kit.slug}-cloudflare.zip ${ui.t("downloaded")}`);
+  }, [state.spec, notify, ui]);
+
   /* The .jsx is for a codebase; this is the version anyone can just open. */
   const handleDownloadApp = useCallback(() => {
     const html = buildStandaloneApp(state.spec);
@@ -5340,7 +5686,7 @@ function Builder() {
       notify(ui.t("This build cannot export a standalone app"));
       return;
     }
-    const name = slugify(state.spec.title) || "app";
+    const name = projectSlug(state.spec);
     downloadFile(`${name}.html`, html, "text/html;charset=utf-8");
     notify(`${name}.html ${ui.t("downloaded")}`);
   }, [state.spec, notify, ui]);
@@ -5388,8 +5734,17 @@ function Builder() {
           onCopy={handleCopy}
           onDownload={handleDownload}
           onDownloadApp={handleDownloadApp}
+          onPublish={() => setPublishing(true)}
           onShare={handleShare}
           onRefine={handleRefine}
+        />
+      ) : null}
+      {publishing && state.spec ? (
+        <PublishPanel
+          spec={state.spec}
+          onClose={() => setPublishing(false)}
+          onPage={handlePublishPage}
+          onKit={handlePublishKit}
         />
       ) : null}
       <Toast toast={toast} />
