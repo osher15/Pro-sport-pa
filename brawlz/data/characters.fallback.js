@@ -1,0 +1,74 @@
+/**
+ * Offline fallback copy of data/characters.json.
+ *
+ * GENERATED FILE — do not edit by hand.
+ * Run `node tools/sync-fallback.js` after changing characters.json.
+ */
+window.BRAWLZ_CHARACTERS_FALLBACK = {
+  "game_title": "BrawlZ: Cursed Arenas",
+  "version": "Beta 0.1",
+  "characters": [
+    {
+      "id": "char_001",
+      "name": "K.O. Kangaroo",
+      "name_he": "קיי.או. קנגורו",
+      "category": "Crazy Animals",
+      "theme": {
+        "body": "#c2703a",
+        "accent": "#ff4d4d",
+        "trim": "#f7d9a0"
+      },
+      "stats": {
+        "hp": 2500,
+        "speed": 1.2,
+        "attack_damage": 300,
+        "attack_range": "melee"
+      },
+      "ultimate": {
+        "name": "Smash Punch",
+        "description": "Jumps forward, deals 1200 AoE damage and adds knockback effect.",
+        "cooldown": 15,
+        "damage": 1200,
+        "radius": 180,
+        "knockback": 620
+      },
+      "voice_lines": {
+        "spawn": "באתי לחלק כאפות לבוטים. איפה ה-NPC הראשון?",
+        "kill": "GG EZ! אחי, אתה ליטרלי מת.",
+        "death": "וואו איזה האקר, יש לו איימבוט!",
+        "ultimate_cast": "Get rekt!"
+      }
+    },
+    {
+      "id": "char_002",
+      "name": "Grandma Grenade",
+      "name_he": "סבתא רימון",
+      "category": "Humans",
+      "theme": {
+        "body": "#8f6fb5",
+        "accent": "#ff7ad9",
+        "trim": "#e8e8f0"
+      },
+      "stats": {
+        "hp": 1800,
+        "speed": 0.8,
+        "attack_damage": 450,
+        "attack_range": "ranged"
+      },
+      "ultimate": {
+        "name": "Gren-Yarn",
+        "description": "Throws a massive yarn ball that bursts into 10 smaller explosive projectiles.",
+        "cooldown": 18,
+        "damage": 1200,
+        "shards": 10,
+        "radius": 150
+      },
+      "voice_lines": {
+        "spawn": "מי רוצה עוגייה? שמתי בה 67 גרם של חומר נפץ!",
+        "kill": "יש לך 0 ריז, חמוד של סבתא.",
+        "death": "הראוטר נפל... אני בלאג...",
+        "ultimate_cast": "קח קצת קרינג' לפנים!"
+      }
+    }
+  ]
+};

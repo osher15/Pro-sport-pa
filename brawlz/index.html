@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>BrawlZ: Cursed Arenas — אב־טיפוס מערכת קרב</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🥊</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+
+  <!-- ===================== מסך בחירת דמות ===================== -->
+  <section id="menu" class="menu" hidden>
+    <header class="menu-head">
+      <h1 id="menu-title">BrawlZ: Cursed Arenas</h1>
+      <p class="menu-sub">
+        אב־טיפוס מערכת קרב · גרסה <bdi id="menu-version">Beta 0.1</bdi>
+      </p>
+    </header>
+
+    <h2 class="menu-pick">בחרו דמות — היריבה תשוחק על ידי בוט</h2>
+    <div id="character-list" class="char-list"></div>
+
+    <div class="menu-help">
+      <h3>שליטה</h3>
+      <ul>
+        <li><b>תנועה</b> — מקשי WASD או החצים, ובנייד ג׳ויסטיק בפינה</li>
+        <li><b>תקיפה</b> — מקש J, לחיצה עם העכבר, או הכפתור הכתום</li>
+        <li><b>אולטימייט</b> — מקש K או רווח, או הכפתור הסגול</li>
+        <li><b>כיוון</b> — הדמות מכוונת אל סמן העכבר; במגע — לכיוון התנועה</li>
+      </ul>
+      <p class="menu-note">
+        משפטי הסלנג נטענים ישירות מקובץ הנתונים ומודפסים גם על המסך וגם ללוג של הדפדפן.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== הזירה ===================== -->
+  <main id="game-shell" class="game-shell">
+    <div id="game-root"></div>
+
+    <!-- HUD -->
+    <div class="hud hud-top">
+      <div class="hud-card hud-card-player">
+        <div class="hud-row">
+          <span class="hud-name" id="hud-player-name">—</span>
+          <span class="hud-badge">אתם</span>
+          <span class="hud-kills">הרגים: <bdi id="hud-player-kills">0</bdi></span>
+        </div>
+        <div class="bar bar-hp"><i id="hud-player-hp"></i></div>
+        <span class="hud-hp-text"><bdi id="hud-player-hp-text">0 / 0</bdi></span>
+
+        <div class="hud-ult">
+          <span class="hud-ult-title">אולטימייט: <b dir="ltr" id="hud-ult-name">—</b></span>
+          <div class="bar bar-ult"><i id="hud-ult-fill"></i></div>
+          <span class="hud-ult-state" id="hud-ult-text">מוכן!</span>
+        </div>
+      </div>
+
+      <div class="hud-card hud-card-enemy">
+        <div class="hud-row">
+          <span class="hud-name" id="hud-enemy-name">—</span>
+          <span class="hud-badge hud-badge-bot">בוט</span>
+          <span class="hud-kills">הרגים: <bdi id="hud-enemy-kills">0</bdi></span>
+        </div>
+        <div class="bar bar-hp"><i id="hud-enemy-hp"></i></div>
+        <span class="hud-hp-text"><bdi id="hud-enemy-hp-text">0 / 0</bdi></span>
+      </div>
+    </div>
+
+    <!-- פיד משפטי הסלנג -->
+    <ul id="voice-feed" class="voice-feed"></ul>
+
+    <!-- שליטה למגע -->
+    <div class="touch-layer">
+      <div id="stick-zone" class="stick-zone"><i id="stick-thumb" class="stick-thumb"></i></div>
+      <div class="action-buttons">
+        <button id="btn-ult" class="action-btn action-ult" type="button">אולטי</button>
+        <button id="btn-attack" class="action-btn action-attack" type="button">תקיפה</button>
+      </div>
+    </div>
+
+    <div class="match-buttons">
+      <button id="btn-rematch" class="ghost-btn" type="button">אתחול קרב</button>
+      <button id="btn-menu" class="ghost-btn" type="button">החלפת דמות</button>
+    </div>
+  </main>
+
+  <div id="boot-error" class="boot-error" hidden>
+    <h2>המנוע לא נטען</h2>
+    <p>
+      הקובץ של Phaser נטען מרשת CDN. אם אין חיבור לאינטרנט, הורידו את הספרייה לתיקייה
+      מקומית והחליפו את כתובת הסקריפט בסוף הקובץ.
+    </p>
+  </div>
+
+  <!-- Phaser 3.80.1 is vendored so the prototype runs with no network at all.
+       If you'd rather pull it from a CDN, delete vendor/phaser.min.js and the
+       fallback below takes over. -->
+  <script src="vendor/phaser.min.js"></script>
+  <script>
+    if (typeof Phaser === 'undefined') {
+      document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"><\/scr' + 'ipt>');
+    }
+  </script>
+  <script src="data/characters.fallback.js"></script>
+  <script src="src/core/combat.js"></script>
+  <script src="src/game/textures.js"></script>
+  <script src="src/game/ultimates.js"></script>
+  <script src="src/game/Fighter.js"></script>
+  <script src="src/game/controllers.js"></script>
+  <script src="src/game/hud.js"></script>
+  <script src="src/game/ArenaScene.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>
