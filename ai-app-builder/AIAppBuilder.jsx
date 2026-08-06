@@ -86,6 +86,7 @@ import {
   X,
   Zap,
   RotateCcw,
+  FileDown,
 } from "lucide-react";
 import {
   LANGUAGES,
@@ -334,7 +335,7 @@ const BLUEPRINTS = [
     subtitleHe: "שורות, מע״מ, סיכום — ניתן לייצוא",
     icon: FileText,
     tags: ["Sales", "Export"],
-    match: /invoice|billing|bill\b|receipt|quote|estimate|freelance paperwork|חשבונית|חשבוניות|קבלה|קבלות|הצעת מחיר|חיוב לקוח/i,
+    match: /invoice|billing|bill\b|receipt|quote|estimate|freelance paperwork|חשבונית|חשבוניות|קבלה|קבלות|הצע(ת|ות) מחיר|מחירים ללקוח|חיוב לקוח/i,
     prompt: "A price quote builder with editable line items, VAT and discount handling, multi-currency totals and an export button.",
   },
   {
@@ -1962,6 +1963,20 @@ function CodeViewer({ code, changed }) {
 /* ==================================================================
    6. Preview primitives — themed building blocks for generated apps
    ================================================================== */
+
+/**
+ * An exported app boots this same bundle with a spec already on the window,
+ * and renders the archetype alone — no builder chrome. Cloning the running
+ * bundle is what makes the export behave *identically* to the preview: it is
+ * not a re-implementation, it is the same code.
+ */
+const standaloneSpec = (() => {
+  try {
+    return window.__MADAF_APP__ || null;
+  } catch (error) {
+    return null;
+  }
+})();
 
 /** Supplied by the preview shell so any archetype can offer "start over". */
 const ResetCtx = createContext(null);
@@ -4707,6 +4722,52 @@ function Landing({ state, dispatch, onGenerate }) {
   );
 }
 
+/**
+ * Builds a self-contained HTML file by cloning this document's own inlined
+ * CSS and JS and prefixing a spec. No compiler, no CDN, no network — the
+ * result opens by double-clicking and keeps its data in the browser it runs in.
+ *
+ * Returns null when the bundle is not inline (a dev server, say), because a
+ * broken download is worse than an honest refusal.
+ */
+const buildStandaloneApp = (spec) => {
+  const css = Array.from(document.querySelectorAll("style"))
+    .map((node) => node.textContent || "")
+    .join("\n");
+  const js = Array.from(document.querySelectorAll("script"))
+    .filter((node) => !node.src)
+    .map((node) => node.textContent || "")
+    .join("\n;\n");
+  if (js.trim().length < 1000) return null;
+
+  // The bundle itself contains the characters "</script>" inside template
+  // strings, which would otherwise close this tag early.
+  const guard = (text) => text.replace(/<\/(script)/gi, "<\\/$1");
+  const lang = spec.lang || DEFAULT_LANG;
+  const payload = JSON.stringify(spec).replace(/</g, "\\u003c");
+
+  return `<!DOCTYPE html>
+<html lang="${lang}" dir="${dirOf(lang)}" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>${String(spec.title || "App").replace(/[<>&]/g, "")}</title>
+<meta name="color-scheme" content="light dark">
+<style>
+${css}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>window.__MADAF_APP__ = ${guard(payload)};</script>
+<script>
+${guard(js)}
+</script>
+</body>
+</html>
+`;
+};
+
 /* ==================================================================
    11. State B — Generation
    ================================================================== */
@@ -4825,6 +4886,59 @@ const DEVICES = [
   { id: "tablet", icon: Tablet, width: "768px", label: "Tablet" },
   { id: "mobile", icon: Smartphone, width: "390px", label: "Mobile" },
 ];
+
+/**
+ * Full-page mount for an exported app. Mirrors the preview's provider stack so
+ * theme, language and direction resolve the same way, then fills the viewport.
+ */
+function StandaloneApp({ spec }) {
+  const [dark, setDark] = useState(Boolean(spec.startDark));
+  const [resetNonce, setResetNonce] = useState(0);
+  const resetData = useCallback(() => {
+    clearStore(`${spec.appId}:`);
+    setResetNonce((value) => value + 1);
+  }, [spec.appId]);
+
+  const effectiveStyleId = spec.darkToggle ? (dark ? DARK_TWIN[spec.styleId] : LIGHT_TWIN[spec.styleId]) : spec.styleId;
+  const theme = STYLE_BY_ID[effectiveStyleId] || STYLES[0];
+  const Renderer = APP_RENDERERS[spec.appId] || TrackerApp;
+  const lang = spec.lang || DEFAULT_LANG;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("lang", lang);
+    root.setAttribute("dir", dirOf(lang));
+  }, [lang]);
+
+  return (
+    <ThemeCtx.Provider value={theme}>
+      <LangCtx.Provider value={lang}>
+        <div
+          dir={dirOf(lang)}
+          lang={lang}
+          className={cx("min-h-screen", theme.canvas, needsScriptFont(lang) ? "" : theme.font)}
+          style={{
+            fontFamily: needsScriptFont(lang) ? fontOf(lang) : undefined,
+            "--a": spec.accent,
+            "--a2": spec.accent2,
+            "--pad": spec.density === "compact" ? "0.75rem" : "1.25rem",
+          }}
+        >
+          <div className="mx-auto max-w-5xl">
+            <ResetCtx.Provider value={resetData}>
+              <Renderer
+                key={`${spec.appId}-${effectiveStyleId}-${resetNonce}`}
+                spec={spec}
+                dark={dark}
+                onToggleDark={() => setDark((value) => !value)}
+              />
+            </ResetCtx.Provider>
+          </div>
+        </div>
+      </LangCtx.Provider>
+    </ThemeCtx.Provider>
+  );
+}
 
 function PreviewCanvas({ spec }) {
   const { t } = useUi();
@@ -5035,7 +5149,7 @@ function CodeInspector({ state, dispatch, onCopy, onRefine }) {
   );
 }
 
-function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
+function Workspace({ state, dispatch, onCopy, onDownload, onDownloadApp, onShare, onRefine }) {
   const { t } = useUi();
   const { spec, view } = state;
   const blueprint = BLUEPRINT_BY_ID[spec.appId];
@@ -5085,6 +5199,7 @@ function Workspace({ state, dispatch, onCopy, onDownload, onShare, onRefine }) {
 
         <div className="flex items-center gap-1.5">
           <ToolbarButton onClick={onCopy} icon={Copy} label={t("Copy code")} />
+          <ToolbarButton onClick={onDownloadApp} icon={FileDown} label={t("Download app")} />
           <ToolbarButton onClick={onDownload} icon={Download} label={t("Download .JSX")} />
           <ToolbarButton onClick={onShare} icon={Share2} label={t("Share")} />
           <button
@@ -5139,6 +5254,12 @@ function ToolbarButton({ onClick, icon: Icon, label }) {
    ================================================================== */
 
 export default function AIAppBuilder() {
+  // An exported file carries its spec on the window; there is no builder to show.
+  if (standaloneSpec) return <StandaloneApp spec={standaloneSpec} />;
+  return <Builder />;
+}
+
+function Builder() {
   const [state, dispatch] = useReducer(reducer, initialState, (base) => ({ ...base, uiLang: initialUiLang() }));
   const ui = useMemo(
     () => ({ t: makeT(state.uiLang), lang: state.uiLang, dir: dirOf(state.uiLang) }),
@@ -5212,6 +5333,18 @@ export default function AIAppBuilder() {
     notify(`${componentName(state.spec)}.jsx ${ui.t("downloaded")}`);
   }, [state.spec, state.code, notify, ui]);
 
+  /* The .jsx is for a codebase; this is the version anyone can just open. */
+  const handleDownloadApp = useCallback(() => {
+    const html = buildStandaloneApp(state.spec);
+    if (!html) {
+      notify(ui.t("This build cannot export a standalone app"));
+      return;
+    }
+    const name = slugify(state.spec.title) || "app";
+    downloadFile(`${name}.html`, html, "text/html;charset=utf-8");
+    notify(`${name}.html ${ui.t("downloaded")}`);
+  }, [state.spec, notify, ui]);
+
   const handleShare = useCallback(async () => {
     const payload = {
       prompt: state.spec.prompt,
@@ -5254,6 +5387,7 @@ export default function AIAppBuilder() {
           dispatch={dispatch}
           onCopy={handleCopy}
           onDownload={handleDownload}
+          onDownloadApp={handleDownloadApp}
           onShare={handleShare}
           onRefine={handleRefine}
         />

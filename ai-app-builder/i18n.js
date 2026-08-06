@@ -101,6 +101,8 @@ export const preferredLang = (tags) => {
 
 export const UI = {
   he: {
+    "Download app": "הורדת האפליקציה",
+    "This build cannot export a standalone app": "הגרסה הזו אינה יכולה לייצא אפליקציה עצמאית",
     "Applying": "מחיל",
     "Refine": "שפר",
     "initial generation": "יצירה ראשונית",
@@ -200,6 +202,8 @@ export const UI = {
   },
 
   ar: {
+    "Download app": "تنزيل التطبيق",
+    "This build cannot export a standalone app": "لا يمكن لهذه النسخة تصدير تطبيق مستقل",
     "Applying": "جارٍ التطبيق",
     "Refine": "حسّن",
     "initial generation": "الإنشاء الأولي",
@@ -299,6 +303,8 @@ export const UI = {
   },
 
   zh: {
+    "Download app": "下载应用",
+    "This build cannot export a standalone app": "此版本无法导出独立应用",
     "Applying": "应用中",
     "Refine": "优化",
     "initial generation": "初次生成",
@@ -398,6 +404,8 @@ export const UI = {
   },
 
   ru: {
+    "Download app": "Скачать приложение",
+    "This build cannot export a standalone app": "Эта сборка не может экспортировать автономное приложение",
     "Applying": "Применяю",
     "Refine": "Доработать",
     "initial generation": "первая генерация",
@@ -497,6 +505,8 @@ export const UI = {
   },
 
   hi: {
+    "Download app": "ऐप डाउनलोड करें",
+    "This build cannot export a standalone app": "यह बिल्ड स्वतंत्र ऐप निर्यात नहीं कर सकता",
     "Applying": "लागू हो रहा है",
     "Refine": "निखारें",
     "initial generation": "प्रारंभिक जनरेशन",
@@ -596,6 +606,8 @@ export const UI = {
   },
 
   es: {
+    "Download app": "Descargar app",
+    "This build cannot export a standalone app": "Esta versión no puede exportar una app independiente",
     "Applying": "Aplicando",
     "Refine": "Refinar",
     "initial generation": "generación inicial",
@@ -695,6 +707,8 @@ export const UI = {
   },
 
   fr: {
+    "Download app": "Télécharger l'app",
+    "This build cannot export a standalone app": "Cette version ne peut pas exporter d'app autonome",
     "Applying": "Application",
     "Refine": "Affiner",
     "initial generation": "génération initiale",
