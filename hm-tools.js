@@ -81,8 +81,7 @@ window.TOOLS=(function(){
   function printTeams(){
     if(!teams.length)return;
     const esc=H().esc, school=H().SET.school?esc(H().SET.school)+" · ":"";
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>חלוקה לקבוצות</title>
+    H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>חלוקה לקבוצות</title>
       <style>body{font-family:Arial;padding:26px;color:#16182b}
       h1{color:#1f7a4d;font-size:21px;margin:0 0 3px}.meta{color:#666;font-size:13px;margin-bottom:16px}
       .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
@@ -92,7 +91,7 @@ window.TOOLS=(function(){
       <h1>חלוקה לקבוצות</h1><div class="meta">${school}${teamCls?"כיתה "+esc(teamCls)+" · ":""}${today()}</div>
       <div class="g">${teams.map((t,i)=>`<div class="t"><b>קבוצה ${i+1}</b>
         <ol>${t.map(e=>"<li>"+esc(e.s.name)+"</li>").join("")}</ol></div>`).join("")}</div>
-      <script>print()<\/script></body></html>`);
+      </body></html>`);
     w.document.close();
   }
 

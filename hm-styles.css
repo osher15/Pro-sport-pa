@@ -686,3 +686,97 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
   padding:12px 14px;max-height:56vh;overflow:auto}
 .arc-item.builtin{border-inline-start:3px solid var(--acc)}
+
+/* ============================================================
+   נגישות (ת"י 5568 / WCAG 2.1 AA) והתאמות ל-iPhone / Safari
+   ------------------------------------------------------------
+   הבלוק הזה בסוף הקובץ בכוונה: הוא דורס את הכללים שמעליו, ולכן
+   אפשר לתחזק אותו כיחידה אחת בלי לרדוף אחרי כללים בכל הקובץ.
+   ============================================================ */
+
+/* ---------- ניגודיות טקסט ---------- */
+/* #71739a נתן 4.2:1 מול הרקע הכהה — מתחת לסף 4.5:1 לטקסט קטן. */
+:root{ --faint:#8b8eb8; }
+/* לבן על #ff4d5e הוא 3.3:1 בלבד; הכהיית האדום מחזירה את הכפתור לתקן. */
+.btn.stop{background:linear-gradient(135deg,#c8102e,#8e0f1c)}
+.rec-tile .bdg{color:#2b0006}
+
+/* ---------- פוקוס נראה לעין ---------- */
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+/* שדות הציונים ביטלו את המסגרת לגמרי — ניווט במקלדת נשאר בלי סימון */
+.gr-in:focus-visible{outline:3px solid var(--acc);outline-offset:1px}
+.nav button:focus-visible{outline-offset:-3px}
+
+/* ---------- קישור דילוג לתוכן ---------- */
+.skiplink{position:fixed;top:-120px;inset-inline-start:12px;z-index:500;
+  background:var(--acc);color:#0b0b16;font-weight:700;font-size:15px;
+  padding:12px 20px;border-radius:0 0 12px 12px;text-decoration:none;transition:top .15s}
+.skiplink:focus{top:0}
+
+/* ---------- הקטנת תנועה ---------- */
+@media (prefers-reduced-motion: reduce){
+  .cfp{display:none}
+  .view{animation:none}
+}
+
+/* ---------- מצב ניגודיות גבוהה של מערכת ההפעלה ---------- */
+@media (forced-colors: active){
+  .btn,.iconbtn,.card,.modal .box,.seg,.stepper,.field input,.field select,.field textarea{border:1px solid CanvasText}
+  :focus-visible{outline:3px solid Highlight}
+  .nav button.on::before{background:Highlight}
+}
+
+/* ============================================================
+   iPhone / iPad — Safari
+   ============================================================ */
+
+/* ---------- גובה חלון אמיתי (סרגל הכתובת של ספארי זז) ---------- */
+body{min-height:100dvh}
+.modal .box{max-height:88dvh}
+.pf-stage{max-height:72dvh}
+
+/* ---------- טקסט לא מתנפח בסיבוב המכשיר ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* משיכה למטה לא תרענן את הדף באמצע מבחן */
+body{overscroll-behavior-y:contain}
+
+/* ---------- אזור בטוח: מגרעת, פינות מעוגלות וסרגל הבית ---------- */
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.topbar{padding-top:calc(9px + env(safe-area-inset-top))}
+.app{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px)}
+.pf-fsctl{bottom:calc(9px + env(safe-area-inset-bottom))}
+#rec-kiosk{padding:calc(3vh + env(safe-area-inset-top)) calc(4vw + env(safe-area-inset-right))
+           calc(3vh + env(safe-area-inset-bottom)) calc(4vw + env(safe-area-inset-left))}
+
+/* ---------- Safari דורש את הקידומת ל-backdrop-filter ---------- */
+.topbar{-webkit-backdrop-filter:blur(10px)}
+.nav{-webkit-backdrop-filter:blur(12px)}
+.modal{-webkit-backdrop-filter:blur(5px)}
+.pf-camctl button,.pf-status,.pf-fsctl .tm,.pf-fsctl button{-webkit-backdrop-filter:blur(4px)}
+
+/* ---------- מסכי מגע ---------- */
+@media (pointer: coarse){
+  /* ספארי מזייף זום על כל שדה שהגופן בו קטן מ-16px. !important כי חלק
+     מהשדות מקבלים font-size ישירות ב-style. */
+  input,select,textarea{font-size:16px !important}
+  #lockOv input{font-size:22px !important}
+  /* יעדי מגע בגודל סביר לאצבע (Apple HIG: 44×44) */
+  .iconbtn{width:44px;height:44px}
+  .modal .x{min-width:44px;min-height:44px}
+  .nav button{min-height:48px}
+  .btn.sm{min-height:40px}
+  .tbl th .x{min-width:32px;min-height:32px}
+  .pa-chip button{width:30px;height:30px}
+  .stepper button{width:44px;height:44px}
+}
+/* מבטל את השהיית 300ms של הקשה כפולה לזום */
+button,[role="button"],a,.btn,.seg button,.nav button,label.check{touch-action:manipulation}
+
+/* ---------- הודעה על דפדפן מוטמע באייפון ---------- */
+.inapp-note{position:fixed;z-index:480;inset-inline:10px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+  background:linear-gradient(180deg,#2a2350,#1a1633);border:1px solid var(--acc);border-radius:16px;
+  padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:7px;
+  max-width:520px;margin:0 auto;font-size:13.5px;line-height:1.65}
+.inapp-note b{color:var(--acc);font-size:15px}
+.inapp-note span{color:var(--ink)}
+.inapp-note button{align-self:flex-start;margin-top:3px}

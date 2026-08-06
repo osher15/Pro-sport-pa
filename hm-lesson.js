@@ -600,13 +600,11 @@ window.LESSON=(function(){
       <div class="ls-doc">${esc(e.doc.text).replace(/\n/g,"<br>")}</div>`;
     H().modal("ls-docModal");
     $("#ls-docPrint").onclick=()=>{
-      const w=window.open("","_blank");
-      w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>${esc(e.doc.title)}</title>
+      H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>${esc(e.doc.title)}</title>
         <style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;line-height:1.7;color:#16182b;white-space:pre-wrap}
         h1{color:#1f7a4d;font-size:20px}.m{color:#666;font-size:12px;margin-bottom:16px}</style></head><body>
         <h1>${esc(e.doc.title)}</h1><div class="m">${esc(e.doc.meta||"")}</div>${esc(e.doc.text)}
-        <script>print()<\/script></body></html>`);
-      w.document.close();
+        </body></html>`);
     };
   }
 
@@ -650,8 +648,7 @@ window.LESSON=(function(){
     const esc=H().esc, total=plan.phases.reduce((a,p)=>a+p.min,0);
     const src=window.KNOW&&window.KNOW.byId(plan.cur);
     const school=H().SET.school?esc(H().SET.school)+" · ":"";
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>מערך שיעור — ${esc(plan.title)}</title>
+    H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>מערך שיעור — ${esc(plan.title)}</title>
       <style>body{font-family:Arial,Helvetica,sans-serif;padding:32px;color:#16182b;max-width:760px;margin:0 auto;line-height:1.6}
       h1{margin:0 0 2px;color:#1f7a4d;font-size:24px}.meta{color:#666;margin-bottom:16px;font-size:13px}
       h2{font-size:14px;border-bottom:2px solid #1f7a4d;padding-bottom:4px;margin:18px 0 8px;color:#1f7a4d}
@@ -679,8 +676,7 @@ window.LESSON=(function(){
       <h2>בטיחות</h2><div class="warn">${esc(plan.safe)}${plan.note?"<br>"+esc(plan.note):""}</div>
       <h2>משימה להמשך</h2><div>${esc(plan.hw)}</div>
       ${src?`<div class="src">עוגן מקצועי: ${esc(src.title)} — ${esc(src.org)}<br>${esc(src.url)}</div>`:""}
-      <script>print()<\/script></body></html>`);
-    w.document.close();
+      </body></html>`);
   }
 
   /* ---------- אתחול ---------- */

@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; media-src blob: data:; manifest-src blob:; connect-src https://script.google.com https://script.googleusercontent.com; worker-src 'none'">
+<meta name="referrer" content="no-referrer">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0c0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="המגרש PRO">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -697,18 +705,113 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   padding:12px 14px;max-height:56vh;overflow:auto}
 .arc-item.builtin{border-inline-start:3px solid var(--acc)}
 
+/* ============================================================
+   נגישות (ת"י 5568 / WCAG 2.1 AA) והתאמות ל-iPhone / Safari
+   ------------------------------------------------------------
+   הבלוק הזה בסוף הקובץ בכוונה: הוא דורס את הכללים שמעליו, ולכן
+   אפשר לתחזק אותו כיחידה אחת בלי לרדוף אחרי כללים בכל הקובץ.
+   ============================================================ */
+
+/* ---------- ניגודיות טקסט ---------- */
+/* #71739a נתן 4.2:1 מול הרקע הכהה — מתחת לסף 4.5:1 לטקסט קטן. */
+:root{ --faint:#8b8eb8; }
+/* לבן על #ff4d5e הוא 3.3:1 בלבד; הכהיית האדום מחזירה את הכפתור לתקן. */
+.btn.stop{background:linear-gradient(135deg,#c8102e,#8e0f1c)}
+.rec-tile .bdg{color:#2b0006}
+
+/* ---------- פוקוס נראה לעין ---------- */
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+/* שדות הציונים ביטלו את המסגרת לגמרי — ניווט במקלדת נשאר בלי סימון */
+.gr-in:focus-visible{outline:3px solid var(--acc);outline-offset:1px}
+.nav button:focus-visible{outline-offset:-3px}
+
+/* ---------- קישור דילוג לתוכן ---------- */
+.skiplink{position:fixed;top:-120px;inset-inline-start:12px;z-index:500;
+  background:var(--acc);color:#0b0b16;font-weight:700;font-size:15px;
+  padding:12px 20px;border-radius:0 0 12px 12px;text-decoration:none;transition:top .15s}
+.skiplink:focus{top:0}
+
+/* ---------- הקטנת תנועה ---------- */
+@media (prefers-reduced-motion: reduce){
+  .cfp{display:none}
+  .view{animation:none}
+}
+
+/* ---------- מצב ניגודיות גבוהה של מערכת ההפעלה ---------- */
+@media (forced-colors: active){
+  .btn,.iconbtn,.card,.modal .box,.seg,.stepper,.field input,.field select,.field textarea{border:1px solid CanvasText}
+  :focus-visible{outline:3px solid Highlight}
+  .nav button.on::before{background:Highlight}
+}
+
+/* ============================================================
+   iPhone / iPad — Safari
+   ============================================================ */
+
+/* ---------- גובה חלון אמיתי (סרגל הכתובת של ספארי זז) ---------- */
+body{min-height:100dvh}
+.modal .box{max-height:88dvh}
+.pf-stage{max-height:72dvh}
+
+/* ---------- טקסט לא מתנפח בסיבוב המכשיר ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* משיכה למטה לא תרענן את הדף באמצע מבחן */
+body{overscroll-behavior-y:contain}
+
+/* ---------- אזור בטוח: מגרעת, פינות מעוגלות וסרגל הבית ---------- */
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.topbar{padding-top:calc(9px + env(safe-area-inset-top))}
+.app{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px)}
+.pf-fsctl{bottom:calc(9px + env(safe-area-inset-bottom))}
+#rec-kiosk{padding:calc(3vh + env(safe-area-inset-top)) calc(4vw + env(safe-area-inset-right))
+           calc(3vh + env(safe-area-inset-bottom)) calc(4vw + env(safe-area-inset-left))}
+
+/* ---------- Safari דורש את הקידומת ל-backdrop-filter ---------- */
+.topbar{-webkit-backdrop-filter:blur(10px)}
+.nav{-webkit-backdrop-filter:blur(12px)}
+.modal{-webkit-backdrop-filter:blur(5px)}
+.pf-camctl button,.pf-status,.pf-fsctl .tm,.pf-fsctl button{-webkit-backdrop-filter:blur(4px)}
+
+/* ---------- מסכי מגע ---------- */
+@media (pointer: coarse){
+  /* ספארי מזייף זום על כל שדה שהגופן בו קטן מ-16px. !important כי חלק
+     מהשדות מקבלים font-size ישירות ב-style. */
+  input,select,textarea{font-size:16px !important}
+  #lockOv input{font-size:22px !important}
+  /* יעדי מגע בגודל סביר לאצבע (Apple HIG: 44×44) */
+  .iconbtn{width:44px;height:44px}
+  .modal .x{min-width:44px;min-height:44px}
+  .nav button{min-height:48px}
+  .btn.sm{min-height:40px}
+  .tbl th .x{min-width:32px;min-height:32px}
+  .pa-chip button{width:30px;height:30px}
+  .stepper button{width:44px;height:44px}
+}
+/* מבטל את השהיית 300ms של הקשה כפולה לזום */
+button,[role="button"],a,.btn,.seg button,.nav button,label.check{touch-action:manipulation}
+
+/* ---------- הודעה על דפדפן מוטמע באייפון ---------- */
+.inapp-note{position:fixed;z-index:480;inset-inline:10px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+  background:linear-gradient(180deg,#2a2350,#1a1633);border:1px solid var(--acc);border-radius:16px;
+  padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:7px;
+  max-width:520px;margin:0 auto;font-size:13.5px;line-height:1.65}
+.inapp-note b{color:var(--acc);font-size:15px}
+.inapp-note span{color:var(--ink)}
+.inapp-note button{align-self:flex-start;margin-top:3px}
+
 </style>
 </head>
 <body>
-<div class="app" dir="rtl">
-<div class="topbar">
-  <div class="brand"><div class="logo">🏟️</div>
+<a class="skiplink" href="#main">דילוג לתוכן הראשי</a>
+<main class="app" id="main">
+<header class="topbar">
+  <div class="brand"><div class="logo" aria-hidden="true">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
-    <span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
-</div>
+    <span class="clock" id="topClock" aria-label="השעה">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות" aria-label="הגדרות">⚙</button></div>
+</header>
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date">—</div>
@@ -1690,16 +1793,16 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
     <div class="nut-list" id="nut-list"></div>
   </div>
 </section>
-</div>
-<div class="nav">
-  <button data-go="home"><span class="ic">🏠</span>בית</button>
-  <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
-  <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
-  <button data-go="photo"><span class="ic">📷</span>פיניש</button>
-  <button data-go="rec" id="navRec"><span class="ic">🏆</span>שיאים</button>
-  <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span>משחקים</button>
-  <button id="navMore"><span class="ic">⋯</span>עוד</button>
-</div>
+</main>
+<nav class="nav" aria-label="ניווט ראשי">
+  <button type="button" data-go="home"><span class="ic" aria-hidden="true">🏠</span>בית</button>
+  <button type="button" data-go="lesson"><span class="ic" aria-hidden="true">📋</span>שיעור</button>
+  <button type="button" data-go="beep"><span class="ic" aria-hidden="true">🎵</span>ביפ</button>
+  <button type="button" data-go="photo"><span class="ic" aria-hidden="true">📷</span>פיניש</button>
+  <button type="button" data-go="rec" id="navRec"><span class="ic" aria-hidden="true">🏆</span>שיאים</button>
+  <button type="button" data-go="games" id="navGames" style="display:none"><span class="ic" aria-hidden="true">🎮</span>משחקים</button>
+  <button type="button" id="navMore" aria-haspopup="dialog"><span class="ic" aria-hidden="true">⋯</span>עוד</button>
+</nav>
 <!-- more menu -->
 <div class="modal" id="moreModal"><div class="box" style="max-width:400px">
   <h3>⋯ עוד מודולים<button class="x" data-close="moreModal">✕</button></h3>
@@ -1747,7 +1850,7 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
-<div id="toast"><div class="t" id="toastT"></div></div>
+<div id="toast"><div class="t" id="toastT" role="status" aria-live="polite" aria-atomic="true"></div></div>
 
 <div class="modal" id="stu-modal"><div class="box">
   <h3>👤 <span id="stu-mTitle"></span><button class="x" data-close="stu-modal">✕</button></h3>
@@ -1764,11 +1867,11 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   <label class="btn ghost big" style="margin-top:9px;display:block;text-align:center;cursor:pointer">📥 ייבוא מקובץ
     <input type="file" id="stu-fileImport" accept=".csv,.txt,text/csv,text/plain" style="display:none"></label>
 </div></div>
-<div id="lockOv"><div class="box">
-  <div class="lg">🔐</div>
-  <h1>המגרש PRO</h1>
-  <p>אזור מורה — הזן קוד כדי להיכנס</p>
-  <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
+<div id="lockOv" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-desc"><div class="box">
+  <div class="lg" aria-hidden="true">🔐</div>
+  <h1 id="lock-title">המגרש PRO</h1>
+  <p id="lock-desc">אזור מורה — הזן קוד כדי להיכנס</p>
+  <div class="field"><label for="lock-pass">קוד מורה</label><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric" autocomplete="current-password"></div>
   <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסת מורה</button>
   <div class="lock-or"><span>או</span></div>
   <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
@@ -1786,13 +1889,66 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
+/* ---------- אחסון הפעלה (מצב מורה/תלמיד) ----------
+   באייפון, כשמופעל בהגדרות ספארי «חסום את כל העוגיות» (וגם בחלק ממצבי
+   הגלישה הפרטית והמכשירים המנוהלים), עצם הגישה ל-sessionStorage זורקת
+   SecurityError — לא הקריאה, הגישה עצמה. הגישה הזאת הייתה בשורה הראשונה
+   של הקובץ, מחוץ לכל try, ולכן כל הקובץ נפל: window.HMBoot מעולם לא נוצר
+   והמסך נשאר ריק. באנדרואיד זה לא קורה, ומשם ההבדל בין המכשירים.
+   העטיפה כאן נופלת חזרה לזיכרון: האפליקציה עובדת, רק שהמצב לא שורד רענון. */
+const SS=(function(){
+  const mem=Object.create(null);
+  let live=true;
+  try{ window.sessionStorage.getItem("pehub.probe"); }catch(e){ live=false; }
+  return {
+    get(k){ if(live){ try{ return window.sessionStorage.getItem(k); }catch(e){ live=false; } } return k in mem?mem[k]:null; },
+    set(k,v){ v=String(v); mem[k]=v; if(live){ try{ window.sessionStorage.setItem(k,v); }catch(e){ live=false; } } },
+    available(){ return live; }
+  };
+})();
 const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
+/* ---------- זיהוי הסביבה: אייפון ודפדפן מוטמע ----------
+   קישור שנפתח מתוך וואטסאפ/פייסבוק/אינסטגרם באייפון לא נפתח בספארי אלא
+   בדפדפן מוטמע (WKWebView) עם אותו מנוע אבל בלי מצלמה, בלי «הוספה למסך
+   הבית», ועם אחסון שנמחק בסגירה. ה-User-Agent שם חסר את המילית Safari/,
+   וזה הסימן היחיד שאפשר לסמוך עליו. */
+const UA=navigator.userAgent||"";
+const IS_IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const IS_STANDALONE=!!(window.navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches));
+const IS_INAPP=IS_IOS&&!IS_STANDALONE&&!/Safari\//.test(UA);
+
 /* ---------- audio ---------- */
 let AC=null;
 function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } if(AC&&AC.state==="suspended")AC.resume(); return AC; }
+/* ---------- שחרור השמע באייפון ----------
+   ספארי באייפון מתחיל כל AudioContext במצב suspended, ו-resume() לבדו
+   לא תמיד מספיק: צריך גם להשמיע משהו בפועל בתוך אירוע מגע אמיתי. בלי זה
+   הביפים והכריזה פשוט שקטים לאורך כל המבחן. גם speechSynthesis דורש
+   הפעלה ראשונה בתוך מחווה. עושים את זה פעם אחת, בנגיעה הראשונה בדף. */
+(function(){
+  let done=false;
+  function unlock(){
+    if(done)return; done=true;
+    try{
+      const c=ac();
+      if(c){
+        const b=c.createBuffer(1,1,22050), s=c.createBufferSource();
+        s.buffer=b; s.connect(c.destination); s.start(0);
+      }
+    }catch(e){}
+    try{
+      if("speechSynthesis"in window){
+        const u=new SpeechSynthesisUtterance(" ");
+        u.volume=0; speechSynthesis.speak(u);
+      }
+    }catch(e){}
+    ["touchend","pointerdown","click","keydown"].forEach(ev=>document.removeEventListener(ev,unlock,true));
+  }
+  ["touchend","pointerdown","click","keydown"].forEach(ev=>document.addEventListener(ev,unlock,true));
+})();
 function beep(freq=880,dur=0.12,vol=0.5,type="square"){
   if(!SET.sound)return; const c=ac(); if(!c)return;
   const o=c.createOscillator(),g=c.createGain();
@@ -1817,6 +1973,24 @@ async function keepAwake(on){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&wakeLock)keepAwake(true); });
 
+/* ---------- מסך מלא ----------
+   באייפון אין Fullscreen API בכלל (רק באייפד), והקריאות מחזירות Promise
+   שנדחה בשקט או זורק. עוטפים פעם אחת כדי שהאפליקציה לא תיפול עליו. */
+function goFullscreen(el){
+  try{
+    const fn=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(fn){ const r=fn.call(el); if(r&&r.catch)r.catch(()=>{}); }
+  }catch(e){}
+}
+function leaveFullscreen(){
+  try{
+    const fn=document.exitFullscreen||document.webkitExitFullscreen;
+    if(fn&&(document.fullscreenElement||document.webkitFullscreenElement)){
+      const r=fn.call(document); if(r&&r.catch)r.catch(()=>{});
+    }
+  }catch(e){}
+}
+
 /* ---------- toast / confetti / csv / time ---------- */
 let toastTm=null;
 function toast(msg){ const t=$("#toastT"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTm); toastTm=setTimeout(()=>t.classList.remove("show"),2600); }
@@ -1836,6 +2010,71 @@ function dlCSV(name,rows){
 function fmtMS(t){ const m=Math.floor(t/60), s=Math.floor(t%60); return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"); }
 function fmtMSc(t){ const m=Math.floor(t/60), s=Math.floor(t%60), c=Math.floor((t%1)*100); return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+"."+String(c).padStart(2,"0"); }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- כתובות חיצוניות ----------
+   esc() מנטרל תגיות, אבל לא סכימה מסוכנת: href="javascript:..." שורד אותו
+   במלואו. כל כתובת שמגיעה מהמשתמש או מה-URL עוברת דרך כאן, ומה שאינו
+   http/https פשוט לא מוצג ולא נפתח. */
+function safeUrl(u){
+  if(!u)return "";
+  try{
+    const p=new URL(String(u).trim(),location.href);
+    return (p.protocol==="https:"||p.protocol==="http:")?p.href:"";
+  }catch(e){ return ""; }
+}
+/* פתיחת חלון חדש בלי לתת לו גישה ל-window.opener של האפליקציה */
+function openExt(u){
+  const url=safeUrl(u);
+  if(!url){ toast("הקישור אינו תקין"); return null; }
+  return window.open(url,"_blank","noopener,noreferrer");
+}
+/* חלון להדפסה: נפתח ריק, נכתב מקומית ומודפס מהצד שפתח אותו —
+   כך אין צורך ב-<script> משובץ, שמדיניות האבטחה חוסמת ובצדק. */
+function printWindow(html){
+  const w=window.open("","_blank","noopener");
+  if(!w){ toast("הדפדפן חסם את חלון ההדפסה"); return null; }
+  w.document.write(html);
+  w.document.close();
+  try{ w.focus(); w.print(); }catch(e){}
+  return w;
+}
+
+/* ---------- קוד המורה ----------
+   הקוד אינו נשמר כטקסט גלוי אלא כ-SHA-256 עם מלח אקראי לכל מכשיר,
+   כדי שמי שמציץ ב-localStorage לא יקבל אותו מוכן. בדפדפן ישן בלי
+   WebCrypto נשמרת ההתנהגות הישנה, כדי שהנעילה לא תישבר. */
+const PASS=(function(){
+  const KEY="rec.passH", LEGACY="rec.pass";
+  const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  const subtle=()=>(window.crypto&&window.crypto.subtle)||null;
+  async function digest(salt,p){
+    const s=subtle(); if(!s)return null;
+    return hex(await s.digest("SHA-256",new TextEncoder().encode(salt+" "+p)));
+  }
+  function newSalt(){
+    const a=new Uint8Array(16);
+    if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(a);
+    else for(let i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256);
+    return hex(a.buffer);
+  }
+  const dropLegacy=()=>{ try{localStorage.removeItem("pehub."+LEGACY);}catch(e){} };
+  const has=()=>LS.get(KEY,null)!=null||LS.get(LEGACY,null)!=null;
+  async function set(p){
+    const salt=newSalt(), h=await digest(salt,p);
+    if(h){ LS.set(KEY,{salt,hash:h}); dropLegacy(); }
+    else LS.set(LEGACY,p);
+    return true;
+  }
+  async function check(p){
+    const rec=LS.get(KEY,null);
+    if(rec&&rec.salt&&rec.hash)return (await digest(rec.salt,p))===rec.hash;
+    const old=LS.get(LEGACY,null);
+    /* קוד שנשמר בגרסה קודמת — מאומת פעם אחת ומיד עובר לגיבוב */
+    if(old!=null&&String(old)===String(p)){ await set(p); return true; }
+    return false;
+  }
+  return {has,set,check};
+})();
 function modal(id,on){ $("#"+id).classList.toggle("on",on!==false); }
 function wireModals(){
   $$("[data-close]").forEach(b=>b.addEventListener("click",()=>modal(b.dataset.close,false)));
@@ -1846,20 +2085,22 @@ function wireModals(){
    מצב תלמיד הוא מצב תצוגה בלבד: רק לוח השיאים ודף המשחקים נגישים,
    ובלוח השיאים אפשר לצפות ולשלוח שיא — לא לאשר, לא לערוך ולא למחוק. */
 const STUDENT_MODS={rec:1,games:1};
-let ROLE=sessionStorage.getItem("pehub.role")||"teacher";
+let ROLE=SS.get("pehub.role")||"teacher";
 /* קישור שהמורה מחלק: ?role=student  (ועם guest=1 — מכשיר של התלמיד) */
 const QP=new URLSearchParams(location.search);
 if(QP.get("role")==="student"){
   ROLE="student";
-  sessionStorage.setItem("pehub.role","student");
-  sessionStorage.setItem("pehub.unlocked","1"); /* מדלג על מסך הקוד */
+  SS.set("pehub.role","student");
+  SS.set("pehub.unlocked","1"); /* מדלג על מסך הקוד */
 }
 const GUEST=QP.get("guest")==="1"&&ROLE==="student";
 /* קישור טופס ההעלאה נוסע בתוך הקישור עצמו — ההגדרות נשמרות לכל מכשיר
    בנפרד, ולתלמיד בטלפון שלו אין את מה שהמורה הגדיר אצלו. */
 (function(){
-  const up=QP.get("up");
-  if(up&&ROLE==="student"&&/^https:\/\//i.test(up)&&up!==SET.driveForm){
+  /* הכתובת הזאת מגיעה מבחוץ (QR שהמורה חילק) ולכן נבדקת לגופה:
+     רק https, ורק אם היא באמת כתובת תקינה. */
+  const up=safeUrl(QP.get("up"));
+  if(up&&ROLE==="student"&&/^https:/i.test(up)&&up!==SET.driveForm){
     SET.driveForm=up; try{LS.set("settings",SET);}catch(e){}
   }
 })();
@@ -1867,7 +2108,7 @@ const isStudent=()=>ROLE==="student";
 const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
   ROLE=(r==="student")?"student":"teacher";
-  sessionStorage.setItem("pehub.role",ROLE);
+  SS.set("pehub.role",ROLE);
   /* חזרה למצב מורה מנקה את ?role=student מהכתובת — אחרת רענון היה
      מחזיר את המכשיר למצב תלמיד, כי הפרמטר ב-URL גובר על ההגדרה. */
   if(ROLE==="teacher"&&QP.get("role")){
@@ -1938,9 +2179,19 @@ $("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.scho
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
-  SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
-  SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
-  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  /* שלוש כתובות שהמורה מדביק. כתובת שאינה http/https נדחית ולא נשמרת,
+     כדי שלא יישמר בהגדרות משהו שייפתח כקוד. */
+  const urls=[["#set-driveForm","driveForm"],["#set-driveFolder","driveFolder"],["#set-syncUrl","syncUrl"]];
+  let bad=0;
+  urls.forEach(([sel,key])=>{
+    const raw=$(sel).value.trim();
+    if(!raw){ SET[key]=""; return; }
+    const ok=safeUrl(raw);
+    if(ok)SET[key]=ok; else { bad++; $(sel).value=SET[key]||""; }
+  });
+  SET.syncCode=$("#set-syncCode").value.trim();
+  saveSet(); toast(bad?"ההגדרות נשמרו — כתובת אחת לפחות לא הייתה תקינה ולא נשמרה":"ההגדרות נשמרו");
+  if(!bad)modal("setModal",false);
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
 }
 
@@ -2282,13 +2533,20 @@ const PF=(function(){
   function camOff(){ if(cam.on){ cam.stream.getTracks().forEach(t=>t.stop()); cam.on=false; $("#pf-video").srcObject=null; } }
   async function camOn(){
     try{
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("no-camera-api");
       cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}},audio:false});
-      $("#pf-video").srcObject=cam.stream; cam.on=true; bg=null; bgReady=0;
+      const v=$("#pf-video");
+      v.srcObject=cam.stream;
+      /* ספארי באייפון לא תמיד מתחיל לנגן לבד גם עם autoplay+playsinline */
+      try{ await v.play(); }catch(e){}
+      cam.on=true; bg=null; bgReady=0;
       $("#pf-status").textContent="🟢 מצלמה פעילה · מכייל רקע…";
       camLoop();
     }catch(e){
       $("#pf-status").textContent="המצלמה חסומה — עברנו לסימולציה";
-      toast("אין גישה למצלמה. בתצוגה מוטמעת היא חסומה — הורד את הקובץ, או השתמש בסימולציה.");
+      toast(IS_INAPP
+        ? "אין גישה למצלמה בדפדפן המוטמע. פתח את הדף בספארי (שיתוף ← «פתח ב-Safari»)."
+        : "אין גישה למצלמה. בתצוגה מוטמעת היא חסומה — הורד את הקובץ, או השתמש בסימולציה.");
       setMode("sim");
     }
   }
@@ -2736,16 +2994,14 @@ const PF=(function(){
   }
   function printCert(){
     const list=finished(); if(!list.length){toast("אין תוצאות");return;}
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>תעודות</title>
+    printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>תעודות</title>
       <style>body{font-family:Arial;padding:30px}div.c{border:4px double #0a5c38;border-radius:14px;padding:30px;margin-bottom:24px;text-align:center;page-break-inside:avoid}
       h1{margin:0;color:#0a5c38}h2{margin:8px 0}p{margin:4px}.t{font-size:30px;font-weight:bold}.w{color:#b00;font-weight:bold}</style></head><body>`+
       list.map((l,i)=>`<div class="c"><h1>🏅 תעודת הישג</h1><h2>${esc(SET.school||"בית הספר")} · ${esc(META.title)}</h2>
         <p class="t">${esc(l.name)}</p><p>מקום ${i+1} · מסלול ${l.lane} · זמן: ${fmtMSc(l.time)} · ${esc(META.round)} · ${META.dist} מ׳</p>
         ${windIllegal()?'<p class="w">רוח: '+META.wind+' מ/ש (מעל הסף החוקי)</p>':(META.wind!==""?'<p>רוח: '+esc(META.wind)+' מ/ש</p>':"")}
         <p>${META.date||new Date().toLocaleDateString("he-IL")}</p></div>`).join("")+
-      "<script>print()<\/script></body></html>");
-    w.document.close();
+      "</body></html>");
   }
 
   /* ---------- laps (ללא שינוי מהותי) ---------- */
@@ -2863,7 +3119,9 @@ const PF=(function(){
     $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
     function fsToggle(){ const st=$("#pf-stage"); st.classList.toggle("fs");
-      try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}
+      /* אין Fullscreen API באייפון, וגם במקום שיש בו — הקריאה מחזירה
+         Promise שיכול להידחות. בלי catch זו שגיאה גלויה בקונסולה. */
+      if(st.classList.contains("fs"))goFullscreen(st); else leaveFullscreen();
       if(mode==="sim")setTimeout(()=>{simCanvas();race.on||drawSimIdle();},250); }
     $("#pf-fs").addEventListener("click",fsToggle);
     $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
@@ -2973,9 +3231,9 @@ const REC=(function(){
     cone:{israel:12,world:9},balance:{israel:60,world:60}};
 
   let SPORTS=[];
-  let refs={}, pass=LS.get("rec.pass",null);
-  const hasPass=()=>!!LS.get("rec.pass",null);
-  function setPass(p){ pass=p; LS.set("rec.pass",p); }
+  let refs={};
+  const hasPass=()=>PASS.has();
+  const setPass=p=>PASS.set(p);
   let db=null, CACHE=[];
 
   function defaults(){ return (window.RECDEFAULTS?window.RECDEFAULTS.sports():[]); }
@@ -3020,7 +3278,10 @@ const REC=(function(){
   /* ---------- IndexedDB ---------- */
   function openDB(){
     return new Promise((res,rej)=>{
-      const rq=indexedDB.open("pehub-records",1);
+      /* ספארי בגלישה פרטית / חסימת עוגיות: indexedDB יכול להיות null
+         או לזרוק כבר בפתיחה. נכשלים בשקט במקום להפיל את המודול. */
+      if(!window.indexedDB){ rej(new Error("no-idb")); return; }
+      let rq; try{ rq=indexedDB.open("pehub-records",1); }catch(e){ rej(e); return; }
       rq.onupgradeneeded=()=>rq.result.createObjectStore("rec",{keyPath:"id"});
       rq.onsuccess=()=>{db=rq.result;res(db)};
       rq.onerror=()=>rej(rq.error);
@@ -3211,7 +3472,7 @@ const REC=(function(){
       dv.style.display=(guest&&SET.driveForm)?"":"none";
       dv.innerHTML=`📤 <b>בבית הספר הזה מעלים את הסרטון לטופס.</b> מלא כאן את התוצאה,
         ואז לחץ על הכפתור כדי להעלות את הסרטון לתיקייה של המורה.
-        <a class="btn sm acc" href="${esc(SET.driveForm)}" target="_blank" rel="noopener" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
+        <a class="btn sm acc" href="${esc(safeUrl(SET.driveForm))}" target="_blank" rel="noopener noreferrer" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
     }
     const full=$("#rec-subFull");
     if(full)full.onclick=()=>openHowto(sp.id);
@@ -3586,9 +3847,9 @@ const REC=(function(){
     const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
     /* כפתורי הדרייב מופיעים רק אם המורה הגדיר קישורים בהגדרות */
     const up=$("#rec-driveUp");
-    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>window.open(SET.driveForm,"_blank"); }
+    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>openExt(SET.driveForm); }
     const fo=$("#rec-driveFolder");
-    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>window.open(SET.driveFolder,"_blank"); }
+    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>openExt(SET.driveFolder); }
     if(stu)modal("rec-adminModal",false);
   }
 
@@ -3604,10 +3865,10 @@ const REC=(function(){
     if(v.dataset.url){ try{URL.revokeObjectURL(v.dataset.url)}catch(e){} v.dataset.url=""; }
     if(top&&top.video){ const u=URL.createObjectURL(top.video); v.dataset.url=u; v.src=u; v.play().catch(()=>{}); v.style.display=""; } else v.style.display="none";
   }
-  function kioskStart(){ $("#rec-kiosk").classList.add("on"); try{document.documentElement.requestFullscreen()}catch(e){}
+  function kioskStart(){ $("#rec-kiosk").classList.add("on"); goFullscreen(document.documentElement);
     kioskIdx=0; kioskShow(); kioskTm=setInterval(kioskShow,9000); keepAwake(true); }
   function kioskStop(){ $("#rec-kiosk").classList.remove("on"); clearInterval(kioskTm); keepAwake(false);
-    try{document.exitFullscreen&&document.exitFullscreen()}catch(e){} }
+    leaveFullscreen(); }
 
   /* ---------- init ---------- */
   async function init(){
@@ -3618,22 +3879,22 @@ const REC=(function(){
     $("#rec-subSport").addEventListener("change",updSubLb);
     $("#rec-subSend").addEventListener("click",sendSub);
     $("#rec-adminBtn").addEventListener("click",()=>{ $("#rec-admLock").style.display=""; $("#rec-admBody").style.display="none"; $("#rec-admPass").value=""; modal("rec-adminModal"); });
-    $("#rec-admEnter").addEventListener("click",()=>{
+    $("#rec-admEnter").addEventListener("click",async()=>{
       const v=$("#rec-admPass").value;
       if(!hasPass()){
         /* לא הוגדר קוד עדיין — הראשון שנכנס קובע אותו */
         if(v.length<4){toast("בחר קוד באורך 4 ספרות לפחות");return;}
-        setPass(v); toast("🔑 קוד המורה נקבע");
-      } else if(v!==pass){ toast("קוד שגוי"); return; }
+        await setPass(v); toast("🔑 קוד המורה נקבע");
+      } else if(!await PASS.check(v)){ toast("קוד שגוי"); return; }
       $("#rec-admLock").style.display="none"; $("#rec-admBody").style.display=""; renderAdmin();
       if(SET.syncUrl&&SET.syncCode)syncNow();
     });
     const syncBtn=$("#rec-syncNow"); if(syncBtn)syncBtn.addEventListener("click",syncNow);
-    $("#rec-passChg").addEventListener("click",()=>{
+    $("#rec-passChg").addEventListener("click",async()=>{
       const p=prompt("קוד מורה חדש (4 ספרות לפחות):");
       if(p===null)return;
       if(p.trim().length<4){toast("הקוד קצר מדי — לפחות 4 ספרות");return;}
-      setPass(p.trim()); toast("🔑 הקוד עודכן — הוא נשמר במכשיר הזה בלבד");
+      await setPass(p.trim()); toast("🔑 הקוד עודכן — הוא נשמר במכשיר הזה בלבד");
     });
     $("#rec-export").addEventListener("click",async()=>{
       const data=CACHE.map(r=>({...r,video:undefined,hadVideo:!!r.video}));
@@ -3682,7 +3943,7 @@ const REC=(function(){
       try{ await navigator.clipboard.writeText($("#rec-shUrl").value); toast("הקישור הועתק"); }
       catch(e){ $("#rec-shUrl").select(); toast("סמן והעתק ידנית"); }
     });
-    $("#rec-shOpen").addEventListener("click",()=>window.open($("#rec-shUrl").value,"_blank"));
+    $("#rec-shOpen").addEventListener("click",()=>openExt($("#rec-shUrl").value));
     $("#rec-fileImp").addEventListener("change",async e=>{
       for(const f of e.target.files)await importRecordFile(f);
       e.target.value="";
@@ -4179,8 +4440,8 @@ const FIT=(function(){
 
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
-window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,isGuest,role:()=>ROLE};
+window.HM={$,$$,LS,SS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,safeUrl,openExt,printWindow,
+  modal,go,fmtMS,fmtMSc,PASS,setRole,isStudent,isGuest,role:()=>ROLE};
 window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };
 
@@ -5882,8 +6143,7 @@ window.TOOLS=(function(){
   function printTeams(){
     if(!teams.length)return;
     const esc=H().esc, school=H().SET.school?esc(H().SET.school)+" · ":"";
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>חלוקה לקבוצות</title>
+    H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>חלוקה לקבוצות</title>
       <style>body{font-family:Arial;padding:26px;color:#16182b}
       h1{color:#1f7a4d;font-size:21px;margin:0 0 3px}.meta{color:#666;font-size:13px;margin-bottom:16px}
       .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
@@ -5893,7 +6153,7 @@ window.TOOLS=(function(){
       <h1>חלוקה לקבוצות</h1><div class="meta">${school}${teamCls?"כיתה "+esc(teamCls)+" · ":""}${today()}</div>
       <div class="g">${teams.map((t,i)=>`<div class="t"><b>קבוצה ${i+1}</b>
         <ol>${t.map(e=>"<li>"+esc(e.s.name)+"</li>").join("")}</ol></div>`).join("")}</div>
-      <script>print()<\/script></body></html>`);
+      </body></html>`);
     w.document.close();
   }
 
@@ -6807,13 +7067,11 @@ window.LESSON=(function(){
       <div class="ls-doc">${esc(e.doc.text).replace(/\n/g,"<br>")}</div>`;
     H().modal("ls-docModal");
     $("#ls-docPrint").onclick=()=>{
-      const w=window.open("","_blank");
-      w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>${esc(e.doc.title)}</title>
+      H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>${esc(e.doc.title)}</title>
         <style>body{font-family:Arial;padding:30px;max-width:800px;margin:0 auto;line-height:1.7;color:#16182b;white-space:pre-wrap}
         h1{color:#1f7a4d;font-size:20px}.m{color:#666;font-size:12px;margin-bottom:16px}</style></head><body>
         <h1>${esc(e.doc.title)}</h1><div class="m">${esc(e.doc.meta||"")}</div>${esc(e.doc.text)}
-        <script>print()<\/script></body></html>`);
-      w.document.close();
+        </body></html>`);
     };
   }
 
@@ -6857,8 +7115,7 @@ window.LESSON=(function(){
     const esc=H().esc, total=plan.phases.reduce((a,p)=>a+p.min,0);
     const src=window.KNOW&&window.KNOW.byId(plan.cur);
     const school=H().SET.school?esc(H().SET.school)+" · ":"";
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>מערך שיעור — ${esc(plan.title)}</title>
+    H().printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>מערך שיעור — ${esc(plan.title)}</title>
       <style>body{font-family:Arial,Helvetica,sans-serif;padding:32px;color:#16182b;max-width:760px;margin:0 auto;line-height:1.6}
       h1{margin:0 0 2px;color:#1f7a4d;font-size:24px}.meta{color:#666;margin-bottom:16px;font-size:13px}
       h2{font-size:14px;border-bottom:2px solid #1f7a4d;padding-bottom:4px;margin:18px 0 8px;color:#1f7a4d}
@@ -6886,8 +7143,7 @@ window.LESSON=(function(){
       <h2>בטיחות</h2><div class="warn">${esc(plan.safe)}${plan.note?"<br>"+esc(plan.note):""}</div>
       <h2>משימה להמשך</h2><div>${esc(plan.hw)}</div>
       ${src?`<div class="src">עוגן מקצועי: ${esc(src.title)} — ${esc(src.org)}<br>${esc(src.url)}</div>`:""}
-      <script>print()<\/script></body></html>`);
-    w.document.close();
+      </body></html>`);
   }
 
   /* ---------- אתחול ---------- */
@@ -7557,10 +7813,10 @@ window.HMBootNew=function(){
      מורה  — קוד נכון פותח את כל האפליקציה.
      תלמיד — נכנס בלי קוד למצב תצוגה: לוח השיאים ודף המשחקים בלבד. */
   const H0=H();
-  const locked=LS.get("hx.lock",true)&&sessionStorage.getItem("pehub.unlocked")!=="1";
-  const codeSet=()=>LS.get("rec.pass",null)!=null;
+  const locked=LS.get("hx.lock",true)&&SS.get("pehub.unlocked")!=="1";
+  const codeSet=()=>PASS.has();
   const unlockTeacher=()=>{
-    sessionStorage.setItem("pehub.unlocked","1");
+    SS.set("pehub.unlocked","1");
     H0.setRole("teacher");
     $("#lockOv").classList.remove("on"); toast("ברוך הבא, המאמן 👋");
   };
@@ -7573,14 +7829,14 @@ window.HMBootNew=function(){
       $("#lock-pass").placeholder="קוד חדש";
       $("#lock-enter").textContent="קבע קוד והיכנס";
     }
-    const tryPass=()=>{
+    const tryPass=async()=>{
       const v=$("#lock-pass").value.trim();
       if(!codeSet()){
         if(v.length<4){ toast("בחר קוד באורך 4 ספרות לפחות"); return; }
-        if(window.REC&&window.REC.setPass)window.REC.setPass(v); else LS.set("rec.pass",v);
+        await PASS.set(v);
         toast("🔑 הקוד נקבע — זכור אותו"); unlockTeacher(); return;
       }
-      if(v===LS.get("rec.pass",null)) unlockTeacher();
+      if(await PASS.check(v)) unlockTeacher();
       else { toast("קוד שגוי"); $("#lock-pass").value=""; }
     };
     $("#lock-enter").addEventListener("click",tryPass);
@@ -7592,7 +7848,7 @@ window.HMBootNew=function(){
   }
   const stuBtn=$("#lock-student");
   if(stuBtn)stuBtn.addEventListener("click",()=>{
-    sessionStorage.setItem("pehub.unlocked","1");
+    SS.set("pehub.unlocked","1");
     H0.setRole("student");
     $("#lockOv").classList.remove("on");
     H0.go("rec"); toast("מצב תלמיד — צפייה בשיאים ושליחת שיא חדש");
@@ -7607,10 +7863,10 @@ window.HMBootNew=function(){
 
   /* יציאה ממצב תלמיד — דורשת קוד */
   const exitBtn=$("#roleExit");
-  if(exitBtn)exitBtn.addEventListener("click",()=>{
+  if(exitBtn)exitBtn.addEventListener("click",async()=>{
     const p=prompt("קוד מורה ליציאה ממצב תלמיד:");
     if(p===null)return;
-    if(codeSet()&&p===LS.get("rec.pass",null)){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
+    if(codeSet()&&await PASS.check(p)){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
     else toast("קוד שגוי");
   });
 
@@ -7650,6 +7906,262 @@ window.HMBootNew=function(){
 };
 })();
 
+;
+"use strict";
+/* ============================================================
+   המגרש PRO — שכבת נגישות (WCAG 2.1 AA / ת"י 5568)
+   ------------------------------------------------------------
+   האפליקציה בנויה מהרבה מסכים שנוצרים דינמית ב-innerHTML, ולכן
+   נגישות שנכתבת ידנית בכל מקום נשחקת בכל שינוי. הקובץ הזה מוסיף
+   את השכבה הזאת פעם אחת, ומחיל אותה מחדש על כל תוכן חדש:
+
+   1. תוויות (<label for>) מקושרות לשדות שלהן.
+   2. אריחים לחיצים שהם <div> מקבלים role=button + הפעלה במקלדת.
+   3. חלונות מודאליים מקבלים role=dialog, מלכודת פוקוס, Escape,
+      והחזרת הפוקוס לכפתור שפתח אותם.
+   4. כפתורי אייקון מקבלים שם נגיש.
+   5. סרגל הניווט מסמן את המסך הפעיל ב-aria-current.
+   6. כותרות טבלה מקבלות scope.
+   ============================================================ */
+window.HMA11y=(function(){
+
+  const SEL_FOCUS='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),'+
+                  'textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  /* אריחים שנראים ומתנהגים ככפתור אבל נכתבו כ-<div> */
+  const CARD_SEL='.hx-mod,.rec-tile,.fit-ex,.fit-pre,.gm-card,.kn-prog,.pf-lanechip,[data-go],[data-close]';
+  let uid=0;
+  const nid=p=>p+(++uid);
+
+  /* ---------- 1. תוויות ↔ שדות ---------- */
+  function wireLabels(root){
+    root.querySelectorAll(".field").forEach(f=>{
+      const lab=f.querySelector(":scope > label");
+      if(!lab||lab.hasAttribute("for"))return;
+      const ctl=f.querySelector("input,select,textarea");
+      if(!ctl){
+        /* אין שדה אמיתי (למשל קבוצת כפתורים) — התווית מתארת את הקבוצה */
+        const grp=f.querySelector(".seg,.stepper");
+        if(grp&&!grp.hasAttribute("aria-label")){
+          if(!lab.id)lab.id=nid("lb");
+          grp.setAttribute("role","group");
+          grp.setAttribute("aria-labelledby",lab.id);
+        }
+        return;
+      }
+      if(!ctl.id)ctl.id=nid("fld");
+      lab.setAttribute("for",ctl.id);
+    });
+    /* שדות בלי שום תווית — לפחות שם נגיש מה-placeholder */
+    root.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
+      if(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby"))return;
+      if(el.id&&root.querySelector('label[for="'+CSS.escape(el.id)+'"]'))return;
+      if(el.closest("label"))return;
+      el.setAttribute("aria-label",el.getAttribute("placeholder"));
+    });
+  }
+
+  /* ---------- 2. אריחים לחיצים ---------- */
+  function wireCards(root){
+    root.querySelectorAll(CARD_SEL).forEach(el=>{
+      const tag=el.tagName;
+      if(tag==="BUTTON"||tag==="A"||tag==="INPUT"||tag==="SELECT"||tag==="TEXTAREA"||tag==="LABEL")return;
+      if(el.hasAttribute("role"))return;
+      el.setAttribute("role","button");
+      if(!el.hasAttribute("tabindex"))el.setAttribute("tabindex","0");
+    });
+    /* לכפתור אמיתי בלי type יש התנהגות submit כברירת מחדל */
+    root.querySelectorAll("button:not([type])").forEach(b=>b.setAttribute("type","button"));
+  }
+  /* הפעלה במקלדת לכל מה שסומן role=button — כולל תוכן שייווצר בעתיד */
+  document.addEventListener("keydown",e=>{
+    const t=e.target;
+    if(!t||t.nodeType!==1||t.getAttribute("role")!=="button")return;
+    if(e.key!=="Enter"&&e.key!==" "&&e.key!=="Spacebar")return;
+    e.preventDefault();
+    t.click();
+  });
+
+  /* ---------- 4. שמות נגישים לכפתורי אייקון ---------- */
+  const ICON_NAMES=[
+    [".modal .x, [data-close]","סגירה"],
+    [".pa-chip button","הסרה"],
+    [".tbl th .x","מחיקת עמודה"]
+  ];
+  function wireIconButtons(root){
+    ICON_NAMES.forEach(([sel,name])=>{
+      root.querySelectorAll(sel).forEach(b=>{
+        if(!b.getAttribute("aria-label")&&!b.textContent.replace(/[\s✕✖×⋯]/g,""))
+          b.setAttribute("aria-label",name);
+      });
+    });
+    /* כפתור שכל תוכנו אמוג'י — האמוג'י מוקרא כשם ארוך ומבלבל */
+    root.querySelectorAll("button,[role=button]").forEach(b=>{
+      if(b.getAttribute("aria-label")||b.getAttribute("aria-labelledby"))return;
+      const txt=b.textContent.trim();
+      if(txt&&!/[\p{L}\p{N}]/u.test(txt)&&b.title)b.setAttribute("aria-label",b.title);
+    });
+  }
+
+  /* ---------- 6. כותרות טבלה ---------- */
+  function wireTables(root){
+    root.querySelectorAll("table th:not([scope])").forEach(th=>{
+      th.setAttribute("scope",th.closest("thead")?"col":"row");
+    });
+  }
+
+  /* ---------- 3. חלונות מודאליים ---------- */
+  const stack=[];   /* [{el, opener}] */
+
+  function visibleFocusables(root){
+    return [...root.querySelectorAll(SEL_FOCUS)].filter(el=>el.getClientRects().length>0);
+  }
+  function dialogSetup(m){
+    if(m.dataset.a11y)return;
+    m.dataset.a11y="1";
+    m.setAttribute("role","dialog");
+    m.setAttribute("aria-modal","true");
+    const box=m.querySelector(".box");
+    if(box&&!box.hasAttribute("tabindex"))box.setAttribute("tabindex","-1");
+    const h=m.querySelector("h3,h2,h1");
+    if(h&&!m.hasAttribute("aria-labelledby")){
+      if(!h.id)h.id=nid("dlg");
+      m.setAttribute("aria-labelledby",h.id);
+    }
+  }
+  function openDialog(m){
+    if(stack.some(s=>s.el===m))return;
+    dialogSetup(m);
+    stack.push({el:m,opener:document.activeElement});
+    const box=m.querySelector(".box")||m;
+    /* הפוקוס עובר לכותרת החלון, לא לכפתור הראשון — כדי שקורא המסך
+       יקריא קודם מה נפתח ורק אחר כך את הפקדים. */
+    setTimeout(()=>{
+      if(!m.classList.contains("on"))return;
+      const auto=m.querySelector("[autofocus]");
+      (auto||box).focus({preventScroll:true});
+    },30);
+  }
+  function closeDialog(m){
+    const i=stack.findIndex(s=>s.el===m);
+    if(i<0)return;
+    const {opener}=stack[i];
+    stack.splice(i,1);
+    if(opener&&document.contains(opener)&&opener.getClientRects().length)
+      try{opener.focus({preventScroll:true});}catch(e){}
+  }
+  function topDialog(){ return stack.length?stack[stack.length-1].el:null; }
+
+  document.addEventListener("keydown",e=>{
+    const m=topDialog();
+    if(!m)return;
+    if(e.key==="Escape"){
+      /* מסך הנעילה הוא שער כניסה — Escape לא פותח אותו */
+      if(m.id==="lockOv")return;
+      e.preventDefault();
+      m.classList.remove("on");
+      return;
+    }
+    if(e.key!=="Tab")return;
+    const f=visibleFocusables(m);
+    if(!f.length){ e.preventDefault(); return; }
+    const first=f[0], last=f[f.length-1];
+    if(e.shiftKey&&(document.activeElement===first||!m.contains(document.activeElement))){
+      e.preventDefault(); last.focus();
+    }else if(!e.shiftKey&&document.activeElement===last){
+      e.preventDefault(); first.focus();
+    }
+  },true);
+
+  /* ---------- 5. סרגל הניווט ---------- */
+  function syncNav(){
+    document.querySelectorAll(".nav button").forEach(b=>{
+      if(b.classList.contains("on"))b.setAttribute("aria-current","page");
+      else b.removeAttribute("aria-current");
+    });
+  }
+
+  /* ---------- החלה על תוכן חדש ---------- */
+  function enhance(root){
+    root=root||document;
+    try{wireLabels(root);}catch(e){}
+    try{wireCards(root);}catch(e){}
+    try{wireIconButtons(root);}catch(e){}
+    try{wireTables(root);}catch(e){}
+    try{root.querySelectorAll(".modal").forEach(dialogSetup);}catch(e){}
+  }
+
+  let pending=0;
+  function schedule(){
+    if(pending)return;
+    pending=setTimeout(()=>{pending=0;enhance(document);},250);
+  }
+
+  function observe(){
+    new MutationObserver(muts=>{
+      let needEnhance=false;
+      for(const mu of muts){
+        if(mu.type==="attributes"){
+          const t=mu.target;
+          if(t.classList&&(t.classList.contains("modal")||t.id==="lockOv")){
+            if(t.classList.contains("on"))openDialog(t); else closeDialog(t);
+          }else if(t.matches&&t.matches(".nav button")){
+            syncNav();
+          }
+          continue;
+        }
+        /* עדכוני טקסט בלבד (שעון, טיימר) לא מצריכים מעבר נוסף */
+        if(!needEnhance)
+          for(const n of mu.addedNodes){ if(n.nodeType===1){needEnhance=true;break;} }
+      }
+      if(needEnhance)schedule();
+    }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+  }
+
+  /* ---------- אייפון: פתיחה מתוך וואטסאפ ----------
+     כשמורה מקבל את הקישור בוואטסאפ ולוחץ עליו באייפון, הדף נפתח בדפדפן
+     המוטמע של וואטסאפ ולא בספארי. שם אין גישה למצלמה (פוטו־פיניש לא
+     יעבוד), אין «הוספה למסך הבית», והנתונים נמחקים כשסוגרים את החלון.
+     באנדרואיד אותו קישור נפתח בכרום עצמו ולכן שם הכול עובד — וזה בדיוק
+     ההבדל שנראה כאילו האפליקציה «לא נפתחת באייפון».
+     מסבירים למורה מה לעשות במקום להשאיר אותו מול פיצ׳רים מתים. */
+  function inAppNotice(){
+    const HM=window.HM;
+    if(!HM||!HM.LS)return;
+    const ua=navigator.userAgent||"";
+    const ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    const standalone=!!(window.navigator.standalone||
+      (window.matchMedia&&matchMedia("(display-mode: standalone)").matches));
+    /* דפדפן מוטמע ב-iOS הוא היחיד שה-UA שלו חסר את המילית Safari/ */
+    if(!ios||standalone||/Safari\//.test(ua))return;
+    if(HM.LS.get("ios.inappDismissed",false))return;
+
+    const bar=document.createElement("div");
+    bar.className="inapp-note";
+    bar.setAttribute("role","status");
+    bar.innerHTML='<b>כדאי לפתוח את הדף בספארי</b>'+
+      '<span>הדף נפתח כרגע בתוך אפליקציה אחרת (וואטסאפ למשל). שם אין גישה למצלמה, '+
+      'אי אפשר להוסיף למסך הבית, והנתונים נמחקים כשסוגרים את החלון. '+
+      'גע בכפתור השיתוף בתחתית המסך ובחר «פתח ב-Safari».</span>';
+    const btn=document.createElement("button");
+    btn.type="button"; btn.className="btn sm ghost"; btn.textContent="הבנתי, אל תציג שוב";
+    btn.addEventListener("click",()=>{ HM.LS.set("ios.inappDismissed",true); bar.remove(); });
+    bar.appendChild(btn);
+    document.body.appendChild(bar);
+  }
+
+  function init(){
+    enhance(document);
+    syncNav();
+    observe();
+    /* מודאל שכבר פתוח בזמן האתחול (מסך הנעילה) */
+    document.querySelectorAll(".modal.on,#lockOv.on").forEach(openDialog);
+    window.addEventListener("hashchange",syncNav);
+    try{inAppNotice();}catch(e){}
+  }
+
+  return {init,enhance,syncNav};
+})();
+
 </script>
 <script>
 /* אתחול: אין כאן ריצת רכיב חיצונית — מפעילים ישירות. */
@@ -7657,7 +8169,9 @@ window.HMBootNew=function(){
   function boot(){
     if(window.__hmBooted)return;
     window.__hmBooted=true;
-    try{window.HMBoot();window.HMBootNew();}catch(e){console.error("boot",e);}
+    try{window.HMBoot();}catch(e){console.error("boot",e);}
+    try{window.HMBootNew();}catch(e){console.error("boot(new)",e);}
+    try{window.HMA11y&&window.HMA11y.init();}catch(e){console.error("a11y",e);}
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
   else boot();

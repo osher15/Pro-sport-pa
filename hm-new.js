@@ -614,10 +614,10 @@ window.HMBootNew=function(){
      מורה  — קוד נכון פותח את כל האפליקציה.
      תלמיד — נכנס בלי קוד למצב תצוגה: לוח השיאים ודף המשחקים בלבד. */
   const H0=H();
-  const locked=LS.get("hx.lock",true)&&sessionStorage.getItem("pehub.unlocked")!=="1";
-  const codeSet=()=>LS.get("rec.pass",null)!=null;
+  const locked=LS.get("hx.lock",true)&&SS.get("pehub.unlocked")!=="1";
+  const codeSet=()=>PASS.has();
   const unlockTeacher=()=>{
-    sessionStorage.setItem("pehub.unlocked","1");
+    SS.set("pehub.unlocked","1");
     H0.setRole("teacher");
     $("#lockOv").classList.remove("on"); toast("ברוך הבא, המאמן 👋");
   };
@@ -630,14 +630,14 @@ window.HMBootNew=function(){
       $("#lock-pass").placeholder="קוד חדש";
       $("#lock-enter").textContent="קבע קוד והיכנס";
     }
-    const tryPass=()=>{
+    const tryPass=async()=>{
       const v=$("#lock-pass").value.trim();
       if(!codeSet()){
         if(v.length<4){ toast("בחר קוד באורך 4 ספרות לפחות"); return; }
-        if(window.REC&&window.REC.setPass)window.REC.setPass(v); else LS.set("rec.pass",v);
+        await PASS.set(v);
         toast("🔑 הקוד נקבע — זכור אותו"); unlockTeacher(); return;
       }
-      if(v===LS.get("rec.pass",null)) unlockTeacher();
+      if(await PASS.check(v)) unlockTeacher();
       else { toast("קוד שגוי"); $("#lock-pass").value=""; }
     };
     $("#lock-enter").addEventListener("click",tryPass);
@@ -649,7 +649,7 @@ window.HMBootNew=function(){
   }
   const stuBtn=$("#lock-student");
   if(stuBtn)stuBtn.addEventListener("click",()=>{
-    sessionStorage.setItem("pehub.unlocked","1");
+    SS.set("pehub.unlocked","1");
     H0.setRole("student");
     $("#lockOv").classList.remove("on");
     H0.go("rec"); toast("מצב תלמיד — צפייה בשיאים ושליחת שיא חדש");
@@ -664,10 +664,10 @@ window.HMBootNew=function(){
 
   /* יציאה ממצב תלמיד — דורשת קוד */
   const exitBtn=$("#roleExit");
-  if(exitBtn)exitBtn.addEventListener("click",()=>{
+  if(exitBtn)exitBtn.addEventListener("click",async()=>{
     const p=prompt("קוד מורה ליציאה ממצב תלמיד:");
     if(p===null)return;
-    if(codeSet()&&p===LS.get("rec.pass",null)){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
+    if(codeSet()&&await PASS.check(p)){ H0.setRole("teacher"); H0.go("home"); toast("חזרת למצב מורה 👋"); }
     else toast("קוד שגוי");
   });
 

@@ -9,13 +9,66 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
+/* ---------- אחסון הפעלה (מצב מורה/תלמיד) ----------
+   באייפון, כשמופעל בהגדרות ספארי «חסום את כל העוגיות» (וגם בחלק ממצבי
+   הגלישה הפרטית והמכשירים המנוהלים), עצם הגישה ל-sessionStorage זורקת
+   SecurityError — לא הקריאה, הגישה עצמה. הגישה הזאת הייתה בשורה הראשונה
+   של הקובץ, מחוץ לכל try, ולכן כל הקובץ נפל: window.HMBoot מעולם לא נוצר
+   והמסך נשאר ריק. באנדרואיד זה לא קורה, ומשם ההבדל בין המכשירים.
+   העטיפה כאן נופלת חזרה לזיכרון: האפליקציה עובדת, רק שהמצב לא שורד רענון. */
+const SS=(function(){
+  const mem=Object.create(null);
+  let live=true;
+  try{ window.sessionStorage.getItem("pehub.probe"); }catch(e){ live=false; }
+  return {
+    get(k){ if(live){ try{ return window.sessionStorage.getItem(k); }catch(e){ live=false; } } return k in mem?mem[k]:null; },
+    set(k,v){ v=String(v); mem[k]=v; if(live){ try{ window.sessionStorage.setItem(k,v); }catch(e){ live=false; } } },
+    available(){ return live; }
+  };
+})();
 const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
+/* ---------- זיהוי הסביבה: אייפון ודפדפן מוטמע ----------
+   קישור שנפתח מתוך וואטסאפ/פייסבוק/אינסטגרם באייפון לא נפתח בספארי אלא
+   בדפדפן מוטמע (WKWebView) עם אותו מנוע אבל בלי מצלמה, בלי «הוספה למסך
+   הבית», ועם אחסון שנמחק בסגירה. ה-User-Agent שם חסר את המילית Safari/,
+   וזה הסימן היחיד שאפשר לסמוך עליו. */
+const UA=navigator.userAgent||"";
+const IS_IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const IS_STANDALONE=!!(window.navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches));
+const IS_INAPP=IS_IOS&&!IS_STANDALONE&&!/Safari\//.test(UA);
+
 /* ---------- audio ---------- */
 let AC=null;
 function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } if(AC&&AC.state==="suspended")AC.resume(); return AC; }
+/* ---------- שחרור השמע באייפון ----------
+   ספארי באייפון מתחיל כל AudioContext במצב suspended, ו-resume() לבדו
+   לא תמיד מספיק: צריך גם להשמיע משהו בפועל בתוך אירוע מגע אמיתי. בלי זה
+   הביפים והכריזה פשוט שקטים לאורך כל המבחן. גם speechSynthesis דורש
+   הפעלה ראשונה בתוך מחווה. עושים את זה פעם אחת, בנגיעה הראשונה בדף. */
+(function(){
+  let done=false;
+  function unlock(){
+    if(done)return; done=true;
+    try{
+      const c=ac();
+      if(c){
+        const b=c.createBuffer(1,1,22050), s=c.createBufferSource();
+        s.buffer=b; s.connect(c.destination); s.start(0);
+      }
+    }catch(e){}
+    try{
+      if("speechSynthesis"in window){
+        const u=new SpeechSynthesisUtterance(" ");
+        u.volume=0; speechSynthesis.speak(u);
+      }
+    }catch(e){}
+    ["touchend","pointerdown","click","keydown"].forEach(ev=>document.removeEventListener(ev,unlock,true));
+  }
+  ["touchend","pointerdown","click","keydown"].forEach(ev=>document.addEventListener(ev,unlock,true));
+})();
 function beep(freq=880,dur=0.12,vol=0.5,type="square"){
   if(!SET.sound)return; const c=ac(); if(!c)return;
   const o=c.createOscillator(),g=c.createGain();
@@ -40,6 +93,24 @@ async function keepAwake(on){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&wakeLock)keepAwake(true); });
 
+/* ---------- מסך מלא ----------
+   באייפון אין Fullscreen API בכלל (רק באייפד), והקריאות מחזירות Promise
+   שנדחה בשקט או זורק. עוטפים פעם אחת כדי שהאפליקציה לא תיפול עליו. */
+function goFullscreen(el){
+  try{
+    const fn=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(fn){ const r=fn.call(el); if(r&&r.catch)r.catch(()=>{}); }
+  }catch(e){}
+}
+function leaveFullscreen(){
+  try{
+    const fn=document.exitFullscreen||document.webkitExitFullscreen;
+    if(fn&&(document.fullscreenElement||document.webkitFullscreenElement)){
+      const r=fn.call(document); if(r&&r.catch)r.catch(()=>{});
+    }
+  }catch(e){}
+}
+
 /* ---------- toast / confetti / csv / time ---------- */
 let toastTm=null;
 function toast(msg){ const t=$("#toastT"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTm); toastTm=setTimeout(()=>t.classList.remove("show"),2600); }
@@ -59,6 +130,71 @@ function dlCSV(name,rows){
 function fmtMS(t){ const m=Math.floor(t/60), s=Math.floor(t%60); return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"); }
 function fmtMSc(t){ const m=Math.floor(t/60), s=Math.floor(t%60), c=Math.floor((t%1)*100); return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+"."+String(c).padStart(2,"0"); }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- כתובות חיצוניות ----------
+   esc() מנטרל תגיות, אבל לא סכימה מסוכנת: href="javascript:..." שורד אותו
+   במלואו. כל כתובת שמגיעה מהמשתמש או מה-URL עוברת דרך כאן, ומה שאינו
+   http/https פשוט לא מוצג ולא נפתח. */
+function safeUrl(u){
+  if(!u)return "";
+  try{
+    const p=new URL(String(u).trim(),location.href);
+    return (p.protocol==="https:"||p.protocol==="http:")?p.href:"";
+  }catch(e){ return ""; }
+}
+/* פתיחת חלון חדש בלי לתת לו גישה ל-window.opener של האפליקציה */
+function openExt(u){
+  const url=safeUrl(u);
+  if(!url){ toast("הקישור אינו תקין"); return null; }
+  return window.open(url,"_blank","noopener,noreferrer");
+}
+/* חלון להדפסה: נפתח ריק, נכתב מקומית ומודפס מהצד שפתח אותו —
+   כך אין צורך ב-<script> משובץ, שמדיניות האבטחה חוסמת ובצדק. */
+function printWindow(html){
+  const w=window.open("","_blank","noopener");
+  if(!w){ toast("הדפדפן חסם את חלון ההדפסה"); return null; }
+  w.document.write(html);
+  w.document.close();
+  try{ w.focus(); w.print(); }catch(e){}
+  return w;
+}
+
+/* ---------- קוד המורה ----------
+   הקוד אינו נשמר כטקסט גלוי אלא כ-SHA-256 עם מלח אקראי לכל מכשיר,
+   כדי שמי שמציץ ב-localStorage לא יקבל אותו מוכן. בדפדפן ישן בלי
+   WebCrypto נשמרת ההתנהגות הישנה, כדי שהנעילה לא תישבר. */
+const PASS=(function(){
+  const KEY="rec.passH", LEGACY="rec.pass";
+  const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  const subtle=()=>(window.crypto&&window.crypto.subtle)||null;
+  async function digest(salt,p){
+    const s=subtle(); if(!s)return null;
+    return hex(await s.digest("SHA-256",new TextEncoder().encode(salt+" "+p)));
+  }
+  function newSalt(){
+    const a=new Uint8Array(16);
+    if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(a);
+    else for(let i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256);
+    return hex(a.buffer);
+  }
+  const dropLegacy=()=>{ try{localStorage.removeItem("pehub."+LEGACY);}catch(e){} };
+  const has=()=>LS.get(KEY,null)!=null||LS.get(LEGACY,null)!=null;
+  async function set(p){
+    const salt=newSalt(), h=await digest(salt,p);
+    if(h){ LS.set(KEY,{salt,hash:h}); dropLegacy(); }
+    else LS.set(LEGACY,p);
+    return true;
+  }
+  async function check(p){
+    const rec=LS.get(KEY,null);
+    if(rec&&rec.salt&&rec.hash)return (await digest(rec.salt,p))===rec.hash;
+    const old=LS.get(LEGACY,null);
+    /* קוד שנשמר בגרסה קודמת — מאומת פעם אחת ומיד עובר לגיבוב */
+    if(old!=null&&String(old)===String(p)){ await set(p); return true; }
+    return false;
+  }
+  return {has,set,check};
+})();
 function modal(id,on){ $("#"+id).classList.toggle("on",on!==false); }
 function wireModals(){
   $$("[data-close]").forEach(b=>b.addEventListener("click",()=>modal(b.dataset.close,false)));
@@ -69,20 +205,22 @@ function wireModals(){
    מצב תלמיד הוא מצב תצוגה בלבד: רק לוח השיאים ודף המשחקים נגישים,
    ובלוח השיאים אפשר לצפות ולשלוח שיא — לא לאשר, לא לערוך ולא למחוק. */
 const STUDENT_MODS={rec:1,games:1};
-let ROLE=sessionStorage.getItem("pehub.role")||"teacher";
+let ROLE=SS.get("pehub.role")||"teacher";
 /* קישור שהמורה מחלק: ?role=student  (ועם guest=1 — מכשיר של התלמיד) */
 const QP=new URLSearchParams(location.search);
 if(QP.get("role")==="student"){
   ROLE="student";
-  sessionStorage.setItem("pehub.role","student");
-  sessionStorage.setItem("pehub.unlocked","1"); /* מדלג על מסך הקוד */
+  SS.set("pehub.role","student");
+  SS.set("pehub.unlocked","1"); /* מדלג על מסך הקוד */
 }
 const GUEST=QP.get("guest")==="1"&&ROLE==="student";
 /* קישור טופס ההעלאה נוסע בתוך הקישור עצמו — ההגדרות נשמרות לכל מכשיר
    בנפרד, ולתלמיד בטלפון שלו אין את מה שהמורה הגדיר אצלו. */
 (function(){
-  const up=QP.get("up");
-  if(up&&ROLE==="student"&&/^https:\/\//i.test(up)&&up!==SET.driveForm){
+  /* הכתובת הזאת מגיעה מבחוץ (QR שהמורה חילק) ולכן נבדקת לגופה:
+     רק https, ורק אם היא באמת כתובת תקינה. */
+  const up=safeUrl(QP.get("up"));
+  if(up&&ROLE==="student"&&/^https:/i.test(up)&&up!==SET.driveForm){
     SET.driveForm=up; try{LS.set("settings",SET);}catch(e){}
   }
 })();
@@ -90,7 +228,7 @@ const isStudent=()=>ROLE==="student";
 const isGuest=()=>GUEST&&isStudent();
 function setRole(r){
   ROLE=(r==="student")?"student":"teacher";
-  sessionStorage.setItem("pehub.role",ROLE);
+  SS.set("pehub.role",ROLE);
   /* חזרה למצב מורה מנקה את ?role=student מהכתובת — אחרת רענון היה
      מחזיר את המכשיר למצב תלמיד, כי הפרמטר ב-URL גובר על ההגדרה. */
   if(ROLE==="teacher"&&QP.get("role")){
@@ -161,9 +299,19 @@ $("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.scho
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
-  SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
-  SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
-  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  /* שלוש כתובות שהמורה מדביק. כתובת שאינה http/https נדחית ולא נשמרת,
+     כדי שלא יישמר בהגדרות משהו שייפתח כקוד. */
+  const urls=[["#set-driveForm","driveForm"],["#set-driveFolder","driveFolder"],["#set-syncUrl","syncUrl"]];
+  let bad=0;
+  urls.forEach(([sel,key])=>{
+    const raw=$(sel).value.trim();
+    if(!raw){ SET[key]=""; return; }
+    const ok=safeUrl(raw);
+    if(ok)SET[key]=ok; else { bad++; $(sel).value=SET[key]||""; }
+  });
+  SET.syncCode=$("#set-syncCode").value.trim();
+  saveSet(); toast(bad?"ההגדרות נשמרו — כתובת אחת לפחות לא הייתה תקינה ולא נשמרה":"ההגדרות נשמרו");
+  if(!bad)modal("setModal",false);
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
 }
 
@@ -505,13 +653,20 @@ const PF=(function(){
   function camOff(){ if(cam.on){ cam.stream.getTracks().forEach(t=>t.stop()); cam.on=false; $("#pf-video").srcObject=null; } }
   async function camOn(){
     try{
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("no-camera-api");
       cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}},audio:false});
-      $("#pf-video").srcObject=cam.stream; cam.on=true; bg=null; bgReady=0;
+      const v=$("#pf-video");
+      v.srcObject=cam.stream;
+      /* ספארי באייפון לא תמיד מתחיל לנגן לבד גם עם autoplay+playsinline */
+      try{ await v.play(); }catch(e){}
+      cam.on=true; bg=null; bgReady=0;
       $("#pf-status").textContent="🟢 מצלמה פעילה · מכייל רקע…";
       camLoop();
     }catch(e){
       $("#pf-status").textContent="המצלמה חסומה — עברנו לסימולציה";
-      toast("אין גישה למצלמה. בתצוגה מוטמעת היא חסומה — הורד את הקובץ, או השתמש בסימולציה.");
+      toast(IS_INAPP
+        ? "אין גישה למצלמה בדפדפן המוטמע. פתח את הדף בספארי (שיתוף ← «פתח ב-Safari»)."
+        : "אין גישה למצלמה. בתצוגה מוטמעת היא חסומה — הורד את הקובץ, או השתמש בסימולציה.");
       setMode("sim");
     }
   }
@@ -959,16 +1114,14 @@ const PF=(function(){
   }
   function printCert(){
     const list=finished(); if(!list.length){toast("אין תוצאות");return;}
-    const w=window.open("","_blank");
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>תעודות</title>
+    printWindow(`<html dir="rtl"><head><meta charset="utf-8"><title>תעודות</title>
       <style>body{font-family:Arial;padding:30px}div.c{border:4px double #0a5c38;border-radius:14px;padding:30px;margin-bottom:24px;text-align:center;page-break-inside:avoid}
       h1{margin:0;color:#0a5c38}h2{margin:8px 0}p{margin:4px}.t{font-size:30px;font-weight:bold}.w{color:#b00;font-weight:bold}</style></head><body>`+
       list.map((l,i)=>`<div class="c"><h1>🏅 תעודת הישג</h1><h2>${esc(SET.school||"בית הספר")} · ${esc(META.title)}</h2>
         <p class="t">${esc(l.name)}</p><p>מקום ${i+1} · מסלול ${l.lane} · זמן: ${fmtMSc(l.time)} · ${esc(META.round)} · ${META.dist} מ׳</p>
         ${windIllegal()?'<p class="w">רוח: '+META.wind+' מ/ש (מעל הסף החוקי)</p>':(META.wind!==""?'<p>רוח: '+esc(META.wind)+' מ/ש</p>':"")}
         <p>${META.date||new Date().toLocaleDateString("he-IL")}</p></div>`).join("")+
-      "<script>print()<\/script></body></html>");
-    w.document.close();
+      "</body></html>");
   }
 
   /* ---------- laps (ללא שינוי מהותי) ---------- */
@@ -1086,7 +1239,9 @@ const PF=(function(){
     $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
     function fsToggle(){ const st=$("#pf-stage"); st.classList.toggle("fs");
-      try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}
+      /* אין Fullscreen API באייפון, וגם במקום שיש בו — הקריאה מחזירה
+         Promise שיכול להידחות. בלי catch זו שגיאה גלויה בקונסולה. */
+      if(st.classList.contains("fs"))goFullscreen(st); else leaveFullscreen();
       if(mode==="sim")setTimeout(()=>{simCanvas();race.on||drawSimIdle();},250); }
     $("#pf-fs").addEventListener("click",fsToggle);
     $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
@@ -1196,9 +1351,9 @@ const REC=(function(){
     cone:{israel:12,world:9},balance:{israel:60,world:60}};
 
   let SPORTS=[];
-  let refs={}, pass=LS.get("rec.pass",null);
-  const hasPass=()=>!!LS.get("rec.pass",null);
-  function setPass(p){ pass=p; LS.set("rec.pass",p); }
+  let refs={};
+  const hasPass=()=>PASS.has();
+  const setPass=p=>PASS.set(p);
   let db=null, CACHE=[];
 
   function defaults(){ return (window.RECDEFAULTS?window.RECDEFAULTS.sports():[]); }
@@ -1243,7 +1398,10 @@ const REC=(function(){
   /* ---------- IndexedDB ---------- */
   function openDB(){
     return new Promise((res,rej)=>{
-      const rq=indexedDB.open("pehub-records",1);
+      /* ספארי בגלישה פרטית / חסימת עוגיות: indexedDB יכול להיות null
+         או לזרוק כבר בפתיחה. נכשלים בשקט במקום להפיל את המודול. */
+      if(!window.indexedDB){ rej(new Error("no-idb")); return; }
+      let rq; try{ rq=indexedDB.open("pehub-records",1); }catch(e){ rej(e); return; }
       rq.onupgradeneeded=()=>rq.result.createObjectStore("rec",{keyPath:"id"});
       rq.onsuccess=()=>{db=rq.result;res(db)};
       rq.onerror=()=>rej(rq.error);
@@ -1434,7 +1592,7 @@ const REC=(function(){
       dv.style.display=(guest&&SET.driveForm)?"":"none";
       dv.innerHTML=`📤 <b>בבית הספר הזה מעלים את הסרטון לטופס.</b> מלא כאן את התוצאה,
         ואז לחץ על הכפתור כדי להעלות את הסרטון לתיקייה של המורה.
-        <a class="btn sm acc" href="${esc(SET.driveForm)}" target="_blank" rel="noopener" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
+        <a class="btn sm acc" href="${esc(safeUrl(SET.driveForm))}" target="_blank" rel="noopener noreferrer" style="margin-top:7px;display:inline-block">פתח את טופס ההעלאה ↗</a>`;
     }
     const full=$("#rec-subFull");
     if(full)full.onclick=()=>openHowto(sp.id);
@@ -1809,9 +1967,9 @@ const REC=(function(){
     const sb=$("#rec-shareBtn"); if(sb)sb.style.display=stu?"none":"";
     /* כפתורי הדרייב מופיעים רק אם המורה הגדיר קישורים בהגדרות */
     const up=$("#rec-driveUp");
-    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>window.open(SET.driveForm,"_blank"); }
+    if(up){ up.style.display=(stu&&SET.driveForm)?"":"none"; up.onclick=()=>openExt(SET.driveForm); }
     const fo=$("#rec-driveFolder");
-    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>window.open(SET.driveFolder,"_blank"); }
+    if(fo){ fo.style.display=(!stu&&SET.driveFolder)?"":"none"; fo.onclick=()=>openExt(SET.driveFolder); }
     if(stu)modal("rec-adminModal",false);
   }
 
@@ -1827,10 +1985,10 @@ const REC=(function(){
     if(v.dataset.url){ try{URL.revokeObjectURL(v.dataset.url)}catch(e){} v.dataset.url=""; }
     if(top&&top.video){ const u=URL.createObjectURL(top.video); v.dataset.url=u; v.src=u; v.play().catch(()=>{}); v.style.display=""; } else v.style.display="none";
   }
-  function kioskStart(){ $("#rec-kiosk").classList.add("on"); try{document.documentElement.requestFullscreen()}catch(e){}
+  function kioskStart(){ $("#rec-kiosk").classList.add("on"); goFullscreen(document.documentElement);
     kioskIdx=0; kioskShow(); kioskTm=setInterval(kioskShow,9000); keepAwake(true); }
   function kioskStop(){ $("#rec-kiosk").classList.remove("on"); clearInterval(kioskTm); keepAwake(false);
-    try{document.exitFullscreen&&document.exitFullscreen()}catch(e){} }
+    leaveFullscreen(); }
 
   /* ---------- init ---------- */
   async function init(){
@@ -1841,22 +1999,22 @@ const REC=(function(){
     $("#rec-subSport").addEventListener("change",updSubLb);
     $("#rec-subSend").addEventListener("click",sendSub);
     $("#rec-adminBtn").addEventListener("click",()=>{ $("#rec-admLock").style.display=""; $("#rec-admBody").style.display="none"; $("#rec-admPass").value=""; modal("rec-adminModal"); });
-    $("#rec-admEnter").addEventListener("click",()=>{
+    $("#rec-admEnter").addEventListener("click",async()=>{
       const v=$("#rec-admPass").value;
       if(!hasPass()){
         /* לא הוגדר קוד עדיין — הראשון שנכנס קובע אותו */
         if(v.length<4){toast("בחר קוד באורך 4 ספרות לפחות");return;}
-        setPass(v); toast("🔑 קוד המורה נקבע");
-      } else if(v!==pass){ toast("קוד שגוי"); return; }
+        await setPass(v); toast("🔑 קוד המורה נקבע");
+      } else if(!await PASS.check(v)){ toast("קוד שגוי"); return; }
       $("#rec-admLock").style.display="none"; $("#rec-admBody").style.display=""; renderAdmin();
       if(SET.syncUrl&&SET.syncCode)syncNow();
     });
     const syncBtn=$("#rec-syncNow"); if(syncBtn)syncBtn.addEventListener("click",syncNow);
-    $("#rec-passChg").addEventListener("click",()=>{
+    $("#rec-passChg").addEventListener("click",async()=>{
       const p=prompt("קוד מורה חדש (4 ספרות לפחות):");
       if(p===null)return;
       if(p.trim().length<4){toast("הקוד קצר מדי — לפחות 4 ספרות");return;}
-      setPass(p.trim()); toast("🔑 הקוד עודכן — הוא נשמר במכשיר הזה בלבד");
+      await setPass(p.trim()); toast("🔑 הקוד עודכן — הוא נשמר במכשיר הזה בלבד");
     });
     $("#rec-export").addEventListener("click",async()=>{
       const data=CACHE.map(r=>({...r,video:undefined,hadVideo:!!r.video}));
@@ -1905,7 +2063,7 @@ const REC=(function(){
       try{ await navigator.clipboard.writeText($("#rec-shUrl").value); toast("הקישור הועתק"); }
       catch(e){ $("#rec-shUrl").select(); toast("סמן והעתק ידנית"); }
     });
-    $("#rec-shOpen").addEventListener("click",()=>window.open($("#rec-shUrl").value,"_blank"));
+    $("#rec-shOpen").addEventListener("click",()=>openExt($("#rec-shUrl").value));
     $("#rec-fileImp").addEventListener("change",async e=>{
       for(const f of e.target.files)await importRecordFile(f);
       e.target.value="";
@@ -2402,7 +2560,7 @@ const FIT=(function(){
 
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
-window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,isGuest,role:()=>ROLE};
+window.HM={$,$$,LS,SS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,safeUrl,openExt,printWindow,
+  modal,go,fmtMS,fmtMSc,PASS,setRole,isStudent,isGuest,role:()=>ROLE};
 window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };

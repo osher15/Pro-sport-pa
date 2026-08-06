@@ -1,35 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
-</head>
-<body>
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0c0e1a"/><circle cx="50" cy="50" r="26" fill="none" stroke="#38bdf8" stroke-width="4"/><text x="50" y="59" font-family="Inter,Helvetica,sans-serif" font-size="22" font-weight="600" fill="#38bdf8" text-anchor="middle">מג</text></svg></template>
-<x-dc>
-<helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- viewport-fit=cover: מאפשר לאפליקציה להשתמש בכל המסך באייפון עם מגרעת (notch)
+     ולהתחשב ב-safe-area דרך ה-CSS. maximum-scale/user-scalable לא נחסמים — נגישות
+     דורשת שיהיה אפשר להגדיל את התצוגה. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- מדיניות אבטחת תוכן: אין קוד חיצוני, אין eval, אין iframe, אין שליחת טפסים.
+     בדיוק מה שהאפליקציה צריכה ולא יותר. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: data:; manifest-src 'self' blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; worker-src 'none'">
+<meta name="referrer" content="no-referrer">
+<title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
+<meta name="description" content="ערכת שטח למורה לחינוך גופני: מערכי שיעור, ביפ טסט, פוטו־פיניש, לוח שיאים, מעקב תלמידים וציונים. הכול נשמר במכשיר בלבד.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0c0e1a">
+<!-- הוספה למסך הבית באייפון ובאנדרואיד -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="המגרש PRO">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230c0e1a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23a78bfa' stroke-width='6'/%3E%3Cpath d='M50 20v60M20 50h60' stroke='%23a78bfa' stroke-width='6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css">
-<script src="hm-app.js"></script>
-<script src="hm-qr.js"></script>
-<script src="hm-howto.js"></script>
-<script src="hm-know.js"></script>
-<script src="hm-tools.js"></script>
-<script src="hm-plans.js"></script>
-<script src="hm-lesson.js"></script>
-<script src="hm-new.js"></script>
-</helmet>
-<div class="app" dir="rtl">
-<div class="topbar">
-  <div class="brand"><div class="logo">🏟️</div>
+<script src="hm-app.js" defer></script>
+<script src="hm-qr.js" defer></script>
+<script src="hm-howto.js" defer></script>
+<script src="hm-know.js" defer></script>
+<script src="hm-tools.js" defer></script>
+<script src="hm-plans.js" defer></script>
+<script src="hm-lesson.js" defer></script>
+<script src="hm-new.js" defer></script>
+<script src="hm-a11y.js" defer></script>
+<script src="hm-boot.js" defer></script>
+</head>
+<body>
+<a class="skiplink" href="#main">דילוג לתוכן הראשי</a>
+<main class="app" id="main">
+<header class="topbar">
+  <div class="brand"><div class="logo" aria-hidden="true">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
-    <span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
-</div>
+    <span class="clock" id="topClock" aria-label="השעה">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות" aria-label="הגדרות">⚙</button></div>
+</header>
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date">—</div>
@@ -1011,16 +1027,16 @@
     <div class="nut-list" id="nut-list"></div>
   </div>
 </section>
-</div>
-<div class="nav">
-  <button data-go="home"><span class="ic">🏠</span>בית</button>
-  <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
-  <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
-  <button data-go="photo"><span class="ic">📷</span>פיניש</button>
-  <button data-go="rec" id="navRec"><span class="ic">🏆</span>שיאים</button>
-  <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span>משחקים</button>
-  <button id="navMore"><span class="ic">⋯</span>עוד</button>
-</div>
+</main>
+<nav class="nav" aria-label="ניווט ראשי">
+  <button type="button" data-go="home"><span class="ic" aria-hidden="true">🏠</span>בית</button>
+  <button type="button" data-go="lesson"><span class="ic" aria-hidden="true">📋</span>שיעור</button>
+  <button type="button" data-go="beep"><span class="ic" aria-hidden="true">🎵</span>ביפ</button>
+  <button type="button" data-go="photo"><span class="ic" aria-hidden="true">📷</span>פיניש</button>
+  <button type="button" data-go="rec" id="navRec"><span class="ic" aria-hidden="true">🏆</span>שיאים</button>
+  <button type="button" data-go="games" id="navGames" style="display:none"><span class="ic" aria-hidden="true">🎮</span>משחקים</button>
+  <button type="button" id="navMore" aria-haspopup="dialog"><span class="ic" aria-hidden="true">⋯</span>עוד</button>
+</nav>
 <!-- more menu -->
 <div class="modal" id="moreModal"><div class="box" style="max-width:400px">
   <h3>⋯ עוד מודולים<button class="x" data-close="moreModal">✕</button></h3>
@@ -1068,7 +1084,7 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
-<div id="toast"><div class="t" id="toastT"></div></div>
+<div id="toast"><div class="t" id="toastT" role="status" aria-live="polite" aria-atomic="true"></div></div>
 
 <div class="modal" id="stu-modal"><div class="box">
   <h3>👤 <span id="stu-mTitle"></span><button class="x" data-close="stu-modal">✕</button></h3>
@@ -1085,50 +1101,15 @@
   <label class="btn ghost big" style="margin-top:9px;display:block;text-align:center;cursor:pointer">📥 ייבוא מקובץ
     <input type="file" id="stu-fileImport" accept=".csv,.txt,text/csv,text/plain" style="display:none"></label>
 </div></div>
-<div id="lockOv"><div class="box">
-  <div class="lg">🔐</div>
-  <h1>המגרש PRO</h1>
-  <p>אזור מורה — הזן קוד כדי להיכנס</p>
-  <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
+<div id="lockOv" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-desc"><div class="box">
+  <div class="lg" aria-hidden="true">🔐</div>
+  <h1 id="lock-title">המגרש PRO</h1>
+  <p id="lock-desc">אזור מורה — הזן קוד כדי להיכנס</p>
+  <div class="field"><label for="lock-pass">קוד מורה</label><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric" autocomplete="current-password"></div>
   <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסת מורה</button>
   <div class="lock-or"><span>או</span></div>
   <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
   <p class="lock-note">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
 </div></div>
-</x-dc>
-<script type="text/x-dc" data-dc-script>
-class Component extends DCLogic {
-  componentDidMount(){
-    const tryBoot=()=>{
-      if(window.HMBoot&&window.HMBootNew&&document.getElementById("view-home")&&document.getElementById("view-nut")){
-        if(!window.__hmBooted){window.__hmBooted=true;try{window.HMBoot();window.HMBootNew();}catch(e){console.error("boot",e);}}
-      }else setTimeout(tryBoot,60);
-    };
-    tryBoot();
-  }
-  renderVals(){return {};}
-}
-</script>
-<script>
-/* גיבוי הפעלה — ריצת הרכיב (support.js) טוענת ספרייה מהרשת.
-   בלי אינטרנט היא לא מספיקה לאתחל, ולכן אחרי 1.2 שניות אנחנו מפעילים
-   את האפליקציה ישירות. כך היא עובדת גם אופליין לגמרי. */
-(function(){
-  var tries=0;
-  function boot(){
-    if(window.__hmBooted)return;
-    if(window.HMBoot&&window.HMBootNew&&document.getElementById("view-home")&&document.getElementById("view-nut")){
-      window.__hmBooted=true;
-      var dc=document.querySelector("x-dc");
-      if(dc)dc.style.setProperty("display","block","important"); /* support.js מסתיר עם !important */
-      var ld=document.getElementById("__bundler_loading"); if(ld)ld.remove();
-      try{window.HMBoot();window.HMBootNew();}catch(e){console.error("fallback boot",e);}
-      return;
-    }
-    if(tries++<60)setTimeout(boot,200);
-  }
-  setTimeout(boot,1200);
-})();
-</script>
 </body>
 </html>
