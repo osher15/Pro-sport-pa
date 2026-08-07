@@ -1,0 +1,69 @@
+{
+  "version": "Beta 0.3",
+  "note": "Numbers live here. Behaviour lives in src/core/cores.js, keyed by id — the same split the ultimates registry uses, because JSON cannot carry a function.",
+  "cores": [
+    {
+      "id": "core_none",
+      "name": "No Core",
+      "name_he": "ללא ליבה",
+      "glyph": "○",
+      "tint": "#9a94b3",
+      "blurb_he": "הדמות כמו שהיא. נקודת ההשוואה.",
+      "style_he": "בסיס",
+      "stats": {}
+    },
+    {
+      "id": "core_fire",
+      "name": "Fire Core",
+      "name_he": "ליבת אש",
+      "glyph": "🔥",
+      "tint": "#ff6a2c",
+      "blurb_he": "כל פגיעה מדליקה את היריב. הנזק ממשיך לרוץ גם אחרי שהפסקת לירות — אבל אתה שביר יותר.",
+      "style_he": "נזק מתמשך",
+      "stats": {
+        "damage": { "mul": 1.1 },
+        "hp": { "mul": 0.92 }
+      },
+      "burn": {
+        "fraction": 0.55,
+        "duration": 3.5
+      }
+    },
+    {
+      "id": "core_gravity",
+      "name": "Gravity Core",
+      "name_he": "ליבת כבידה",
+      "glyph": "🌀",
+      "tint": "#8a7bff",
+      "blurb_he": "מכה חלש יותר אבל מרחוק, וכל פגיעה מאטה את היריב. אתה קובע לאן הוא הולך.",
+      "style_he": "שליטה",
+      "stats": {
+        "damage": { "mul": 0.84 },
+        "reach": { "mul": 1.22 },
+        "ultRadius": { "mul": 1.3 },
+        "speed": { "mul": 0.94 }
+      },
+      "slow": {
+        "mul": 0.55,
+        "duration": 1.4
+      }
+    },
+    {
+      "id": "core_shadow",
+      "name": "Shadow Core",
+      "name_he": "ליבת צל",
+      "glyph": "🌑",
+      "tint": "#4fd8c4",
+      "blurb_he": "מהיר, שביר, וטוען מחדש מהר. אחרי שנייה וחצי בלי לירות אתה נעלם — גם באמצע השדה הפתוח.",
+      "style_he": "ניידות",
+      "stats": {
+        "speed": { "mul": 1.2 },
+        "hp": { "mul": 0.85 },
+        "reload": { "mul": 0.72 }
+      },
+      "vanish": {
+        "afterSeconds": 1.5
+      }
+    }
+  ]
+}

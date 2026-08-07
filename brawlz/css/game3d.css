@@ -19,6 +19,11 @@
 
 * { box-sizing: border-box; }
 
+/* A class that sets `display` outbids the user-agent rule for [hidden], so
+ * every panel styled as flex/grid stays on screen while it believes it is
+ * hidden. This one line keeps the attribute meaning what it says. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -527,4 +532,229 @@ body.super-ready .ult-button {
   border: 1px solid var(--bad);
   border-radius: 10px;
   font-size: 0.9rem;
+}
+
+/* ---------------- cores (menu) ---------------- */
+
+.step-hint {
+  margin: -0.25rem 0 0.6rem;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  max-width: 62ch;
+}
+
+.core-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.7rem;
+}
+
+.core-card {
+  --tint: #9b8cff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  text-align: start;
+  font-family: inherit;
+  color: var(--ink);
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--tint) 22%, var(--bg-2)), var(--bg-2) 75%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.core-card:hover { transform: translateY(-2px); }
+
+.core-card.is-picked {
+  border-color: var(--tint);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tint) 45%, transparent);
+}
+
+.core-glyph { font-size: 1.5rem; line-height: 1; }
+.core-name { font-size: 0.98rem; }
+.core-style {
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tint);
+}
+.core-blurb {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--ink-dim);
+  margin-block: 0.25rem;
+}
+
+.core-stats { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+.delta {
+  font-style: normal;
+  font-size: 0.64rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.delta.up { color: var(--good); }
+.delta.down { color: var(--bad); }
+
+.record { font-size: 0.78rem; color: var(--ink-dim); display: block; margin-bottom: 0.4rem; }
+
+/* ---------------- match clock, score, countdown ---------------- */
+
+.hud-centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.scoreline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: clamp(1px, 0.4vh, 4px) clamp(7px, 1.4vh, 14px);
+  font-size: clamp(12px, 2.4vh, 22px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  background: rgba(12, 9, 28, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: transform 0.18s ease;
+}
+
+.scoreline.is-beat { transform: scale(1.16); }
+.score-dash { color: var(--ink-dim); font-weight: 400; }
+#hud-score-us { color: var(--good); }
+#hud-score-them { color: var(--bad); }
+
+.hud-clock {
+  font-size: clamp(9px, 1.7vh, 15px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+}
+
+.hud-clock.is-urgent { color: var(--bad); }
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(3rem, 16vh, 8rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.countdown.is-beat { animation: beat 0.45s ease-out; }
+
+@keyframes beat {
+  from { transform: scale(1.9); opacity: 0; }
+  40%  { opacity: 1; }
+  to   { transform: scale(1); opacity: 0.92; }
+}
+
+/* ---------------- core + effect badges (in match) ---------------- */
+
+.core-badge {
+  --tint: #9b8cff;
+  display: inline-block;
+  margin-top: 2px;
+  padding: 0.05rem 0.4rem;
+  font-size: clamp(7px, 1.25vh, 11px);
+  font-weight: 700;
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tint) 45%, transparent);
+  border-radius: 999px;
+}
+
+.fx-row { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+
+.fx-badge {
+  padding: 0.05rem 0.4rem;
+  font-size: clamp(7px, 1.25vh, 11px);
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.fx-burn { color: #ffb08a; background: rgba(255, 106, 44, 0.22); }
+.fx-slow { color: #c3b8ff; background: rgba(138, 123, 255, 0.22); }
+
+/* ---------------- result screen ---------------- */
+
+.result {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(8, 6, 20, 0.72);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  animation: fade-in 0.35s ease-out;
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.result-card {
+  --edge: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(90vw, 380px);
+  padding: clamp(1rem, 3.5vh, 2rem) clamp(1.2rem, 4vw, 2.4rem);
+  text-align: center;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--edge) 20%, var(--bg-2)), var(--bg-2) 75%);
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.result.is-win .result-card { --edge: var(--good); }
+.result.is-loss .result-card { --edge: var(--bad); }
+
+.result-card h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vh, 2.4rem);
+  color: var(--edge);
+}
+
+.result-card p { margin: 0; font-size: 0.86rem; color: var(--ink-dim); }
+
+.result-score {
+  font-size: clamp(1.6rem, 5vh, 2.6rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.result-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; justify-content: center; }
+
+.btn-primary,
+.btn-ghost {
+  padding: 0.5rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+}
+
+.btn-primary { color: #1a1226; background: var(--edge); border-color: var(--edge); }
+.btn-ghost { color: var(--ink); background: transparent; }
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown.is-beat, .result, .scoreline { animation: none; transition: none; }
 }

@@ -13,6 +13,8 @@ import { Stick, Keyboard } from './input.js';
 import { Fx } from './fx.js';
 import { HazardView } from './hazards.js';
 import { HazardDirector } from '../core/hazards.js';
+import { Match } from '../core/match.js';
+import { equipCore } from '../core/cores.js';
 import { runUltimate } from './ultimates.js';
 
 const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
@@ -40,11 +42,14 @@ const CAM_MARGIN = -140;
 
 export class Game3D {
   constructor(opts) {
-    const { canvas, roster, playerId, enemyId, arena, hud } = opts;
+    const { canvas, roster, playerId, enemyId, arena, hud, cores, playerCoreId } = opts;
 
     this.canvas = canvas;
     this.hud = hud || null;
     this.arena = arena;
+    this.cores = cores || [];
+    this.playerCoreId = playerCoreId || 'core_none';
+    this.onMatchEnd = opts.onMatchEnd || null;
     this.grid = new Grid(arena.grid, arena.tile || 80);
     this.roster = roster;
 
@@ -59,8 +64,10 @@ export class Game3D {
     this.initRenderer();
     this.initWorld();
     this.initFighters();
+    this.initCores();
     this.initProjectiles();
     this.initHazards();
+    this.initMatch();
     this.initInput();
     this.bindCombatEvents();
 
@@ -151,6 +158,33 @@ export class Game3D {
     };
   }
 
+  /**
+   * Equips the player's chosen Core, and gives the bot a random one so the
+   * same character does not fight the same way twice in a row.
+   */
+  initCores() {
+    const byId = new Map(this.cores.map((c) => [c.id, c]));
+    this.playerCore = byId.get(this.playerCoreId) || null;
+    if (this.playerCore) equipCore(this.player.actor, this.playerCore);
+
+    const pickable = this.cores.filter((c) => c.id !== 'core_none');
+    this.enemyCore = pickable.length
+      ? pickable[Math.floor(Math.random() * pickable.length)] : null;
+    if (this.enemyCore) equipCore(this.enemy.actor, this.enemyCore);
+  }
+
+  initMatch() {
+    this.match = new Match(this.system, this.arena.match || {}, {
+      onEvent: (name, payload) => {
+        if (this.hud) this.hud.matchEvent(name, payload);
+        if (name === 'end') {
+          this.hideAimLine();
+          if (this.onMatchEnd) this.onMatchEnd(payload);
+        }
+      }
+    });
+  }
+
   initProjectiles() {
     this.projectiles = [];
     this.projectilePool = [];
@@ -185,6 +219,7 @@ export class Game3D {
       radius: 54,
       // Drag to aim, release to fire; a tap with no drag auto-aims instead.
       onRelease: (gesture) => {
+        if (!this.match.live) return;
         if (gesture.magnitude > 0.22) {
           this.fireAttack(this.player, Math.atan2(gesture.y, gesture.x));
         } else {
@@ -195,10 +230,12 @@ export class Game3D {
 
     const ultBtn = document.getElementById('ult-button');
     if (ultBtn) {
-      ultBtn.addEventListener('pointerdown', (e) => {
+      this._onUlt = (e) => {
         e.preventDefault();
-        this.castUltimate(this.player);
-      });
+        if (this.match.live) this.castUltimate(this.player);
+      };
+      ultBtn.addEventListener('pointerdown', this._onUlt);
+      this._ultBtn = ultBtn;
     }
   }
 
@@ -270,11 +307,24 @@ export class Game3D {
   /* ------------------------------------------------------------------ */
 
   update(dt) {
-    this.system.update(dt);
-    this.hazards.update(dt);
+    this.match.update(dt);
 
-    this.drivePlayer(dt);
-    this.driveBot(dt);
+    // The world keeps animating during the countdown and after the bell —
+    // fighters breathe, hazards settle — but nobody can act. A frozen frame
+    // reads as a crash; a live scene you cannot steer reads as a pause.
+    const live = this.match.live;
+
+    this.system.update(dt);
+    if (live) this.hazards.update(dt);
+
+    if (live) {
+      this.drivePlayer(dt);
+      this.driveBot(dt);
+    } else {
+      this.player.desired = null;
+      this.enemy.desired = null;
+      if (this.player.aiming) { this.player.aiming = false; this.hideAimLine(); }
+    }
 
     for (const f of this.fighters) {
       this.tickPendingShot(f, dt);
@@ -287,15 +337,18 @@ export class Game3D {
 
     // Concealment is symmetric in effect but asymmetric in maths: you are
     // hidden from whoever is far away, so each fighter is tested against the
-    // other's eyes.
+    // other's eyes. The Shadow Core adds a second way to be hidden that owes
+    // nothing to the map.
     const p = this.player, e = this.enemy;
-    p.hidden = this.grid.isConcealed(p.actor.x, p.actor.y, e.actor.x, e.actor.y);
-    e.hidden = this.grid.isConcealed(e.actor.x, e.actor.y, p.actor.x, p.actor.y);
+    p.hidden = !!p.actor.vanished ||
+      this.grid.isConcealed(p.actor.x, p.actor.y, e.actor.x, e.actor.y);
+    e.hidden = !!e.actor.vanished ||
+      this.grid.isConcealed(e.actor.x, e.actor.y, p.actor.x, p.actor.y);
     p.rig.setConcealed(p.hidden);
     e.rig.setConcealed(e.hidden);
 
     this.updateCamera(dt);
-    if (this.hud) this.hud.sync(this.player.actor, this.enemy.actor);
+    if (this.hud) this.hud.sync(this.player.actor, this.enemy.actor, this.match);
   }
 
   /* ---------------- player ---------------- */
@@ -660,6 +713,8 @@ export class Game3D {
     this.stop();
     window.removeEventListener('resize', this.onResize);
     this.keys.destroy();
+    if (this.match) this.match.abort();
+    if (this._ultBtn) this._ultBtn.removeEventListener('pointerdown', this._onUlt);
     if (this.moveStick) this.moveStick.destroy();
     if (this.aimStick) this.aimStick.destroy();
     this.hazardView.dispose();

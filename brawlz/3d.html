@@ -23,12 +23,22 @@
       <div id="arena-list" class="arena-list"></div>
     </div>
 
+    <div class="step" id="step-core">
+      <h2 class="step-title">2. בחר ליבה</h2>
+      <p class="step-hint">
+        הליבה משנה את סגנון המשחק של הדמות, לא רק את המספרים. אותה דמות עם ליבה
+        אחרת היא משחק אחר.
+      </p>
+      <div id="core-list" class="core-list"></div>
+    </div>
+
     <div class="step" id="step-char">
-      <h2 class="step-title">2. בחר לוחם</h2>
+      <h2 class="step-title">3. בחר לוחם והתחל</h2>
       <div id="character-list" class="char-list"></div>
     </div>
 
     <footer class="menu-foot">
+      <span id="record" class="record"></span>
       <a class="link-2d" href="index.html">← לגרסת הדו־ממד</a>
     </footer>
   </section>
@@ -43,14 +53,29 @@
           <span class="hud-name" id="hud-player-name"></span>
           <div class="bar"><i id="hud-player-hp" class="bar-fill"></i></div>
           <span class="hud-hp" id="hud-player-hp-text" dir="ltr"></span>
+          <span class="core-badge" id="hud-player-core" hidden></span>
+          <span class="fx-row" id="hud-player-effects"></span>
         </div>
-        <div class="hud-arena" id="hud-arena-name"></div>
+
+        <div class="hud-centre">
+          <div class="scoreline">
+            <b id="hud-score-us">0</b>
+            <span class="score-dash">—</span>
+            <b id="hud-score-them">0</b>
+          </div>
+          <div class="hud-clock" id="hud-clock" dir="ltr">2:00</div>
+          <div class="hud-arena" id="hud-arena-name"></div>
+        </div>
+
         <div class="hud-card hud-card--enemy">
           <span class="hud-name" id="hud-enemy-name"></span>
           <div class="bar"><i id="hud-enemy-hp" class="bar-fill bar-fill--enemy"></i></div>
           <span class="hud-hp" id="hud-enemy-hp-text" dir="ltr"></span>
+          <span class="core-badge" id="hud-enemy-core" hidden></span>
         </div>
       </div>
+
+      <div id="hud-countdown" class="countdown" hidden></div>
 
       <div id="voice-feed" class="voice-feed"></div>
 
@@ -77,6 +102,18 @@
       <div class="match-buttons">
         <button id="btn-menu" type="button" class="chip">תפריט</button>
         <button id="btn-rematch" type="button" class="chip">מחדש</button>
+      </div>
+
+      <div id="result" class="result" hidden>
+        <div class="result-card">
+          <h2 id="result-title"></h2>
+          <p id="result-line"></p>
+          <div id="result-score" class="result-score" dir="ltr"></div>
+          <div class="result-actions">
+            <button id="btn-again" type="button" class="btn-primary">עוד קרב</button>
+            <button id="btn-back" type="button" class="btn-ghost">חזרה לתפריט</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

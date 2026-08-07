@@ -124,22 +124,38 @@
     this.isPlayer = !!options.isPlayer;
 
     this.stats = def.stats;
-    this.maxHp = def.stats.hp;
-    this.hp = this.maxHp;
-
-    this.moveSpeed = def.stats.speed * TUNING.pixelsPerSpeedUnit;
     this.rangeType = def.stats.attack_range === 'ranged' ? 'ranged' : 'melee';
-    this.profile = TUNING[this.rangeType];
+
+    /**
+     * Base numbers, before anything modifies them. Everything that can be
+     * changed by a Core, a status effect or a match rule is derived from here
+     * in recompute() — nothing downstream ever reads these directly.
+     */
+    var baseProfile = TUNING[this.rangeType];
+    this.base = {
+      hp: def.stats.hp,
+      speed: def.stats.speed * TUNING.pixelsPerSpeedUnit,
+      damage: def.stats.attack_damage,
+      reach: baseProfile.reach,
+      cooldown: baseProfile.cooldown,
+      ammo: def.stats.ammo || TUNING.ammo.capacity,
+      reload: def.stats.reload_time || TUNING.ammo.reloadTime,
+      projectileSpeed: baseProfile.projectileSpeed || 0,
+      ultRadius: (def.ultimate && def.ultimate.radius) || 160
+    };
+
+    /** Equipped modifier sources (Cores today; Mutations and Gear later). */
+    this.mods = [];
+    /** Live timed effects (burn, slow, …). */
+    this.effects = [];
 
     this.ultimate = def.ultimate || null;
-
-    this.attackCooldown = new Cooldown(this.profile.cooldown);
-
-    // ---- ammo ----
-    this.ammoCapacity = def.stats.ammo || TUNING.ammo.capacity;
-    this.ammo = this.ammoCapacity;
-    this.reloadTime = def.stats.reload_time || TUNING.ammo.reloadTime;
+    this.attackCooldown = new Cooldown(this.base.cooldown);
     this.reloadTimer = 0;
+
+    this.recompute();
+    this.hp = this.maxHp;
+    this.ammo = this.ammoCapacity;
 
     // ---- super charge ----
     this.superNeed = (this.ultimate && this.ultimate.charge_damage) ||
@@ -166,6 +182,124 @@
     this.deaths = 0;
     this.damageDealt = 0;
   }
+
+  /* ---------------- modifier pipeline ---------------- */
+
+  /**
+   * Folds base stats through every equipped modifier and every live effect,
+   * and republishes the results under the names the renderers already read
+   * (moveSpeed, profile, maxHp, ammoCapacity, reloadTime).
+   *
+   * A modifier is `{ id, stats: { speed: { mul: 1.2, add: 0 }, … } }`. Adds are
+   * applied before multipliers so that two sources cannot silently reorder each
+   * other — with the reverse order the result depends on equip order, which is
+   * the kind of bug nobody ever finds.
+   */
+  CombatActor.prototype.recompute = function () {
+    var keys = ['hp', 'speed', 'damage', 'reach', 'cooldown', 'ammo',
+                'reload', 'projectileSpeed', 'ultRadius'];
+    var out = {};
+    var i, k, entry;
+
+    for (i = 0; i < keys.length; i++) {
+      k = keys[i];
+      var add = 0;
+      var mul = 1;
+
+      for (var m = 0; m < this.mods.length; m++) {
+        entry = (this.mods[m].stats || {})[k];
+        if (!entry) continue;
+        add += entry.add || 0;
+        mul *= entry.mul == null ? 1 : entry.mul;
+      }
+      for (var e = 0; e < this.effects.length; e++) {
+        entry = (this.effects[e].stats || {})[k];
+        if (!entry) continue;
+        add += entry.add || 0;
+        mul *= entry.mul == null ? 1 : entry.mul;
+      }
+      out[k] = (this.base[k] + add) * mul;
+    }
+
+    // Health is the one stat where a change mid-match has to preserve how hurt
+    // you are, not how many points you have left.
+    var ratio = this.maxHp ? this.hp / this.maxHp : 1;
+    this.maxHp = Math.max(1, Math.round(out.hp));
+    if (this.hp != null) this.hp = Math.min(this.maxHp, Math.max(0, this.maxHp * ratio));
+
+    this.moveSpeed = out.speed;
+    this.damage = Math.max(0, Math.round(out.damage));
+    this.ammoCapacity = Math.max(1, Math.round(out.ammo));
+    this.reloadTime = Math.max(0.05, out.reload);
+
+    // A fresh object, never the shared TUNING table: mutating that would change
+    // every fighter of the same range type in the match.
+    var baseProfile = TUNING[this.rangeType];
+    this.profile = {
+      reach: out.reach,
+      arcDeg: baseProfile.arcDeg,
+      windup: baseProfile.windup,
+      recover: baseProfile.recover,
+      cooldown: Math.max(0.05, out.cooldown),
+      knockback: baseProfile.knockback,
+      projectileSpeed: out.projectileSpeed,
+      projectileRadius: baseProfile.projectileRadius
+    };
+    this.attackCooldown.duration = this.profile.cooldown;
+    this.ultRadius = out.ultRadius;
+
+    if (this.ammo != null) this.ammo = Math.min(this.ammo, this.ammoCapacity);
+  };
+
+  CombatActor.prototype.addModifier = function (mod) {
+    this.removeModifier(mod.id);
+    this.mods.push(mod);
+    this.recompute();
+    return mod;
+  };
+
+  CombatActor.prototype.removeModifier = function (id) {
+    for (var i = this.mods.length - 1; i >= 0; i--) {
+      if (this.mods[i].id === id) this.mods.splice(i, 1);
+    }
+    this.recompute();
+  };
+
+  CombatActor.prototype.hasModifier = function (id) {
+    for (var i = 0; i < this.mods.length; i++) if (this.mods[i].id === id) return true;
+    return false;
+  };
+
+  /**
+   * Applies a timed effect. Re-applying the same id refreshes it rather than
+   * stacking — otherwise a fast-firing weapon would lock a target in a slow
+   * forever just by hitting it.
+   */
+  CombatActor.prototype.applyEffect = function (effect) {
+    for (var i = 0; i < this.effects.length; i++) {
+      if (this.effects[i].id !== effect.id) continue;
+      this.effects[i] = effect;
+      this.recompute();
+      return effect;
+    }
+    this.effects.push(effect);
+    this.recompute();
+    return effect;
+  };
+
+  CombatActor.prototype.clearEffects = function () {
+    if (!this.effects.length) return;
+    this.effects.length = 0;
+    this.recompute();
+  };
+
+  /** Lets equipped modifiers react to a combat event. */
+  CombatActor.prototype.fireHook = function (name, payload) {
+    for (var i = 0; i < this.mods.length; i++) {
+      var hooks = this.mods[i].hooks;
+      if (hooks && typeof hooks[name] === 'function') hooks[name](this, payload);
+    }
+  };
 
   CombatActor.prototype.hpRatio = function () {
     return Math.max(0, this.hp / this.maxHp);
@@ -258,6 +392,9 @@
         }
       }
 
+      if (a.alive) this.tickEffects(a, dt);
+      if (a.alive) a.fireHook('onTick', { dt: dt, system: this });
+
       if (a.busyTimer > 0) {
         a.busyTimer = Math.max(0, a.busyTimer - dt);
         if (a.busyTimer === 0 && a.alive) a.state = 'idle';
@@ -268,6 +405,37 @@
         if (a.respawnTimer <= 0) this.respawn(a);
       }
     }
+  };
+
+  /**
+   * Runs one actor's timed effects: counts them down, applies any per-second
+   * damage they carry, and recomputes stats when one expires.
+   *
+   * Damage-over-time is credited to whoever applied it, so a burn that finishes
+   * a target still counts as that player's kill and still charges their super.
+   */
+  CombatSystem.prototype.tickEffects = function (actor, dt) {
+    if (!actor.effects.length) return;
+    var expired = false;
+
+    for (var i = actor.effects.length - 1; i >= 0; i--) {
+      var fx = actor.effects[i];
+      fx.remaining -= dt;
+
+      if (fx.damagePerSecond) {
+        this.applyDamage(fx.source || null, actor, fx.damagePerSecond * dt, {
+          source: fx.id, silent: true
+        });
+        if (!actor.alive) return;
+      }
+
+      if (fx.remaining <= 0) {
+        actor.effects.splice(i, 1);
+        expired = true;
+        this.emit('effect-end', { actor: actor, effect: fx });
+      }
+    }
+    if (expired) actor.recompute();
   };
 
   /* ---------------- basic attack ---------------- */
@@ -289,10 +457,14 @@
     actor.state = 'attacking';
     actor.busyTimer = p.windup + p.recover;
 
+    // Fires on pulling the trigger, not on connecting. A Core that reacts to
+    // "you attacked" must not be able to stay hidden by missing.
+    actor.fireHook('onAttack', { actor: actor });
+
     var plan = {
       actor: actor,
       kind: actor.rangeType,
-      damage: actor.stats.attack_damage,
+      damage: actor.damage,
       windup: p.windup,
       reach: p.reach,
       arcDeg: p.arcDeg,
@@ -381,7 +553,10 @@
     opts = opts || {};
     if (!target.alive || target.invulnerableFor > 0) return false;
 
-    var dealt = Math.max(0, Math.round(amount));
+    // Not rounded here on purpose. Damage-over-time arrives as a fraction of a
+    // point per frame, and rounding each tick would either erase it entirely or
+    // inflate it by 60x. Integers are unaffected; only the display rounds.
+    var dealt = Math.max(0, amount);
     target.hp = Math.max(0, target.hp - dealt);
     target.sinceDamaged = 0;                      // taking a hit stops healing
 
@@ -397,15 +572,27 @@
     var oy = opts.originY == null ? (source ? source.y : target.y) : opts.originY;
     var ang = Math.atan2(target.y - oy, target.x - ox);
 
-    this.emit('damage', {
+    var event = {
       source: source,
       target: target,
-      amount: dealt,
+      amount: Math.round(dealt),
+      raw: dealt,
       remaining: target.hp,
       knockback: opts.knockback || 0,
       angle: ang,
-      kind: opts.source || 'basic'
-    });
+      kind: opts.source || 'basic',
+      // Set by damage-over-time ticks: real damage, but the renderer should not
+      // fire a full flash-and-sparks for each frame of a burn.
+      silent: !!opts.silent
+    };
+
+    // Cores react here. onHit fires for whoever dealt it, onTakeDamage for
+    // whoever received it — that pair covers burn-on-hit, slow-on-hit,
+    // thorns, lifesteal and most of what a Core will ever want to do.
+    if (source && source !== target) source.fireHook('onHit', event);
+    target.fireHook('onTakeDamage', event);
+
+    this.emit('damage', event);
 
     if (target.hp <= 0) this.kill(source || null, target);
     return true;
@@ -418,9 +605,11 @@
     target.busyTimer = 0;
     target.deaths += 1;
     target.respawnTimer = TUNING.respawnDelay;
+    target.clearEffects();
 
     if (source && source !== target) {
       source.kills += 1;
+      source.fireHook('onKill', { source: source, target: target });
       this.emit('kill', { source: source, target: target });
     }
     this.emit('death', { actor: target, killer: source || null });
@@ -428,6 +617,7 @@
 
   CombatSystem.prototype.respawn = function (actor) {
     actor.alive = true;
+    actor.clearEffects();
     actor.hp = actor.maxHp;
     actor.state = 'idle';
     actor.busyTimer = 0;
@@ -456,11 +646,13 @@
     actor.state = 'ultimate';
     actor.busyTimer = TUNING.ultimateLock;
 
+    actor.fireHook('onUltimate', { actor: actor });
+
     var payload = {
       actor: actor,
       ultimate: actor.ultimate,
       damage: actor.ultimateDamage(),
-      radius: actor.ultimate.radius || 160,
+      radius: actor.ultRadius,
       aim: actor.aim
     };
     this.emit('ultimate', payload);
