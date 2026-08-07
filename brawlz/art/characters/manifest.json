@@ -1,0 +1,457 @@
+[
+  {
+    "index": 1,
+    "file": "01_kangaroo-boxer.png",
+    "row": 1,
+    "col": 1,
+    "slug": "kangaroo-boxer",
+    "name_he": "קנגורו מתאגרף",
+    "note": "תואם ל-K.O. Kangaroo ב-characters.json",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 2,
+    "file": "02_gorilla-commando.png",
+    "row": 1,
+    "col": 2,
+    "slug": "gorilla-commando",
+    "name_he": "גורילה קומנדו",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 3,
+    "file": "03_rooster-rainbow.png",
+    "row": 1,
+    "col": 3,
+    "slug": "rooster-rainbow",
+    "name_he": "תרנגול קשת",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 4,
+    "file": "04_rooster-village.png",
+    "row": 1,
+    "col": 4,
+    "slug": "rooster-village",
+    "name_he": "תרנגול הכפר",
+    "note": "דומה מאוד ל-03",
+    "size": [
+      196,
+      148
+    ]
+  },
+  {
+    "index": 5,
+    "file": "05_orca-narwhal.png",
+    "row": 1,
+    "col": 5,
+    "slug": "orca-narwhal",
+    "name_he": "אורקה חד-קרן",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 6,
+    "file": "06_disco-duck.png",
+    "row": 1,
+    "col": 6,
+    "slug": "disco-duck",
+    "name_he": "ברווז דיסקו",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 7,
+    "file": "07_punk-hedgehog.png",
+    "row": 1,
+    "col": 7,
+    "slug": "punk-hedgehog",
+    "name_he": "קיפוד פאנקיסט",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 8,
+    "file": "08_sumo-sloth.png",
+    "row": 2,
+    "col": 1,
+    "slug": "sumo-sloth",
+    "name_he": "עצלן סומו",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 9,
+    "file": "09_cyber-shark.png",
+    "row": 2,
+    "col": 2,
+    "slug": "cyber-shark",
+    "name_he": "כריש סייבר",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 10,
+    "file": "10_raging-bull.png",
+    "row": 2,
+    "col": 3,
+    "slug": "raging-bull",
+    "name_he": "שור זועם",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 11,
+    "file": "11_dj-jellyfish.png",
+    "row": 2,
+    "col": 4,
+    "slug": "dj-jellyfish",
+    "name_he": "מדוזת די-ג׳יי",
+    "note": "",
+    "size": [
+      196,
+      147
+    ]
+  },
+  {
+    "index": 12,
+    "file": "12_rock-panther.png",
+    "row": 2,
+    "col": 5,
+    "slug": "rock-panther",
+    "name_he": "פנתר רוקיסט",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 13,
+    "file": "13_ogre-pirate.png",
+    "row": 2,
+    "col": 6,
+    "slug": "ogre-pirate",
+    "name_he": "אוגר פיראט",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 14,
+    "file": "14_dj-jellyfish-alt.png",
+    "row": 2,
+    "col": 7,
+    "slug": "dj-jellyfish-alt",
+    "name_he": "מדוזת די-ג׳יי (וריאציה)",
+    "note": "כמעט זהה ל-11",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 15,
+    "file": "15_skater-raptor.png",
+    "row": 3,
+    "col": 1,
+    "slug": "skater-raptor",
+    "name_he": "רפטור סקייטר",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 16,
+    "file": "16_disco-raptor.png",
+    "row": 3,
+    "col": 2,
+    "slug": "disco-raptor",
+    "name_he": "רפטור דיסקו",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 17,
+    "file": "17_chef-triceratops.png",
+    "row": 3,
+    "col": 3,
+    "slug": "chef-triceratops",
+    "name_he": "טריצרטופס שף",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 18,
+    "file": "18_rocker-pterodactyl.png",
+    "row": 3,
+    "col": 4,
+    "slug": "rocker-pterodactyl",
+    "name_he": "פטרודקטיל רוקר",
+    "note": "",
+    "size": [
+      196,
+      148
+    ]
+  },
+  {
+    "index": 19,
+    "file": "19_masked-bronto.png",
+    "row": 3,
+    "col": 5,
+    "slug": "masked-bronto",
+    "name_he": "ברונטוזאורוס רעול פנים",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 20,
+    "file": "20_mushroom-wizard.png",
+    "row": 3,
+    "col": 6,
+    "slug": "mushroom-wizard",
+    "name_he": "פטריית קוסם",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 21,
+    "file": "21_boxing-pineapple.png",
+    "row": 3,
+    "col": 7,
+    "slug": "boxing-pineapple",
+    "name_he": "אננס מתאגרף",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 22,
+    "file": "22_cowboy-cactus.png",
+    "row": 4,
+    "col": 1,
+    "slug": "cowboy-cactus",
+    "name_he": "קקטוס קאובוי",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 23,
+    "file": "23_jungle-serpent.png",
+    "row": 4,
+    "col": 2,
+    "slug": "jungle-serpent",
+    "name_he": "נחש הג׳ונגל",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 24,
+    "file": "24_grandma-yarn.png",
+    "row": 4,
+    "col": 3,
+    "slug": "grandma-yarn",
+    "name_he": "סבתא רימון",
+    "note": "תואם ל-Grandma Grenade ב-characters.json",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 25,
+    "file": "25_boss-baby.png",
+    "row": 4,
+    "col": 4,
+    "slug": "boss-baby",
+    "name_he": "תינוק הבוס",
+    "note": "",
+    "size": [
+      196,
+      147
+    ]
+  },
+  {
+    "index": 26,
+    "file": "26_mime-duo.png",
+    "row": 4,
+    "col": 5,
+    "slug": "mime-duo",
+    "name_he": "צמד הפנטומימאים",
+    "note": "שתי דמויות באריח אחד",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 27,
+    "file": "27_zombie-baller.png",
+    "row": 4,
+    "col": 6,
+    "slug": "zombie-baller",
+    "name_he": "זומבי כדורסלן",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 28,
+    "file": "28_party-clown.png",
+    "row": 4,
+    "col": 7,
+    "slug": "party-clown",
+    "name_he": "ליצן מסיבות",
+    "note": "",
+    "size": [
+      195,
+      147
+    ]
+  },
+  {
+    "index": 29,
+    "file": "29_empty-table-1.png",
+    "row": 5,
+    "col": 1,
+    "slug": "empty-table-1",
+    "name_he": "שולחן ריק",
+    "note": "אין דמות — אריח לזריקה",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 30,
+    "file": "30_jumping-clown.png",
+    "row": 5,
+    "col": 2,
+    "slug": "jumping-clown",
+    "name_he": "ליצן מקפץ",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 31,
+    "file": "31_empty-table-2.png",
+    "row": 5,
+    "col": 3,
+    "slug": "empty-table-2",
+    "name_he": "שולחן ריק",
+    "note": "אין דמות — אריח לזריקה",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 32,
+    "file": "32_angry-vacuum.png",
+    "row": 5,
+    "col": 4,
+    "slug": "angry-vacuum",
+    "name_he": "שואב אבק זועם",
+    "note": "",
+    "size": [
+      196,
+      148
+    ]
+  },
+  {
+    "index": 33,
+    "file": "33_evil-toaster.png",
+    "row": 5,
+    "col": 5,
+    "slug": "evil-toaster",
+    "name_he": "טוסטר מרושע",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 34,
+    "file": "34_luchador-lamp.png",
+    "row": 5,
+    "col": 6,
+    "slug": "luchador-lamp",
+    "name_he": "מנורת לוצ׳דור",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  },
+  {
+    "index": 35,
+    "file": "35_cursed-remote.png",
+    "row": 5,
+    "col": 7,
+    "slug": "cursed-remote",
+    "name_he": "שלט מקולל",
+    "note": "",
+    "size": [
+      195,
+      148
+    ]
+  }
+]
