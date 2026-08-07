@@ -758,3 +758,11 @@ body.super-ready .ult-button {
 @media (prefers-reduced-motion: reduce) {
   .countdown.is-beat, .result, .scoreline { animation: none; transition: none; }
 }
+
+.chip-icon {
+  padding: clamp(3px, 0.8vh, 7px) clamp(5px, 1vh, 9px);
+  font-size: clamp(10px, 1.8vh, 15px);
+  line-height: 1;
+}
+
+.chip-icon.is-muted { opacity: 0.55; }

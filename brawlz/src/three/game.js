@@ -17,6 +17,16 @@ import { Match } from '../core/match.js';
 import { equipCore } from '../core/cores.js';
 import { runUltimate } from './ultimates.js';
 
+/**
+ * A fighter's voice, derived from how heavy it is. The sumo's punch lands an
+ * octave below the shark's torpedo without either needing its own sound.
+ */
+function pitchFor(def) {
+  const hp = (def.stats && def.stats.hp) || 2000;
+  const t = Math.min(1, Math.max(0, (hp - 1500) / 1600));
+  return 1.28 - t * 0.52;
+}
+
 const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
 const BODY_RADIUS = 26;
@@ -47,6 +57,7 @@ export class Game3D {
     this.canvas = canvas;
     this.hud = hud || null;
     this.arena = arena;
+    this.audio = opts.audio || { play() { return false; } };
     this.cores = cores || [];
     this.playerCoreId = playerCoreId || 'core_none';
     this.onMatchEnd = opts.onMatchEnd || null;
@@ -149,6 +160,7 @@ export class Game3D {
 
     return {
       def, actor, rig,
+      pitch: pitchFor(def),
       vx: 0, vy: 0, speed: 0,
       desired: null,
       waypoint: null, repathIn: 0,
@@ -177,7 +189,12 @@ export class Game3D {
     this.match = new Match(this.system, this.arena.match || {}, {
       onEvent: (name, payload) => {
         if (this.hud) this.hud.matchEvent(name, payload);
-        if (name === 'end') {
+
+        if (name === 'countdown') this.audio.play('countdown');
+        else if (name === 'start') this.audio.play('go');
+        else if (name === 'score') this.audio.play('score');
+        else if (name === 'end') {
+          this.audio.play(payload.winner === 0 ? 'win' : 'lose');
           this.hideAimLine();
           if (this.onMatchEnd) this.onMatchEnd(payload);
         }
@@ -200,8 +217,20 @@ export class Game3D {
 
   initHazards() {
     this.hazardView = new HazardView(this.scene, this.fx);
+
+    const SOUND = {
+      'meteor-telegraph': ['warning', {}],
+      'meteor-impact': ['explosion', { size: 1.2 }],
+      'drop-land': ['dropLand', {}],
+      'drop-collect': ['pickup', {}]
+    };
+
     this.hazards = new HazardDirector(this.system, this.grid, this.arena.hazards || [], {
-      onEvent: (name, payload) => this.hazardView.handle(name, payload)
+      onEvent: (name, payload) => {
+        this.hazardView.handle(name, payload);
+        const cue = SOUND[name];
+        if (cue) this.audio.play(cue[0], cue[1]);
+      }
     });
   }
 
@@ -247,10 +276,19 @@ export class Game3D {
         f.vx += Math.cos(e.angle) * e.knockback;
         f.vy += Math.sin(e.angle) * e.knockback;
       }
+      // A burn ticks sixty times a second. Flashing and sparking on each tick
+      // would bury the feedback for the hits that actually matter.
+      if (e.silent) return;
+
       f.rig.play('hurt', 0.18);
       f.rig.flash(0.16);
       this.fx.sparkBurst(e.target.x, e.target.y, 0xff8a8a, 5, 55);
-      if (e.target === this.player.actor) this.fx.shake(0.18, 10);
+      if (e.target === this.player.actor) {
+        this.fx.shake(0.18, 10);
+        this.audio.play('hurt');
+      } else {
+        this.audio.play('hit', { pitch: f.pitch });
+      }
     });
 
     this.system.on('death', (e) => {
@@ -258,6 +296,7 @@ export class Game3D {
       if (!f) return;
       this.fx.shockwave(e.actor.x, e.actor.y, 90, 0xffffff, 0.5);
       this.fx.sparkBurst(e.actor.x, e.actor.y, 0xffffff, 7, 90);
+      this.audio.play('death');
       f.vx = f.vy = 0;
       f.dash = null;
     });
@@ -267,6 +306,13 @@ export class Game3D {
       if (!f || e.initial) return;
       f.vx = f.vy = 0;
       f.rig.setPosition(e.actor.x, e.actor.y);
+      this.audio.play('respawn');
+    });
+
+    // Only the player's reload ticks: the bot's would be a metronome you can
+    // never do anything about.
+    this.system.on('reload', (e) => {
+      if (e.actor === this.player.actor) this.audio.play('reload');
     });
   }
 
@@ -471,8 +517,10 @@ export class Game3D {
         f.actor.y + Math.sin(angle) * plan.reach * 0.5,
         plan.reach * 0.6, new THREE.Color(accent).getHex(), 0.3
       );
+      this.audio.play('swing', { pitch: f.pitch });
       if (hits.length) this.fx.shake(0.12, 8);
     } else {
+      this.audio.play('shoot', { pitch: f.pitch });
       this.spawnProjectile(f, {
         angle,
         speed: plan.projectileSpeed,
@@ -489,6 +537,7 @@ export class Game3D {
   castUltimate(f) {
     const payload = this.system.requestUltimate(f.actor);
     if (!payload) return null;
+    this.audio.play('ultimate', { pitch: f.pitch });
     runUltimate(this, f, payload);
     return payload;
   }
@@ -548,6 +597,7 @@ export class Game3D {
               knockback: p.knockback * 0.6, source: p.kind
             });
             this.fx.shockwave(p.x, p.y, p.aoeRadius, p.color, 0.35);
+            this.audio.play('explosion', { size: 0.7 });
           }
           this.fx.sparkBurst(p.x, p.y, p.color, 6, 70);
           done = true;
@@ -561,6 +611,7 @@ export class Game3D {
             knockback: p.knockback * 0.6, source: p.kind
           });
           this.fx.shockwave(p.x, p.y, p.aoeRadius, p.color, 0.35);
+          this.audio.play('explosion', { size: 0.7 });
         }
         p.mesh.visible = false;
         this.projectiles.splice(i, 1);
@@ -576,6 +627,7 @@ export class Game3D {
    * every time the frame rate dips.
    */
   beginDash(f, angle, speed, duration, onLand) {
+    this.audio.play('dash');
     f.dash = { remaining: duration, onLand };
     f.vx = Math.cos(angle) * speed;
     f.vy = Math.sin(angle) * speed;

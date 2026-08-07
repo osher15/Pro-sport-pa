@@ -19,7 +19,8 @@ const EMPTY = {
   unlockedCores: ['core_none', 'core_fire', 'core_gravity', 'core_shadow'],
   record: { wins: 0, losses: 0, draws: 0 },
   lastArena: null,
-  lastCharacter: null
+  lastCharacter: null,
+  muted: false
 };
 
 function storage() {
@@ -76,6 +77,12 @@ export function setCore(profile, characterId, coreId) {
 
 export function coreFor(profile, characterId) {
   return profile.cores[characterId] || 'core_none';
+}
+
+export function setMuted(profile, muted) {
+  profile.muted = !!muted;
+  save(profile);
+  return profile;
 }
 
 export function recordResult(profile, outcome) {

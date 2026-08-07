@@ -1,0 +1,7 @@
+# Python bytecode from the art tools — was tracked by accident.
+__pycache__/
+*.pyc
+
+# Raw generator output. The processed tiles in art/tiles are what the game
+# loads and those are committed; the 1024px originals are not worth the weight.
+art/generated/

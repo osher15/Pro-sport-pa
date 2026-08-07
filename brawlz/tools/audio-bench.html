@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="he"><head><meta charset="utf-8">
+<title>BrawlZ — audio bench</title>
+<!-- Dev tool: renders every sound through an OfflineAudioContext and reports
+     peak, RMS and duration, so the mix can be judged by measurement instead of
+     by listening on whatever speakers happen to be nearby.
+     Serve the brawlz folder, open tools/audio-bench.html, then in the console:
+       await renderAll()   -> a row per sound
+       await pitchCheck()  -> proves `pitch` really shifts the tone -->
+</head><body>
+<script type="module">
+import { Audio, SOUND_NAMES } from '../src/core/audio.js';
+
+window.renderAll = async () => {
+  const RATE = 44100, SECS = 1.6;
+  const out = [];
+  for (const name of SOUND_NAMES) {
+    const off = new OfflineAudioContext(1, RATE * SECS, RATE);
+    const a = new Audio({ context: off });
+    a.build();
+    const played = a.play(name, { pitch: 1 });
+    const buf = await off.startRendering();
+    const d = buf.getChannelData(0);
+    let peak = 0, sum = 0, lastNonZero = 0, firstNonZero = -1;
+    for (let i = 0; i < d.length; i++) {
+      const v = Math.abs(d[i]);
+      if (v > peak) peak = v;
+      sum += d[i] * d[i];
+      if (v > 0.001) { lastNonZero = i; if (firstNonZero < 0) firstNonZero = i; }
+    }
+    out.push({
+      name, played,
+      peak: +peak.toFixed(3),
+      rms: +Math.sqrt(sum / d.length).toFixed(4),
+      startMs: firstNonZero < 0 ? null : Math.round(firstNonZero / RATE * 1000),
+      durMs: firstNonZero < 0 ? 0 : Math.round((lastNonZero - firstNonZero) / RATE * 1000),
+      clipped: peak > 0.999
+    });
+  }
+  return out;
+};
+
+// Pitch really does change the sound: render the same recipe at two pitches
+// and compare their spectra.
+window.pitchCheck = async () => {
+  const RATE = 44100;
+  const render = async (pitch) => {
+    const off = new OfflineAudioContext(1, RATE * 0.5, RATE);
+    const a = new Audio({ context: off });
+    a.build();
+    a.play('shoot', { pitch });
+    const buf = await off.startRendering();
+    const d = buf.getChannelData(0);
+    // Zero-crossing rate, measured AFTER the attack transient has finished.
+    // The shot's noise click runs for the first 50ms and swamps the count; a
+    // window that includes it measures the noise, not the pitch.
+    const from = Math.floor(RATE * 0.07);
+    const to = Math.floor(RATE * 0.13);
+    let crossings = 0;
+    for (let i = from + 1; i < to; i++) if ((d[i - 1] < 0) !== (d[i] < 0)) crossings++;
+    return Math.round(crossings / 2 / ((to - from) / RATE));
+  };
+  return { low: await render(0.76), high: await render(1.28) };
+};
+window.__ready = true;
+</script></body></html>

@@ -8,6 +8,7 @@
 import { Game3D } from './game.js';
 import { Hud3D } from './hud.js';
 import * as Save from '../core/save.js';
+import { Audio } from '../core/audio.js';
 
 const state = {
   data: null,
@@ -18,7 +19,8 @@ const state = {
   hud: null,
   playerId: null,
   arenaId: null,
-  coreId: 'core_none'
+  coreId: 'core_none',
+  audio: null
 };
 
 function loadJson(path, fallback) {
@@ -98,7 +100,7 @@ function renderArenas() {
         '<span class="arena-blurb">' + esc(arena.blurb_he || '') + '</span>' +
         '<span class="arena-tags">' + hazardTags(arena) + '</span>' +
       '</span>';
-    card.addEventListener('click', () => selectArena(arena.id));
+    card.addEventListener('click', () => { state.audio.play('click'); selectArena(arena.id); });
     list.appendChild(card);
   });
 }
@@ -138,7 +140,7 @@ function renderCores() {
       '<span class="core-style">' + esc(core.style_he || '') + '</span>' +
       '<span class="core-blurb">' + esc(core.blurb_he || '') + '</span>' +
       '<span class="core-stats">' + statDeltas(core) + '</span>';
-    card.addEventListener('click', () => selectCore(core.id));
+    card.addEventListener('click', () => { state.audio.play('select'); selectCore(core.id); });
     list.appendChild(card);
   });
 }
@@ -190,7 +192,7 @@ function renderCharacters() {
         stat('מהירות', def.stats.speed) +
         stat('טווח', def.stats.attack_range === 'ranged' ? 'ירי' : 'מגע') +
       '</dl>';
-    card.addEventListener('click', () => startMatch(def.id));
+    card.addEventListener('click', () => { state.audio.play('select'); startMatch(def.id); });
     chars.appendChild(card);
   });
 }
@@ -265,6 +267,7 @@ function startMatch(playerId) {
     cores: state.cores.cores,
     playerCoreId: state.coreId,
     hud: state.hud,
+    audio: state.audio,
     onMatchEnd: (result) => {
       Save.recordResult(state.profile,
         result.winner === null ? 'draw' : (result.winner === 0 ? 'win' : 'loss'));
@@ -285,9 +288,34 @@ function backToMenu() {
   document.body.classList.remove('in-match');
 }
 
+function syncMuteButton() {
+  const btn = document.getElementById('btn-mute');
+  if (!btn) return;
+  const muted = state.profile.muted;
+  btn.textContent = muted ? '🔇' : '🔊';
+  btn.setAttribute('aria-label', muted ? 'הפעל סאונד' : 'השתק');
+  btn.classList.toggle('is-muted', muted);
+}
+
 window.addEventListener('load', () => {
   state.hud = new Hud3D();
   state.profile = Save.load();
+
+  // The context is only built on the first gesture; browsers refuse to start
+  // audio before one, and creating it early just yields a suspended context.
+  state.audio = new Audio({ enabled: !state.profile.muted });
+  state.audio.attachUnlock();
+
+  const muteBtn = document.getElementById('btn-mute');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      Save.setMuted(state.profile, !state.profile.muted);
+      state.audio.setEnabled(!state.profile.muted);
+      syncMuteButton();
+      state.audio.play('click');
+    });
+  }
+  syncMuteButton();
 
   const again = () => { if (state.playerId) startMatch(state.playerId); };
   document.getElementById('btn-menu').addEventListener('click', backToMenu);
