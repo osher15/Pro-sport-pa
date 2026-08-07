@@ -207,6 +207,30 @@ export class Rig {
     this.leanX = 0;
     this.actionTimer = 0;
     this.actionKind = null;
+    this.flashTimer = 0;
+    this.flashDuration = 0;
+
+    // Only the lit materials can flash; the outline and the eyes are flat by
+    // design and lighting them up just makes the fighter look broken.
+    this.litMaterials = [
+      this.materials.body, this.materials.accent,
+      this.materials.trim, this.materials.dark
+    ];
+  }
+
+  /** White pop on taking a hit — the cheapest damage feedback there is. */
+  flash(duration = 0.16) {
+    this.flashTimer = duration;
+    this.flashDuration = duration;
+  }
+
+  tickFlash(dt) {
+    if (this.flashTimer <= 0) return;
+    this.flashTimer -= dt;
+    const t = Math.max(0, this.flashTimer) / this.flashDuration;
+    for (const m of this.litMaterials) {
+      m.emissive.setScalar(t * 0.85);
+    }
   }
 
   addAccessory(p) {
@@ -344,6 +368,8 @@ export class Rig {
    * "gliding" the 2D build could never shake.
    */
   update(dt, { speed = 0, maxSpeed = 190, moveAngle = null, aimAngle = null } = {}) {
+    this.tickFlash(dt);
+
     const p = this.profile;
     const ratio = maxSpeed > 0 ? Math.min(1, speed / maxSpeed) : 0;
     const stride = p.leg * 2.6;                       // world units per half-step

@@ -218,11 +218,17 @@
     return actor;
   };
 
+  /**
+   * A null actor means the arena itself — a meteor, a hazard zone, the storm.
+   * The arena has no team, so everybody alive is a valid target for it.
+   */
   CombatSystem.prototype.enemiesOf = function (actor) {
     var out = [];
     for (var i = 0; i < this.actors.length; i++) {
       var other = this.actors[i];
-      if (other !== actor && other.alive && other.team !== actor.team) out.push(other);
+      if (!other.alive || other === actor) continue;
+      if (actor && other.team === actor.team) continue;
+      out.push(other);
     }
     return out;
   };
@@ -401,10 +407,11 @@
       kind: opts.source || 'basic'
     });
 
-    if (target.hp <= 0) this.kill(source, target);
+    if (target.hp <= 0) this.kill(source || null, target);
     return true;
   };
 
+  /** Killed by `source`, or by the arena when source is null. */
   CombatSystem.prototype.kill = function (source, target) {
     target.alive = false;
     target.state = 'dead';

@@ -1,31 +1,72 @@
 /**
- * Builds the arena geometry from the same character grid the 2D build uses.
+ * Builds the arena geometry from a character grid, a palette, and (optionally)
+ * the tile art.
  *
- * Walls and bushes are instanced: 32 boxes and 5 blobs per bush is nothing for
- * a desktop GPU but it is real work for a phone, and this scene has to hold 60
- * frames on a mid-range Android.
+ * Walls and bushes are instanced. Thirty-two boxes is nothing for a desktop GPU
+ * but it is real work for a phone, and this scene has to hold 60 frames on a
+ * mid-range Android.
+ *
+ * Every arena in arenas.json goes through here — what makes one look like a
+ * mine and another like a rooftop is entirely its palette and its grid.
  */
 import * as THREE from '../../vendor/three/three.module.min.js';
 
-const OUTLINE = new THREE.MeshBasicMaterial({ color: 0x1d1630, side: THREE.BackSide });
+const DEFAULT_PALETTE = {
+  floor: '#c9a86a',
+  wall: '#8a6b4f',
+  wallCap: '#a8865f',
+  bush: '#4f9b45',
+  rim: '#5c4633',
+  surround: '#241b45'
+};
 
-export function buildArena(scene, grid, palette = {}) {
+/**
+ * Loads the three tile textures. Returns immediately with Texture objects that
+ * fill in when the files arrive, so a slow image never blocks the match from
+ * starting — the arena just starts flat-coloured and gains its art a moment
+ * later.
+ */
+export function loadTileTextures(art, tilesPerRepeat = 4) {
+  const loader = new THREE.TextureLoader();
+  const out = {};
+  if (!art) return out;
+
+  const grab = (key, repeat) => {
+    if (!art[key]) return;
+    const tex = loader.load(art[key], undefined, undefined, () => {
+      console.warn('[BrawlZ3D] tile art missing (' + art[key] + ') — staying flat-coloured.');
+      delete out[key];
+    });
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    if (repeat) tex.repeat.set(repeat[0], repeat[1]);
+    out[key] = tex;
+  };
+
+  grab('floor', null);        // repeat is set once the grid size is known
+  grab('wall', [1, 1]);
+  grab('bush', [1, 1]);
+  out._tilesPerRepeat = tilesPerRepeat;
+  return out;
+}
+
+export function buildArena(scene, grid, opts = {}) {
+  const palette = { ...DEFAULT_PALETTE, ...(opts.palette || {}) };
+  const tex = opts.textures || {};
   const t = grid.tile;
   const W = grid.width;
   const D = grid.depth;
   const group = new THREE.Group();
 
-  const colors = {
-    floor: 0xc9a86a,
-    // Only a few percent darker: the checker is there to give movement
-    // something to read against, not to be the loudest thing on screen.
-    floorInlay: 0xc0a065,
-    wall: 0x8a6b4f,
-    wallCap: 0xa8865f,
-    bush: 0x4f9b45,
-    bushDark: 0x3a7533,
-    rim: 0x5c4633,
-    ...palette
+  const toon = (color, map) => {
+    const m = new THREE.MeshToonMaterial({ color: new THREE.Color(color) });
+    if (map) {
+      m.map = map;
+      // The art already carries the colour; tinting it again muddies it.
+      m.color.set(0xffffff);
+    }
+    return m;
   };
 
   /* ---------------- ground ----------------
@@ -34,7 +75,7 @@ export function buildArena(scene, grid, palette = {}) {
    * else", not "the level ended". */
   const surround = new THREE.Mesh(
     new THREE.PlaneGeometry(W * 6, D * 8),
-    new THREE.MeshToonMaterial({ color: 0x241b45 })
+    new THREE.MeshToonMaterial({ color: new THREE.Color(palette.surround) })
   );
   surround.rotation.x = -Math.PI / 2;
   surround.position.set(W / 2, -t * 3.2, D / 2);
@@ -42,46 +83,50 @@ export function buildArena(scene, grid, palette = {}) {
 
   const slab = new THREE.Mesh(
     new THREE.BoxGeometry(W + t * 0.7, t * 0.5, D + t * 0.7),
-    new THREE.MeshToonMaterial({ color: colors.rim })
+    toon(palette.rim)
   );
   slab.position.set(W / 2, -t * 0.25, D / 2);
   slab.receiveShadow = true;
   group.add(slab);
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, D),
-    new THREE.MeshToonMaterial({ color: colors.floor })
-  );
+  if (tex.floor) {
+    const per = tex._tilesPerRepeat || 4;
+    tex.floor.repeat.set(grid.cols / per, grid.height / per);
+  }
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), toon(palette.floor, tex.floor));
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(W / 2, 0.5, D / 2);
   floor.receiveShadow = true;
   group.add(floor);
 
-  // A faint checker so movement has something to read against. Two big planes
-  // beat a texture we do not have yet, and the tile art can replace this later.
-  const inlayGeo = new THREE.PlaneGeometry(t, t);
-  const inlayMat = new THREE.MeshToonMaterial({ color: colors.floorInlay });
-  let inlayCount = 0;
-  for (let r = 0; r < grid.height; r++) {
-    for (let c = 0; c < grid.cols; c++) if ((r + c) % 2 === 0) inlayCount++;
-  }
-  const inlay = new THREE.InstancedMesh(inlayGeo, inlayMat, inlayCount);
-  inlay.receiveShadow = true;
-  const m = new THREE.Matrix4();
-  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-  const one = new THREE.Vector3(1, 1, 1);
-  let i = 0;
-  for (let r = 0; r < grid.height; r++) {
-    for (let c = 0; c < grid.cols; c++) {
-      if ((r + c) % 2 !== 0) continue;
-      const p = grid.centreOf(c, r);
-      inlay.setMatrixAt(i++, m.compose(new THREE.Vector3(p.x, 0.8, p.y), q, one));
+  // Without art, a faint checker gives movement something to read against.
+  // With art, the stone pattern already does that job.
+  if (!tex.floor) {
+    const inlayMat = new THREE.MeshToonMaterial({
+      color: new THREE.Color(palette.floor).multiplyScalar(0.94)
+    });
+    let count = 0;
+    for (let r = 0; r < grid.height; r++) {
+      for (let c = 0; c < grid.cols; c++) if ((r + c) % 2 === 0) count++;
     }
+    const inlay = new THREE.InstancedMesh(new THREE.PlaneGeometry(t, t), inlayMat, count);
+    inlay.receiveShadow = true;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    const one = new THREE.Vector3(1, 1, 1);
+    let i = 0;
+    for (let r = 0; r < grid.height; r++) {
+      for (let c = 0; c < grid.cols; c++) {
+        if ((r + c) % 2 !== 0) continue;
+        const p = grid.centreOf(c, r);
+        inlay.setMatrixAt(i++, m.compose(new THREE.Vector3(p.x, 0.8, p.y), q, one));
+      }
+    }
+    inlay.instanceMatrix.needsUpdate = true;
+    group.add(inlay);
   }
-  inlay.instanceMatrix.needsUpdate = true;
-  group.add(inlay);
 
-  /* ---------------- walls ---------------- */
+  /* ---------------- walls and bushes ---------------- */
   const wallCells = [];
   const bushCells = [];
   for (let r = 0; r < grid.height; r++) {
@@ -92,62 +137,82 @@ export function buildArena(scene, grid, palette = {}) {
     }
   }
 
-  const wallH = t * 1.25;
-  const wallGeo = new THREE.BoxGeometry(t, wallH, t);
-  const walls = new THREE.InstancedMesh(
-    wallGeo, new THREE.MeshToonMaterial({ color: colors.wall }), wallCells.length
-  );
-  const wallOutline = new THREE.InstancedMesh(wallGeo, OUTLINE, wallCells.length);
-  const capGeo = new THREE.BoxGeometry(t * 1.03, t * 0.16, t * 1.03);
-  const caps = new THREE.InstancedMesh(
-    capGeo, new THREE.MeshToonMaterial({ color: colors.wallCap }), wallCells.length
-  );
-  walls.castShadow = walls.receiveShadow = true;
-  caps.castShadow = true;
-
+  const m = new THREE.Matrix4();
   const noRot = new THREE.Quaternion();
-  wallCells.forEach((p, idx) => {
-    walls.setMatrixAt(idx, m.compose(new THREE.Vector3(p.x, wallH / 2, p.y), noRot, one));
-    wallOutline.setMatrixAt(idx, m.compose(
-      new THREE.Vector3(p.x, wallH / 2, p.y), noRot, new THREE.Vector3(1.04, 1.02, 1.04)
-    ));
-    caps.setMatrixAt(idx, m.compose(new THREE.Vector3(p.x, wallH + t * 0.06, p.y), noRot, one));
-  });
-  [walls, wallOutline, caps].forEach((mesh) => { mesh.instanceMatrix.needsUpdate = true; });
-  group.add(wallOutline, walls, caps);
+  const one = new THREE.Vector3(1, 1, 1);
 
-  /* ---------------- bushes ---------------- */
-  const blobs = [
-    [0, 0.40, 0, 0.50], [-0.28, 0.29, 0.22, 0.34], [0.30, 0.31, -0.20, 0.36],
-    [0.12, 0.30, 0.32, 0.31], [-0.26, 0.27, -0.29, 0.29]
-  ];
-  const blobGeo = new THREE.SphereGeometry(1, 10, 8);
-  const total = bushCells.length * blobs.length;
-  const bushLight = new THREE.InstancedMesh(
-    blobGeo, new THREE.MeshToonMaterial({ color: colors.bush }), Math.ceil(total / 2)
-  );
-  const bushDark = new THREE.InstancedMesh(
-    blobGeo, new THREE.MeshToonMaterial({ color: colors.bushDark }), Math.floor(total / 2)
-  );
-  bushLight.castShadow = bushDark.castShadow = true;
-  bushLight.receiveShadow = bushDark.receiveShadow = true;
+  if (wallCells.length) {
+    const wallH = t * 1.25;
+    const walls = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(t, wallH, t), toon(palette.wall, tex.wall), wallCells.length
+    );
+    const caps = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(t * 1.03, t * 0.16, t * 1.03), toon(palette.wallCap), wallCells.length
+    );
+    walls.castShadow = walls.receiveShadow = true;
+    caps.castShadow = true;
 
-  let li = 0, di = 0, n = 0;
-  bushCells.forEach((p) => {
-    blobs.forEach((b) => {
-      const rad = b[3] * t;
-      const pos = new THREE.Vector3(p.x + b[0] * t, b[1] * t, p.y + b[2] * t);
-      const scl = new THREE.Vector3(rad, rad, rad);
-      if (n % 2 === 0) bushLight.setMatrixAt(li++, m.compose(pos, noRot, scl));
-      else bushDark.setMatrixAt(di++, m.compose(pos, noRot, scl));
-      n++;
+    wallCells.forEach((p, i) => {
+      walls.setMatrixAt(i, m.compose(new THREE.Vector3(p.x, wallH / 2, p.y), noRot, one));
+      caps.setMatrixAt(i, m.compose(new THREE.Vector3(p.x, wallH + t * 0.06, p.y), noRot, one));
     });
-  });
-  bushLight.count = li;
-  bushDark.count = di;
-  bushLight.instanceMatrix.needsUpdate = true;
-  bushDark.instanceMatrix.needsUpdate = true;
-  group.add(bushLight, bushDark);
+    walls.instanceMatrix.needsUpdate = true;
+    caps.instanceMatrix.needsUpdate = true;
+    group.add(walls, caps);
+  }
+
+  if (bushCells.length) {
+    // With art, a flat leafy quad beats five spheres: the texture already has
+    // all the leaf shapes, and lumpy geometry underneath just fights it.
+    if (tex.bush) {
+      // Leafy art on the top face, flat dark green on the sides. Wrapping the
+      // top-down foliage around the sides too would smear it into stripes.
+      const side = new THREE.MeshToonMaterial({
+        color: new THREE.Color(palette.bush).multiplyScalar(0.55)
+      });
+      const top = toon(palette.bush, tex.bush);
+      const bushMats = [side, side, top, side, side, side];   // +x -x +y -y +z -z
+      const bushes = new THREE.InstancedMesh(
+        new THREE.BoxGeometry(t * 0.99, t * 0.72, t * 0.99), bushMats, bushCells.length
+      );
+      bushes.castShadow = bushes.receiveShadow = true;
+      bushCells.forEach((p, i) => {
+        bushes.setMatrixAt(i, m.compose(new THREE.Vector3(p.x, t * 0.36, p.y), noRot, one));
+      });
+      bushes.instanceMatrix.needsUpdate = true;
+      group.add(bushes);
+    } else {
+      const blobs = [
+        [0, 0.40, 0, 0.50], [-0.28, 0.29, 0.22, 0.34], [0.30, 0.31, -0.20, 0.36],
+        [0.12, 0.30, 0.32, 0.31], [-0.26, 0.27, -0.29, 0.29]
+      ];
+      const blobGeo = new THREE.SphereGeometry(1, 10, 8);
+      const total = bushCells.length * blobs.length;
+      const light = new THREE.InstancedMesh(blobGeo, toon(palette.bush), Math.ceil(total / 2));
+      const dark = new THREE.InstancedMesh(
+        blobGeo, toon(new THREE.Color(palette.bush).multiplyScalar(0.78)), Math.floor(total / 2)
+      );
+      light.castShadow = dark.castShadow = true;
+      light.receiveShadow = dark.receiveShadow = true;
+
+      let li = 0, di = 0, n = 0;
+      bushCells.forEach((p) => {
+        blobs.forEach((b) => {
+          const rad = b[3] * t;
+          const pos = new THREE.Vector3(p.x + b[0] * t, b[1] * t, p.y + b[2] * t);
+          const scl = new THREE.Vector3(rad, rad, rad);
+          if (n % 2 === 0) light.setMatrixAt(li++, m.compose(pos, noRot, scl));
+          else dark.setMatrixAt(di++, m.compose(pos, noRot, scl));
+          n++;
+        });
+      });
+      light.count = li;
+      dark.count = di;
+      light.instanceMatrix.needsUpdate = true;
+      dark.instanceMatrix.needsUpdate = true;
+      group.add(light, dark);
+    }
+  }
 
   scene.add(group);
   return { group, wallCells, bushCells };
@@ -156,14 +221,15 @@ export function buildArena(scene, grid, palette = {}) {
 /**
  * Lighting rig. One warm key with shadows, one cool fill, and a hemisphere so
  * nothing goes fully black — the flat, readable look the genre needs, not a
- * realistic one.
+ * realistic one. The key's colour comes from the arena palette, which is most
+ * of what makes a rooftop feel different from a mine.
  */
-export function buildLights(scene, grid) {
+export function buildLights(scene, grid, palette = {}) {
   const W = grid.width, D = grid.depth;
 
   scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x6b4a2a, 1.05));
 
-  const sun = new THREE.DirectionalLight(0xfff0cf, 1.9);
+  const sun = new THREE.DirectionalLight(new THREE.Color(palette.sun || '#fff0cf'), 1.9);
   sun.position.set(W * 0.28, 1500, D * 1.15);
   sun.target.position.set(W / 2, 0, D / 2);
   sun.castShadow = true;

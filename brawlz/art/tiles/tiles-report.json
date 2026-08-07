@@ -1,0 +1,39 @@
+{
+  "floor": {
+    "file": "floor.png",
+    "source": "floor.png",
+    "blend_px": 48
+  },
+  "wall": {
+    "file": "wall.png",
+    "source": "wall.png",
+    "crop": [
+      73,
+      65,
+      876,
+      876
+    ],
+    "fill": [
+      83,
+      53,
+      47
+    ],
+    "background_px": 303117
+  },
+  "bush": {
+    "file": "bush.png",
+    "source": "bush.png",
+    "crop": [
+      50,
+      50,
+      930,
+      930
+    ],
+    "fill": [
+      50,
+      77,
+      44
+    ],
+    "background_px": 268957
+  }
+}

@@ -5,21 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover,
                                  maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#171232">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>%F0%9F%92%A5</text></svg>">
   <title>BrawlZ: Cursed Arenas — 3D</title>
   <link rel="stylesheet" href="css/game3d.css">
 </head>
 <body>
 
-  <!-- ---------------- character select ---------------- -->
+  <!-- ---------------- arena select ---------------- -->
   <section id="menu" class="menu" hidden>
     <header class="menu-head">
       <h1 id="menu-title">BrawlZ</h1>
       <span id="menu-version" class="badge"></span>
-      <p class="menu-hint">
-        בחר לוחם. הזז עם הג׳ויסטיק השמאלי או עם <kbd>WASD</kbd>.
-      </p>
     </header>
-    <div id="character-list" class="char-list"></div>
+
+    <div class="step" id="step-arena">
+      <h2 class="step-title">1. בחר זירה</h2>
+      <div id="arena-list" class="arena-list"></div>
+    </div>
+
+    <div class="step" id="step-char">
+      <h2 class="step-title">2. בחר לוחם</h2>
+      <div id="character-list" class="char-list"></div>
+    </div>
+
     <footer class="menu-foot">
       <a class="link-2d" href="index.html">← לגרסת הדו־ממד</a>
     </footer>
@@ -34,12 +42,13 @@
         <div class="hud-card hud-card--player">
           <span class="hud-name" id="hud-player-name"></span>
           <div class="bar"><i id="hud-player-hp" class="bar-fill"></i></div>
-          <span class="hud-hp" id="hud-player-hp-text"></span>
+          <span class="hud-hp" id="hud-player-hp-text" dir="ltr"></span>
         </div>
+        <div class="hud-arena" id="hud-arena-name"></div>
         <div class="hud-card hud-card--enemy">
           <span class="hud-name" id="hud-enemy-name"></span>
           <div class="bar"><i id="hud-enemy-hp" class="bar-fill bar-fill--enemy"></i></div>
-          <span class="hud-hp" id="hud-enemy-hp-text"></span>
+          <span class="hud-hp" id="hud-enemy-hp-text" dir="ltr"></span>
         </div>
       </div>
 
@@ -52,9 +61,17 @@
         </div>
       </div>
 
-      <div id="move-zone" class="stick-zone">
+      <div id="move-zone" class="stick-zone stick-zone--move">
         <span class="stick-base"></span>
         <span id="move-knob" class="stick-knob"></span>
+      </div>
+
+      <div class="action-cluster">
+        <button id="ult-button" type="button" class="ult-button">אולטי</button>
+        <div id="aim-zone" class="stick-zone stick-zone--aim">
+          <span class="stick-base"></span>
+          <span id="aim-knob" class="stick-knob">ירי</span>
+        </div>
       </div>
 
       <div class="match-buttons">
@@ -65,7 +82,7 @@
   </div>
 
   <p id="boot-error" class="boot-error" hidden>
-    לא הצלחתי לטעון את נתוני הדמויות. פתח דרך שרת מקומי ולא כקובץ.
+    לא הצלחתי לטעון את נתוני המשחק. פתח דרך שרת מקומי ולא כקובץ.
   </p>
 
   <script src="data/characters.fallback.js"></script>

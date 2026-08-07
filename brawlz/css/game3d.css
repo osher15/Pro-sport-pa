@@ -83,13 +83,100 @@ kbd {
   font-size: 0.8em;
 }
 
+.step { max-width: 900px; width: 100%; margin-inline: auto; }
+
+.step-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  font-weight: 700;
+}
+
+/* ---- arena cards ---- */
+
+.arena-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.7rem;
+}
+
+.arena-card {
+  --a-sky: #171232;
+  --a-floor: #c9a86a;
+  --a-wall: #8a6b4f;
+  display: flex;
+  gap: 0.7rem;
+  align-items: stretch;
+  padding: 0.6rem;
+  text-align: start;
+  color: var(--ink);
+  font-family: inherit;
+  background: linear-gradient(150deg, var(--a-sky), var(--bg-2) 80%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.arena-card:hover { transform: translateY(-2px); }
+
+.arena-card.is-picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(155, 140, 255, 0.4);
+}
+
+/* The thumbnail is the grid itself — one <i> per tile, so a new arena in the
+   JSON gets a correct preview with no artwork and no extra step. */
+.arena-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 0 0 auto;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  align-self: center;
+}
+
+.mini-row { display: flex; gap: 1px; }
+
+.mini {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--a-floor);
+}
+
+.mini-wall { background: var(--a-wall); }
+.mini-bush { background: #4f9b45; }
+.mini-spawn { background: #35d6ff; }
+
+.arena-body { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.arena-name { font-size: 1rem; }
+.arena-sub { font-size: 0.68rem; color: var(--ink-dim); }
+
+.arena-blurb {
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  line-height: 1.35;
+  margin-block: 0.2rem;
+}
+
+.arena-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+.tag {
+  font-style: normal;
+  font-size: 0.64rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-dim);
+}
+
 .char-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 0.7rem;
-  max-width: 900px;
-  width: 100%;
-  margin-inline: auto;
 }
 
 .char-card {
@@ -294,23 +381,84 @@ body.in-match .stage { display: block; }
 .super.is-ready { box-shadow: 0 0 12px 2px rgba(255, 209, 102, 0.75); }
 .super.is-ready .super-fill { background: #ffd166; }
 
-/* thumbstick */
+/* thumbsticks
+ *
+ * Deliberately physical left/right, not logical inline-start/end. The interface
+ * text is Hebrew and flows right-to-left, but a thumbstick belongs under the
+ * player's left thumb in every language — mirroring the controls with the text
+ * puts the stick where the fire button should be.
+ */
 
 .stick-zone {
-  position: absolute;
-  inset-inline-start: max(0.8rem, env(safe-area-inset-left));
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  position: relative;
   width: clamp(74px, 15vh, 130px);
   aspect-ratio: 1;
   pointer-events: auto;
   touch-action: none;
 }
 
+.stick-zone--move {
+  position: absolute;
+  left: max(0.8rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.action-cluster {
+  position: absolute;
+  right: max(0.8rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: clamp(6px, 1.4vh, 14px);
+}
+
+.stick-zone--aim .stick-base {
+  background: rgba(255, 145, 60, 0.16);
+  border-color: rgba(255, 175, 100, 0.5);
+}
+
+.stick-zone--aim .stick-knob {
+  background: rgba(255, 145, 60, 0.55);
+  border-color: rgba(255, 200, 150, 0.75);
+  display: grid;
+  place-items: center;
+  font-size: clamp(8px, 1.5vh, 12px);
+  font-weight: 700;
+  color: #fff;
+}
+
+.ult-button {
+  width: clamp(48px, 10vh, 86px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: auto;
+  font-family: inherit;
+  font-size: clamp(8px, 1.5vh, 13px);
+  font-weight: 700;
+  color: var(--ink-dim);
+  background: rgba(155, 140, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.24);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+/* The super button lights up only when it can actually be pressed — a button
+   that always looks live teaches the player to ignore it. */
+body.super-ready .ult-button {
+  color: #2a1d00;
+  background: #ffd166;
+  border-color: #fff3c4;
+  box-shadow: 0 0 16px 3px rgba(255, 209, 102, 0.65);
+}
+
 .stick-base,
 .stick-knob {
   position: absolute;
   top: 50%;
-  inset-inline-start: 50%;
+  /* Physical left, not inline-start: under RTL the logical property resolves to
+     `right`, and the -50% translate then pushes the knob out of its own well. */
+  left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
 }
@@ -331,12 +479,23 @@ body.in-match .stage { display: block; }
 
 .stick-zone.is-active .stick-base { background: rgba(255, 255, 255, 0.14); }
 
+.hud-arena {
+  align-self: flex-start;
+  padding: clamp(2px, 0.5vh, 5px) clamp(6px, 1.2vh, 12px);
+  font-size: clamp(8px, 1.5vh, 13px);
+  font-weight: 700;
+  color: var(--ink-dim);
+  background: rgba(12, 9, 28, 0.66);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
 /* match buttons */
 
 .match-buttons {
   position: absolute;
-  inset-inline-end: max(0.6rem, env(safe-area-inset-right));
-  bottom: max(0.8rem, env(safe-area-inset-bottom));
+  inset-inline-start: max(0.6rem, env(safe-area-inset-left));
+  top: max(3.4rem, 10vh);
   display: flex;
   gap: 0.4rem;
   pointer-events: auto;

@@ -63,7 +63,12 @@ export class Hud3D {
     }
 
     this.el.super.style.width = (Math.min(1, player.superCharge) * 100).toFixed(1) + '%';
-    this.el.super.parentElement.classList.toggle('is-ready', player.superReady());
+    const ready = player.superReady();
+    this.el.super.parentElement.classList.toggle('is-ready', ready);
+    if (ready !== this._superReady) {
+      this._superReady = ready;
+      document.body.classList.toggle('super-ready', ready);
+    }
   }
 
   say(line) {
@@ -79,6 +84,13 @@ export class Hud3D {
   }
 
   clearFeed() { this.el.feed.innerHTML = ''; }
+
+  /** Between matches: the names belong to the fighters that just left. */
+  reset() {
+    this.clearFeed();
+    this._names = false;
+    this._ammoCapacity = 0;
+  }
 }
 
 function escapeHtml(s) {

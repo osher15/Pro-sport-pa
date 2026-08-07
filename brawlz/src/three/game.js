@@ -1,22 +1,26 @@
 /**
- * Game3D — the 3D renderer and loop.
+ * Game3D — the 3D renderer and match loop.
  *
- * Step 1 scope: world, camera, movement, collision, bush concealment, and the
- * jointed rig walking. Combat rides on top of the existing engine-agnostic core
- * (src/core/combat.js) and lands in the next step; the actors are already
- * created here so nothing has to be rebuilt for it.
+ * The rules all live elsewhere: src/core/combat.js decides damage, ammo, super
+ * and death; src/core/hazards.js decides when a meteor falls. This file moves
+ * bodies, draws things, and feeds positions back into the core every frame.
  */
 import * as THREE from '../../vendor/three/three.module.min.js';
 import { Grid } from './grid.js';
-import { buildArena, buildLights } from './arena.js';
+import { buildArena, buildLights, loadTileTextures } from './arena.js';
 import { Rig } from './rig.js';
 import { Stick, Keyboard } from './input.js';
+import { Fx } from './fx.js';
+import { HazardView } from './hazards.js';
+import { HazardDirector } from '../core/hazards.js';
+import { runUltimate } from './ultimates.js';
 
 const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
 const BODY_RADIUS = 26;
-const ACCEL = 1400;          // world units/s^2 — reached full speed in ~0.14s
+const ACCEL = 1400;          // world units/s^2 — full speed in about 0.14s
 const FRICTION = 9;
+const PROJECTILE_POOL = 40;
 
 /**
  * Camera sits behind and above the player at ~43 degrees off the horizontal.
@@ -27,16 +31,21 @@ const FRICTION = 9;
  */
 const CAM_OFFSET = new THREE.Vector3(0, 680, 720);
 const CAM_LAG = 6.5;
-/** How far the shot may leave the arena before it starts showing the void. */
-const CAM_MARGIN = 260;
+/**
+ * How far the shot may leave the arena. Negative on purpose: the look point
+ * stops *inside* the edge, so a fighter fighting in a corner still sees arena
+ * around them instead of half a screen of empty sky.
+ */
+const CAM_MARGIN = -140;
 
 export class Game3D {
   constructor(opts) {
-    const { canvas, roster, playerId, enemyId, mapRows, hud } = opts;
+    const { canvas, roster, playerId, enemyId, arena, hud } = opts;
 
     this.canvas = canvas;
     this.hud = hud || null;
-    this.grid = new Grid(mapRows);
+    this.arena = arena;
+    this.grid = new Grid(arena.grid, arena.tile || 80);
     this.roster = roster;
 
     this.playerDef = roster.find((c) => c.id === playerId) || roster[0];
@@ -50,7 +59,10 @@ export class Game3D {
     this.initRenderer();
     this.initWorld();
     this.initFighters();
+    this.initProjectiles();
+    this.initHazards();
     this.initInput();
+    this.bindCombatEvents();
 
     this.onResize = this.onResize.bind(this);
     window.addEventListener('resize', this.onResize);
@@ -70,18 +82,24 @@ export class Game3D {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
+    const pal = this.arena.palette || {};
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x171232);
-    this.scene.fog = new THREE.Fog(0x171232, 1800, 3200);
+    this.scene.background = new THREE.Color(pal.sky || '#171232');
+    this.scene.fog = new THREE.Fog(new THREE.Color(pal.fog || pal.sky || '#171232'), 1800, 3400);
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 50, 5000);
     this.camDesired = new THREE.Vector3();
     this.camTarget = new THREE.Vector3();
+    this.camBase = new THREE.Vector3();
   }
 
   initWorld() {
-    buildArena(this.scene, this.grid);
-    buildLights(this.scene, this.grid);
+    this.textures = loadTileTextures(this.arena.art);
+    buildArena(this.scene, this.grid, {
+      palette: this.arena.palette, textures: this.textures
+    });
+    buildLights(this.scene, this.grid, this.arena.palette);
+    this.fx = new Fx(this.scene);
   }
 
   initFighters() {
@@ -89,7 +107,7 @@ export class Game3D {
     this.system = new BrawlZ.CombatSystem();
 
     const spawnA = this.grid.spawns[0][0] || { x: 200, y: 200 };
-    const spawnB = this.grid.spawns[1][1] || this.grid.spawns[1][0] ||
+    const spawnB = this.grid.spawns[1][this.grid.spawns[1].length - 1] ||
       { x: this.grid.width - 200, y: this.grid.depth - 200 };
 
     this.player = this.makeFighter(this.playerDef, {
@@ -99,9 +117,8 @@ export class Game3D {
       team: 1, isPlayer: false, x: spawnB.x, y: spawnB.y, ring: 0xff4d5e
     });
     this.fighters = [this.player, this.enemy];
+    this.byActor = new Map(this.fighters.map((f) => [f.actor, f]));
 
-    // The voice director already knows how to turn combat events into the
-    // Hebrew lines; it just needs somewhere to put them.
     this.voice = new BrawlZ.VoiceDirector(this.system, {
       onLine: (line) => { if (this.hud) this.hud.say(line); }
     });
@@ -125,18 +142,95 @@ export class Game3D {
 
     return {
       def, actor, rig,
-      vx: 0, vy: 0,
-      speed: 0,
-      waypoint: null,
-      repathIn: 0
+      vx: 0, vy: 0, speed: 0,
+      desired: null,
+      waypoint: null, repathIn: 0,
+      dash: null,
+      fireCooldown: 0,
+      pendingShot: null
     };
+  }
+
+  initProjectiles() {
+    this.projectiles = [];
+    this.projectilePool = [];
+    const geo = new THREE.SphereGeometry(1, 10, 8);
+    for (let i = 0; i < PROJECTILE_POOL; i++) {
+      const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      mesh.visible = false;
+      this.scene.add(mesh);
+      this.projectilePool.push(mesh);
+    }
+    this._proj = 0;
+  }
+
+  initHazards() {
+    this.hazardView = new HazardView(this.scene, this.fx);
+    this.hazards = new HazardDirector(this.system, this.grid, this.arena.hazards || [], {
+      onEvent: (name, payload) => this.hazardView.handle(name, payload)
+    });
   }
 
   initInput() {
     this.keys = new Keyboard();
-    const zone = document.getElementById('move-zone');
-    const knob = document.getElementById('move-knob');
-    this.moveStick = zone && knob ? new Stick(zone, knob, { radius: 54 }) : null;
+
+    const moveZone = document.getElementById('move-zone');
+    const moveKnob = document.getElementById('move-knob');
+    this.moveStick = moveZone && moveKnob
+      ? new Stick(moveZone, moveKnob, { radius: 54 }) : null;
+
+    const aimZone = document.getElementById('aim-zone');
+    const aimKnob = document.getElementById('aim-knob');
+    this.aimStick = aimZone && aimKnob ? new Stick(aimZone, aimKnob, {
+      radius: 54,
+      // Drag to aim, release to fire; a tap with no drag auto-aims instead.
+      onRelease: (gesture) => {
+        if (gesture.magnitude > 0.22) {
+          this.fireAttack(this.player, Math.atan2(gesture.y, gesture.x));
+        } else {
+          this.autoFire(this.player);
+        }
+      }
+    }) : null;
+
+    const ultBtn = document.getElementById('ult-button');
+    if (ultBtn) {
+      ultBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        this.castUltimate(this.player);
+      });
+    }
+  }
+
+  bindCombatEvents() {
+    this.system.on('damage', (e) => {
+      const f = this.byActor.get(e.target);
+      if (!f) return;
+      if (e.knockback) {
+        f.vx += Math.cos(e.angle) * e.knockback;
+        f.vy += Math.sin(e.angle) * e.knockback;
+      }
+      f.rig.play('hurt', 0.18);
+      f.rig.flash(0.16);
+      this.fx.sparkBurst(e.target.x, e.target.y, 0xff8a8a, 5, 55);
+      if (e.target === this.player.actor) this.fx.shake(0.18, 10);
+    });
+
+    this.system.on('death', (e) => {
+      const f = this.byActor.get(e.actor);
+      if (!f) return;
+      this.fx.shockwave(e.actor.x, e.actor.y, 90, 0xffffff, 0.5);
+      this.fx.sparkBurst(e.actor.x, e.actor.y, 0xffffff, 7, 90);
+      f.vx = f.vy = 0;
+      f.dash = null;
+    });
+
+    this.system.on('spawn', (e) => {
+      const f = this.byActor.get(e.actor);
+      if (!f || e.initial) return;
+      f.vx = f.vy = 0;
+      f.rig.setPosition(e.actor.x, e.actor.y);
+    });
   }
 
   /* ------------------------------------------------------------------ */
@@ -177,40 +271,63 @@ export class Game3D {
 
   update(dt) {
     this.system.update(dt);
+    this.hazards.update(dt);
 
     this.drivePlayer(dt);
     this.driveBot(dt);
 
-    for (const f of this.fighters) this.integrate(f, dt);
+    for (const f of this.fighters) {
+      this.tickPendingShot(f, dt);
+      this.integrate(f, dt);
+    }
+
+    this.updateProjectiles(dt);
+    this.hazardView.update(dt);
+    this.fx.update(dt);
 
     // Concealment is symmetric in effect but asymmetric in maths: you are
     // hidden from whoever is far away, so each fighter is tested against the
     // other's eyes.
     const p = this.player, e = this.enemy;
-    p.rig.setConcealed(this.grid.isConcealed(p.actor.x, p.actor.y, e.actor.x, e.actor.y));
-    e.rig.setConcealed(this.grid.isConcealed(e.actor.x, e.actor.y, p.actor.x, p.actor.y));
+    p.hidden = this.grid.isConcealed(p.actor.x, p.actor.y, e.actor.x, e.actor.y);
+    e.hidden = this.grid.isConcealed(e.actor.x, e.actor.y, p.actor.x, p.actor.y);
+    p.rig.setConcealed(p.hidden);
+    e.rig.setConcealed(e.hidden);
 
     this.updateCamera(dt);
     if (this.hud) this.hud.sync(this.player.actor, this.enemy.actor);
   }
 
-  /** Reads the stick or the keyboard into a desired direction. */
+  /* ---------------- player ---------------- */
+
   drivePlayer(dt) {
     const f = this.player;
-    let dir = null;
 
     if (this.moveStick && this.moveStick.active && this.moveStick.magnitude > 0.12) {
-      dir = { x: this.moveStick.x, y: this.moveStick.y, magnitude: this.moveStick.magnitude };
+      f.desired = { x: this.moveStick.x, y: this.moveStick.y, magnitude: this.moveStick.magnitude };
     } else {
-      dir = this.keys.vector();
+      f.desired = this.keys.vector();
     }
 
-    f.desired = dir;
+    // Live aim preview while the aim stick is held.
+    if (this.aimStick && this.aimStick.active && this.aimStick.magnitude > 0.22) {
+      f.actor.aim = Math.atan2(this.aimStick.y, this.aimStick.x);
+      f.aiming = true;
+      this.showAimLine(f);
+    } else if (f.aiming) {
+      f.aiming = false;
+      this.hideAimLine();
+    }
+
+    if (this.keys.pressed('KeyJ') || this.keys.pressed('Space')) this.autoFire(f);
+    if (this.keys.pressed('KeyK')) this.castUltimate(f);
   }
 
+  /* ---------------- bot ---------------- */
+
   /**
-   * Step 1 bot: walks a BFS path toward the player and stops at a comfortable
-   * distance. It does not shoot yet — that arrives with the combat step.
+   * Walks a BFS path toward the player, holds fire without line of sight, and
+   * spends its super the moment it has one and a target in range.
    */
   driveBot(dt) {
     const f = this.enemy;
@@ -218,13 +335,24 @@ export class Game3D {
     if (!f.actor.alive || !target.alive) { f.desired = null; return; }
 
     const dist = Math.hypot(target.x - f.actor.x, target.y - f.actor.y);
-    const hidden = this.grid.isConcealed(target.x, target.y, f.actor.x, f.actor.y);
+    const hasSight = !this.grid.blocksLine(f.actor.x, f.actor.y, target.x, target.y);
+    const visible = hasSight && !this.player.hidden;
+    const reach = f.actor.rangeType === 'ranged' ? 520 : 120;
 
-    if (hidden || dist < 220) { f.desired = null; return; }
+    if (visible) {
+      f.actor.aim = Math.atan2(target.y - f.actor.y, target.x - f.actor.x);
+      if (dist < reach) {
+        this.fireAttack(f, f.actor.aim);
+        if (f.actor.superReady() && dist < reach * 0.8) this.castUltimate(f);
+      }
+    }
+
+    // Close to a comfortable range and no closer; a bot that walks into your
+    // face is free damage for you.
+    const hold = reach * 0.7;
+    if (visible && dist < hold) { f.desired = null; return; }
 
     f.repathIn -= dt;
-    const hasSight = !this.grid.blocksLine(f.actor.x, f.actor.y, target.x, target.y);
-
     let aimAt;
     if (hasSight) {
       aimAt = { x: target.x, y: target.y };
@@ -242,32 +370,202 @@ export class Game3D {
     f.desired = { x: dx / len, y: dy / len, magnitude: 1 };
   }
 
+  /* ---------------- attacks ---------------- */
+
+  /** Fires at the nearest visible enemy, or straight ahead if there is none. */
+  autoFire(f) {
+    const targets = this.system.enemiesOf(f.actor);
+    let best = null, bestDist = Infinity;
+    for (const t of targets) {
+      const other = this.byActor.get(t);
+      if (other && other.hidden) continue;
+      const d = Math.hypot(t.x - f.actor.x, t.y - f.actor.y);
+      if (d < bestDist) { bestDist = d; best = t; }
+    }
+    const angle = best
+      ? Math.atan2(best.y - f.actor.y, best.x - f.actor.x)
+      : f.actor.aim;
+    this.fireAttack(f, angle);
+  }
+
+  fireAttack(f, angle) {
+    f.actor.aim = angle;
+    const plan = this.system.requestAttack(f.actor);
+    if (!plan) return null;
+
+    f.rig.play('attack', 0.26);
+    // The hit lands after the wind-up, not on the button press — that gap is
+    // what makes a swing feel like it has weight.
+    f.pendingShot = { plan, delay: plan.windup, angle };
+    return plan;
+  }
+
+  tickPendingShot(f, dt) {
+    if (!f.pendingShot) return;
+    f.pendingShot.delay -= dt;
+    if (f.pendingShot.delay > 0) return;
+
+    const { plan, angle } = f.pendingShot;
+    f.pendingShot = null;
+    if (!f.actor.alive) return;
+
+    const accent = (f.def.theme && f.def.theme.accent) || '#ffffff';
+
+    if (plan.kind === 'melee') {
+      const hits = this.system.resolveMelee(f.actor, { ...plan, aim: angle });
+      this.fx.shockwave(
+        f.actor.x + Math.cos(angle) * plan.reach * 0.5,
+        f.actor.y + Math.sin(angle) * plan.reach * 0.5,
+        plan.reach * 0.6, new THREE.Color(accent).getHex(), 0.3
+      );
+      if (hits.length) this.fx.shake(0.12, 8);
+    } else {
+      this.spawnProjectile(f, {
+        angle,
+        speed: plan.projectileSpeed,
+        radius: plan.projectileRadius,
+        damage: plan.damage,
+        range: plan.reach,
+        knockback: plan.knockback,
+        color: new THREE.Color(accent).getHex(),
+        kind: 'basic'
+      });
+    }
+  }
+
+  castUltimate(f) {
+    const payload = this.system.requestUltimate(f.actor);
+    if (!payload) return null;
+    runUltimate(this, f, payload);
+    return payload;
+  }
+
+  /* ---------------- projectiles ---------------- */
+
+  spawnProjectile(owner, cfg) {
+    const mesh = this.projectilePool[this._proj++ % this.projectilePool.length];
+    mesh.visible = true;
+    mesh.material.color.setHex(cfg.color || 0xffffff);
+    mesh.scale.setScalar(cfg.radius);
+    mesh.position.set(owner.actor.x, 46, owner.actor.y);
+
+    this.projectiles.push({
+      owner, mesh,
+      x: owner.actor.x, y: owner.actor.y,
+      vx: Math.cos(cfg.angle) * cfg.speed,
+      vy: Math.sin(cfg.angle) * cfg.speed,
+      radius: cfg.radius,
+      damage: cfg.damage,
+      knockback: cfg.knockback || 0,
+      aoeRadius: cfg.aoeRadius || 0,
+      color: cfg.color,
+      travelled: 0,
+      range: cfg.range,
+      kind: cfg.kind || 'basic'
+    });
+  }
+
+  updateProjectiles(dt) {
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
+      const step = Math.hypot(p.vx, p.vy) * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.travelled += step;
+      p.mesh.position.set(p.x, 46, p.y);
+
+      let done = false;
+
+      if (this.grid.isWallAt(p.x, p.y)) {
+        this.fx.sparkBurst(p.x, p.y, p.color, 4, 40);
+        done = true;
+      } else if (p.travelled >= p.range) {
+        done = true;
+      } else {
+        for (const t of this.system.enemiesOf(p.owner.actor)) {
+          if (Math.hypot(t.x - p.x, t.y - p.y) > p.radius + BODY_RADIUS) continue;
+          // The body it actually hit always takes damage. Splash on top of that
+          // can be smaller than the body itself, and then a direct hit would
+          // otherwise deal nothing at all.
+          this.system.applyDamage(p.owner.actor, t, p.damage, {
+            knockback: p.knockback, originX: p.x, originY: p.y, source: p.kind
+          });
+          if (p.aoeRadius > p.radius) {
+            this.system.resolveAoe(p.owner.actor, p.x, p.y, p.aoeRadius, Math.round(p.damage * 0.6), {
+              knockback: p.knockback * 0.6, source: p.kind
+            });
+            this.fx.shockwave(p.x, p.y, p.aoeRadius, p.color, 0.35);
+          }
+          this.fx.sparkBurst(p.x, p.y, p.color, 6, 70);
+          done = true;
+          break;
+        }
+      }
+
+      if (done) {
+        if (p.aoeRadius > p.radius && !this.grid.isWallAt(p.x, p.y)) {
+          this.system.resolveAoe(p.owner.actor, p.x, p.y, p.aoeRadius, Math.round(p.damage * 0.6), {
+            knockback: p.knockback * 0.6, source: p.kind
+          });
+          this.fx.shockwave(p.x, p.y, p.aoeRadius, p.color, 0.35);
+        }
+        p.mesh.visible = false;
+        this.projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  /* ---------------- dash ---------------- */
+
   /**
-   * Velocity, collision, and the rig update for one fighter.
-   *
-   * Acceleration rather than a teleporting velocity is what gives the body
-   * something to lean into; the rig reads the resulting speed, so the walk
-   * cycle and the movement can never disagree.
+   * Drives a leap. The countdown runs on the same clock as the movement — a
+   * dash that ends on a timer while the body moves on the frame loop overshoots
+   * every time the frame rate dips.
    */
+  beginDash(f, angle, speed, duration, onLand) {
+    f.dash = { remaining: duration, onLand };
+    f.vx = Math.cos(angle) * speed;
+    f.vy = Math.sin(angle) * speed;
+    f.actor.aim = angle;
+  }
+
+  /* ---------------- movement ---------------- */
+
   integrate(f, dt) {
     const a = f.actor;
     const max = a.moveSpeed;
-    const want = a.canMove() ? f.desired : null;
+    const dashing = !!f.dash;
+
+    if (dashing) {
+      f.dash.remaining -= dt;
+      if (f.dash.remaining <= 0) {
+        const land = f.dash.onLand;
+        f.dash = null;
+        f.vx *= 0.2;
+        f.vy *= 0.2;
+        if (land) land();
+      }
+    }
+
+    const want = (!dashing && a.canMove()) ? f.desired : null;
 
     if (want) {
       f.vx += want.x * ACCEL * dt;
       f.vy += want.y * ACCEL * dt;
-    } else {
+    } else if (!dashing) {
       const damp = Math.max(0, 1 - FRICTION * dt);
       f.vx *= damp;
       f.vy *= damp;
     }
 
     const sp = Math.hypot(f.vx, f.vy);
-    const cap = max * (want ? Math.min(1, want.magnitude) : 1);
-    if (sp > cap && sp > 0) {
-      f.vx = (f.vx / sp) * cap;
-      f.vy = (f.vy / sp) * cap;
+    if (!dashing) {
+      // Knockback is allowed to exceed the walking cap; steering is not.
+      const cap = Math.max(max * (want ? Math.min(1, want.magnitude) : 1), sp * 0.985);
+      if (sp > cap && sp > 0) {
+        f.vx = (f.vx / sp) * cap;
+        f.vy = (f.vy / sp) * cap;
+      }
     }
 
     const nx = a.x + f.vx * dt;
@@ -296,12 +594,45 @@ export class Game3D {
 
     f.speed = Math.hypot(f.vx, f.vy);
     const moveAngle = f.speed > 4 ? Math.atan2(f.vy, f.vx) : null;
-    if (moveAngle != null) a.aim = moveAngle;
+    if (moveAngle != null && !f.aiming && !dashing) a.aim = moveAngle;
 
     f.rig.setPosition(a.x, a.y);
-    f.rig.update(dt, { speed: f.speed, maxSpeed: max, moveAngle, aimAngle: null });
+    f.rig.update(dt, {
+      speed: dashing ? max : f.speed,
+      maxSpeed: max,
+      moveAngle,
+      aimAngle: (f.aiming || dashing) ? a.aim : null
+    });
     f.rig.setVisible(a.alive);
   }
+
+  /* ---------------- aim preview ---------------- */
+
+  showAimLine(f) {
+    if (!this.aimLine) {
+      const geo = new THREE.PlaneGeometry(1, 1);
+      this.aimLine = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false
+      }));
+      this.aimLine.rotation.x = -Math.PI / 2;
+      this.scene.add(this.aimLine);
+    }
+    const reach = f.actor.profile.reach;
+    const a = f.actor.aim;
+    this.aimLine.visible = true;
+    this.aimLine.position.set(
+      f.actor.x + Math.cos(a) * reach / 2, 5, f.actor.y + Math.sin(a) * reach / 2
+    );
+    this.aimLine.scale.set(reach, 22, 1);
+    this.aimLine.rotation.z = -a;
+    this.aimLine.material.color.set((f.def.theme && f.def.theme.accent) || '#ffffff');
+  }
+
+  hideAimLine() {
+    if (this.aimLine) this.aimLine.visible = false;
+  }
+
+  /* ---------------- camera ---------------- */
 
   updateCamera(dt) {
     const a = this.player.actor;
@@ -312,13 +643,16 @@ export class Game3D {
 
     // Clamped to the arena so the shot never pans off into empty space.
     const tx = clamp(a.x + leadX, -CAM_MARGIN, this.grid.width + CAM_MARGIN);
-    const tz = clamp(a.y + leadY, -CAM_MARGIN, this.grid.depth + CAM_MARGIN);
+    const tz = clamp(a.y + leadY, -CAM_MARGIN * 0.4, this.grid.depth + CAM_MARGIN);
 
     this.camTarget.set(tx, 55, tz);
     this.camDesired.set(tx + CAM_OFFSET.x, CAM_OFFSET.y, tz + CAM_OFFSET.z);
 
     const k = 1 - Math.exp(-CAM_LAG * dt);
-    this.camera.position.lerp(this.camDesired, k);
+    this.camBase.lerp(this.camDesired, k);
+    // Shake rides on top of the follow rather than being smoothed into it,
+    // otherwise the damping eats the whole impact.
+    this.camera.position.copy(this.camBase).add(this.fx.shakeOffset);
     this.camera.lookAt(this.camTarget);
   }
 
@@ -327,6 +661,8 @@ export class Game3D {
     window.removeEventListener('resize', this.onResize);
     this.keys.destroy();
     if (this.moveStick) this.moveStick.destroy();
+    if (this.aimStick) this.aimStick.destroy();
+    this.hazardView.dispose();
     this.fighters.forEach((f) => f.rig.dispose());
     this.renderer.dispose();
   }
