@@ -108,8 +108,8 @@
     state.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: 'game-root',
-      width: BrawlZ.ARENA_W,
-      height: BrawlZ.ARENA_H,
+      width: BrawlZ.VIEW_W,
+      height: BrawlZ.VIEW_H,
       backgroundColor: '#121020',
       scale: {
         mode: Phaser.Scale.FIT,

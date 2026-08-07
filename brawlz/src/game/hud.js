@@ -22,7 +22,8 @@
       enemyHpText: document.getElementById('hud-enemy-hp-text'),
       enemyKills: document.getElementById('hud-enemy-kills'),
       feed: document.getElementById('voice-feed'),
-      ultButton: document.getElementById('btn-ult')
+      ammo: document.getElementById('hud-ammo'),
+      ultButton: document.getElementById('ult-zone')
     };
     this.player = null;
     this.enemy = null;
@@ -34,6 +35,16 @@
     this.el.playerName.textContent = playerActor.displayName;
     this.el.enemyName.textContent = enemyActor.displayName;
     this.el.ultName.textContent = playerActor.ultimate ? playerActor.ultimate.name : '—';
+
+    // one pip per ammo slot, built from the character's own capacity
+    this.el.ammo.innerHTML = '';
+    this.pips = [];
+    for (var i = 0; i < playerActor.ammoCapacity; i++) {
+      var pip = document.createElement('i');
+      pip.className = 'pip';
+      this.el.ammo.appendChild(pip);
+      this.pips.push(pip);
+    }
     this.clearFeed();
   };
 
@@ -54,10 +65,19 @@
     this.el.enemyHpText.textContent = Math.ceil(e.hp) + ' / ' + e.maxHp;
     this.el.enemyKills.textContent = e.kills;
 
-    var cd = p.ultimateCooldown;
-    var ready = cd.ready();
-    this.el.ultFill.style.width = (cd.progress() * 100).toFixed(1) + '%';
-    this.el.ultText.textContent = ready ? 'מוכן!' : Math.ceil(cd.remaining) + ' שנ׳';
+    // ammo pips: full, currently reloading, or empty
+    for (var i = 0; i < this.pips.length; i++) {
+      var filled = i < Math.floor(p.ammo);
+      var loading = !filled && i === Math.floor(p.ammo) && p.ammo < p.ammoCapacity;
+      this.pips[i].classList.toggle('full', filled);
+      this.pips[i].classList.toggle('loading', loading);
+      this.pips[i].style.setProperty('--fill', loading ? (p.reloadProgress() * 100).toFixed(0) + '%' : '0%');
+    }
+
+    // super charge — earned from damage dealt, not from a timer
+    var ready = p.superReady();
+    this.el.ultFill.style.width = (Math.min(1, p.superCharge) * 100).toFixed(1) + '%';
+    this.el.ultText.textContent = ready ? 'מוכן!' : Math.round(p.superCharge * 100) + '% טעון';
     this.el.ultButton.classList.toggle('ready', ready);
   };
 

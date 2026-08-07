@@ -28,9 +28,10 @@
       <h3>שליטה</h3>
       <ul>
         <li><b>תנועה</b> — מקשי WASD או החצים, ובנייד ג׳ויסטיק בפינה</li>
-        <li><b>תקיפה</b> — מקש J, לחיצה עם העכבר, או הכפתור הכתום</li>
-        <li><b>אולטימייט</b> — מקש K או רווח, או הכפתור הסגול</li>
-        <li><b>כיוון</b> — הדמות מכוונת אל סמן העכבר; במגע — לכיוון התנועה</li>
+        <li><b>תקיפה</b> — מקש J או לחיצת עכבר. בנייד: גוררים את הכפתור הכתום לכיוון ומשחררים כדי לירות</li>
+        <li><b>לחיצה קצרה</b> על כפתור התקיפה יורה אוטומטית על היריב הקרוב</li>
+        <li><b>אולטימייט</b> — מקש K או רווח, או גרירת הכפתור הסגול. נטען מנזק שאתם מספיקים, לא לפי שעון</li>
+        <li><b>תחמושת</b> — שלוש יחידות שמתמלאות אחת־אחת. אין תחמושת, אין ירי</li>
       </ul>
       <p class="menu-note">
         משפטי הסלנג נטענים ישירות מקובץ הנתונים ומודפסים גם על המסך וגם ללוג של הדפדפן.
@@ -53,10 +54,12 @@
         <div class="bar bar-hp"><i id="hud-player-hp"></i></div>
         <span class="hud-hp-text"><bdi id="hud-player-hp-text">0 / 0</bdi></span>
 
+        <div class="hud-ammo" id="hud-ammo"></div>
+
         <div class="hud-ult">
           <span class="hud-ult-title">אולטימייט: <b dir="ltr" id="hud-ult-name">—</b></span>
           <div class="bar bar-ult"><i id="hud-ult-fill"></i></div>
-          <span class="hud-ult-state" id="hud-ult-text">מוכן!</span>
+          <span class="hud-ult-state" id="hud-ult-text">נטען מנזק</span>
         </div>
       </div>
 
@@ -77,9 +80,15 @@
     <!-- שליטה למגע -->
     <div class="touch-layer">
       <div id="stick-zone" class="stick-zone"><i id="stick-thumb" class="stick-thumb"></i></div>
-      <div class="action-buttons">
-        <button id="btn-ult" class="action-btn action-ult" type="button">אולטי</button>
-        <button id="btn-attack" class="action-btn action-attack" type="button">תקיפה</button>
+      <div class="action-sticks">
+        <div id="ult-zone" class="aim-zone aim-ult">
+          <i id="ult-thumb" class="aim-thumb"></i>
+          <b class="aim-label">אולטי</b>
+        </div>
+        <div id="attack-zone" class="aim-zone aim-attack">
+          <i id="attack-thumb" class="aim-thumb"></i>
+          <b class="aim-label">תקיפה</b>
+        </div>
       </div>
     </div>
 

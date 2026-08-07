@@ -6,8 +6,13 @@
   'use strict';
   var BrawlZ = (global.BrawlZ = global.BrawlZ || {});
 
-  var W = 960;
-  var H = 540;
+  // The world is deliberately larger than the viewport so the camera has
+  // somewhere to go — a fixed shot of the whole arena reads as a board game,
+  // not as a brawler.
+  var W = 1600;
+  var H = 900;
+  var VIEW_W = 960;
+  var VIEW_H = 540;
 
   function ArenaScene() {
     Phaser.Scene.call(this, { key: 'Arena' });
@@ -51,6 +56,7 @@
     BrawlZ.scene = this;      // debug handle: BrawlZ.scene.combat.actors in the console
 
     this.physics.world.setBounds(24, 24, W - 48, H - 48);
+    this.cameras.main.setBounds(0, 0, W, H);
 
     // ---- arena floor -------------------------------------------------
     BrawlZ.Textures.makeArenaTexture(this, 'arena_tile');
@@ -82,8 +88,8 @@
     var playerDef = this.findDef(this.playerId);
     var enemyDef = this.findDef(this.enemyId);
 
-    var player = this.spawnFighter(playerDef, { x: 250, y: H / 2, team: 0, isPlayer: true });
-    var enemy = this.spawnFighter(enemyDef, { x: W - 250, y: H / 2, team: 1, instanceId: 'bot_1' });
+    var player = this.spawnFighter(playerDef, { x: 340, y: H / 2, team: 0, isPlayer: true });
+    var enemy = this.spawnFighter(enemyDef, { x: W - 340, y: H / 2, team: 1, instanceId: 'bot_1' });
 
     this.playerController = new BrawlZ.PlayerController(this, player);
     this.controllers = [new BrawlZ.BotController(this, enemy)];
@@ -96,8 +102,13 @@
     this.hud.bind(player.actor, enemy.actor);
     this.player = player;
 
+    // ---- camera ------------------------------------------------------
+    this.cameras.main.startFollow(player.sprite, true, 0.1, 0.1);
+    this.cameras.main.setZoom(1.05);
+
     // ---- fx layers ---------------------------------------------------
     this.fxGfx = this.add.graphics().setDepth(15);
+    this.aimPreviewGfx = this.add.graphics().setDepth(6);
 
     this.events.on('shutdown', function () { self.combat = null; });
   };
@@ -259,6 +270,50 @@
   /* ------------------------------------------------------------------ *
    * fx
    * ------------------------------------------------------------------ */
+  /**
+   * Shows where the shot will go while an aim stick is held — without it,
+   * drag-to-aim is guesswork.
+   */
+  ArenaScene.prototype.showAimPreview = function (fighter, kind) {
+    var a = fighter.actor;
+    var g = this.aimPreviewGfx;
+    var colour = Phaser.Display.Color.HexStringToColor(
+      kind === 'ultimate' ? fighter.theme.trim : fighter.theme.accent
+    ).color;
+
+    var reach = kind === 'ultimate'
+      ? (a.ultimate && a.ultimate.radius ? a.ultimate.radius * 2 : 320)
+      : a.profile.reach;
+
+    var x = fighter.sprite.x;
+    var y = fighter.sprite.y;
+    var tipX = x + Math.cos(a.aim) * reach;
+    var tipY = y + Math.sin(a.aim) * reach;
+
+    g.clear();
+    g.lineStyle(6, colour, 0.35);
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(tipX, tipY);
+    g.strokePath();
+
+    // where it lands: the cone for a melee swing, the blast for everything else
+    if (kind === 'attack' && a.rangeType === 'melee') {
+      var half = (a.profile.arcDeg * Math.PI) / 180 / 2;
+      g.fillStyle(colour, 0.18);
+      g.slice(x, y, a.profile.reach, a.aim - half, a.aim + half, false);
+      g.fillPath();
+    } else {
+      var r = kind === 'ultimate' ? (a.ultimate && a.ultimate.radius) || 160 : 26;
+      g.lineStyle(3, colour, 0.5);
+      g.strokeCircle(tipX, tipY, r);
+    }
+  };
+
+  ArenaScene.prototype.clearAimPreview = function () {
+    if (this.aimPreviewGfx) this.aimPreviewGfx.clear();
+  };
+
   ArenaScene.prototype.showSwing = function (fighter, plan) {
     var g = this.add.graphics().setDepth(14);
     var half = (plan.arcDeg * Math.PI) / 180 / 2;
@@ -339,4 +394,6 @@
   BrawlZ.ArenaScene = ArenaScene;
   BrawlZ.ARENA_W = W;
   BrawlZ.ARENA_H = H;
+  BrawlZ.VIEW_W = VIEW_W;
+  BrawlZ.VIEW_H = VIEW_H;
 })(typeof window !== 'undefined' ? window : globalThis);

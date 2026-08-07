@@ -40,6 +40,23 @@
       knockback: 90
     },
 
+    /**
+     * Ammo, not a single cooldown. Every basic attack spends one pip and pips
+     * refill one at a time — this is what creates the "do I dump everything or
+     * save one to escape" rhythm the genre runs on.
+     */
+    ammo: { capacity: 3, reloadTime: 1.5 },
+
+    /**
+     * The super is earned, not waited out: it charges from damage dealt. A
+     * character without an explicit charge_damage derives one from its old
+     * cooldown value so existing design data still tunes it.
+     */
+    superChargePerCooldownSecond: 150,
+
+    /** Out-of-combat healing, the thing that makes poking in and out work. */
+    regen: { delay: 3.0, fractionPerSecond: 0.12 },
+
     respawnDelay: 4.0,     // s
     spawnProtection: 1.2,  // s of invulnerability after respawn
     ultimateLock: 0.35,    // s the caster is locked while the ult fires
@@ -117,7 +134,20 @@
     this.ultimate = def.ultimate || null;
 
     this.attackCooldown = new Cooldown(this.profile.cooldown);
-    this.ultimateCooldown = new Cooldown(this.ultimate ? this.ultimate.cooldown : 15);
+
+    // ---- ammo ----
+    this.ammoCapacity = def.stats.ammo || TUNING.ammo.capacity;
+    this.ammo = this.ammoCapacity;
+    this.reloadTime = def.stats.reload_time || TUNING.ammo.reloadTime;
+    this.reloadTimer = 0;
+
+    // ---- super charge ----
+    this.superNeed = (this.ultimate && this.ultimate.charge_damage) ||
+      ((this.ultimate ? this.ultimate.cooldown : 15) * TUNING.superChargePerCooldownSecond);
+    this.superCharge = 0;          // 0..1
+
+    // ---- regen ----
+    this.sinceDamaged = TUNING.regen.delay;
 
     // Live transform, pushed in by the renderer each frame.
     this.x = options.x || 0;
@@ -147,6 +177,20 @@
 
   CombatActor.prototype.canMove = function () {
     return this.alive && this.state !== 'ultimate';
+  };
+
+  CombatActor.prototype.superReady = function () {
+    return this.superCharge >= 1;
+  };
+
+  CombatActor.prototype.ammoRatio = function () {
+    return this.ammo / this.ammoCapacity;
+  };
+
+  /** Progress of the pip currently reloading, 0..1. */
+  CombatActor.prototype.reloadProgress = function () {
+    if (this.ammo >= this.ammoCapacity) return 1;
+    return 1 - this.reloadTimer / this.reloadTime;
   };
 
   CombatActor.prototype.ultimateDamage = function () {
@@ -188,8 +232,25 @@
     for (var i = 0; i < this.actors.length; i++) {
       var a = this.actors[i];
       a.attackCooldown.tick(dt);
-      a.ultimateCooldown.tick(dt);
       if (a.invulnerableFor > 0) a.invulnerableFor = Math.max(0, a.invulnerableFor - dt);
+
+      // reload one pip at a time
+      if (a.alive && a.ammo < a.ammoCapacity) {
+        a.reloadTimer -= dt;
+        if (a.reloadTimer <= 0) {
+          a.ammo += 1;
+          a.reloadTimer = a.ammo < a.ammoCapacity ? a.reloadTime : 0;
+          this.emit('reload', { actor: a, ammo: a.ammo });
+        }
+      }
+
+      // out-of-combat healing
+      if (a.alive) {
+        a.sinceDamaged += dt;
+        if (a.sinceDamaged >= TUNING.regen.delay && a.hp < a.maxHp) {
+          a.hp = Math.min(a.maxHp, a.hp + a.maxHp * TUNING.regen.fractionPerSecond * dt);
+        }
+      }
 
       if (a.busyTimer > 0) {
         a.busyTimer = Math.max(0, a.busyTimer - dt);
@@ -212,9 +273,13 @@
    */
   CombatSystem.prototype.requestAttack = function (actor) {
     if (!actor.canAct() || !actor.attackCooldown.ready()) return null;
+    if (actor.ammo < 1) return null;                  // out of ammo: nothing fires
 
     var p = actor.profile;
     actor.attackCooldown.trigger();
+
+    actor.ammo -= 1;
+    if (actor.reloadTimer <= 0) actor.reloadTimer = actor.reloadTime;
     actor.state = 'attacking';
     actor.busyTimer = p.windup + p.recover;
 
@@ -312,7 +377,15 @@
 
     var dealt = Math.max(0, Math.round(amount));
     target.hp = Math.max(0, target.hp - dealt);
-    if (source) source.damageDealt += dealt;
+    target.sinceDamaged = 0;                      // taking a hit stops healing
+
+    if (source) {
+      source.damageDealt += dealt;
+      // The super is earned by connecting, not by waiting.
+      if (source !== target && source.superNeed > 0) {
+        source.superCharge = Math.min(1, source.superCharge + dealt / source.superNeed);
+      }
+    }
 
     var ox = opts.originX == null ? (source ? source.x : target.x) : opts.originX;
     var oy = opts.originY == null ? (source ? source.y : target.y) : opts.originY;
@@ -356,6 +429,9 @@
     actor.x = actor.spawnX;
     actor.y = actor.spawnY;
     actor.attackCooldown.trigger(0);
+    actor.ammo = actor.ammoCapacity;
+    actor.reloadTimer = 0;
+    actor.sinceDamaged = TUNING.regen.delay;
     this.emit('spawn', { actor: actor, initial: false });
   };
 
@@ -367,9 +443,9 @@
    * needs no changes here — an unknown name falls back to a generic AoE burst.
    */
   CombatSystem.prototype.requestUltimate = function (actor) {
-    if (!actor.canAct() || !actor.ultimate || !actor.ultimateCooldown.ready()) return null;
+    if (!actor.canAct() || !actor.ultimate || !actor.superReady()) return null;
 
-    actor.ultimateCooldown.trigger();
+    actor.superCharge = 0;
     actor.state = 'ultimate';
     actor.busyTimer = TUNING.ultimateLock;
 

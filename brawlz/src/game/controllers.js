@@ -73,6 +73,62 @@
   };
 
   /* ================================================================== *
+   * AimStick — drag to aim, release to fire, tap to auto-aim
+   *
+   * This is the control that makes the genre feel like itself: the shot goes
+   * where you let go, and a quick tap means "just hit whoever is closest".
+   * ================================================================== */
+  function AimStick(zoneEl, thumbEl) {
+    VirtualStick.call(this, zoneEl, thumbEl);
+    this.pending = null;          // a completed gesture waiting to be consumed
+    this.pressedAt = 0;
+    this.travelled = 0;
+
+    if (!zoneEl) return;
+    var self = this;
+    zoneEl.addEventListener('pointerdown', function () {
+      self.pressedAt = performance.now();
+      self.travelled = 0;
+    });
+  }
+  AimStick.prototype = Object.create(VirtualStick.prototype);
+  AimStick.prototype.constructor = AimStick;
+
+  /**
+   * The release IS the gesture, so it has to be captured here rather than in a
+   * separate pointerup listener: the base class already listens for pointerup
+   * and its reset() zeroes the vector, and listeners run in registration order.
+   */
+  AimStick.prototype.reset = function () {
+    if (this.active) {
+      var held = performance.now() - this.pressedAt;
+      this.pending = {
+        x: this.x,
+        y: this.y,
+        magnitude: Math.sqrt(this.x * this.x + this.y * this.y),
+        tap: held < 220 && this.travelled < 0.25
+      };
+    }
+    VirtualStick.prototype.reset.call(this);
+  };
+
+  AimStick.prototype._track = function (e) {
+    VirtualStick.prototype._track.call(this, e);
+    this.travelled = Math.max(this.travelled, Math.sqrt(this.x * this.x + this.y * this.y));
+  };
+
+  /** Returns the finished gesture once, then forgets it. */
+  AimStick.prototype.consume = function () {
+    var p = this.pending;
+    this.pending = null;
+    return p;
+  };
+
+  AimStick.prototype.aiming = function () {
+    return this.active && Math.sqrt(this.x * this.x + this.y * this.y) > 0.18;
+  };
+
+  /* ================================================================== *
    * PlayerController
    * ================================================================== */
   function PlayerController(scene, fighter) {
@@ -112,9 +168,23 @@
       document.getElementById('stick-zone'),
       document.getElementById('stick-thumb')
     );
-    this._bindButton('btn-attack', function (down) { self.attackHeld = down; });
-    this._bindButton('btn-ult', function (down) { if (down) self.ultQueued = true; });
+    this.attackStick = new AimStick(
+      document.getElementById('attack-zone'),
+      document.getElementById('attack-thumb')
+    );
+    this.ultStick = new AimStick(
+      document.getElementById('ult-zone'),
+      document.getElementById('ult-thumb')
+    );
   }
+
+  /** Points the fighter at the nearest enemy; false when the arena is empty. */
+  PlayerController.prototype.autoAim = function () {
+    var target = this.scene.nearestEnemy(this.fighter.actor);
+    if (!target) return false;
+    this.fighter.aimAt(target.x, target.y);
+    return true;
+  };
 
   PlayerController.prototype._bindButton = function (id, cb) {
     var el = document.getElementById(id);
@@ -137,26 +207,50 @@
     }
     f.move(dx, dy);
 
-    // Aim: mouse if we have one, otherwise the stick direction, otherwise the
-    // nearest enemy so touch players still land their hits.
-    if (this.usingMouse) {
+    // ---- aiming ----
+    // An aim stick under the thumb wins; then the mouse; then movement
+    // direction; and standing still with none of those, the nearest enemy.
+    var aimingStick = this.attackStick.aiming() ? this.attackStick
+      : (this.ultStick.aiming() ? this.ultStick : null);
+
+    if (aimingStick) {
+      f.aimTowards(Math.atan2(aimingStick.y, aimingStick.x));
+    } else if (this.usingMouse) {
       var p = this.scene.input.activePointer;
       f.aimAt(p.worldX, p.worldY);
     } else if (Math.abs(dx) + Math.abs(dy) > 0.2) {
       f.aimTowards(Math.atan2(dy, dx));
     } else {
-      var target = this.scene.nearestEnemy(f.actor);
-      if (target) f.aimAt(target.x, target.y);
+      this.autoAim();
     }
 
-    // Hold to swing — the cooldown in the core gates the actual rate.
+    // ---- aim preview while a stick is held ----
+    if (this.attackStick.aiming()) this.scene.showAimPreview(f, 'attack');
+    else if (this.ultStick.aiming()) this.scene.showAimPreview(f, 'ultimate');
+    else this.scene.clearAimPreview();
+
+    // ---- firing ----
+    // The stick is already released by now, so the aim must come from the
+    // gesture itself — otherwise it snaps back to the mouse before firing.
+    var shot = this.attackStick.consume();
+    if (shot) {
+      if (shot.tap || shot.magnitude < 0.18) this.autoAim();
+      else f.aimTowards(Math.atan2(shot.y, shot.x));
+      f.attack();
+    }
+
+    var ultGesture = this.ultStick.consume();
+    if (ultGesture) {
+      if (ultGesture.tap || ultGesture.magnitude < 0.18) this.autoAim();
+      else f.aimTowards(Math.atan2(ultGesture.y, ultGesture.x));
+      f.castUltimate();
+    }
+
+    // Keyboard and mouse keep the simple hold-to-fire behaviour.
     if (this.attackHeld || k.attack.isDown) f.attack();
 
     var ultKey = Phaser.Input.Keyboard.JustDown(k.ult) || Phaser.Input.Keyboard.JustDown(k.ult2);
-    if (ultKey || this.ultQueued) {
-      this.ultQueued = false;
-      f.castUltimate();
-    }
+    if (ultKey) f.castUltimate();
   };
 
   /* ================================================================== *
@@ -215,7 +309,7 @@
     // Melee ults close ~345px of that gap themselves, so the bot may cast from
     // further out than its basic-attack reach.
     var ultRange = a.rangeType === 'ranged' ? 460 : (a.ultimate ? a.ultimate.radius + 330 : 300);
-    if (a.ultimateCooldown.ready() && dist < ultRange && Math.random() < 0.12) {
+    if (a.superReady() && dist < ultRange && Math.random() < 0.12) {
       if (f.castUltimate()) return;
     }
 
@@ -226,6 +320,7 @@
   };
 
   BrawlZ.VirtualStick = VirtualStick;
+  BrawlZ.AimStick = AimStick;
   BrawlZ.PlayerController = PlayerController;
   BrawlZ.BotController = BotController;
 })(typeof window !== 'undefined' ? window : globalThis);

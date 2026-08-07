@@ -219,6 +219,32 @@ body.in-match .game-shell { display: block; }
 
 .hud-hp-text { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
 
+/* ---- תחמושת ---- */
+.hud-ammo {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+}
+.pip {
+  --fill: 0%;
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--panel-line);
+  position: relative;
+  overflow: hidden;
+}
+.pip.full { background: var(--attack); border-color: var(--attack); }
+/* the pip currently reloading fills up left-to-right */
+.pip.loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: var(--fill);
+  background: rgba(255, 138, 61, 0.55);
+}
+
 .hud-ult { margin-top: 8px; display: grid; gap: 3px; }
 .hud-ult-title { font-size: 12px; color: var(--muted); }
 .hud-ult-title b { color: var(--ult); }
@@ -296,45 +322,62 @@ body.in-match .game-shell { display: block; }
   pointer-events: none;
 }
 
-.action-buttons {
+/* Aim sticks: drag to aim, release to fire. Physical right-side placement is
+   deliberate — these live under the right thumb regardless of reading order. */
+.action-sticks {
   position: absolute;
-  right: 20px;                /* physical: action buttons under the right thumb */
+  right: 20px;
   bottom: 24px;
   display: flex;
   gap: 14px;
   align-items: flex-end;
   pointer-events: auto;
 }
-.action-btn {
-  font: inherit;
-  font-weight: 800;
-  color: #17122a;
-  border: none;
+.aim-zone {
+  position: relative;
   border-radius: 50%;
-  cursor: pointer;
+  display: grid;
+  place-items: center;
   touch-action: none;
   user-select: none;
-  transition: transform 0.08s ease, filter 0.15s ease;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.08s ease;
 }
-.action-btn:active { transform: scale(0.94); }
-.action-attack {
-  width: 92px;
-  height: 92px;
+.aim-zone:active { transform: scale(0.96); }
+.aim-thumb {
+  position: absolute;
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+.aim-label {
+  position: relative;
+  font-size: 13px;
+  font-weight: 800;
+  color: #17122a;
+  pointer-events: none;
+}
+.aim-attack {
+  width: 96px;
+  height: 96px;
   background: var(--attack);
   box-shadow: 0 6px 0 #b3541f;
 }
-.action-ult {
-  width: 76px;
-  height: 76px;
+.aim-ult {
+  width: 78px;
+  height: 78px;
   background: #5a4a86;
-  color: #cfc4ff;
   box-shadow: 0 6px 0 #33285a;
 }
-.action-ult.ready {
+.aim-ult .aim-label { color: #cfc4ff; }
+.aim-ult.ready {
   background: var(--ult);
-  color: #17122a;
-  filter: drop-shadow(0 0 10px rgba(185, 139, 255, 0.8));
+  filter: drop-shadow(0 0 10px rgba(185, 139, 255, 0.85));
 }
+.aim-ult.ready .aim-label { color: #17122a; }
 
 .match-buttons {
   position: absolute;
