@@ -1,41 +1,177 @@
 [
-  { "slug": "kangaroo-boxer",     "he": "קנגורו מתאגרף",        "note": "תואם ל-K.O. Kangaroo ב-characters.json" },
-  { "slug": "gorilla-commando",   "he": "גורילה קומנדו",        "note": "" },
-  { "slug": "rooster-rainbow",    "he": "תרנגול קשת",           "note": "" },
-  { "slug": "rooster-village",    "he": "תרנגול הכפר",          "note": "דומה מאוד ל-03" },
-  { "slug": "orca-narwhal",       "he": "אורקה חד-קרן",         "note": "" },
-  { "slug": "disco-duck",         "he": "ברווז דיסקו",          "note": "" },
-  { "slug": "punk-hedgehog",      "he": "קיפוד פאנקיסט",        "note": "" },
-
-  { "slug": "sumo-sloth",         "he": "עצלן סומו",            "note": "" },
-  { "slug": "cyber-shark",        "he": "כריש סייבר",           "note": "" },
-  { "slug": "raging-bull",        "he": "שור זועם",             "note": "" },
-  { "slug": "dj-jellyfish",       "he": "מדוזת די-ג׳יי",         "note": "" },
-  { "slug": "rock-panther",       "he": "פנתר רוקיסט",          "note": "" },
-  { "slug": "ogre-pirate",        "he": "אוגר פיראט",           "note": "" },
-  { "slug": "dj-jellyfish-alt",   "he": "מדוזת די-ג׳יי (וריאציה)", "note": "כמעט זהה ל-11" },
-
-  { "slug": "skater-raptor",      "he": "רפטור סקייטר",         "note": "" },
-  { "slug": "disco-raptor",       "he": "רפטור דיסקו",          "note": "" },
-  { "slug": "chef-triceratops",   "he": "טריצרטופס שף",         "note": "" },
-  { "slug": "rocker-pterodactyl", "he": "פטרודקטיל רוקר",       "note": "" },
-  { "slug": "masked-bronto",      "he": "ברונטוזאורוס רעול פנים", "note": "" },
-  { "slug": "mushroom-wizard",    "he": "פטריית קוסם",          "note": "" },
-  { "slug": "boxing-pineapple",   "he": "אננס מתאגרף",          "note": "" },
-
-  { "slug": "cowboy-cactus",      "he": "קקטוס קאובוי",         "note": "" },
-  { "slug": "jungle-serpent",     "he": "נחש הג׳ונגל",           "note": "" },
-  { "slug": "grandma-yarn",       "he": "סבתא רימון",           "note": "תואם ל-Grandma Grenade ב-characters.json" },
-  { "slug": "boss-baby",          "he": "תינוק הבוס",           "note": "" },
-  { "slug": "mime-duo",           "he": "צמד הפנטומימאים",       "note": "שתי דמויות באריח אחד" },
-  { "slug": "zombie-baller",      "he": "זומבי כדורסלן",        "note": "" },
-  { "slug": "party-clown",        "he": "ליצן מסיבות",          "note": "" },
-
-  { "slug": "empty-table-1",      "he": "שולחן ריק",            "note": "אין דמות — אריח לזריקה" },
-  { "slug": "jumping-clown",      "he": "ליצן מקפץ",            "note": "" },
-  { "slug": "empty-table-2",      "he": "שולחן ריק",            "note": "אין דמות — אריח לזריקה" },
-  { "slug": "angry-vacuum",       "he": "שואב אבק זועם",        "note": "" },
-  { "slug": "evil-toaster",       "he": "טוסטר מרושע",          "note": "" },
-  { "slug": "luchador-lamp",      "he": "מנורת לוצ׳דור",         "note": "" },
-  { "slug": "cursed-remote",      "he": "שלט מקולל",            "note": "" }
+  {
+    "slug": "kangaroo-boxer",
+    "he": "קנגורו מתאגרף",
+    "note": "תואם ל-K.O. Kangaroo ב-characters.json"
+  },
+  {
+    "slug": "gorilla-commando",
+    "he": "גורילה קומנדו",
+    "note": ""
+  },
+  {
+    "slug": "rooster-rainbow",
+    "he": "תרנגול קשת",
+    "note": ""
+  },
+  {
+    "slug": "rooster-village",
+    "he": "תרנגול הכפר",
+    "note": "דומה מאוד ל-03"
+  },
+  {
+    "slug": "orca-narwhal",
+    "he": "אורקה חד-קרן",
+    "note": ""
+  },
+  {
+    "slug": "disco-duck",
+    "he": "ברווז דיסקו",
+    "note": ""
+  },
+  {
+    "slug": "punk-hedgehog",
+    "he": "קיפוד פאנקיסט",
+    "note": ""
+  },
+  {
+    "slug": "sumo-sloth",
+    "he": "עצלן סומו",
+    "note": ""
+  },
+  {
+    "slug": "cyber-shark",
+    "he": "כריש סייבר",
+    "note": ""
+  },
+  {
+    "slug": "raging-bull",
+    "he": "שור זועם",
+    "note": ""
+  },
+  {
+    "slug": "dj-jellyfish",
+    "he": "מדוזת די-ג׳יי",
+    "note": ""
+  },
+  {
+    "slug": "rock-panther",
+    "he": "פנתר רוקיסט",
+    "note": ""
+  },
+  {
+    "slug": "ogre-pirate",
+    "he": "אוגר פיראט",
+    "note": ""
+  },
+  {
+    "slug": "dj-jellyfish-alt",
+    "he": "מדוזת די-ג׳יי (וריאציה)",
+    "note": "כמעט זהה ל-11"
+  },
+  {
+    "slug": "skater-raptor",
+    "he": "רפטור סקייטר",
+    "note": ""
+  },
+  {
+    "slug": "disco-raptor",
+    "he": "רפטור דיסקו",
+    "note": ""
+  },
+  {
+    "slug": "chef-triceratops",
+    "he": "טריצרטופס שף",
+    "note": ""
+  },
+  {
+    "slug": "rocker-pterodactyl",
+    "he": "פטרודקטיל רוקר",
+    "note": ""
+  },
+  {
+    "slug": "masked-bronto",
+    "he": "ברונטוזאורוס רעול פנים",
+    "note": ""
+  },
+  {
+    "slug": "mushroom-wizard",
+    "he": "פטריית קוסם",
+    "note": ""
+  },
+  {
+    "slug": "boxing-pineapple",
+    "he": "אננס מתאגרף",
+    "note": ""
+  },
+  {
+    "slug": "cowboy-cactus",
+    "he": "קקטוס קאובוי",
+    "note": ""
+  },
+  {
+    "slug": "jungle-serpent",
+    "he": "נחש הג׳ונגל",
+    "note": ""
+  },
+  {
+    "slug": "grandma-yarn",
+    "he": "סבתא רימון",
+    "note": "תואם ל-Grandma Grenade ב-characters.json"
+  },
+  {
+    "slug": "sergeant-binky",
+    "he": "סמל מוצץ",
+    "note": "האריח המקורי (תינוק בחליפה עם מגפון) דומה מדי לדמות מסרט מוגן — אין להשתמש בו כתמונת ייחוס. הדמות החדשה מיוצרת מטקסט בלבד."
+  },
+  {
+    "slug": "mime-duo",
+    "he": "צמד הפנטומימאים",
+    "note": "שתי דמויות באריח אחד"
+  },
+  {
+    "slug": "zombie-baller",
+    "he": "זומבי כדורסלן",
+    "note": ""
+  },
+  {
+    "slug": "party-clown",
+    "he": "ליצן מסיבות",
+    "note": ""
+  },
+  {
+    "slug": "empty-table-1",
+    "he": "שולחן ריק",
+    "note": "אין דמות — אריח לזריקה"
+  },
+  {
+    "slug": "jumping-clown",
+    "he": "ליצן מקפץ",
+    "note": ""
+  },
+  {
+    "slug": "empty-table-2",
+    "he": "שולחן ריק",
+    "note": "אין דמות — אריח לזריקה"
+  },
+  {
+    "slug": "angry-vacuum",
+    "he": "שואב אבק זועם",
+    "note": ""
+  },
+  {
+    "slug": "evil-toaster",
+    "he": "טוסטר מרושע",
+    "note": ""
+  },
+  {
+    "slug": "luchador-lamp",
+    "he": "מנורת לוצ׳דור",
+    "note": ""
+  },
+  {
+    "slug": "cursed-remote",
+    "he": "שלט מקולל",
+    "note": ""
+  }
 ]
