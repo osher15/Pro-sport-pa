@@ -1,10 +1,11 @@
 {
   "frames": {
     "idle": "art/sprites/grandma-yarn-idle.png",
-    "walk_a": "art/sprites/grandma-yarn-walk_a.png"
+    "walk_a": "art/sprites/grandma-yarn-walk_a.png",
+    "walk_b": "art/sprites/grandma-yarn-walk_b.png"
   },
   "anchor": [
-    0.324,
+    0.305,
     0.62
   ]
 }

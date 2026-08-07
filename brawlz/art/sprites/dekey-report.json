@@ -134,23 +134,34 @@
   {
     "file": "grandma-yarn-idle.png",
     "anchor": [
-      0.324,
+      0.305,
       0.62
     ],
     "sprite_size": [
-      728,
-      728
+      869,
+      729
     ]
   },
   {
     "file": "grandma-yarn-walk_a.png",
     "anchor": [
-      0.324,
+      0.305,
       0.62
     ],
     "sprite_size": [
-      728,
-      728
+      869,
+      729
+    ]
+  },
+  {
+    "file": "grandma-yarn-walk_b.png",
+    "anchor": [
+      0.305,
+      0.62
+    ],
+    "sprite_size": [
+      869,
+      729
     ]
   }
 ]

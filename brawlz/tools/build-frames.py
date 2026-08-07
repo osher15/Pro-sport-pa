@@ -41,12 +41,20 @@ def content_box(rgba):
     return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
 
 
-def foot_point(rgba, box, band=0.22):
-    """Where the pose stands: horizontal centre of mass of its bottom slice."""
+def anchor_point(rgba, box, band=0.30):
+    """
+    The reference point every pose is stacked on: horizontally the centre of
+    mass of the UPPER body, vertically the sole line.
+
+    Feet are the wrong horizontal reference for a walk cycle — they are exactly
+    what swings between steps, so aligning on them slides the whole character
+    back and forth. The head and torso stay put while the legs move, which is
+    what makes a two-frame cycle read as walking rather than as sliding.
+    """
     x0, y0, x1, y1 = box
     height = y1 - y0
-    lower = rgba[int(y1 - height * band):y1, x0:x1, 3]
-    weights = lower.sum(axis=0).astype(float)
+    upper = rgba[y0:int(y0 + height * band), x0:x1, 3]
+    weights = upper.sum(axis=0).astype(float)
     if weights.sum() <= 0:
         return (x0 + x1) / 2.0, float(y1)
     xs = np.arange(x0, x1)
@@ -61,10 +69,25 @@ def build(out_dir, name, poses, height, tol, largest_only):
         if box is None:
             print(f"skipping {pose}: nothing left after keying")
             continue
-        keyed[pose] = {"rgba": rgba, "box": box, "foot": foot_point(rgba, box)}
+        keyed[pose] = {"rgba": rgba, "box": box}
 
     if not keyed:
         raise SystemExit("no usable poses")
+
+    # Each generation draws the character at a slightly different size, so
+    # normalise every pose to a common body height before aligning. Without
+    # this the frames pulse larger and smaller as they swap.
+    heights = sorted(k["box"][3] - k["box"][1] for k in keyed.values())
+    target_h = heights[len(heights) // 2]
+    for pose, k in keyed.items():
+        box_h = k["box"][3] - k["box"][1]
+        factor = target_h / box_h
+        if abs(factor - 1.0) > 0.005:
+            img = Image.fromarray(k["rgba"], "RGBA")
+            new_size = (max(1, round(img.width * factor)), max(1, round(img.height * factor)))
+            k["rgba"] = np.asarray(img.resize(new_size, Image.LANCZOS))
+            k["box"] = content_box(k["rgba"])
+        k["foot"] = anchor_point(k["rgba"], k["box"])
 
     # canvas big enough for every pose, measured from the shared foot point
     left = max(k["foot"][0] - k["box"][0] for k in keyed.values())
