@@ -74,7 +74,8 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
       "frames": {
         "idle": "art/sprites/grandma-yarn-idle.png",
         "walk_a": "art/sprites/grandma-yarn-walk_a.png",
-        "walk_b": "art/sprites/grandma-yarn-walk_b.png"
+        "walk_b": "art/sprites/grandma-yarn-walk_b.png",
+        "attack": "art/sprites/grandma-yarn-attack.png"
       }
     },
     {

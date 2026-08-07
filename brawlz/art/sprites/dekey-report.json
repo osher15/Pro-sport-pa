@@ -134,34 +134,45 @@
   {
     "file": "grandma-yarn-idle.png",
     "anchor": [
-      0.305,
+      0.332,
       0.62
     ],
     "sprite_size": [
-      869,
-      729
+      935,
+      755
     ]
   },
   {
     "file": "grandma-yarn-walk_a.png",
     "anchor": [
-      0.305,
+      0.332,
       0.62
     ],
     "sprite_size": [
-      869,
-      729
+      935,
+      755
     ]
   },
   {
     "file": "grandma-yarn-walk_b.png",
     "anchor": [
-      0.305,
+      0.332,
       0.62
     ],
     "sprite_size": [
-      869,
-      729
+      935,
+      755
+    ]
+  },
+  {
+    "file": "grandma-yarn-attack.png",
+    "anchor": [
+      0.332,
+      0.62
+    ],
+    "sprite_size": [
+      935,
+      755
     ]
   }
 ]

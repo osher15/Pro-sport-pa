@@ -81,7 +81,11 @@ def build(out_dir, name, poses, height, tol, largest_only):
     target_h = heights[len(heights) // 2]
     for pose, k in keyed.items():
         box_h = k["box"][3] - k["box"][1]
-        factor = target_h / box_h
+        # Clamped, because the bounding box is only a proxy for body size: a
+        # prop that moves with the pose (the yarn ball, a raised weapon) stretches
+        # it too. Generation-to-generation drift is a few percent, so correct
+        # that and refuse to "fix" a difference that is really the pose itself.
+        factor = max(0.92, min(1.08, target_h / box_h))
         if abs(factor - 1.0) > 0.005:
             img = Image.fromarray(k["rgba"], "RGBA")
             new_size = (max(1, round(img.width * factor)), max(1, round(img.height * factor)))
