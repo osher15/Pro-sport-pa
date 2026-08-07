@@ -109,11 +109,19 @@
       hud: state.hud
     };
 
+    // Match the device's aspect instead of a fixed 16:9. FIT would otherwise
+    // letterbox a wide phone, throwing away a strip of screen on both sides —
+    // and the world is bigger than the view anyway, so a wider camera just
+    // shows more arena.
+    var aspect = (window.innerWidth || BrawlZ.VIEW_W) / (window.innerHeight || BrawlZ.VIEW_H);
+    var viewH = BrawlZ.VIEW_H;
+    var viewW = Math.round(Math.min(1500, Math.max(720, viewH * aspect)));
+
     state.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: 'game-root',
-      width: BrawlZ.VIEW_W,
-      height: BrawlZ.VIEW_H,
+      width: viewW,
+      height: viewH,
       backgroundColor: '#121020',
       scale: {
         mode: Phaser.Scale.FIT,
