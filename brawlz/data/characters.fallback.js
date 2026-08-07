@@ -70,7 +70,11 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "death": "הראוטר נפל... אני בלאג...",
         "ultimate_cast": "קח קצת קרינג' לפנים!"
       },
-      "sprite": "art/sprites/grandma-yarn.png"
+      "sprite": "art/sprites/grandma-yarn-idle.png",
+      "frames": {
+        "idle": "art/sprites/grandma-yarn-idle.png",
+        "walk_a": "art/sprites/grandma-yarn-walk_a.png"
+      }
     },
     {
       "id": "char_003",

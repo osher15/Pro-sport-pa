@@ -45,6 +45,11 @@ function buildCharacterData() {
       c.spriteFile = c.sprite.split('/').pop();   // anchors are keyed by filename
       c.sprite = dataUri(c.sprite);
     }
+    // Pose frames have to be inlined too, or the bundle quietly falls back to
+    // fetching them over HTTP — which does not exist in a single-file build.
+    Object.keys(c.frames || {}).forEach((pose) => {
+      c.frames[pose] = dataUri(c.frames[pose]);
+    });
   });
   return data;
 }

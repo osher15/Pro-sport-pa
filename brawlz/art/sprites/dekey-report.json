@@ -130,5 +130,27 @@
       0.62
     ],
     "scipy_used": true
+  },
+  {
+    "file": "grandma-yarn-idle.png",
+    "anchor": [
+      0.324,
+      0.62
+    ],
+    "sprite_size": [
+      728,
+      728
+    ]
+  },
+  {
+    "file": "grandma-yarn-walk_a.png",
+    "anchor": [
+      0.324,
+      0.62
+    ],
+    "sprite_size": [
+      728,
+      728
+    ]
   }
 ]
