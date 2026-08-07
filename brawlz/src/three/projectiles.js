@@ -45,6 +45,48 @@ const SHAPES = {
     const g = new THREE.CapsuleGeometry(0.5, 1.2, 4, 8);
     g.rotateX(Math.PI / 2);
     return g;
+  },
+
+  /* ---------------- elemental ----------------
+   * These are meant to be too big. A brawler's shot is the loudest thing on
+   * the screen and it should look like the character threw a piece of the
+   * world, not like a pellet left the barrel. */
+
+  /** A teardrop of flame, wide at the back and drawn to a point in front. */
+  flame() {
+    const g = new THREE.SphereGeometry(1, 12, 10);
+    const pos = g.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const z = pos.getZ(i);
+      // Pull the leading half into a cone and fatten the trailing half.
+      const k = z > 0 ? 1 + z * 1.4 : 1 - z * 0.35;
+      pos.setX(i, pos.getX(i) / k);
+      pos.setY(i, pos.getY(i) / k);
+      pos.setZ(i, z * 2.1);
+    }
+    g.computeVertexNormals();
+    return g;
+  },
+
+  /** A blob of water: squashed, wobbly, faceted enough to catch the light. */
+  splash() {
+    const g = new THREE.IcosahedronGeometry(1, 1);
+    g.scale(1.05, 0.82, 1.45);
+    return g;
+  },
+
+  /** A jagged shard of ice. */
+  shard() {
+    const g = new THREE.OctahedronGeometry(1, 0);
+    g.scale(0.68, 0.68, 2.2);
+    return g;
+  },
+
+  /** A crackling bolt: a thin core with a flared head. */
+  spark() {
+    const g = new THREE.ConeGeometry(0.85, 2.8, 5);
+    g.rotateX(Math.PI / 2);
+    return g;
   }
 };
 
@@ -54,7 +96,18 @@ const MOTION = {
   thorn:   { spin: 22, wobble: 0, trailEvery: 0.026, trailScale: 0.5 },
   torpedo: { spin: 0, wobble: 0, trailEvery: 0.02, trailScale: 0.85 },
   wave:    { spin: 1.5, wobble: 0, trailEvery: 0.055, trailScale: 1.0 },
-  bolt:    { spin: 8, wobble: 0, trailEvery: 0.038, trailScale: 0.65 }
+  bolt:    { spin: 8, wobble: 0, trailEvery: 0.038, trailScale: 0.65 },
+
+  // The elemental shots run hot: fast trails, visible flicker, and a pulse
+  // that makes the projectile itself breathe as it flies.
+  flame:   { spin: 3, wobble: 0.1, trailEvery: 0.016, trailScale: 1.15,
+             flicker: 0.28, glow: 1.0 },
+  splash:  { spin: 7, wobble: 0.3, trailEvery: 0.02, trailScale: 1.0,
+             flicker: 0.16, glow: 0.7 },
+  shard:   { spin: 12, wobble: 0, trailEvery: 0.024, trailScale: 0.8,
+             flicker: 0.08, glow: 0.85 },
+  spark:   { spin: 26, wobble: 0.18, trailEvery: 0.014, trailScale: 0.9,
+             flicker: 0.42, glow: 1.1 }
 };
 
 export class ProjectileView {
@@ -114,6 +167,24 @@ export class ProjectileView {
     this.outlineMat.dispose();
     this.pools.clear();
   }
+}
+
+/**
+ * The second colour an elemental shot needs.
+ *
+ * Fire is not orange, it is orange *and* yellow; water is not blue, it is blue
+ * and white. One flat colour is what made the old shots read as plastic. The
+ * trail is drawn in this lighter tone so the shot has a hot centre.
+ */
+export function coreColour(hex) {
+  const c = new THREE.Color(hex);
+  const hsl = { h: 0, s: 0, l: 0 };
+  c.getHSL(hsl);
+  return c.setHSL(
+    (hsl.h + 0.055) % 1,
+    Math.max(0, hsl.s - 0.25),
+    Math.min(0.93, hsl.l + 0.32)
+  ).getHex();
 }
 
 /**

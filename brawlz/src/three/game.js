@@ -16,7 +16,7 @@ import { HazardDirector } from '../core/hazards.js';
 import { Match } from '../core/match.js';
 import { equipCore } from '../core/cores.js';
 import { runUltimate } from './ultimates.js';
-import { ProjectileView, jitterShot } from './projectiles.js';
+import { ProjectileView, jitterShot, coreColour } from './projectiles.js';
 
 /**
  * A fighter's voice, derived from how heavy it is. The sumo's punch lands an
@@ -35,13 +35,20 @@ const ACCEL = 1400;          // world units/s^2 — full speed in about 0.14s
 const FRICTION = 9;
 
 /**
- * Camera sits behind and above the player at ~43 degrees off the horizontal.
+ * The camera is derived from the screen, not fixed.
  *
- * Steeper than this and you are looking at the tops of everyone's heads — the
- * faces, and therefore the characters, disappear. Much flatter and the wall
- * blocks hide whatever is behind them.
+ * A fixed offset framed for a laptop shows six of the arena's twenty tiles on a
+ * phone held upright — you cannot see the fighter you are fighting. So the shot
+ * is solved backwards from how much arena has to be visible across the screen,
+ * which is the thing that actually has to stay constant.
+ *
+ * Portrait pulls back further and looks down harder: a narrow window needs a
+ * steeper angle or most of it is sky.
  */
-const CAM_OFFSET = new THREE.Vector3(0, 680, 720);
+const CAM_VIEW = {
+  landscape: { spanX: 1250, fov: 34, elevationDeg: 43 },
+  portrait:  { spanX: 760, fov: 46, elevationDeg: 52 }
+};
 const CAM_LAG = 6.5;
 /**
  * How far the shot may leave the arena. Negative on purpose: the look point
@@ -104,12 +111,15 @@ export class Game3D {
     const pal = this.arena.palette || {};
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(pal.sky || '#171232');
-    this.scene.fog = new THREE.Fog(new THREE.Color(pal.fog || pal.sky || '#171232'), 1800, 3400);
+    // Reaches further than the arena so the horizon ring fades into the sky
+    // instead of ending in a hard line of blocks.
+    this.scene.fog = new THREE.Fog(new THREE.Color(pal.fog || pal.sky || '#171232'), 2100, 5200);
 
-    this.camera = new THREE.PerspectiveCamera(32, 1, 50, 5000);
+    this.camera = new THREE.PerspectiveCamera(34, 1, 50, 9000);
     this.camDesired = new THREE.Vector3();
     this.camTarget = new THREE.Vector3();
     this.camBase = new THREE.Vector3();
+    this.camOffset = new THREE.Vector3(0, 680, 720);
   }
 
   initWorld() {
@@ -324,11 +334,27 @@ export class Game3D {
     const w = this.canvas.clientWidth || window.innerWidth;
     const h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / h;
-    // A phone in portrait sees a narrow slice; widen the shot so the arena does
-    // not shrink to a keyhole.
-    this.camera.fov = h > w ? 44 : 32;
+
+    const aspect = w / h;
+    const view = h > w ? CAM_VIEW.portrait : CAM_VIEW.landscape;
+    this.camera.aspect = aspect;
+    this.camera.fov = view.fov;
     this.camera.updateProjectionMatrix();
+
+    // Distance that puts `spanX` world units across the screen, then split into
+    // height and depth by the elevation angle.
+    const halfFov = (view.fov * Math.PI) / 360;
+    const dist = clamp(view.spanX / (2 * Math.tan(halfFov) * aspect), 700, 2600);
+    const el = (view.elevationDeg * Math.PI) / 180;
+    this.camOffset.set(0, dist * Math.sin(el), dist * Math.cos(el));
+
+    // How much ground the frame actually covers. On a tall screen the visible
+    // depth is nearly twice the arena's, so following the player up and down
+    // would guarantee a screenful of sky no matter where the camera sits.
+    const halfV = dist * Math.tan(halfFov);
+    this.viewGround = { x: halfV * aspect * 2, z: (halfV * 2) / Math.sin(el) };
+
+    document.body.classList.toggle('is-portrait', h > w);
   }
 
   start() {
@@ -570,6 +596,7 @@ export class Game3D {
 
     this.projectiles.push({
       owner, mesh, shape, motion,
+      hotColor: coreColour(shot.color),
       x: owner.actor.x, y: owner.actor.y,
       vx: Math.cos(cfg.angle) * cfg.speed,
       vy: Math.sin(cfg.angle) * cfg.speed,
@@ -608,10 +635,21 @@ export class Game3D {
       );
       p.mesh.rotation.z += p.motion.spin * p.spinSign * dt;
 
+      // Flicker: an elemental shot that holds a constant size looks moulded.
+      if (p.motion.flicker) {
+        const f = 1 + Math.sin(p.age * 34 + p.spinSign) * p.motion.flicker * 0.5
+                    + Math.sin(p.age * 61) * p.motion.flicker * 0.25;
+        p.mesh.scale.set(p.drawScale * f, p.drawScale * f, p.drawScale * (2 - f));
+      }
+
       p.trailIn -= dt;
       if (p.trailIn <= 0) {
         p.trailIn = p.motion.trailEvery;
-        this.fx.trail(p.x, p.y, p.color, p.drawScale * p.motion.trailScale,
+        // The trail runs in the hot colour, so the shot has a bright core and
+        // the wake cools behind it.
+        const hot = p.motion.glow && Math.random() < 0.55;
+        this.fx.trail(p.x, p.y, hot ? p.hotColor : p.color,
+                      p.drawScale * p.motion.trailScale * (0.7 + Math.random() * 0.6),
                       p.angle, p.shape === 'torpedo' ? 2.2 : 1);
       }
 
@@ -779,6 +817,19 @@ export class Game3D {
 
   /* ---------------- camera ---------------- */
 
+  /**
+   * Keeps one axis of the shot on the arena.
+   *
+   * `inset` is deliberately less than half the frame: letting the edge of the
+   * view sit a little past the arena rim shows the drop and the horizon, which
+   * is what makes it read as a place. Letting it sit a lot past shows sky.
+   */
+  frameAxis(want, arenaSize, viewSize) {
+    if (viewSize >= arenaSize) return arenaSize / 2;
+    const inset = viewSize * 0.34;
+    return clamp(want, inset, arenaSize - inset);
+  }
+
   updateCamera(dt) {
     const a = this.player.actor;
     // Lead the camera slightly toward where the player is heading — a shot that
@@ -786,12 +837,13 @@ export class Game3D {
     const leadX = this.player.vx * 0.35;
     const leadY = this.player.vy * 0.35;
 
-    // Clamped to the arena so the shot never pans off into empty space.
-    const tx = clamp(a.x + leadX, -CAM_MARGIN, this.grid.width + CAM_MARGIN);
-    const tz = clamp(a.y + leadY, -CAM_MARGIN * 0.4, this.grid.depth + CAM_MARGIN);
+    // Follow only along axes where the arena is bigger than the frame; on any
+    // axis it is not, lock to the centre and show the whole thing.
+    const tx = this.frameAxis(a.x + leadX, this.grid.width, this.viewGround.x);
+    const tz = this.frameAxis(a.y + leadY, this.grid.depth, this.viewGround.z);
 
     this.camTarget.set(tx, 55, tz);
-    this.camDesired.set(tx + CAM_OFFSET.x, CAM_OFFSET.y, tz + CAM_OFFSET.z);
+    this.camDesired.set(tx + this.camOffset.x, this.camOffset.y, tz + this.camOffset.z);
 
     const k = 1 - Math.exp(-CAM_LAG * dt);
     this.camBase.lerp(this.camDesired, k);

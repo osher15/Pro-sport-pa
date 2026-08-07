@@ -74,12 +74,14 @@ export function buildArena(scene, grid, opts = {}) {
    * background: past the arena rim you should read "down there is somewhere
    * else", not "the level ended". */
   const surround = new THREE.Mesh(
-    new THREE.PlaneGeometry(W * 6, D * 8),
+    new THREE.PlaneGeometry(W * 8, D * 10),
     new THREE.MeshToonMaterial({ color: new THREE.Color(palette.surround) })
   );
   surround.rotation.x = -Math.PI / 2;
   surround.position.set(W / 2, -t * 3.2, D / 2);
   group.add(surround);
+
+  buildHorizon(group, grid, palette, t);
 
   const slab = new THREE.Mesh(
     new THREE.BoxGeometry(W + t * 0.7, t * 0.5, D + t * 0.7),
@@ -216,6 +218,62 @@ export function buildArena(scene, grid, opts = {}) {
 
   scene.add(group);
   return { group, wallCells, bushCells };
+}
+
+/**
+ * A ring of distant blocks around the arena.
+ *
+ * Without it the camera frames a large wedge of flat background, which is what
+ * makes the shot read as a diagram rather than a place — and on a phone held
+ * upright that wedge is nearly half the screen. These are deliberately far
+ * away and low-poly: a horizon, not a level.
+ */
+function buildHorizon(group, grid, palette, t) {
+  const W = grid.width, D = grid.depth;
+  const cx = W / 2, cz = D / 2;
+  const inner = Math.max(W, D) * 0.78;
+  const perRing = 46;
+
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  // Distant things go lighter and closer to the sky, not darker. Reading them
+  // as scenery rather than as noise depends entirely on that direction.
+  const sky = new THREE.Color(palette.sky || palette.surround);
+  const nearMat = new THREE.MeshToonMaterial({
+    color: new THREE.Color(palette.rim).lerp(sky, 0.28)
+  });
+  const farMat = new THREE.MeshToonMaterial({
+    color: new THREE.Color(palette.rim).lerp(sky, 0.62)
+  });
+
+  const m = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const axis = new THREE.Vector3(0, 1, 0);
+  const nearMesh = new THREE.InstancedMesh(geo, nearMat, perRing);
+  const farMesh = new THREE.InstancedMesh(geo, farMat, perRing);
+  let ni = 0, fi = 0;
+
+  for (let i = 0; i < perRing * 2; i++) {
+    const a = (i / (perRing * 2)) * Math.PI * 2 + Math.random() * 0.08;
+    const ring = i % 2 === 0;
+    const radius = inner * (ring ? 1 : 1.42) + Math.random() * t * 4;
+    const h = t * (ring ? 2.4 + Math.random() * 3.4 : 4 + Math.random() * 6);
+    const wide = t * (1.6 + Math.random() * 2.6);
+
+    const pos = new THREE.Vector3(
+      cx + Math.cos(a) * radius,
+      -t * 3.2 + h / 2,
+      cz + Math.sin(a) * radius * 0.82
+    );
+    q.setFromAxisAngle(axis, a + Math.random());
+    const mat = m.compose(pos, q, new THREE.Vector3(wide, h, wide));
+    if (ring) { if (ni < perRing) nearMesh.setMatrixAt(ni++, mat); }
+    else if (fi < perRing) farMesh.setMatrixAt(fi++, mat);
+  }
+  nearMesh.count = ni;
+  farMesh.count = fi;
+  nearMesh.instanceMatrix.needsUpdate = true;
+  farMesh.instanceMatrix.needsUpdate = true;
+  group.add(nearMesh, farMesh);
 }
 
 /**

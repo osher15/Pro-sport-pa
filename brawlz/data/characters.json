@@ -72,9 +72,9 @@
         "attack": "art/sprites/grandma-yarn-attack.png"
       },
       "projectile": {
-        "shape": "orb",
-        "color": "#ff7ad9",
-        "size": 17,
+        "shape": "splash",
+        "color": "#ff5fd0",
+        "size": 24,
         "trail": "sparkle"
       }
     },
@@ -110,9 +110,9 @@
         "ultimate_cast": "מטר קוצים, מותק!"
       },
       "projectile": {
-        "shape": "thorn",
-        "color": "#8fd44f",
-        "size": 13,
+        "shape": "shard",
+        "color": "#7bea3a",
+        "size": 22,
         "trail": "line"
       }
     },
@@ -151,8 +151,8 @@
       },
       "projectile": {
         "shape": "torpedo",
-        "color": "#3ce0e0",
-        "size": 15,
+        "color": "#2ff0ff",
+        "size": 22,
         "trail": "jet"
       }
     },
@@ -222,9 +222,9 @@
         "ultimate_cast": "כולם על הרצפה, עכשיו!"
       },
       "projectile": {
-        "shape": "wave",
-        "color": "#e84a3f",
-        "size": 18,
+        "shape": "spark",
+        "color": "#ff8a2b",
+        "size": 23,
         "trail": "echo"
       }
     }

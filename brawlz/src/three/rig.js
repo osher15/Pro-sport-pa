@@ -22,17 +22,32 @@ const TAU = Math.PI * 2;
  * a character added to the JSON still gets a working body — it just shares the
  * generic silhouette until it earns its own row.
  */
-const DEFAULT_PROFILE = { head: 24, torso: 30, girth: 20, leg: 32, arm: 26, accessory: null };
+const DEFAULT_PROFILE = {
+  head: 24, torso: 30, girth: 20, leg: 32, arm: 26, accessory: null,
+  /** A face, not a ball with eyes stuck on. See buildFace(). */
+  muzzle: 0, nose: null, teeth: false, brow: null, belly: 0, tail: 0
+};
 
 const PROFILES = {
-  char_001: { head: 25, torso: 32, girth: 20, leg: 38, arm: 30, accessory: 'ears',    // K.O. Kangaroo
-              gloves: true },
-  char_002: { head: 25, torso: 26, girth: 21, leg: 28, arm: 24, accessory: 'bun' },   // Grandma Grenade
-  char_003: { head: 23, torso: 34, girth: 19, leg: 32, arm: 27, accessory: 'hat',     // Cactus Kid
-              spikes: true },
-  char_004: { head: 26, torso: 30, girth: 19, leg: 30, arm: 26, accessory: 'fin' },   // Cyber Shark
-  char_005: { head: 27, torso: 28, girth: 29, leg: 26, arm: 28, accessory: 'topknot' },// Sumo Sloth
-  char_006: { head: 25, torso: 27, girth: 20, leg: 30, arm: 25, accessory: 'helmet' } // Sergeant Binky
+  // K.O. Kangaroo — long snout, cream belly, heavy tail, angry brow.
+  char_001: { head: 25, torso: 32, girth: 20, leg: 38, arm: 30, accessory: 'ears',
+              gloves: true, muzzle: 0.62, nose: 0x2a1a18, brow: 'angry',
+              belly: 0.8, tail: 1.15 },
+  // Grandma Grenade — small kind muzzle, soft brow.
+  char_002: { head: 25, torso: 26, girth: 21, leg: 28, arm: 24, accessory: 'bun',
+              muzzle: 0.34, nose: 0xd88fa8, brow: 'soft', belly: 0.55 },
+  // Cactus Kid — no snout on a plant; spikes and a hard scowl instead.
+  char_003: { head: 23, torso: 34, girth: 19, leg: 32, arm: 27, accessory: 'hat',
+              spikes: true, brow: 'angry', bodySpikes: true },
+  // Cyber Shark — long pointed snout with teeth.
+  char_004: { head: 26, torso: 30, girth: 19, leg: 30, arm: 26, accessory: 'fin',
+              muzzle: 0.9, teeth: true, brow: 'angry', belly: 0.7 },
+  // Sumo Sloth — huge pale belly, blunt muzzle, heavy sleepy lids.
+  char_005: { head: 27, torso: 28, girth: 29, leg: 26, arm: 28, accessory: 'topknot',
+              muzzle: 0.5, nose: 0x2b211c, brow: 'sleepy', belly: 1.15 },
+  // Sergeant Binky — no snout, just a permanent scowl.
+  char_006: { head: 25, torso: 27, girth: 20, leg: 30, arm: 25, accessory: 'helmet',
+              brow: 'angry', belly: 0.45 }
 };
 
 /** Cheap toon outline: the same geometry, grown slightly, drawn inside-out. */
@@ -94,6 +109,12 @@ export class Rig {
       // Legs and feet need to separate from the torso at a glance, so they go
       // properly dark rather than a shade down.
       dark: new THREE.MeshToonMaterial({ color: body.clone().multiplyScalar(0.45) }),
+      // A belly is the body colour lifted, never the trim: trim is whatever the
+      // character's palette put there and on half the roster it is nearly black,
+      // which paints a dark slab across the chest.
+      belly: new THREE.MeshToonMaterial({
+        color: body.clone().lerp(new THREE.Color(0xffffff), 0.55)
+      }),
       outline: new THREE.MeshBasicMaterial({
         color: opts.outlineColor || 0x1d1630, side: THREE.BackSide
       }),
@@ -167,6 +188,7 @@ export class Rig {
       this.head.add(pupil);
     }
 
+    this.buildFace(p);
     this.addAccessory(p);
 
     /* ---- limbs ---- */
@@ -233,8 +255,112 @@ export class Rig {
     // design and lighting them up just makes the fighter look broken.
     this.litMaterials = [
       this.materials.body, this.materials.accent,
-      this.materials.trim, this.materials.dark
+      this.materials.trim, this.materials.dark, this.materials.belly
     ];
+  }
+
+  /**
+   * The parts that make a head a face.
+   *
+   * A sphere with two eyes reads as a bead. What separates the kangaroo from
+   * the sloth at a glance is the profile — how far the snout sticks out, what
+   * the brow is doing, how much belly there is. All of it is a few primitives,
+   * and all of it is driven by the per-character profile.
+   */
+  buildFace(p) {
+    const M = this.materials;
+    const H = p.head;
+
+    if (p.muzzle) {
+      const len = H * p.muzzle;
+      const snout = new THREE.Mesh(
+        new THREE.SphereGeometry(H * 0.44, 14, 12), M.body
+      );
+      snout.scale.set(0.86, 0.74, 0.55 + p.muzzle * 1.5);
+      snout.position.set(0, -H * 0.22, H * 0.62 + len * 0.35);
+      snout.castShadow = true;
+      outline(snout, M.outline, 1.09);
+      this.head.add(snout);
+
+      if (p.nose) {
+        const nose = new THREE.Mesh(
+          new THREE.SphereGeometry(H * 0.15, 10, 8),
+          new THREE.MeshToonMaterial({ color: p.nose })
+        );
+        nose.position.set(0, -H * 0.14, H * 0.62 + len * 0.95);
+        nose.scale.set(1.2, 0.9, 0.8);
+        this.head.add(nose);
+      }
+
+      if (p.teeth) {
+        // Two rows, top and bottom — a shark reads by its teeth before
+        // anything else about it registers.
+        for (const dir of [1, -1]) {
+          for (let i = -2; i <= 2; i++) {
+            const tooth = new THREE.Mesh(
+              new THREE.ConeGeometry(H * 0.055, H * 0.16, 4), M.trim
+            );
+            tooth.position.set(i * H * 0.11, -H * 0.24 + dir * H * 0.07,
+                               H * 0.6 + len * 0.72);
+            tooth.rotation.x = dir > 0 ? Math.PI : 0;
+            this.head.add(tooth);
+          }
+        }
+      }
+    }
+
+    if (p.brow) {
+      // The brow does all the acting. Angle it down toward the nose for anger,
+      // up and out for kindness, and drop it flat and low for sleepy.
+      const tilt = { angry: -0.55, soft: 0.4, sleepy: -0.08 }[p.brow] || 0;
+      const drop = { angry: 0.34, soft: 0.42, sleepy: 0.16 }[p.brow] || 0.35;
+      for (const side of [-1, 1]) {
+        const brow = new THREE.Mesh(
+          new THREE.BoxGeometry(H * 0.4, H * 0.11, H * 0.12), M.dark
+        );
+        // Pushed out to the skull's surface at this height. The sphere is
+        // narrower the higher you go, so a fixed depth buries the brow.
+        const yNorm = drop / 0.94;
+        const surface = Math.sqrt(Math.max(0, 1 - yNorm * yNorm)) * 0.96;
+        brow.position.set(side * H * 0.36, H * drop, H * surface * 0.97);
+        brow.rotation.z = side * tilt;
+        this.head.add(brow);
+      }
+    }
+
+    if (p.belly) {
+      const belly = new THREE.Mesh(
+        new THREE.SphereGeometry(p.girth * 0.78, 16, 12), M.belly
+      );
+      belly.scale.set(0.92 * p.belly, 0.9, 0.62);
+      belly.position.set(0, p.torso * 0.42, p.girth * 0.5);
+      this.hips.add(belly);
+    }
+
+    if (p.tail) {
+      const tail = new THREE.Mesh(
+        new THREE.CapsuleGeometry(p.girth * 0.3, p.girth * p.tail, 5, 10), M.body
+      );
+      tail.position.set(0, -p.girth * 0.1, -p.girth * (0.5 + p.tail * 0.35));
+      tail.rotation.x = Math.PI / 2.35;
+      tail.castShadow = true;
+      outline(tail, M.outline, 1.1);
+      this.hips.add(tail);
+      this.tail = tail;
+    }
+
+    if (p.bodySpikes) {
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * TAU;
+        const spike = new THREE.Mesh(
+          new THREE.ConeGeometry(p.girth * 0.1, p.girth * 0.42, 5), M.trim
+        );
+        spike.position.set(Math.cos(a) * p.girth * 0.92, p.torso * (0.3 + (i % 3) * 0.22),
+                           Math.sin(a) * p.girth * 0.92);
+        spike.rotation.set(Math.sin(a) * 1.4, 0, -Math.cos(a) * 1.4);
+        this.hips.add(spike);
+      }
+    }
   }
 
   /**

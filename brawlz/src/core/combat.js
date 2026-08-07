@@ -19,7 +19,9 @@
    * ------------------------------------------------------------------ */
   var TUNING = {
     /** stats.speed is a multiplier; 1.0 => this many pixels per second. */
-    pixelsPerSpeedUnit: 190,
+    // Dropped from 190: at the old value a fighter crossed the arena in under
+    // four seconds, which reads as skating rather than running.
+    pixelsPerSpeedUnit: 152,
 
     melee: {
       reach: 110,          // px from body edge
