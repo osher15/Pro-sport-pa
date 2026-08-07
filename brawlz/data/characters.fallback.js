@@ -13,6 +13,7 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
       "name": "K.O. Kangaroo",
       "name_he": "קיי.או. קנגורו",
       "category": "Crazy Animals",
+      "sprite": "art/sprites/kangaroo-boxer.png",
       "theme": {
         "body": "#c2703a",
         "accent": "#ff4d4d",

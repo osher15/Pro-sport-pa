@@ -1,0 +1,20 @@
+[
+  {
+    "file": "kangaroo-boxer.png",
+    "background_rgb": [
+      32,
+      236,
+      20
+    ],
+    "kept_ratio": 0.2941,
+    "source_size": [
+      1181,
+      896
+    ],
+    "sprite_size": [
+      123,
+      130
+    ],
+    "scipy_used": true
+  }
+]

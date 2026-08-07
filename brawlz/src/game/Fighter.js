@@ -18,11 +18,23 @@
     this.actor = actor;
     this.theme = actor.def.theme || { body: '#8899aa', accent: '#ffffff', trim: '#dddddd' };
 
-    var texKey = 'fighter_' + actor.def.id;
-    BrawlZ.Textures.makeFighterTexture(scene, texKey, this.theme, actor.rangeType === 'ranged');
+    // Real artwork when the character has it, procedural placeholder otherwise.
+    var artKey = 'sprite_' + actor.def.id;
+    this.hasArt = scene.textures.exists(artKey);
+    var texKey = artKey;
+    if (!this.hasArt) {
+      texKey = 'fighter_' + actor.def.id;
+      BrawlZ.Textures.makeFighterTexture(scene, texKey, this.theme, actor.rangeType === 'ranged');
+    }
 
     this.sprite = scene.physics.add.image(actor.x, actor.y, texKey);
-    this.sprite.setCircle(BODY_RADIUS, BrawlZ.Textures.SIZE / 2 - BODY_RADIUS, BrawlZ.Textures.SIZE / 2 - BODY_RADIUS + 4);
+
+    // Sprites are exported at their final on-screen size, so the game object
+    // scale stays 1 and the arcade circle stays in plain texture pixels.
+    var w = this.sprite.width;
+    var h = this.sprite.height;
+    var footY = this.hasArt ? h * 0.62 : h / 2 + 4;
+    this.sprite.setCircle(BODY_RADIUS, w / 2 - BODY_RADIUS, footY - BODY_RADIUS);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setDamping(true);
     this.sprite.setDrag(DEFAULT_DRAG);
@@ -30,17 +42,21 @@
     this.sprite.setDepth(10);
     this.sprite.fighter = this;
 
+    // Overlay offsets follow the artwork's height instead of a fixed constant,
+    // so a taller sprite doesn't collide with its own health bar.
+    this.topOffset = h / 2;
+
     this.aimGfx = scene.add.graphics().setDepth(9);
     this.barGfx = scene.add.graphics().setDepth(21);
 
-    this.nameText = scene.add.text(actor.x, actor.y - 74, actor.displayName, {
+    this.nameText = scene.add.text(actor.x, actor.y - this.topOffset - 24, actor.displayName, {
       fontFamily: BrawlZ.FONT,
       fontSize: '15px',
       color: actor.isPlayer ? '#7cf3c2' : '#ff9c9c',
       rtl: true
     }).setOrigin(0.5).setDepth(22);
 
-    this.bubble = scene.add.text(actor.x, actor.y - 100, '', {
+    this.bubble = scene.add.text(actor.x, actor.y - this.topOffset - 34, '', {
       fontFamily: BrawlZ.FONT,
       fontSize: '17px',
       color: '#ffffff',
@@ -221,12 +237,15 @@
       this.barGfx.clear();
       this.aimGfx.clear();
       this.nameText.setVisible(false);
-      this.bubble.setPosition(this.sprite.x, this.sprite.y - 70);
+      this.bubble.setPosition(this.sprite.x, this.sprite.y - this.topOffset);
       return;
     }
 
-    this.nameText.setVisible(true).setPosition(this.sprite.x, this.sprite.y - 74);
-    this.bubble.setPosition(this.sprite.x, this.sprite.y - 84);
+    this.nameText.setVisible(true).setPosition(this.sprite.x, this.sprite.y - this.topOffset - 24);
+    this.bubble.setPosition(this.sprite.x, this.sprite.y - this.topOffset - 34);
+
+    // Artwork is drawn facing right; mirror it when aiming left.
+    if (this.hasArt) this.sprite.setFlipX(Math.abs(a.aim) > Math.PI / 2);
 
     // spawn protection shimmer
     this.sprite.setAlpha(a.invulnerableFor > 0 ? 0.55 + 0.35 * Math.sin(this.scene.time.now / 60) : 1);
@@ -240,7 +259,7 @@
     this.aimGfx.strokePath();
 
     // health bar
-    var w = 72, h = 9, x = this.sprite.x - w / 2, y = this.sprite.y - 62;
+    var w = 72, h = 9, x = this.sprite.x - w / 2, y = this.sprite.y - this.topOffset - 10;
     this.barGfx.clear();
     this.barGfx.fillStyle(0x000000, 0.55);
     this.barGfx.fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 5);

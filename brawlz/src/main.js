@@ -48,6 +48,7 @@
       card.style.setProperty('--card-accent', (def.theme && def.theme.accent) || '#9b8cff');
 
       card.innerHTML =
+        (def.sprite ? '<img class="char-art" src="' + esc(def.sprite) + '" alt="">' : '') +
         '<span class="char-cat">' + esc(def.category) + '</span>' +
         '<h3 class="char-name">' + esc(def.name_he || def.name) + '</h3>' +
         '<p class="char-sub" dir="ltr">' + esc(def.name) + '</p>' +

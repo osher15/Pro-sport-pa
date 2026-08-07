@@ -22,6 +22,24 @@
     this.hud = data.hud;
   };
 
+  /**
+   * Loads the hand-made sprite for any character that declares one in
+   * characters.json. A character without a "sprite" field (or whose file fails
+   * to load) falls back to the procedural placeholder, so the roster never
+   * blocks on art being ready.
+   */
+  ArenaScene.prototype.preload = function () {
+    var self = this;
+    this.roster.forEach(function (def) {
+      if (!def.sprite) return;
+      self.load.image('sprite_' + def.id, def.sprite);
+    });
+
+    this.load.on('loaderror', function (file) {
+      console.warn('[BrawlZ] sprite failed to load (' + file.key + ') — using the placeholder art.');
+    });
+  };
+
   ArenaScene.prototype.create = function () {
     var self = this;
     BrawlZ.scene = this;      // debug handle: BrawlZ.scene.combat.actors in the console

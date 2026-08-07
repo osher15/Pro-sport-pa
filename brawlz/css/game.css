@@ -81,6 +81,22 @@ body.in-match .menu { display: none; }
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   outline: none;
 }
+.char-card { position: relative; overflow: hidden; }
+/* Art claims the strip on the reading-end side; the copy is padded clear of it
+   rather than layered over it. */
+.char-card:has(.char-art) { padding-inline-end: 150px; min-height: 238px; }
+.char-art {
+  position: absolute;
+  inset-inline-end: 2px;
+  bottom: 6px;
+  height: 152px;
+  width: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  transition: transform 0.18s ease;
+}
+.char-card:hover .char-art { transform: scale(1.06) translateY(-3px); }
+
 .char-cat {
   font-size: 12px;
   color: var(--card-accent);

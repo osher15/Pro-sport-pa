@@ -3,7 +3,7 @@
 Turns a generated character image on a flat background into a game-ready sprite
 with real transparency.
 
-    python3 tools/dekey.py <in.png|dir> <out-dir> [--tol=48] [--max=512] [--pad=6]
+    python3 tools/dekey.py <in.png|dir> <out-dir> [--tol=48] [--height=130] [--pad=6]
 
 Why it is not a plain "delete every green pixel": characters in this roster are
 often green themselves (cactus, pineapple, ogre, zombie). So the background
@@ -70,6 +70,23 @@ def despill(rgb, alpha, bg):
     return out
 
 
+def drop_islands(alpha, min_ratio=0.02):
+    """
+    Removes small opaque specks that are detached from the character — image
+    models leave a watermark sparkle in a corner, and that would otherwise
+    survive the key as a stray opaque blob.
+    """
+    if not HAVE_SCIPY:
+        return alpha
+    labels, count = ndimage.label(alpha > 0.5)
+    if count <= 1:
+        return alpha
+    sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
+    biggest = sizes.max()
+    keep = {i + 1 for i, s in enumerate(sizes) if s >= biggest * min_ratio}
+    return np.where(np.isin(labels, list(keep)) | (labels == 0), alpha, 0.0)
+
+
 def trim(rgba, pad):
     a = rgba[:, :, 3]
     ys, xs = np.where(a > 12)
@@ -80,12 +97,13 @@ def trim(rgba, pad):
     return rgba[y0:y1, x0:x1]
 
 
-def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512):
+def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512, height=0):
     im = Image.open(path).convert("RGB")
     rgb = np.asarray(im).astype(np.float32)
 
     bg = border_colour(rgb)
     alpha = build_alpha(rgb, bg, tol, soft)
+    alpha = drop_islands(alpha)
     rgb = despill(rgb, alpha, bg)
 
     rgba = np.dstack([rgb, alpha * 255.0]).astype(np.uint8)
@@ -93,8 +111,16 @@ def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512):
     rgba = trim(rgba, pad)
 
     sprite = Image.fromarray(rgba, "RGBA")
-    if max_side and max(sprite.size) > max_side:
+
+    # --height wins: exporting at the exact in-game size keeps the Phaser scale
+    # at 1, which keeps the arcade hitbox in plain unscaled pixels.
+    if height:
+        scale = height / sprite.height
+    elif max_side and max(sprite.size) > max_side:
         scale = max_side / max(sprite.size)
+    else:
+        scale = 1.0
+    if scale != 1.0:
         sprite = sprite.resize(
             (max(1, round(sprite.width * scale)), max(1, round(sprite.height * scale))),
             Image.LANCZOS,
@@ -140,6 +166,7 @@ if __name__ == "__main__":
         soft=opts.get("soft", 26.0),
         pad=int(opts.get("pad", 6)),
         max_side=int(opts.get("max", 512)),
+        height=int(opts.get("height", 0)),
     ) for p in paths]
 
     with open(os.path.join(out_dir, "dekey-report.json"), "w", encoding="utf-8") as fh:
