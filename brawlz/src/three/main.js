@@ -24,6 +24,10 @@ const state = {
 };
 
 function loadJson(path, fallback) {
+  // The single-file build has no files to fetch — everything is already here.
+  const inlined = window.BRAWLZ_INLINE_DATA;
+  if (inlined && inlined[path]) return Promise.resolve(inlined[path]);
+
   return fetch(path, { cache: 'no-store' })
     .then((res) => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
