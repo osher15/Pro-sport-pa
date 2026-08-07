@@ -82,7 +82,10 @@
     this.playerController = new BrawlZ.PlayerController(this, player);
     this.controllers = [new BrawlZ.BotController(this, enemy)];
 
-    this.physics.add.collider(player.sprite, enemy.sprite);
+    this.fighterColliders = [{
+      collider: this.physics.add.collider(player.sprite, enemy.sprite),
+      pair: [player, enemy]
+    }];
 
     this.hud.bind(player.actor, enemy.actor);
     this.player = player;
@@ -91,6 +94,17 @@
     this.fxGfx = this.add.graphics().setDepth(15);
 
     this.events.on('shutdown', function () { self.combat = null; });
+  };
+
+  /**
+   * Turns body-blocking on or off for one fighter. Used by leaping ultimates:
+   * a dash that shoves its target along physically would push it out of the
+   * blast it is about to trigger, so the jumper passes over enemies instead.
+   */
+  ArenaScene.prototype.setFighterCollisions = function (fighter, enabled) {
+    (this.fighterColliders || []).forEach(function (entry) {
+      if (entry.pair.indexOf(fighter) !== -1) entry.collider.active = enabled;
+    });
   };
 
   ArenaScene.prototype.findDef = function (id) {
@@ -208,10 +222,19 @@
 
     if (meta.aoeRadius > 0) {
       this.shockwave(projectile.x, projectile.y, meta.aoeRadius, '#ffb3e6');
-      this.combat.resolveAoe(meta.owner, projectile.x, projectile.y, meta.aoeRadius, meta.damage, {
+      var hits = this.combat.resolveAoe(meta.owner, projectile.x, projectile.y, meta.aoeRadius, meta.damage, {
         knockback: meta.knockback,
         source: 'ultimate'
       });
+      // The blast is measured from the impact point to each body's centre, so a
+      // radius smaller than the body it just struck would miss its own target.
+      // Whatever the projectile physically connected with always takes the hit.
+      if (hits.indexOf(target) === -1) {
+        this.combat.applyDamage(meta.owner, target, meta.damage, {
+          knockback: meta.knockback,
+          source: 'ultimate'
+        });
+      }
     } else if (meta.damage > 0) {
       this.combat.applyDamage(meta.owner, target, meta.damage, { knockback: meta.knockback });
     }

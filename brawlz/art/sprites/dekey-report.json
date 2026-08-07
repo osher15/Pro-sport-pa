@@ -1,18 +1,18 @@
 [
   {
-    "file": "kangaroo-boxer.png",
+    "file": "sergeant-binky.png",
     "background_rgb": [
-      32,
-      236,
-      20
+      33,
+      242,
+      23
     ],
-    "kept_ratio": 0.2941,
+    "kept_ratio": 0.3123,
     "source_size": [
-      1181,
+      1195,
       896
     ],
     "sprite_size": [
-      123,
+      121,
       130
     ],
     "scipy_used": true

@@ -57,7 +57,7 @@ body.in-match .menu { display: none; }
 
 .char-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 16px;
 }
 
@@ -81,21 +81,26 @@ body.in-match .menu { display: none; }
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   outline: none;
 }
-.char-card { position: relative; overflow: hidden; }
-/* Art claims the strip on the reading-end side; the copy is padded clear of it
-   rather than layered over it. */
-.char-card:has(.char-art) { padding-inline-end: 150px; min-height: 238px; }
+/* Portrait sits in the card's header row rather than floating over it, so a
+   narrow card can never end up with art on top of the stats. */
+.char-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.char-id { min-width: 0; }
 .char-art {
-  position: absolute;
-  inset-inline-end: 2px;
-  bottom: 6px;
-  height: 152px;
+  height: 96px;
   width: auto;
+  max-width: 118px;          /* wide sprites (the shark) must not squeeze the name */
+  object-fit: contain;
+  flex: none;
   pointer-events: none;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.45));
   transition: transform 0.18s ease;
 }
-.char-card:hover .char-art { transform: scale(1.06) translateY(-3px); }
+.char-card:hover .char-art { transform: scale(1.08) translateY(-2px); }
 
 .char-cat {
   font-size: 12px;
@@ -104,8 +109,8 @@ body.in-match .menu { display: none; }
   direction: ltr;
   display: inline-block;
 }
-.char-name { margin: 6px 0 2px; font-size: 22px; }
-.char-sub { margin: 0 0 14px; color: var(--muted); font-size: 13px; text-align: right; }
+.char-name { margin: 4px 0 2px; font-size: 21px; line-height: 1.15; }
+.char-sub { margin: 0; color: var(--muted); font-size: 13px; text-align: right; }
 
 .char-stats {
   margin: 0 0 14px;

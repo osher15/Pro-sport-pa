@@ -276,6 +276,34 @@
     return hits;
   };
 
+  /**
+   * Swept hit-test along a travelled path — a radius dragged from one point to
+   * another. Leaping ultimates use this so a fast dash that overshoots a nearby
+   * target still connects: a landing-point-only blast would detonate behind
+   * whoever it just flew over.
+   */
+  CombatSystem.prototype.resolveCapsule = function (actor, x1, y1, x2, y2, radius, damage, opts) {
+    opts = opts || {};
+    var targets = this.enemiesOf(actor);
+    var hits = [];
+
+    for (var i = 0; i < targets.length; i++) {
+      var t = targets[i];
+      var near = closestPointOnSegment(t.x, t.y, x1, y1, x2, y2);
+      var dx = t.x - near.x;
+      var dy = t.y - near.y;
+      if (Math.sqrt(dx * dx + dy * dy) > radius) continue;
+
+      if (this.applyDamage(actor, t, damage, {
+        knockback: opts.knockback || 0,
+        originX: near.x,
+        originY: near.y,
+        source: opts.source || 'ultimate'
+      })) hits.push(t);
+    }
+    return hits;
+  };
+
   /* ---------------- damage / death ---------------- */
 
   CombatSystem.prototype.applyDamage = function (source, target, amount, opts) {
@@ -410,6 +438,16 @@
   /* ------------------------------------------------------------------ *
    * helpers
    * ------------------------------------------------------------------ */
+  function closestPointOnSegment(px, py, x1, y1, x2, y2) {
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var lenSq = dx * dx + dy * dy;
+    if (lenSq < 1e-6) return { x: x1, y: y1 };
+    var t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return { x: x1 + dx * t, y: y1 + dy * t };
+  }
+
   function angleDelta(a, b) {
     var d = a - b;
     while (d > Math.PI) d -= Math.PI * 2;

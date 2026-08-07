@@ -48,10 +48,14 @@
       card.style.setProperty('--card-accent', (def.theme && def.theme.accent) || '#9b8cff');
 
       card.innerHTML =
-        (def.sprite ? '<img class="char-art" src="' + esc(def.sprite) + '" alt="">' : '') +
-        '<span class="char-cat">' + esc(def.category) + '</span>' +
-        '<h3 class="char-name">' + esc(def.name_he || def.name) + '</h3>' +
-        '<p class="char-sub" dir="ltr">' + esc(def.name) + '</p>' +
+        '<div class="char-head">' +
+          (def.sprite ? '<img class="char-art" src="' + esc(def.sprite) + '" alt="">' : '') +
+          '<div class="char-id">' +
+            '<span class="char-cat">' + esc(def.category) + '</span>' +
+            '<h3 class="char-name">' + esc(def.name_he || def.name) + '</h3>' +
+            '<p class="char-sub" dir="ltr">' + esc(def.name) + '</p>' +
+          '</div>' +
+        '</div>' +
         '<dl class="char-stats">' +
           statRow('חיים', def.stats.hp) +
           statRow('נזק', def.stats.attack_damage) +
@@ -83,7 +87,10 @@
 
   function startMatch(playerId) {
     var roster = state.data.characters;
-    var enemyId = (roster.find(function (c) { return c.id !== playerId; }) || roster[0]).id;
+    var others = roster.filter(function (c) { return c.id !== playerId; });
+    var enemyId = (others.length
+      ? others[Math.floor(Math.random() * others.length)]
+      : roster[0]).id;
 
     state.playerId = playerId;
     if (state.game) { state.game.destroy(true); state.game = null; }

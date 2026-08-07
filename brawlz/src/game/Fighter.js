@@ -103,12 +103,14 @@
   Fighter.prototype.dash = function (angle, speed, durationMs, onLand) {
     var self = this;
     this.dashing = true;
+    if (this.scene.setFighterCollisions) this.scene.setFighterCollisions(this, false);
     this.sprite.setDamping(false);
     this.sprite.setDrag(0, 0);
     this.sprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
     this.scene.time.delayedCall(durationMs, function () {
       self.dashing = false;
+      if (self.scene.setFighterCollisions) self.scene.setFighterCollisions(self, true);
       self.sprite.setVelocity(0, 0);
       self.sprite.setDamping(true);
       self.sprite.setDrag(DEFAULT_DRAG);
