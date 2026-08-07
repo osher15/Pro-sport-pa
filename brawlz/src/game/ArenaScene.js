@@ -60,14 +60,11 @@
     this.physics.world.setBounds(24, 24, W - 48, H - 48);
     this.cameras.main.setBounds(0, 0, W, H);
 
-    // ---- arena floor -------------------------------------------------
-    BrawlZ.Textures.makeArenaTexture(this, 'arena_tile');
-    this.add.tileSprite(W / 2, H / 2, W, H, 'arena_tile').setDepth(0);
-    var ring = this.add.graphics().setDepth(1);
-    ring.lineStyle(6, 0x4a3f7a, 1);
-    ring.strokeRoundedRect(24, 24, W - 48, H - 48, 26);
-    ring.lineStyle(2, 0x7b6bd6, 0.35);
-    ring.strokeCircle(W / 2, H / 2, 160);
+    // ---- arena: walls, bushes and spawn points ------------------------
+    this.map = new BrawlZ.ArenaMap(this);
+    var edge = this.add.graphics().setDepth(1);
+    edge.lineStyle(8, 0x4a3f7a, 1);
+    edge.strokeRect(4, 4, W - 8, H - 8);
 
     // ---- combat core -------------------------------------------------
     this.combat = new BrawlZ.CombatSystem();
@@ -90,8 +87,10 @@
     var playerDef = this.findDef(this.playerId);
     var enemyDef = this.findDef(this.enemyId);
 
-    var player = this.spawnFighter(playerDef, { x: 340, y: H / 2, team: 0, isPlayer: true });
-    var enemy = this.spawnFighter(enemyDef, { x: W - 340, y: H / 2, team: 1, instanceId: 'bot_1' });
+    var pSpawn = this.map.spawnPoint(0, 0);
+    var eSpawn = this.map.spawnPoint(1, 0);
+    var player = this.spawnFighter(playerDef, { x: pSpawn.x, y: pSpawn.y, team: 0, isPlayer: true });
+    var enemy = this.spawnFighter(enemyDef, { x: eSpawn.x, y: eSpawn.y, team: 1, instanceId: 'bot_1' });
 
     this.playerController = new BrawlZ.PlayerController(this, player);
     this.controllers = [new BrawlZ.BotController(this, enemy)];
@@ -100,6 +99,12 @@
       collider: this.physics.add.collider(player.sprite, enemy.sprite),
       pair: [player, enemy]
     }];
+
+    // walls stop bodies and shots alike
+    var self2 = this;
+    this.map.attachCollisions(this.fighters, this.projectiles, function (projectile) {
+      self2.retireProjectile(projectile);
+    });
 
     this.hud.bind(player.actor, enemy.actor);
     this.player = player;
@@ -372,6 +377,14 @@
    * ------------------------------------------------------------------ */
   ArenaScene.prototype.update = function (time, delta) {
     var dt = Math.min(delta, 50) / 1000;   // clamp: tab-switch spikes
+
+    // hide anyone sitting in a bush more than two tiles away
+    for (var h = 0; h < this.fighters.length; h++) {
+      var f = this.fighters[h];
+      if (f === this.player) continue;
+      var hidden = this.map.isConcealed(f, this.player);
+      f.setConcealed(hidden);
+    }
 
     this.playerController.update(dt);
     for (var i = 0; i < this.controllers.length; i++) this.controllers[i].update(dt);

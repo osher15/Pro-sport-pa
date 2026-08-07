@@ -27,7 +27,18 @@
       BrawlZ.Textures.makeFighterTexture(scene, texKey, this.theme, actor.rangeType === 'ranged');
     }
 
+    // The physics body and the drawn character are separate objects on purpose.
+    // A single static PNG that slides around reads as a sticker, so the artwork
+    // needs to hop, lean and squash — and none of that may move the hitbox.
     this.sprite = scene.physics.add.image(actor.x, actor.y, texKey);
+    this.sprite.setVisible(false);
+
+    this.shadow = scene.add.ellipse(actor.x, actor.y, 54, 16, 0x000000, 0.32).setDepth(9);
+    this.art = scene.add.image(actor.x, actor.y, texKey).setDepth(10);
+
+    this.animPhase = Math.random() * Math.PI * 2;   // desync identical characters
+    this.hop = 0;
+    this.lean = 0;
 
     // Sprites are exported at their final on-screen size, so the game object
     // scale stays 1 and the arcade circle stays in plain texture pixels.
@@ -79,6 +90,7 @@
     this.knockbackTimer = 0;
     this.bubbleEvent = null;
     this.dashing = false;
+    this.concealed = false;
   }
 
   /** Foot anchor for this character's artwork, as [x, y] fractions. */
@@ -141,7 +153,7 @@
       self.sprite.setVelocity(0, 0);
       self.sprite.setDamping(true);
       self.sprite.setDrag(DEFAULT_DRAG);
-      self.sprite.setScale(1);
+      self.art.setScale(1);
       if (onLand) onLand();
     });
   };
@@ -187,12 +199,12 @@
   Fighter.prototype.punchAnim = function () {
     var self = this;
     this.scene.tweens.add({
-      targets: this.sprite,
+      targets: this.art,
       scaleX: 1.18,
       scaleY: 0.86,
       duration: 90,
       yoyo: true,
-      onComplete: function () { self.sprite.setScale(1); }
+      onComplete: function () { self.art.setScale(1); }
     });
   };
 
@@ -226,16 +238,20 @@
 
   Fighter.prototype.flash = function (color) {
     var self = this;
-    this.sprite.setTintFill(color == null ? 0xffffff : color);
-    this.scene.time.delayedCall(70, function () { self.sprite.clearTint(); });
+    this.art.setTintFill(color == null ? 0xffffff : color);
+    this.scene.time.delayedCall(70, function () { self.art.clearTint(); });
   };
 
   Fighter.prototype.onDeath = function () {
     var self = this;
     this.sprite.setVelocity(0, 0);
     this.scene.tweens.add({
-      targets: this.sprite,
+      targets: [this.art, this.shadow],
       alpha: 0.15,
+      duration: 400
+    });
+    this.scene.tweens.add({
+      targets: this.art,
       angle: 90,
       scale: 0.75,
       duration: 400
@@ -246,12 +262,72 @@
   Fighter.prototype.onRespawn = function () {
     this.sprite.setPosition(this.actor.spawnX, this.actor.spawnY);
     this.sprite.setVelocity(0, 0);
-    this.sprite.setAlpha(1).setAngle(0).setScale(1);
+    this.art.setAlpha(1).setAngle(0).setScale(1);
+    this.shadow.setAlpha(0.32);
     this.knockbackTimer = 0;
     this.dashing = false;
   };
 
   /* ---------------- per-frame ---------------- */
+
+  /**
+   * Procedural motion, since the artwork is a single frame with no rig: a
+   * two-beat hop while walking, a lean into the direction of travel, squash on
+   * each footfall, and a shadow that tightens as the character rises. Idle gets
+   * a slow breathing bob so a standing character is never perfectly frozen.
+   */
+  Fighter.prototype.animate = function (dt) {
+    var body = this.sprite.body;
+    var speed = body ? Math.sqrt(body.velocity.x * body.velocity.x + body.velocity.y * body.velocity.y) : 0;
+    var moving = speed > 25;
+
+    this.animPhase += dt * (moving ? 13 : 2.4);
+
+    var stride = Math.abs(Math.sin(this.animPhase));
+    var targetHop = moving ? stride * 9 : Math.sin(this.animPhase) * 1.6 + 1.6;
+    this.hop += (targetHop - this.hop) * Math.min(1, dt * 18);
+
+    // lean into travel, and unwind smoothly when stopping
+    var targetLean = moving ? Phaser.Math.Clamp(body.velocity.x / 260, -1, 1) * 7 : 0;
+    if (this.art.flipX) targetLean = -targetLean;
+    this.lean += (targetLean - this.lean) * Math.min(1, dt * 10);
+
+    // footfall squash: widest at the bottom of the step
+    var squash = moving ? 1 + (1 - stride) * 0.06 : 1;
+
+    this.art.setPosition(this.sprite.x + this.bodyOffsetXVisual(), this.sprite.y - this.hop);
+    if (!this.tweenOwnsArt()) {
+      this.art.setAngle(this.lean);
+      this.art.setScale(squash, 2 - squash);
+    }
+
+    // the shadow stays on the ground and shrinks as the character rises
+    var lift = 1 - Math.min(this.hop, 12) / 26;
+    this.shadow.setPosition(this.sprite.x + this.bodyOffsetXVisual(), this.sprite.y + this.topOffset * 0.42);
+    this.shadow.setScale(lift, lift);
+  };
+
+  /** Hidden in a bush: the character and everything above it stops drawing. */
+  Fighter.prototype.setConcealed = function (hidden) {
+    if (this.concealed === hidden) return;
+    this.concealed = hidden;
+    this.art.setVisible(!hidden);
+    this.shadow.setVisible(!hidden);
+    this.nameText.setVisible(!hidden);
+    if (hidden) {
+      this.barGfx.clear();
+      this.aimGfx.clear();
+    }
+  };
+
+  /** True while a tween is driving the artwork, so per-frame motion backs off. */
+  Fighter.prototype.tweenOwnsArt = function () {
+    return this.dashing || this.scene.tweens.isTweening(this.art);
+  };
+
+  Fighter.prototype.bodyOffsetXVisual = function () {
+    return this.art && this.art.flipX ? -this.bodyOffsetX : this.bodyOffsetX;
+  };
 
   Fighter.prototype.update = function (dt) {
     var a = this.actor;
@@ -270,15 +346,19 @@
       return;
     }
 
-    var bodyX = this.sprite.x + (this.sprite.flipX ? -this.bodyOffsetX : this.bodyOffsetX);
-    this.nameText.setVisible(true).setPosition(bodyX, this.sprite.y - this.topOffset - 24);
-    this.bubble.setPosition(bodyX, this.sprite.y - this.topOffset - 34);
+    this.animate(dt);
+
+    var bodyX = this.sprite.x + this.bodyOffsetXVisual();
+    var headY = this.sprite.y - this.hop - this.topOffset;
+    if (this.concealed) { this.barGfx.clear(); this.aimGfx.clear(); return; }
+    this.nameText.setVisible(true).setPosition(bodyX, headY - 24);
+    this.bubble.setPosition(bodyX, headY - 34);
 
     // Artwork is drawn facing right; mirror it when aiming left.
-    if (this.hasArt) this.sprite.setFlipX(Math.abs(a.aim) > Math.PI / 2);
+    if (this.hasArt) this.art.setFlipX(Math.abs(a.aim) > Math.PI / 2);
 
     // spawn protection shimmer
-    this.sprite.setAlpha(a.invulnerableFor > 0 ? 0.55 + 0.35 * Math.sin(this.scene.time.now / 60) : 1);
+    this.art.setAlpha(a.invulnerableFor > 0 ? 0.55 + 0.35 * Math.sin(this.scene.time.now / 60) : 1);
 
     // facing arrow
     this.aimGfx.clear();
@@ -289,7 +369,7 @@
     this.aimGfx.strokePath();
 
     // health bar
-    var w = 72, h = 9, x = bodyX - w / 2, y = this.sprite.y - this.topOffset - 10;
+    var w = 72, h = 9, x = bodyX - w / 2, y = headY - 10;
     this.barGfx.clear();
     this.barGfx.fillStyle(0x000000, 0.55);
     this.barGfx.fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 5);
@@ -303,6 +383,8 @@
 
   Fighter.prototype.destroy = function () {
     this.sprite.destroy();
+    this.art.destroy();
+    this.shadow.destroy();
     this.barGfx.destroy();
     this.aimGfx.destroy();
     this.nameText.destroy();

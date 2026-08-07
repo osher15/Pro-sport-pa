@@ -31,7 +31,7 @@
     var knock = ult.knockback || 600;
 
     scene.tweens.add({
-      targets: fighter.sprite,
+      targets: fighter.art,
       scale: 1.45,
       duration: dashTime * 0.55,
       yoyo: true,

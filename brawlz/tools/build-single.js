@@ -23,6 +23,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const SCRIPTS = [
   'src/core/combat.js',
   'src/game/textures.js',
+  'src/game/arena-map.js',
   'src/game/ultimates.js',
   'src/game/Fighter.js',
   'src/game/controllers.js',
