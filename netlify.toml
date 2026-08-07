@@ -1,0 +1,15 @@
+# Only the BrawlZ prototype is published — the rest of this repository is a
+# separate project and must not be served.
+[build]
+  publish = "brawlz"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

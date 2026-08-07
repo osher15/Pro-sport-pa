@@ -86,10 +86,13 @@
     var fallback = [0.5, 0.62];
     if (!this.hasArt || !actor.def.sprite) return fallback;
 
-    var meta = scene.cache.json.get('spriteMeta');
+    // Served build: the report arrives over HTTP. Single-file build: there is
+    // no HTTP, so the same data is handed over as a global instead.
+    var meta = scene.cache.json.get('spriteMeta') || global.BRAWLZ_SPRITE_META;
     if (!meta || !meta.length) return fallback;
 
-    var base = actor.def.sprite.split('/').pop();
+    // spriteFile survives when the sprite path itself became a data URI
+    var base = actor.def.spriteFile || actor.def.sprite.split('/').pop();
     for (var i = 0; i < meta.length; i++) {
       if (meta[i].file === base && meta[i].anchor) return meta[i].anchor;
     }

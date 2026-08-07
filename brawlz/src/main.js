@@ -19,6 +19,10 @@
   /* ---------------- data ---------------- */
 
   function loadData() {
+    // The single-file build has no files to fetch — the data is already here.
+    if (global.BRAWLZ_SINGLE_FILE && global.BRAWLZ_CHARACTERS_FALLBACK) {
+      return Promise.resolve(global.BRAWLZ_CHARACTERS_FALLBACK);
+    }
     return fetch('data/characters.json', { cache: 'no-store' })
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);

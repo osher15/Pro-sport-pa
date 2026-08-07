@@ -44,7 +44,9 @@
 
     // Per-sprite foot anchors written by tools/dekey.py. Missing file just means
     // every sprite falls back to being anchored at its centre.
-    if (anySprite) this.load.json('spriteMeta', 'art/sprites/dekey-report.json');
+    if (anySprite && !global.BRAWLZ_SPRITE_META) {
+      this.load.json('spriteMeta', 'art/sprites/dekey-report.json');
+    }
 
     this.load.on('loaderror', function (file) {
       console.warn('[BrawlZ] sprite failed to load (' + file.key + ') — using the placeholder art.');
