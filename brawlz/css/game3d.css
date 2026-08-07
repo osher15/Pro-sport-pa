@@ -1,0 +1,371 @@
+/* BrawlZ 3D — shell, character select and HUD.
+ *
+ * Sized against the viewport height rather than a fixed pixel scale: the same
+ * sheet has to work on a 900px desktop window and a 390px-wide phone in
+ * landscape, and the HUD must never eat the arena on the small one.
+ */
+
+:root {
+  --ink: #f2eeff;
+  --ink-dim: #b3a9d6;
+  --bg: #171232;
+  --bg-2: #221a45;
+  --line: rgba(255, 255, 255, 0.14);
+  --good: #4be08a;
+  --bad: #ff4d5e;
+  --accent: #9b8cff;
+  --font: "Noto Sans Hebrew", "Arial Hebrew", "Segoe UI", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* ---------------- character select ---------------- */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem 1rem;
+  overflow-y: auto;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #2f2263 0%, transparent 60%),
+    var(--bg);
+}
+
+body.in-match .menu { display: none; }
+
+.menu-head { text-align: center; }
+
+.menu-head h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  letter-spacing: 0.02em;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+}
+
+.menu-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+
+kbd {
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8em;
+}
+
+.char-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+  max-width: 900px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.char-card {
+  --card-accent: #9b8cff;
+  --card-body: #4a3f7a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  text-align: start;
+  color: var(--ink);
+  font-family: inherit;
+  background: linear-gradient(150deg, var(--card-body), var(--bg-2) 70%);
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--card-accent);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.char-card:hover,
+.char-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  outline: none;
+}
+
+.char-cat {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--card-accent);
+}
+
+.char-name { margin: 0; font-size: 1.05rem; }
+.char-sub { margin: 0; font-size: 0.72rem; color: var(--ink-dim); }
+
+.char-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.5rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+}
+
+.char-stats > div { display: flex; justify-content: space-between; gap: 0.4rem; }
+.char-stats dt { color: var(--ink-dim); }
+.char-stats dd { margin: 0; font-weight: 700; }
+
+.menu-foot { text-align: center; padding-block: 0.5rem 1rem; }
+.link-2d { color: var(--ink-dim); font-size: 0.82rem; text-decoration: none; }
+.link-2d:hover { color: var(--ink); }
+
+/* ---------------- stage ---------------- */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  display: none;
+}
+
+body.in-match .stage { display: block; }
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ---------------- HUD ---------------- */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding: max(0.5rem, env(safe-area-inset-top)) max(0.6rem, env(safe-area-inset-right))
+           max(0.6rem, env(safe-area-inset-bottom)) max(0.6rem, env(safe-area-inset-left));
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hud-card {
+  width: clamp(110px, 24vw, 230px);
+  padding: clamp(3px, 0.7vh, 7px) clamp(5px, 1vh, 10px);
+  font-size: clamp(8px, 1.5vh, 13px);
+  background: rgba(12, 9, 28, 0.66);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+}
+
+.hud-name { display: block; font-weight: 700; line-height: 1.2; }
+
+.bar {
+  height: clamp(5px, 1.1vh, 10px);
+  margin-block: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--good);
+  border-radius: 999px;
+  transition: width 0.12s linear;
+}
+
+.bar-fill.is-low { background: var(--bad); }
+.bar-fill--enemy { background: var(--bad); }
+
+.hud-hp { font-size: 0.82em; color: var(--ink-dim); }
+
+/* voice lines */
+
+.voice-feed {
+  position: absolute;
+  top: clamp(46px, 9vh, 80px);
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.voice-line {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  max-width: min(88vw, 520px);
+  padding: clamp(2px, 0.5vh, 5px) clamp(6px, 1.2vh, 12px);
+  font-size: clamp(9px, 1.7vh, 15px);
+  background: rgba(12, 9, 28, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: opacity 0.9s ease;
+}
+
+.voice-line.is-fading { opacity: 0; }
+.voice-who { font-weight: 700; color: var(--accent); }
+.voice-death .voice-who { color: var(--bad); }
+.voice-ultimate_cast .voice-who { color: #ffd166; }
+
+@media (max-height: 460px) {
+  .voice-line:nth-child(n + 3) { display: none; }
+}
+
+/* ammo + super */
+
+.hud-bottom {
+  position: absolute;
+  inset-inline: 0;
+  bottom: max(0.6rem, env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+}
+
+.hud-meters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ammo { display: flex; gap: 4px; }
+
+.ammo-pip {
+  --fill: 0;
+  width: clamp(14px, 3vh, 26px);
+  height: clamp(5px, 1.1vh, 9px);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: linear-gradient(to left,
+    #ffd166 calc(var(--fill) * 100%), rgba(255, 255, 255, 0.1) 0);
+}
+
+.super {
+  width: clamp(80px, 20vw, 190px);
+  height: clamp(5px, 1.1vh, 9px);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.super-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.12s linear;
+}
+
+.super.is-ready { box-shadow: 0 0 12px 2px rgba(255, 209, 102, 0.75); }
+.super.is-ready .super-fill { background: #ffd166; }
+
+/* thumbstick */
+
+.stick-zone {
+  position: absolute;
+  inset-inline-start: max(0.8rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  width: clamp(74px, 15vh, 130px);
+  aspect-ratio: 1;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.stick-base,
+.stick-knob {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.stick-base {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+}
+
+.stick-knob {
+  width: 46%;
+  height: 46%;
+  background: rgba(255, 255, 255, 0.34);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.stick-zone.is-active .stick-base { background: rgba(255, 255, 255, 0.14); }
+
+/* match buttons */
+
+.match-buttons {
+  position: absolute;
+  inset-inline-end: max(0.6rem, env(safe-area-inset-right));
+  bottom: max(0.8rem, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.chip {
+  padding: clamp(3px, 0.8vh, 7px) clamp(7px, 1.4vh, 13px);
+  font-family: inherit;
+  font-size: clamp(9px, 1.6vh, 13px);
+  color: var(--ink);
+  background: rgba(12, 9, 28, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip:active { background: rgba(255, 255, 255, 0.16); }
+
+/* ---------------- errors ---------------- */
+
+.boot-error {
+  position: fixed;
+  inset-inline: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  background: #4a1220;
+  border: 1px solid var(--bad);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}

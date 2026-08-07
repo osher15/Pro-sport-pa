@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="he"><head><meta charset="utf-8">
+<!-- Dev tool: renders the whole roster side by side so a rig change can be
+     judged at close range instead of squinting at a fighter 900 units away.
+     Serve the brawlz folder and open tools/rig-preview.html. -->
+<title>BrawlZ — rig preview</title><style>
+body{margin:0;background:#2a2350}canvas{display:block}
+</style></head><body>
+<canvas id="c"></canvas>
+<script src="../data/characters.fallback.js"></script>
+<script type="module">
+import * as THREE from '../vendor/three/three.module.min.js';
+import { Rig } from '../src/three/rig.js';
+
+const W = 1400, H = 480;
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xc9a86a);
+
+const chars = window.BRAWLZ_CHARACTERS_FALLBACK.characters;
+const SPACING = 150;
+const rigs = [];
+chars.forEach((def, i) => {
+  const rig = new Rig(def);
+  rig.root.position.set((i - (chars.length - 1) / 2) * SPACING, 0, 0);
+  rig.facing = 0; rig.targetFacing = Math.PI / 2;
+  scene.add(rig.root);
+  rigs.push(rig);
+});
+
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000),
+  new THREE.MeshToonMaterial({ color: 0xc9a86a }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x6b4a2a, 1.05));
+const sun = new THREE.DirectionalLight(0xfff0cf, 1.9);
+sun.position.set(-300, 800, 500);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-600,right:600,top:600,bottom:-600,near:100,far:2000 });
+sun.shadow.camera.updateProjectionMatrix();
+sun.shadow.normalBias = 2;
+scene.add(sun);
+
+const camera = new THREE.PerspectiveCamera(32, W / H, 10, 4000);
+camera.position.set(0, 300, 640);
+camera.lookAt(0, 55, 0);
+
+let t = 0;
+const walkParam = { speed: 150, maxSpeed: 190, moveAngle: Math.PI / 2, aimAngle: null };
+const idleParam = { speed: 0, maxSpeed: 190, moveAngle: null, aimAngle: null };
+window.__mode = 'walk';
+function loop() {
+  requestAnimationFrame(loop);
+  t += 1 / 60;
+  const p = window.__mode === 'walk' ? walkParam : idleParam;
+  rigs.forEach(r => r.update(1 / 60, p));
+  renderer.render(scene, camera);
+}
+loop();
+window.__ready = true;
+window.__rigs = rigs;
+</script></body></html>

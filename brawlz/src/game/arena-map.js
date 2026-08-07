@@ -15,22 +15,10 @@
   'use strict';
   var BrawlZ = (global.BrawlZ = global.BrawlZ || {});
 
-  var TILE = 80;
-
-  /** 20 x 11 tiles at 80px = the 1600x900 world. Symmetric by construction. */
-  var DEFAULT_MAP = [
-    '....................',
-    '..**....####....**..',
-    '..**....#..#....**..',
-    '.A......#..#......B.',
-    '....##..........##..',
-    '..*...####..####...*',
-    '....##..........##..',
-    '.A......#..#......B.',
-    '..**....#..#....**..',
-    '..**....####....**..',
-    '....................'
-  ];
+  // The layout itself lives in src/core/arena-layout.js so the 3D build reads
+  // the same grid — one arena, two renderers.
+  var TILE = BrawlZ.MAP_TILE;
+  var DEFAULT_MAP = BrawlZ.DEFAULT_MAP;
 
   /** How far away a bush stops hiding you (matches "two tiles" in the genre). */
   var BUSH_REVEAL_RANGE = TILE * 2;
@@ -284,6 +272,4 @@
   };
 
   BrawlZ.ArenaMap = ArenaMap;
-  BrawlZ.MAP_TILE = TILE;
-  BrawlZ.DEFAULT_MAP = DEFAULT_MAP;
 })(typeof window !== 'undefined' ? window : globalThis);
