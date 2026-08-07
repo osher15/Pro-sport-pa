@@ -1,5 +1,93 @@
 [
   {
+    "file": "cowboy-cactus.png",
+    "background_rgb": [
+      30,
+      239,
+      20
+    ],
+    "kept_ratio": 0.3065,
+    "source_size": [
+      1189,
+      896
+    ],
+    "sprite_size": [
+      114,
+      130
+    ],
+    "anchor": [
+      0.376,
+      0.62
+    ],
+    "scipy_used": true
+  },
+  {
+    "file": "cyber-shark.png",
+    "background_rgb": [
+      41,
+      238,
+      21
+    ],
+    "kept_ratio": 0.3342,
+    "source_size": [
+      1189,
+      896
+    ],
+    "sprite_size": [
+      223,
+      130
+    ],
+    "anchor": [
+      0.394,
+      0.62
+    ],
+    "scipy_used": true
+  },
+  {
+    "file": "grandma-yarn.png",
+    "background_rgb": [
+      37,
+      234,
+      21
+    ],
+    "kept_ratio": 0.2534,
+    "source_size": [
+      1189,
+      896
+    ],
+    "sprite_size": [
+      127,
+      130
+    ],
+    "anchor": [
+      0.31,
+      0.62
+    ],
+    "scipy_used": true
+  },
+  {
+    "file": "kangaroo-boxer.png",
+    "background_rgb": [
+      32,
+      236,
+      20
+    ],
+    "kept_ratio": 0.2941,
+    "source_size": [
+      1181,
+      896
+    ],
+    "sprite_size": [
+      123,
+      130
+    ],
+    "anchor": [
+      0.569,
+      0.62
+    ],
+    "scipy_used": true
+  },
+  {
     "file": "sergeant-binky.png",
     "background_rgb": [
       33,
@@ -14,6 +102,32 @@
     "sprite_size": [
       121,
       130
+    ],
+    "anchor": [
+      0.332,
+      0.62
+    ],
+    "scipy_used": true
+  },
+  {
+    "file": "sumo-sloth.png",
+    "background_rgb": [
+      32,
+      238,
+      24
+    ],
+    "kept_ratio": 0.3484,
+    "source_size": [
+      1189,
+      896
+    ],
+    "sprite_size": [
+      136,
+      130
+    ],
+    "anchor": [
+      0.478,
+      0.62
     ],
     "scipy_used": true
   }

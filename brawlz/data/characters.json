@@ -8,7 +8,11 @@
       "name_he": "קיי.או. קנגורו",
       "category": "Crazy Animals",
       "sprite": "art/sprites/kangaroo-boxer.png",
-      "theme": { "body": "#c2703a", "accent": "#ff4d4d", "trim": "#f7d9a0" },
+      "theme": {
+        "body": "#c2703a",
+        "accent": "#ff4d4d",
+        "trim": "#f7d9a0"
+      },
       "stats": {
         "hp": 2500,
         "speed": 1.2,
@@ -35,7 +39,11 @@
       "name": "Grandma Grenade",
       "name_he": "סבתא רימון",
       "category": "Humans",
-      "theme": { "body": "#8f6fb5", "accent": "#ff7ad9", "trim": "#e8e8f0" },
+      "theme": {
+        "body": "#8f6fb5",
+        "accent": "#ff7ad9",
+        "trim": "#e8e8f0"
+      },
       "stats": {
         "hp": 1800,
         "speed": 0.8,
@@ -55,7 +63,8 @@
         "kill": "יש לך 0 ריז, חמוד של סבתא.",
         "death": "הראוטר נפל... אני בלאג...",
         "ultimate_cast": "קח קצת קרינג' לפנים!"
-      }
+      },
+      "sprite": "art/sprites/grandma-yarn.png"
     },
     {
       "id": "char_003",
@@ -63,7 +72,11 @@
       "name_he": "קקטוס קאובוי",
       "category": "Cursed Plants",
       "sprite": "art/sprites/cowboy-cactus.png",
-      "theme": { "body": "#5aa63c", "accent": "#8fd44f", "trim": "#6b3f1d" },
+      "theme": {
+        "body": "#5aa63c",
+        "accent": "#8fd44f",
+        "trim": "#6b3f1d"
+      },
       "stats": {
         "hp": 2000,
         "speed": 1.0,
@@ -91,7 +104,11 @@
       "name_he": "כריש סייבר",
       "category": "Crazy Animals",
       "sprite": "art/sprites/cyber-shark.png",
-      "theme": { "body": "#5c7796", "accent": "#3ce0e0", "trim": "#ff4d5e" },
+      "theme": {
+        "body": "#5c7796",
+        "accent": "#3ce0e0",
+        "trim": "#ff4d5e"
+      },
       "stats": {
         "hp": 1600,
         "speed": 1.15,
@@ -121,7 +138,11 @@
       "name_he": "עצלן סומו",
       "category": "Crazy Animals",
       "sprite": "art/sprites/sumo-sloth.png",
-      "theme": { "body": "#b99268", "accent": "#f2c14e", "trim": "#3c4a63" },
+      "theme": {
+        "body": "#b99268",
+        "accent": "#f2c14e",
+        "trim": "#3c4a63"
+      },
       "stats": {
         "hp": 3000,
         "speed": 0.75,
@@ -151,7 +172,11 @@
       "name_he": "סמל מוצץ",
       "category": "Humans",
       "sprite": "art/sprites/sergeant-binky.png",
-      "theme": { "body": "#6b7a45", "accent": "#e84a3f", "trim": "#d8d3c0" },
+      "theme": {
+        "body": "#6b7a45",
+        "accent": "#e84a3f",
+        "trim": "#d8d3c0"
+      },
       "stats": {
         "hp": 2100,
         "speed": 1.05,

@@ -30,10 +30,16 @@
    */
   ArenaScene.prototype.preload = function () {
     var self = this;
+    var anySprite = false;
     this.roster.forEach(function (def) {
       if (!def.sprite) return;
+      anySprite = true;
       self.load.image('sprite_' + def.id, def.sprite);
     });
+
+    // Per-sprite foot anchors written by tools/dekey.py. Missing file just means
+    // every sprite falls back to being anchored at its centre.
+    if (anySprite) this.load.json('spriteMeta', 'art/sprites/dekey-report.json');
 
     this.load.on('loaderror', function (file) {
       console.warn('[BrawlZ] sprite failed to load (' + file.key + ') — using the placeholder art.');

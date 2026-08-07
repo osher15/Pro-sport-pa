@@ -69,7 +69,8 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "kill": "יש לך 0 ריז, חמוד של סבתא.",
         "death": "הראוטר נפל... אני בלאג...",
         "ultimate_cast": "קח קצת קרינג' לפנים!"
-      }
+      },
+      "sprite": "art/sprites/grandma-yarn.png"
     },
     {
       "id": "char_003",

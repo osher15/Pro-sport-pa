@@ -33,8 +33,17 @@
     // scale stays 1 and the arcade circle stays in plain texture pixels.
     var w = this.sprite.width;
     var h = this.sprite.height;
-    var footY = this.hasArt ? h * 0.62 : h / 2 + 4;
-    this.sprite.setCircle(BODY_RADIUS, w / 2 - BODY_RADIUS, footY - BODY_RADIUS);
+
+    // Art that includes a floating prop (grandma's yarn ball, the sergeant's
+    // megaphone) is wider than the body, so the frame's centre sits in empty
+    // air. dekey.py measures where the character actually stands and the hitbox
+    // goes there instead.
+    var anchor = this.lookupAnchor(scene, actor);
+    var footX = w * (this.hasArt ? anchor[0] : 0.5);
+    var footY = h * (this.hasArt ? anchor[1] : 0.5) + (this.hasArt ? 0 : 4);
+    this.bodyOffsetX = footX - w / 2;      // overlays follow the body, not the frame
+
+    this.sprite.setCircle(BODY_RADIUS, footX - BODY_RADIUS, footY - BODY_RADIUS);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setDamping(true);
     this.sprite.setDrag(DEFAULT_DRAG);
@@ -49,14 +58,14 @@
     this.aimGfx = scene.add.graphics().setDepth(9);
     this.barGfx = scene.add.graphics().setDepth(21);
 
-    this.nameText = scene.add.text(actor.x, actor.y - this.topOffset - 24, actor.displayName, {
+    this.nameText = scene.add.text(actor.x + this.bodyOffsetX, actor.y - this.topOffset - 24, actor.displayName, {
       fontFamily: BrawlZ.FONT,
       fontSize: '15px',
       color: actor.isPlayer ? '#7cf3c2' : '#ff9c9c',
       rtl: true
     }).setOrigin(0.5).setDepth(22);
 
-    this.bubble = scene.add.text(actor.x, actor.y - this.topOffset - 34, '', {
+    this.bubble = scene.add.text(actor.x + this.bodyOffsetX, actor.y - this.topOffset - 34, '', {
       fontFamily: BrawlZ.FONT,
       fontSize: '17px',
       color: '#ffffff',
@@ -71,6 +80,21 @@
     this.bubbleEvent = null;
     this.dashing = false;
   }
+
+  /** Foot anchor for this character's artwork, as [x, y] fractions. */
+  Fighter.prototype.lookupAnchor = function (scene, actor) {
+    var fallback = [0.5, 0.62];
+    if (!this.hasArt || !actor.def.sprite) return fallback;
+
+    var meta = scene.cache.json.get('spriteMeta');
+    if (!meta || !meta.length) return fallback;
+
+    var base = actor.def.sprite.split('/').pop();
+    for (var i = 0; i < meta.length; i++) {
+      if (meta[i].file === base && meta[i].anchor) return meta[i].anchor;
+    }
+    return fallback;
+  };
 
   /* ---------------- movement ---------------- */
 
@@ -243,8 +267,9 @@
       return;
     }
 
-    this.nameText.setVisible(true).setPosition(this.sprite.x, this.sprite.y - this.topOffset - 24);
-    this.bubble.setPosition(this.sprite.x, this.sprite.y - this.topOffset - 34);
+    var bodyX = this.sprite.x + (this.sprite.flipX ? -this.bodyOffsetX : this.bodyOffsetX);
+    this.nameText.setVisible(true).setPosition(bodyX, this.sprite.y - this.topOffset - 24);
+    this.bubble.setPosition(bodyX, this.sprite.y - this.topOffset - 34);
 
     // Artwork is drawn facing right; mirror it when aiming left.
     if (this.hasArt) this.sprite.setFlipX(Math.abs(a.aim) > Math.PI / 2);
@@ -261,7 +286,7 @@
     this.aimGfx.strokePath();
 
     // health bar
-    var w = 72, h = 9, x = this.sprite.x - w / 2, y = this.sprite.y - this.topOffset - 10;
+    var w = 72, h = 9, x = bodyX - w / 2, y = this.sprite.y - this.topOffset - 10;
     this.barGfx.clear();
     this.barGfx.fillStyle(0x000000, 0.55);
     this.barGfx.fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 5);

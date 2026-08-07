@@ -3,7 +3,7 @@
 Turns a generated character image on a flat background into a game-ready sprite
 with real transparency.
 
-    python3 tools/dekey.py <in.png|dir> <out-dir> [--tol=48] [--height=130] [--pad=6]
+    python3 tools/dekey.py <in.png|dir> <out-dir> [--tol=48] [--height=130] [--largest=1]
 
 Why it is not a plain "delete every green pixel": characters in this roster are
 often green themselves (cactus, pineapple, ogre, zombie). So the background
@@ -70,14 +70,22 @@ def despill(rgb, alpha, bg):
     return out
 
 
-def drop_islands(alpha, min_ratio=0.02):
+def drop_islands(alpha, min_ratio=0.02, largest_only=False):
     """
-    Removes small opaque specks that are detached from the character — image
-    models leave a watermark sparkle in a corner, and that would otherwise
-    survive the key as a stray opaque blob.
+    Removes opaque blobs that are detached from the character.
+
+    Two cases: image models leave a watermark sparkle in a corner (tiny, always
+    dropped), and they sometimes draw a prop floating beside the character — a
+    thrown ball, a weapon. A floating prop pushes the sprite's bounding box
+    sideways, which drags the hitbox off the body, so `largest_only` keeps just
+    the main mass.
     """
     if not HAVE_SCIPY:
         return alpha
+    # Checked before the component count: a prop joined by a hairline reads as
+    # a single blob, which is exactly the case largest_only exists for.
+    if largest_only:
+        return keep_main_body(alpha)
     labels, count = ndimage.label(alpha > 0.5)
     if count <= 1:
         return alpha
@@ -85,6 +93,45 @@ def drop_islands(alpha, min_ratio=0.02):
     biggest = sizes.max()
     keep = {i + 1 for i, s in enumerate(sizes) if s >= biggest * min_ratio}
     return np.where(np.isin(labels, list(keep)) | (labels == 0), alpha, 0.0)
+
+
+def keep_main_body(alpha, erode=4):
+    """
+    Keeps only the character's main mass, even when a floating prop is joined to
+    it by a hairline (grandma's yarn ball hangs off a single strand of wool, so
+    a plain connected-component test sees one blob). Eroding first snaps those
+    hairlines, the biggest surviving blob is the body, and dilating back by the
+    same amount restores its outline without crawling back down the bridge.
+    """
+    mask = alpha > 0.5
+    eroded = ndimage.binary_erosion(mask, iterations=erode)
+    labels, count = ndimage.label(eroded)
+    if count <= 1:
+        return alpha
+    sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
+    seed = labels == (int(np.argmax(sizes)) + 1)
+    keep = ndimage.binary_dilation(seed, iterations=erode) & mask
+    return np.where(keep, alpha, 0.0)
+
+
+def foot_anchor(rgba, band=0.22):
+    """
+    Where the character actually stands, as (x, y) fractions of the sprite.
+
+    A sprite whose art includes a floating prop (a thrown ball, a hovering
+    weapon) is wider than the body, so its geometric centre sits in empty air.
+    Props float; feet do not — so the horizontal centre of the bottom slice is a
+    far better anchor for a top-down hitbox than the middle of the frame.
+    """
+    a = rgba[:, :, 3]
+    h, w = a.shape
+    lower = a[int(h * (1 - band)):, :]
+    xs = np.where(lower.sum(axis=0) > 0)[0]
+    if len(xs) == 0:
+        return (0.5, 0.62)
+    weights = lower.sum(axis=0)[xs].astype(float)
+    cx = float((xs * weights).sum() / weights.sum())
+    return (round(cx / w, 3), 0.62)
 
 
 def trim(rgba, pad):
@@ -97,18 +144,19 @@ def trim(rgba, pad):
     return rgba[y0:y1, x0:x1]
 
 
-def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512, height=0):
+def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512, height=0, largest_only=False):
     im = Image.open(path).convert("RGB")
     rgb = np.asarray(im).astype(np.float32)
 
     bg = border_colour(rgb)
     alpha = build_alpha(rgb, bg, tol, soft)
-    alpha = drop_islands(alpha)
+    alpha = drop_islands(alpha, largest_only=largest_only)
     rgb = despill(rgb, alpha, bg)
 
     rgba = np.dstack([rgb, alpha * 255.0]).astype(np.uint8)
     before = rgba.shape[:2]
     rgba = trim(rgba, pad)
+    anchor = foot_anchor(rgba)
 
     sprite = Image.fromarray(rgba, "RGBA")
 
@@ -138,6 +186,7 @@ def process(path, out_dir, tol=48.0, soft=26.0, pad=6, max_side=512, height=0):
         "kept_ratio": round(kept, 4),
         "source_size": [before[1], before[0]],
         "sprite_size": list(sprite.size),
+        "anchor": list(anchor),
         "scipy_used": HAVE_SCIPY,
     }
 
@@ -167,6 +216,7 @@ if __name__ == "__main__":
         pad=int(opts.get("pad", 6)),
         max_side=int(opts.get("max", 512)),
         height=int(opts.get("height", 0)),
+        largest_only=bool(opts.get("largest", 0)),
     ) for p in paths]
 
     with open(os.path.join(out_dir, "dekey-report.json"), "w", encoding="utf-8") as fh:
@@ -174,6 +224,6 @@ if __name__ == "__main__":
 
     for r in report:
         print(f"{r['file']}: bg={r['background_rgb']} kept={r['kept_ratio']:.0%} "
-              f"{r['source_size']} -> {r['sprite_size']}")
+              f"{r['source_size']} -> {r['sprite_size']} anchor={r['anchor']}")
     if not HAVE_SCIPY:
         print("note: scipy missing — enclosed background-coloured areas were not protected")
