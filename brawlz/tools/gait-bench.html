@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="he"><head><meta charset="utf-8">
+<title>BrawlZ — gait bench</title>
+<!-- Dev tool: walks a rig forward at a fixed speed and measures how far each
+     foot slides while it is supposed to be planted. Zero slip is a walk;
+     anything else is a glide, which is exactly what this is here to catch.
+     Console:  await slipTest(190)   ->  per-foot slip in world units -->
+</head><body>
+<script src="../data/characters.fallback.js"></script>
+<script type="module">
+import * as THREE from '../vendor/three/three.module.min.js';
+import { Rig } from '../src/three/rig.js';
+
+window.slipTest = (speed = 190, seconds = 3, charIndex = 0) => {
+  const def = window.BRAWLZ_CHARACTERS_FALLBACK.characters[charIndex];
+  const rig = new Rig(def);
+  rig.root.scale.setScalar(1.45);
+  const scene = new THREE.Scene();
+  scene.add(rig.root);
+
+  const dt = 1 / 60;
+  let x = 0;
+  const world = new THREE.Vector3();
+  const samples = [];        // { side, grounded, x, y, z }
+
+  for (let i = 0; i < seconds / dt; i++) {
+    x += speed * dt;
+    rig.setPosition(x, 0);
+    // moveAngle 0 = +X, which is the rig's "forward"
+    rig.update(dt, { speed, maxSpeed: speed, moveAngle: 0, aimAngle: null });
+    scene.updateMatrixWorld(true);
+    for (const leg of rig.legs) {
+      leg.ankle.getWorldPosition(world);
+      samples.push({ side: leg.side, grounded: leg.grounded,
+                     x: world.x, y: world.y, z: world.z, bodyX: x });
+    }
+  }
+
+  // Walk each contiguous grounded run and measure how far the foot travelled
+  // in world space during it. A planted foot should not move at all.
+  const runs = [];
+  for (const side of [-1, 1]) {
+    const own = samples.filter(s => s.side === side);
+    let run = null;
+    for (const s of own) {
+      if (s.grounded) {
+        if (!run) run = { frames: [] };
+        run.frames.push(s);
+      } else if (run) { runs.push(run); run = null; }
+    }
+  }
+  // Trim three frames off each end of a stance. Touchdown and lift-off are
+  // single-frame transitions and at 60fps the body covers several units inside
+  // one of them; including those measures the sampling rate, not the gait.
+  const TRIM = 3;
+  const measured = runs.slice(2, 8).map(r => {
+    const inner = r.frames.slice(TRIM, r.frames.length - TRIM);
+    if (inner.length < 2) return null;
+    const a = inner[0], b = inner[inner.length - 1];
+    return {
+      slip: +Math.hypot(b.x - a.x, b.z - a.z).toFixed(2),
+      bodyMoved: +(b.bodyX - a.bodyX).toFixed(1),
+      ankleY: +((a.y + b.y) / 2).toFixed(2),
+      frames: inner.length
+    };
+  }).filter(Boolean);
+  return {
+    speed,
+    runs: measured,
+    avgSlip: +(measured.reduce((a, b) => a + b.slip, 0) / measured.length).toFixed(2),
+    avgBodyMoved: +(measured.reduce((a, b) => a + b.bodyMoved, 0) / measured.length).toFixed(1),
+    minFootY: +Math.min(...samples.filter(s => s.grounded).map(s => s.y)).toFixed(2),
+    maxFootY: +Math.max(...samples.filter(s => s.grounded).map(s => s.y)).toFixed(2)
+  };
+};
+window.__ready = true;
+</script></body></html>

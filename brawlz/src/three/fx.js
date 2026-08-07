@@ -10,6 +10,7 @@ import * as THREE from '../../vendor/three/three.module.min.js';
 const RING_POOL = 14;
 const SPARK_POOL = 10;
 const DECAL_POOL = 12;
+const TRAIL_POOL = 48;
 
 export class Fx {
   constructor(scene) {
@@ -65,12 +66,77 @@ export class Fx {
       this.decals.push({ mesh, life: 0, duration: 0 });
     }
 
+    /* ---- flight trails ----
+     * Ghosts dropped behind a projectile, shrinking and fading. Cheaper than a
+     * ribbon, and it reads better at this camera distance because each ghost is
+     * a shape the eye can actually resolve. */
+    const trailGeo = new THREE.SphereGeometry(1, 6, 5);
+    this.trails = [];
+    for (let i = 0; i < TRAIL_POOL; i++) {
+      const mesh = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0, depthWrite: false
+      }));
+      mesh.visible = false;
+      scene.add(mesh);
+      this.trails.push({ mesh, life: 0, duration: 0, size: 1 });
+    }
+
     this._ring = 0;
     this._spark = 0;
     this._decal = 0;
+    this._trail = 0;
+  }
+
+  /** One ghost behind a projectile. `stretch` elongates it along travel. */
+  trail(x, y, color, size, angle = 0, stretch = 1) {
+    const slot = this.trails[this._trail++ % this.trails.length];
+    slot.mesh.position.set(x, 46, y);
+    slot.mesh.material.color.setHex(color);
+    slot.mesh.rotation.y = Math.PI / 2 - angle;
+    slot.mesh.visible = true;
+    slot.life = 0.24;
+    slot.duration = 0.24;
+    slot.size = size;
+    slot.stretch = stretch;
+  }
+
+  /** The flash at the muzzle, on the frame the shot leaves. */
+  muzzle(x, y, angle, color, size = 26) {
+    const slot = this.sparks[this._spark++ % this.sparks.length];
+    slot.group.position.set(x + Math.cos(angle) * size, 46, y + Math.sin(angle) * size);
+    slot.group.visible = true;
+    slot.life = 0.16;
+    slot.duration = 0.16;
+    slot.bits.forEach((bit, i) => {
+      if (i >= 4) { bit.mesh.visible = false; return; }
+      bit.mesh.visible = true;
+      bit.mesh.material.color.setHex(color);
+      // Thrown forward in a narrow cone, not scattered — a muzzle flash points.
+      const spread = angle + (Math.random() - 0.5) * 0.9;
+      const v = 90 + Math.random() * 70;
+      bit.dir.set(Math.cos(spread) * v, 0, Math.sin(spread) * v);
+      bit.mesh.position.set(0, 0, 0);
+      bit.mesh.scale.setScalar(size * (0.2 + Math.random() * 0.25));
+      bit.spin = (Math.random() - 0.5) * 20;
+    });
   }
 
   /* ------------------------------------------------------------------ */
+
+  /**
+   * A low, fast puff where a foot lands. Tiny and short on purpose: it is a
+   * contact cue, not an effect, and a footstep that draws the eye is worse
+   * than no footstep at all.
+   */
+  dust(x, y, scale = 1) {
+    const slot = this.rings[this._ring++ % this.rings.length];
+    slot.mesh.position.set(x, 2.5, y);
+    slot.mesh.material.color.setHex(0xd8c8a8);
+    slot.mesh.visible = true;
+    slot.life = 0.26;
+    slot.duration = 0.26;
+    slot.radius = 22 * scale;
+  }
 
   shockwave(x, y, radius, color = 0xffffff, duration = 0.45) {
     const slot = this.rings[this._ring++ % this.rings.length];
@@ -148,6 +214,15 @@ export class Fx {
         bit.mesh.rotation.y += bit.spin * dt;
         bit.mesh.material.opacity = 1 - t;
       });
+    }
+
+    for (const tr of this.trails) {
+      if (tr.life <= 0) continue;
+      tr.life -= dt;
+      if (tr.life <= 0) { tr.mesh.visible = false; continue; }
+      const k = tr.life / tr.duration;
+      tr.mesh.scale.set(tr.size * k, tr.size * k, tr.size * k * (tr.stretch || 1));
+      tr.mesh.material.opacity = 0.78 * k;
     }
 
     for (const d of this.decals) {

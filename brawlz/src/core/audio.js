@@ -36,6 +36,18 @@ const RECIPES = {
               freq: 500 * pitch, freqTo: 2400 * pitch, at: t });
   },
 
+  /**
+   * A footfall. Very quiet by design — it plays about twice a second for the
+   * whole match, so anything with presence becomes a drill.
+   */
+  step(a, ctx, t, o) {
+    const pitch = o.pitch || 1;
+    a.noise({ dur: 0.07, gain: 0.34, filter: 'lowpass',
+              freq: 900 * pitch, freqTo: 260 * pitch, at: t });
+    a.tone({ type: 'sine', from: 130 * pitch, to: 70 * pitch, dur: 0.06,
+             gain: 0.16, at: t });
+  },
+
   /* ---------------- impacts ---------------- */
 
   hit(a, ctx, t, o) {
@@ -153,6 +165,7 @@ const RECIPES = {
  * all twelve is not louder, it is just distorted — and on a phone it is a stall.
  */
 const MIN_GAP = {
+  step: 0.11,
   hit: 0.04,
   hurt: 0.09,
   explosion: 0.07,

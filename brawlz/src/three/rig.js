@@ -178,13 +178,12 @@ export class Rig {
     this.shoulderR.position.set(p.girth * 0.84, -p.torso * 0.04, 0);
     this.chest.add(this.shoulderL, this.shoulderR);
 
-    this.hipL = limb(p.leg, p.girth * 0.3, this.materials.dark, this.materials.outline,
-                     this.materials.dark, 1.45);
-    this.hipR = limb(p.leg, p.girth * 0.3, this.materials.dark, this.materials.outline,
-                     this.materials.dark, 1.45);
-    this.hipL.position.set(-p.girth * 0.5, 0, 0);
-    this.hipR.position.set(p.girth * 0.5, 0, 0);
-    this.hips.add(this.hipL, this.hipR);
+    // Legs are two-bone IK chains, not swinging sticks. See buildLeg().
+    this.legs = [this.buildLeg(-1, p), this.buildLeg(1, p)];
+    // Kept as names so the action poses and the test harness can still reach
+    // the hip joints directly.
+    this.hipL = this.legs[0].hip;
+    this.hipR = this.legs[1].hip;
 
     /* ---- ground ring + shadow blob ----
      * The ring is the genre's readability trick: at this camera angle a body is
@@ -200,6 +199,21 @@ export class Rig {
     this.ring.position.y = 1.5;
     this.root.add(this.ring);
 
+    /* ---- contact shadow ----
+     * The sun already casts a real shadow, but it lands off to one side. What
+     * says "this body is touching the floor" is a dark patch directly beneath
+     * it, tightening as the body drops. Without it a walk cycle reads as a
+     * hover no matter how correct the legs are. */
+    this.contact = new THREE.Mesh(
+      new THREE.CircleGeometry(p.girth * 1.15, 20),
+      new THREE.MeshBasicMaterial({
+        color: 0x000000, transparent: true, opacity: 0.34, depthWrite: false
+      })
+    );
+    this.contact.rotation.x = -Math.PI / 2;
+    this.contact.position.y = 1.2;
+    this.root.add(this.contact);
+
     /* ---- animation state ---- */
     this.phase = Math.random() * TAU;
     this.facing = 0;
@@ -209,6 +223,11 @@ export class Rig {
     this.actionKind = null;
     this.flashTimer = 0;
     this.flashDuration = 0;
+    /** Eases the gait in and out so a stopped fighter settles onto both feet. */
+    this.gait = 0;
+    this.bob = 0;
+    /** Called with (rig, side) the frame a foot lands. */
+    this.onFootstep = null;
 
     // Only the lit materials can flash; the outline and the eyes are flat by
     // design and lighting them up just makes the fighter look broken.
@@ -216,6 +235,164 @@ export class Rig {
       this.materials.body, this.materials.accent,
       this.materials.trim, this.materials.dark
     ];
+  }
+
+  /**
+   * One leg as a two-bone chain: hip → knee → foot.
+   *
+   * The whole point of the extra joint is that the foot can be *placed* rather
+   * than swung. A single rotating stick can only ever describe an arc through
+   * the air; with a knee, the foot can be told to stay at a fixed spot on the
+   * ground while the body moves over it — which is what walking is.
+   */
+  buildLeg(side, p) {
+    const M = this.materials;
+    const thigh = p.leg * 0.55;
+    const shin = p.leg * 0.55;
+    const r = p.girth * 0.28;
+
+    const hip = new THREE.Group();
+    hip.position.set(side * p.girth * 0.5, 0, 0);
+    this.hips.add(hip);
+
+    const thighMesh = new THREE.Mesh(
+      new THREE.CapsuleGeometry(r, Math.max(0.1, thigh - r * 2), 4, 8), M.dark
+    );
+    thighMesh.position.y = -thigh / 2;
+    thighMesh.castShadow = true;
+    outline(thighMesh, M.outline, 1.16);
+    hip.add(thighMesh);
+
+    const knee = new THREE.Group();
+    knee.position.y = -thigh;
+    hip.add(knee);
+
+    const shinMesh = new THREE.Mesh(
+      new THREE.CapsuleGeometry(r * 0.92, Math.max(0.1, shin - r * 1.84), 4, 8), M.dark
+    );
+    shinMesh.position.y = -shin / 2;
+    shinMesh.castShadow = true;
+    outline(shinMesh, M.outline, 1.16);
+    knee.add(shinMesh);
+
+    // A foot, not a ball: something with a front and a back reads as planted.
+    // The contact point, as an empty. The foot mesh hangs off the ankle and
+    // swings with the knee, so it is the wrong thing to plant, to measure, or
+    // to kick dust from.
+    const ankle = new THREE.Group();
+    ankle.position.y = -shin;
+    knee.add(ankle);
+
+    const foot = new THREE.Mesh(
+      new THREE.BoxGeometry(r * 2.1, r * 1.15, r * 3.1), M.dark
+    );
+    foot.position.set(0, r * 0.4, r * 0.55);
+    foot.castShadow = true;
+    outline(foot, M.outline, 1.12);
+    ankle.add(foot);
+
+    return {
+      side, hip, knee, ankle, foot, thigh, shin,
+      // Half a cycle apart, so one foot is always down.
+      phaseOffset: side < 0 ? 0 : Math.PI,
+      grounded: true
+    };
+  }
+
+  /**
+   * Places a foot at (y, z) relative to its hip and solves the knee for it.
+   *
+   * Law of cosines twice: once for how far the thigh must swing off the
+   * hip-to-foot line, once for how far the knee must bend. Clamping the reach
+   * just short of full extension keeps the acos arguments inside their domain —
+   * a target further away than the leg is long is not an error, it just means
+   * the leg is straight.
+   */
+  solveLeg(leg, targetY, targetZ, lean = 0, scaleY = 1, scaleZ = 1) {
+    // Undo the body's pitch, then its squash, so the target given on the world
+    // ground plane arrives correct in the hip's own frame.
+    const cosL = Math.cos(lean);
+    const sinL = Math.sin(lean);
+    const ry = targetY * cosL + targetZ * sinL;
+    const rz = -targetY * sinL + targetZ * cosL;
+    targetY = ry / scaleY;
+    targetZ = rz / scaleZ;
+
+    const reach = leg.thigh + leg.shin;
+    const d = Math.min(Math.hypot(targetY, targetZ), reach - 0.01);
+    if (d < 1e-4) return;
+
+    // Angle of the hip-to-foot line, measured from straight down. Positive
+    // rotation about X swings a limb toward -Z, so forward targets need a
+    // negative angle.
+    const toTarget = Math.atan2(-targetZ, -targetY);
+
+    const cosAlpha = (leg.thigh * leg.thigh + d * d - leg.shin * leg.shin) / (2 * leg.thigh * d);
+    const cosBeta = (leg.thigh * leg.thigh + leg.shin * leg.shin - d * d) / (2 * leg.thigh * leg.shin);
+    const alpha = Math.acos(Math.min(1, Math.max(-1, cosAlpha)));
+    const beta = Math.acos(Math.min(1, Math.max(-1, cosBeta)));
+
+    // Thigh ahead of the line, shin folding back behind it: the knee points
+    // forward, the way a leg bends.
+    leg.hip.rotation.x = toTarget - alpha;
+    leg.knee.rotation.x = Math.PI - beta;
+    // Counter-rotate the foot so the sole stays parallel to the floor. A foot
+    // that points wherever the shin happens to point reads as a hoof.
+    leg.foot.rotation.x = -(leg.hip.rotation.x + leg.knee.rotation.x + lean);
+  }
+
+  /**
+   * The gait.
+   *
+   * Each leg spends 60% of the cycle in stance and 40% in swing. During stance
+   * the foot target slides straight backwards through the hip's local space at
+   * exactly the rate the body moves forward, so in world space the foot does
+   * not move at all. That single fact is the difference between walking and
+   * gliding, and it is why the phase is driven by distance travelled rather
+   * than by the clock.
+   */
+  updateLegs(dt, ratio) {
+    const p = this.profile;
+    const cycleDistance = p.leg * 2.2;         // travelled per full cycle
+    const sweep = cycleDistance * 0.6;         // stance carries the body this far
+    const lift = p.leg * 0.34;
+    const groundY = -(p.leg + this.bob);
+
+    // The hips ride inside a group that leans forward and squashes vertically.
+    // Both have to be undone on the way in, or the "ground" the feet reach for
+    // is a tilted, stretched plane rather than the real one.
+    const lean = this.body.rotation.x;
+    const sy = this.body.scale.y || 1;
+    const sz = this.body.scale.z || 1;
+
+    // Ease the gait in and out; a fighter that stops mid-swing with one leg in
+    // the air looks broken, and snapping the legs straight looks worse.
+    const want = ratio > 0.04 ? 1 : 0;
+    this.gait += (want - this.gait) * Math.min(1, dt * 9);
+
+    for (const leg of this.legs) {
+      const t = (((this.phase + leg.phaseOffset) % TAU) + TAU) % TAU / TAU;
+      let z, y, grounded;
+
+      if (t < 0.6) {
+        const u = t / 0.6;
+        z = sweep * (0.5 - u);
+        y = 0;
+        grounded = true;
+      } else {
+        const u = (t - 0.6) / 0.4;
+        z = sweep * (u - 0.5);
+        y = Math.sin(Math.PI * u) * lift;
+        grounded = false;
+      }
+
+      this.solveLeg(leg, groundY + y * this.gait, z * this.gait, lean, sy, sz);
+
+      if (grounded && !leg.grounded && this.gait > 0.35 && this.onFootstep) {
+        this.onFootstep(this, leg.side);
+      }
+      leg.grounded = grounded;
+    }
   }
 
   /** White pop on taking a hit — the cheapest damage feedback there is. */
@@ -372,8 +549,15 @@ export class Rig {
 
     const p = this.profile;
     const ratio = maxSpeed > 0 ? Math.min(1, speed / maxSpeed) : 0;
-    const stride = p.leg * 2.6;                       // world units per half-step
-    this.phase = (this.phase + (speed / stride) * dt * Math.PI) % TAU;
+    // One full cycle per this much ground covered. Driving the phase from
+    // distance rather than time is what keeps a planted foot planted when the
+    // fighter speeds up or slows down.
+    const cycleDistance = p.leg * 2.2;
+    // Converted to the rig's own units first. The rig is drawn scaled up, so a
+    // world speed measured against a local stride makes every cycle cover more
+    // ground than the feet were told to sweep — which is a glide.
+    const localSpeed = speed / (this.root.scale.x || 1);
+    this.phase = (this.phase + (TAU * localSpeed * dt) / cycleDistance) % TAU;
 
     // --- facing: turn toward where you look, or where you go ---
     const want = aimAngle != null ? aimAngle : (moveAngle != null ? moveAngle : this.targetFacing);
@@ -394,47 +578,40 @@ export class Rig {
 
     const s = Math.sin(this.phase);
     const c = Math.cos(this.phase);
+    const breathe = Math.sin(performance.now() / 620);
 
-    if (ratio > 0.02) {
-      /* ---- walk ---- */
-      // Positive rotation.z swings a limb toward +X, so the left side takes the
-      // negative angle to splay outwards rather than fold into the torso.
-      const swing = 0.95 * ratio;
-      this.hipL.rotation.x = s * swing;
-      this.hipR.rotation.x = -s * swing;
-      this.hipL.rotation.z = -0.07;
-      this.hipR.rotation.z = 0.07;
+    /* ---- body ----
+     * Two dips per cycle, at the two double-support moments. Small: the body
+     * rides *on* the legs, and a torso that lifts more than an inch or two off
+     * a planted foot is the thing that reads as floating. */
+    const dip = (0.5 - 0.5 * Math.cos(this.phase * 2));
+    this.bob = ratio > 0.04
+      ? dip * p.leg * 0.055
+      : breathe * 1.4;
 
-      this.shoulderL.rotation.x = -s * swing * 0.8;
-      this.shoulderR.rotation.x = s * swing * 0.8;
-      this.shoulderL.rotation.z = -0.3 - Math.abs(s) * 0.1;
-      this.shoulderR.rotation.z = 0.3 + Math.abs(s) * 0.1;
+    this.body.position.y = this.bob;
+    this.body.rotation.x = -0.11 * ratio;                   // lean into the run
+    this.body.rotation.z = c * 0.045 * ratio;               // hip sway
+    const squash = 1 - (1 - dip) * 0.045 * ratio + (ratio > 0.04 ? 0 : breathe * 0.012);
+    this.body.scale.set(2 - squash, squash, 2 - squash);
 
-      // one bounce per footfall, so twice per cycle
-      const bob = Math.abs(s);
-      this.body.position.y = bob * p.leg * 0.14;
-      this.body.rotation.x = -0.13 * ratio;                 // lean into the run
-      this.body.rotation.z = c * 0.05 * ratio;              // hip sway
-      const squash = 1 - (1 - bob) * 0.06 * ratio;
-      this.body.scale.set(2 - squash, squash, 2 - squash);
+    /* ---- legs: placed on the ground, not swung through the air ---- */
+    this.updateLegs(dt, ratio);
 
-      this.head.rotation.x = 0.1 * ratio - bob * 0.06;
-      this.head.rotation.z = -c * 0.06 * ratio;
-    } else {
-      /* ---- idle: breathe, do not freeze ---- */
-      const b = Math.sin(performance.now() / 620);
-      this.hipL.rotation.x = this.hipR.rotation.x = 0;
-      this.hipL.rotation.z = -0.06;
-      this.hipR.rotation.z = 0.06;
-      this.shoulderL.rotation.x = this.shoulderR.rotation.x = b * 0.06;
-      this.shoulderL.rotation.z = -0.28 - b * 0.04;
-      this.shoulderR.rotation.z = 0.28 + b * 0.04;
-      this.body.position.y = b * 1.6;
-      this.body.rotation.set(0, 0, 0);
-      const br = 1 + b * 0.015;
-      this.body.scale.set(1 / br, br, 1 / br);
-      this.head.rotation.set(-b * 0.03, 0, 0);
-    }
+    /* ---- arms counter-swing the legs ---- */
+    const swing = 0.85 * ratio;
+    this.shoulderL.rotation.x = -s * swing + (1 - ratio) * breathe * 0.06;
+    this.shoulderR.rotation.x = s * swing + (1 - ratio) * breathe * 0.06;
+    this.shoulderL.rotation.z = -0.28 - Math.abs(s) * 0.1 * ratio;
+    this.shoulderR.rotation.z = 0.28 + Math.abs(s) * 0.1 * ratio;
+
+    this.head.rotation.x = 0.09 * ratio - dip * 0.05 * ratio - (1 - ratio) * breathe * 0.03;
+    this.head.rotation.z = -c * 0.05 * ratio;
+
+    /* ---- contact shadow tightens as the body settles ---- */
+    const drop = 1 - Math.min(1, this.bob / (p.leg * 0.06));
+    this.contact.scale.setScalar(0.82 + drop * 0.22);
+    this.contact.material.opacity = 0.2 + drop * 0.16;
   }
 
   /** Held pose for a one-shot action (wired up in the combat step). */
@@ -456,8 +633,9 @@ export class Rig {
         this.shoulderR.rotation.x = -2.4 * u;
         this.body.rotation.x = 0.3 * u;
         this.body.position.y = u * 14;
-        this.hipL.rotation.x = -0.5 * u;
-        this.hipR.rotation.x = -0.5 * u;
+        // Tuck the legs by pulling the whole body up off them; the IK solver
+        // owns the hip angles now and would overwrite anything set here.
+        this.legs.forEach((leg) => { leg.knee.rotation.x += 0.6 * u; });
         break;
       }
       case 'hurt': {

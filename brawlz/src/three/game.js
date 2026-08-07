@@ -16,6 +16,7 @@ import { HazardDirector } from '../core/hazards.js';
 import { Match } from '../core/match.js';
 import { equipCore } from '../core/cores.js';
 import { runUltimate } from './ultimates.js';
+import { ProjectileView, jitterShot } from './projectiles.js';
 
 /**
  * A fighter's voice, derived from how heavy it is. The sumo's punch lands an
@@ -32,7 +33,6 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 const BODY_RADIUS = 26;
 const ACCEL = 1400;          // world units/s^2 — full speed in about 0.14s
 const FRICTION = 9;
-const PROJECTILE_POOL = 40;
 
 /**
  * Camera sits behind and above the player at ~43 degrees off the horizontal.
@@ -69,6 +69,7 @@ export class Game3D {
       roster.find((c) => c.id !== this.playerDef.id) || roster[0];
 
     this.clock = new THREE.Clock();
+    this._scratch = new THREE.Vector3();
     this.running = false;
     this._frame = null;
 
@@ -158,6 +159,15 @@ export class Game3D {
     rig.setPosition(opts.x, opts.y);
     this.scene.add(rig.root);
 
+    // Dust and a soft thud where the foot actually lands, taken from the ankle
+    // joint rather than the body — half the sense of weight is in the contact.
+    rig.onFootstep = (r, side) => {
+      const leg = r.legs.find((l) => l.side === side) || r.legs[0];
+      leg.ankle.getWorldPosition(this._scratch);
+      this.fx.dust(this._scratch.x, this._scratch.z, 0.9);
+      this.audio.play('step', { pitch: pitchFor(def) });
+    };
+
     return {
       def, actor, rig,
       pitch: pitchFor(def),
@@ -204,15 +214,7 @@ export class Game3D {
 
   initProjectiles() {
     this.projectiles = [];
-    this.projectilePool = [];
-    const geo = new THREE.SphereGeometry(1, 10, 8);
-    for (let i = 0; i < PROJECTILE_POOL; i++) {
-      const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
-      mesh.visible = false;
-      this.scene.add(mesh);
-      this.projectilePool.push(mesh);
-    }
-    this._proj = 0;
+    this.projectileView = new ProjectileView(this.scene);
   }
 
   initHazards() {
@@ -544,24 +546,44 @@ export class Game3D {
 
   /* ---------------- projectiles ---------------- */
 
+  /**
+   * Spawns one shot, wearing its owner's identity.
+   *
+   * Shape, colour and size come from the character's `projectile` block; a
+   * character without one still fires, it just fires the generic bolt. Each
+   * individual shot is nudged off those values so a volley never looks printed.
+   */
   spawnProjectile(owner, cfg) {
-    const mesh = this.projectilePool[this._proj++ % this.projectilePool.length];
-    mesh.visible = true;
-    mesh.material.color.setHex(cfg.color || 0xffffff);
-    mesh.scale.setScalar(cfg.radius);
+    const art = owner.def.projectile || {};
+    const shape = cfg.shape || art.shape || 'bolt';
+    const motion = this.projectileView.motionFor(shape);
+    const shot = jitterShot(cfg.color || art.color || '#ffffff',
+                            cfg.radius * (cfg.sizeScale || 1));
+
+    const mesh = this.projectileView.acquire(shape);
+    this.projectileView.paint(mesh, shot.color);
+    mesh.scale.setScalar(shot.scale);
     mesh.position.set(owner.actor.x, 46, owner.actor.y);
+    mesh.rotation.set(0, Math.PI / 2 - cfg.angle, shot.roll);
+
+    this.fx.muzzle(owner.actor.x, owner.actor.y, cfg.angle, shot.color, shot.scale * 1.6);
 
     this.projectiles.push({
-      owner, mesh,
+      owner, mesh, shape, motion,
       x: owner.actor.x, y: owner.actor.y,
       vx: Math.cos(cfg.angle) * cfg.speed,
       vy: Math.sin(cfg.angle) * cfg.speed,
+      angle: cfg.angle,
       radius: cfg.radius,
+      drawScale: shot.scale,
+      spinSign: shot.spinSign,
       damage: cfg.damage,
       knockback: cfg.knockback || 0,
       aoeRadius: cfg.aoeRadius || 0,
-      color: cfg.color,
+      color: shot.color,
       travelled: 0,
+      age: 0,
+      trailIn: 0,
       range: cfg.range,
       kind: cfg.kind || 'basic'
     });
@@ -574,7 +596,24 @@ export class Game3D {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.travelled += step;
-      p.mesh.position.set(p.x, 46, p.y);
+      p.age += dt;
+
+      // Wobble is a lateral offset on the drawing only: the shot still travels
+      // in a straight line, so what you dodge is what you see.
+      const wob = p.motion.wobble
+        ? Math.sin(p.age * 16) * p.motion.wobble * p.drawScale * 2 : 0;
+      p.mesh.position.set(
+        p.x - Math.sin(p.angle) * wob, 46 + Math.cos(p.age * 11) * wob * 0.5,
+        p.y + Math.cos(p.angle) * wob
+      );
+      p.mesh.rotation.z += p.motion.spin * p.spinSign * dt;
+
+      p.trailIn -= dt;
+      if (p.trailIn <= 0) {
+        p.trailIn = p.motion.trailEvery;
+        this.fx.trail(p.x, p.y, p.color, p.drawScale * p.motion.trailScale,
+                      p.angle, p.shape === 'torpedo' ? 2.2 : 1);
+      }
 
       let done = false;
 
@@ -606,6 +645,7 @@ export class Game3D {
       }
 
       if (done) {
+        this.fx.trail(p.x, p.y, p.color, p.drawScale * 0.9, p.angle, 1);
         if (p.aoeRadius > p.radius && !this.grid.isWallAt(p.x, p.y)) {
           this.system.resolveAoe(p.owner.actor, p.x, p.y, p.aoeRadius, Math.round(p.damage * 0.6), {
             knockback: p.knockback * 0.6, source: p.kind
@@ -770,6 +810,7 @@ export class Game3D {
     if (this.moveStick) this.moveStick.destroy();
     if (this.aimStick) this.aimStick.destroy();
     this.hazardView.dispose();
+    this.projectileView.dispose();
     this.fighters.forEach((f) => f.rig.dispose());
     this.renderer.dispose();
   }

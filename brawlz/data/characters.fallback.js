@@ -76,6 +76,12 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "walk_a": "art/sprites/grandma-yarn-walk_a.png",
         "walk_b": "art/sprites/grandma-yarn-walk_b.png",
         "attack": "art/sprites/grandma-yarn-attack.png"
+      },
+      "projectile": {
+        "shape": "orb",
+        "color": "#ff7ad9",
+        "size": 17,
+        "trail": "sparkle"
       }
     },
     {
@@ -108,6 +114,12 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "kill": "נדקרת. תבדוק את הפינג לפני שאתה מאשים אותי.",
         "death": "רגע, לא הספקתי לשמור...",
         "ultimate_cast": "מטר קוצים, מותק!"
+      },
+      "projectile": {
+        "shape": "thorn",
+        "color": "#8fd44f",
+        "size": 13,
+        "trail": "line"
       }
     },
     {
@@ -142,6 +154,12 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "kill": "וואן שוט. תחזור ללובי, אלוף.",
         "death": "לאג ספייק! זה לא היה הוגן!",
         "ultimate_cast": "נעילת מטרה. ביי."
+      },
+      "projectile": {
+        "shape": "torpedo",
+        "color": "#3ce0e0",
+        "size": 15,
+        "trail": "jet"
       }
     },
     {
@@ -208,6 +226,12 @@ window.BRAWLZ_CHARACTERS_FALLBACK = {
         "kill": "רשמתי לך אזהרה. וגם מוות.",
         "death": "אמא!!! הם רימו!",
         "ultimate_cast": "כולם על הרצפה, עכשיו!"
+      },
+      "projectile": {
+        "shape": "wave",
+        "color": "#e84a3f",
+        "size": 18,
+        "trail": "echo"
       }
     }
   ]
