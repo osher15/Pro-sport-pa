@@ -264,6 +264,15 @@
     this.reaction = 0;
     this.strafeDir = Math.random() < 0.5 ? -1 : 1;
     this.strafeTimer = 0;
+
+    // stuck detection
+    this.lastX = fighter.sprite.x;
+    this.lastY = fighter.sprite.y;
+    this.stuckFor = 0;
+    this.detourTimer = 0;
+    this.detourDir = { x: 0, y: 0 };
+    this.repathIn = 0;
+    this.waypoint = null;
   }
 
   BotController.prototype.update = function (dt) {
@@ -285,6 +294,9 @@
       this.strafeDir *= -1;
     }
 
+    var map = this.scene.map;
+    var hasSight = !map || !map.blocksLine(a.x, a.y, target.x, target.y);
+
     var reach = a.profile.reach;
     var preferred = a.rangeType === 'ranged' ? reach * 0.6 : reach * 0.7;
     var nx = dx / dist;
@@ -292,8 +304,27 @@
     var px = -ny * this.strafeDir;      // perpendicular = strafe
     var py = nx * this.strafeDir;
 
+    // Out of sight means there is cover between us, so walk the path around it
+    // instead of pressing into the wall.
+    this.repathIn -= dt;
+    if (map && !hasSight && this.repathIn <= 0) {
+      this.waypoint = map.nextWaypoint(a.x, a.y, target.x, target.y);
+      this.repathIn = 0.3;
+    }
+    if (hasSight) this.waypoint = null;
+
     var moveX, moveY;
-    if (dist > preferred * 1.15) {
+    if (!hasSight && this.waypoint) {
+      var wdx = this.waypoint.x - a.x;
+      var wdy = this.waypoint.y - a.y;
+      var wlen = Math.hypot(wdx, wdy) || 1;
+      moveX = wdx / wlen;
+      moveY = wdy / wlen;
+      if (wlen < 24) this.repathIn = 0;   // arrived: pick the next tile now
+    } else if (!hasSight) {
+      moveX = nx;                        // no route found: press on regardless
+      moveY = ny;
+    } else if (dist > preferred * 1.15) {
       moveX = nx + px * 0.25;
       moveY = ny + py * 0.25;
     } else if (dist < preferred * 0.65) {
@@ -303,18 +334,42 @@
       moveX = px;
       moveY = py;
     }
+
+    // ---- navigation: don't walk into the cover ----
+    if (this.detourTimer > 0) {
+      this.detourTimer -= dt;
+      moveX = this.detourDir.x;
+      moveY = this.detourDir.y;
+    } else if (map && (hasSight || !this.waypoint)) {
+      var steered = map.clearDirection(a.x, a.y, moveX, moveY);
+      moveX = steered.x;
+      moveY = steered.y;
+    }
+
+    // ---- stuck detection: commit to a sideways detour for a moment ----
+    var moved = Math.hypot(f.sprite.x - this.lastX, f.sprite.y - this.lastY);
+    this.lastX = f.sprite.x;
+    this.lastY = f.sprite.y;
+    this.stuckFor = moved < 0.6 ? this.stuckFor + dt : 0;
+    if (this.stuckFor > 0.5 && this.detourTimer <= 0) {
+      var side = Math.random() < 0.5 ? 1 : -1;
+      this.detourDir = { x: -ny * side, y: nx * side };
+      this.detourTimer = 0.7;
+      this.stuckFor = 0;
+    }
+
     f.move(moveX, moveY);
 
     // Ultimate first — it is the big damage, so spend it when it can land.
     // Melee ults close ~345px of that gap themselves, so the bot may cast from
     // further out than its basic-attack reach.
     var ultRange = a.rangeType === 'ranged' ? 460 : (a.ultimate ? a.ultimate.radius + 330 : 300);
-    if (a.superReady() && dist < ultRange && Math.random() < 0.12) {
+    if (a.superReady() && hasSight && dist < ultRange && Math.random() < 0.12) {
       if (f.castUltimate()) return;
     }
 
     this.reaction -= dt;
-    if (dist <= reach * 0.95 && this.reaction <= 0) {
+    if (dist <= reach * 0.95 && hasSight && this.reaction <= 0) {
       if (f.attack()) this.reaction = 0.08 + Math.random() * 0.12 * (2 - this.aggression);
     }
   };

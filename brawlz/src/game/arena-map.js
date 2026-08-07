@@ -51,7 +51,13 @@
     var t = this.tile;
 
     // ground first, so everything else sits on top of it
-    var floor = scene.add.graphics().setDepth(0);
+    if (scene.textures.exists('tile_floor')) {
+      scene.add.tileSprite(
+        (this.rows[0].length * t) / 2, (this.rows.length * t) / 2,
+        this.rows[0].length * t, this.rows.length * t, 'tile_floor'
+      ).setDepth(0);
+    }
+    var floor = scene.add.graphics().setDepth(scene.textures.exists('tile_floor') ? -1 : 0);
     for (var gy = 0; gy < this.rows.length; gy++) {
       for (var gx = 0; gx < this.rows[gy].length; gx++) {
         var shade = (gx + gy) % 2 === 0 ? 0x1d1936 : 0x211c3d;
@@ -79,6 +85,14 @@
     var t = this.tile;
     var scene = this.scene;
 
+    if (scene.textures.exists('tile_wall')) {
+      scene.add.image(cx, cy, 'tile_wall').setDisplaySize(t, t).setDepth(4);
+      var body = scene.add.rectangle(cx, cy, t - 4, t - 8, 0x000000, 0);
+      scene.physics.add.existing(body, true);
+      this.walls.add(body);
+      return;
+    }
+
     // A crate read from above: dark base, lit top face, plank seams. Flat
     // squares make the arena look like a wireframe, and this costs nothing.
     var g = scene.add.graphics().setDepth(4);
@@ -103,6 +117,12 @@
   ArenaMap.prototype.addBush = function (cx, cy) {
     var t = this.tile;
     var scene = this.scene;
+
+    if (scene.textures.exists('tile_bush')) {
+      scene.add.image(cx, cy, 'tile_bush').setDisplaySize(t, t).setDepth(20);
+      this.bushes.push(scene.add.ellipse(cx, cy, t - 4, t - 12, 0x000000, 0));
+      return;
+    }
 
     // A clump of overlapping blobs reads as foliage; one flat circle does not.
     var g = scene.add.graphics().setDepth(20);
@@ -171,6 +191,86 @@
     for (var i = 1; i < steps; i++) {
       var t = i / steps;
       if (this.isWallAt(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)) return true;
+    }
+    return false;
+  };
+
+  ArenaMap.prototype.tileOf = function (x, y) {
+    return { gx: Math.floor(x / this.tile), gy: Math.floor(y / this.tile) };
+  };
+
+  ArenaMap.prototype.isOpenTile = function (gx, gy) {
+    if (gy < 0 || gy >= this.rows.length) return false;
+    if (gx < 0 || gx >= this.rows[gy].length) return false;
+    return this.rows[gy][gx] !== '#';
+  };
+
+  /**
+   * Breadth-first search over the tile grid, returning the next waypoint to
+   * walk towards. Local steering alone cannot solve this map — a bot nudging
+   * itself around one block at a time just oscillates in front of a corridor —
+   * and the grid is 20x11, so an exact search costs nothing.
+   */
+  ArenaMap.prototype.nextWaypoint = function (fromX, fromY, toX, toY) {
+    var start = this.tileOf(fromX, fromY);
+    var goal = this.tileOf(toX, toY);
+    if (!this.isOpenTile(start.gx, start.gy) || !this.isOpenTile(goal.gx, goal.gy)) return null;
+    if (start.gx === goal.gx && start.gy === goal.gy) return null;
+
+    var width = this.rows[0].length;
+    var key = function (gx, gy) { return gy * width + gx; };
+
+    // search outwards from the goal, so the parent chain already points home
+    var cameFrom = {};
+    var queue = [goal];
+    cameFrom[key(goal.gx, goal.gy)] = null;
+    var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+    for (var head = 0; head < queue.length; head++) {
+      var cur = queue[head];
+      if (cur.gx === start.gx && cur.gy === start.gy) break;
+
+      for (var d = 0; d < dirs.length; d++) {
+        var nx = cur.gx + dirs[d][0];
+        var ny = cur.gy + dirs[d][1];
+        var k = key(nx, ny);
+        if (cameFrom[k] !== undefined || !this.isOpenTile(nx, ny)) continue;
+        cameFrom[k] = cur;
+        queue.push({ gx: nx, gy: ny });
+      }
+    }
+
+    var step = cameFrom[key(start.gx, start.gy)];
+    if (step === undefined || step === null) return null;      // unreachable
+    return { x: step.gx * this.tile + this.tile / 2, y: step.gy * this.tile + this.tile / 2 };
+  };
+
+  /**
+   * Steering around walls without a pathfinder: try the direction you want,
+   * then progressively wider detours either side of it, and take the first one
+   * that is clear. Enough for an arena of blocks — a bot that walks face-first
+   * into cover is worse than no cover at all.
+   */
+  ArenaMap.prototype.clearDirection = function (x, y, dirX, dirY, probe) {
+    probe = probe || this.tile * 1.1;
+    var base = Math.atan2(dirY, dirX);
+    var offsets = [0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6, 2.2, -2.2];
+
+    for (var i = 0; i < offsets.length; i++) {
+      var a = base + offsets[i];
+      if (!this.pathBlocked(x, y, a, probe)) {
+        return { x: Math.cos(a), y: Math.sin(a), detoured: offsets[i] !== 0 };
+      }
+    }
+    return { x: -Math.cos(base), y: -Math.sin(base), detoured: true };   // back off
+  };
+
+  /** Samples along a short ray for wall tiles. */
+  ArenaMap.prototype.pathBlocked = function (x, y, angle, distance) {
+    var steps = Math.max(2, Math.ceil(distance / (this.tile / 3)));
+    for (var i = 1; i <= steps; i++) {
+      var d = (distance * i) / steps;
+      if (this.isWallAt(x + Math.cos(angle) * d, y + Math.sin(angle) * d)) return true;
     }
     return false;
   };

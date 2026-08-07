@@ -22,6 +22,7 @@
 
   ArenaScene.prototype.init = function (data) {
     this.roster = data.roster;
+    this.mapArt = data.mapArt || (global.BRAWLZ_MAP_ART || null) || {};
     this.playerId = data.playerId;
     this.enemyId = data.enemyId;
     this.hud = data.hud;
@@ -37,9 +38,21 @@
     var self = this;
     var anySprite = false;
     this.roster.forEach(function (def) {
-      if (!def.sprite) return;
-      anySprite = true;
-      self.load.image('sprite_' + def.id, def.sprite);
+      if (def.sprite) {
+        anySprite = true;
+        self.load.image('sprite_' + def.id, def.sprite);
+      }
+      // Optional extra poses. Any subset works; missing ones fall back to the
+      // base sprite, so a half-finished character still plays.
+      Object.keys(def.frames || {}).forEach(function (name) {
+        self.load.image('frame_' + def.id + '_' + name, def.frames[name]);
+      });
+    });
+
+    // Optional map tile art. Absent files just leave the drawn shapes in place.
+    ['wall', 'bush', 'floor'].forEach(function (name) {
+      var path = (self.mapArt || {})[name];
+      if (path) self.load.image('tile_' + name, path);
     });
 
     // Per-sprite foot anchors written by tools/dekey.py. Missing file just means

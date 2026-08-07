@@ -90,8 +90,40 @@
     this.knockbackTimer = 0;
     this.bubbleEvent = null;
     this.dashing = false;
+    this.dashTimer = 0;
+    this.dashLanding = null;
     this.concealed = false;
+
+    // Extra poses, when the character has them. The procedural hop stays either
+    // way — frames move the limbs, the hop carries the weight.
+    this.frames = {};
+    var self = this;
+    ['idle', 'walk_a', 'walk_b', 'attack'].forEach(function (name) {
+      var key = 'frame_' + actor.def.id + '_' + name;
+      if (scene.textures.exists(key)) self.frames[name] = key;
+    });
+    this.baseTexture = texKey;
+    this.currentFrame = null;
+    this.attackFrameUntil = 0;
   }
+
+  /** Picks the pose for this instant: attack beats walk, walk beats idle. */
+  Fighter.prototype.applyFrame = function (moving) {
+    var wanted = null;
+    if (this.attackFrameUntil > this.scene.time.now && this.frames.attack) {
+      wanted = this.frames.attack;
+    } else if (moving && (this.frames.walk_a || this.frames.walk_b)) {
+      var second = Math.sin(this.animPhase) < 0;
+      wanted = (second ? this.frames.walk_b : this.frames.walk_a) ||
+               this.frames.walk_a || this.frames.walk_b;
+    } else {
+      wanted = this.frames.idle || this.baseTexture;
+    }
+    if (wanted && wanted !== this.currentFrame) {
+      this.currentFrame = wanted;
+      this.art.setTexture(wanted);
+    }
+  };
 
   /** Foot anchor for this character's artwork, as [x, y] fractions. */
   Fighter.prototype.lookupAnchor = function (scene, actor) {
@@ -140,22 +172,33 @@
    * far short of its advertised range.
    */
   Fighter.prototype.dash = function (angle, speed, durationMs, onLand) {
-    var self = this;
     this.dashing = true;
     if (this.scene.setFighterCollisions) this.scene.setFighterCollisions(this, false);
     this.sprite.setDamping(false);
     this.sprite.setDrag(0, 0);
     this.sprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
-    this.scene.time.delayedCall(durationMs, function () {
-      self.dashing = false;
-      if (self.scene.setFighterCollisions) self.scene.setFighterCollisions(self, true);
-      self.sprite.setVelocity(0, 0);
-      self.sprite.setDamping(true);
-      self.sprite.setDrag(DEFAULT_DRAG);
-      self.art.setScale(1);
-      if (onLand) onLand();
-    });
+    // Counted down in update() rather than by a timer callback: the dash then
+    // ends on the same clock that moves the body, so the distance travelled
+    // matches the intent even when the frame rate drops. A timer that fires on
+    // wall-clock while physics runs behind lands the leap in the wrong place —
+    // or, when the timer stalls, never lands it at all.
+    this.dashTimer = durationMs / 1000;
+    this.dashLanding = onLand || null;
+  };
+
+  Fighter.prototype.endDash = function () {
+    this.dashing = false;
+    this.dashTimer = 0;
+    if (this.scene.setFighterCollisions) this.scene.setFighterCollisions(this, true);
+    this.sprite.setVelocity(0, 0);
+    this.sprite.setDamping(true);
+    this.sprite.setDrag(DEFAULT_DRAG);
+    this.art.setScale(1);
+
+    var land = this.dashLanding;
+    this.dashLanding = null;
+    if (land) land();
   };
 
   Fighter.prototype.knockback = function (angle, force) {
@@ -172,6 +215,7 @@
 
     var self = this;
     this.punchAnim();
+    this.attackFrameUntil = this.scene.time.now + 260;
 
     this.scene.time.delayedCall(plan.windup * 1000, function () {
       if (!self.actor.alive) return;
@@ -244,6 +288,7 @@
 
   Fighter.prototype.onDeath = function () {
     var self = this;
+    this.clearDash();
     this.sprite.setVelocity(0, 0);
     this.scene.tweens.add({
       targets: [this.art, this.shadow],
@@ -257,6 +302,12 @@
       duration: 400
     });
     this.scene.time.delayedCall(0, function () { self.aimGfx.clear(); });
+  };
+
+  Fighter.prototype.clearDash = function () {
+    if (!this.dashing) return;
+    this.dashLanding = null;      // no landing blast from a corpse
+    this.endDash();
   };
 
   Fighter.prototype.onRespawn = function () {
@@ -294,6 +345,8 @@
 
     // footfall squash: widest at the bottom of the step
     var squash = moving ? 1 + (1 - stride) * 0.06 : 1;
+
+    this.applyFrame(moving);
 
     this.art.setPosition(this.sprite.x + this.bodyOffsetXVisual(), this.sprite.y - this.hop);
     if (!this.tweenOwnsArt()) {
@@ -337,6 +390,11 @@
     a.y = this.sprite.y;
 
     if (this.knockbackTimer > 0) this.knockbackTimer -= dt;
+
+    if (this.dashing) {
+      this.dashTimer -= dt;
+      if (this.dashTimer <= 0) this.endDash();
+    }
 
     if (!a.alive) {
       this.barGfx.clear();
