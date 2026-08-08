@@ -1,0 +1,454 @@
+/**
+ * Fighter — the Phaser presentation of one CombatActor.
+ *
+ * The actor owns the rules (hp, cooldowns, state); the fighter owns the body,
+ * the health bar, the speech bubble and the animation timing. Every frame the
+ * fighter copies its transform into the actor so the core can hit-test.
+ */
+(function (global) {
+  'use strict';
+  var BrawlZ = (global.BrawlZ = global.BrawlZ || {});
+
+  var BODY_RADIUS = 30;
+  var DEFAULT_DRAG = 0.01;      // damping factor: knockback bleeds off in ~0.3s
+
+  function Fighter(scene, actor) {
+    this.scene = scene;
+    this.system = scene.combat;
+    this.actor = actor;
+    this.theme = actor.def.theme || { body: '#8899aa', accent: '#ffffff', trim: '#dddddd' };
+
+    // Real artwork when the character has it, procedural placeholder otherwise.
+    var artKey = 'sprite_' + actor.def.id;
+    this.hasArt = scene.textures.exists(artKey);
+    var texKey = artKey;
+    if (!this.hasArt) {
+      texKey = 'fighter_' + actor.def.id;
+      BrawlZ.Textures.makeFighterTexture(scene, texKey, this.theme, actor.rangeType === 'ranged');
+    }
+
+    // The physics body and the drawn character are separate objects on purpose.
+    // A single static PNG that slides around reads as a sticker, so the artwork
+    // needs to hop, lean and squash — and none of that may move the hitbox.
+    this.sprite = scene.physics.add.image(actor.x, actor.y, texKey);
+    this.sprite.setVisible(false);
+
+    this.shadow = scene.add.ellipse(actor.x, actor.y, 54, 16, 0x000000, 0.32).setDepth(9);
+    this.art = scene.add.image(actor.x, actor.y, texKey).setDepth(10);
+
+    this.animPhase = Math.random() * Math.PI * 2;   // desync identical characters
+    this.hop = 0;
+    this.lean = 0;
+
+    // Sprites are exported at their final on-screen size, so the game object
+    // scale stays 1 and the arcade circle stays in plain texture pixels.
+    var w = this.sprite.width;
+    var h = this.sprite.height;
+
+    // Art that includes a floating prop (grandma's yarn ball, the sergeant's
+    // megaphone) is wider than the body, so the frame's centre sits in empty
+    // air. dekey.py measures where the character actually stands and the hitbox
+    // goes there instead.
+    var anchor = this.lookupAnchor(scene, actor);
+    var footX = w * (this.hasArt ? anchor[0] : 0.5);
+    var footY = h * (this.hasArt ? anchor[1] : 0.5) + (this.hasArt ? 0 : 4);
+    this.bodyOffsetX = footX - w / 2;      // overlays follow the body, not the frame
+
+    this.sprite.setCircle(BODY_RADIUS, footX - BODY_RADIUS, footY - BODY_RADIUS);
+    this.sprite.setCollideWorldBounds(true);
+    this.sprite.setDamping(true);
+    this.sprite.setDrag(DEFAULT_DRAG);
+    this.sprite.setMaxVelocity(1400);
+    this.sprite.setDepth(10);
+    this.sprite.fighter = this;
+
+    // Overlay offsets follow the artwork's height instead of a fixed constant,
+    // so a taller sprite doesn't collide with its own health bar.
+    this.topOffset = h / 2;
+
+    this.aimGfx = scene.add.graphics().setDepth(9);
+    this.barGfx = scene.add.graphics().setDepth(21);
+
+    this.nameText = scene.add.text(actor.x + this.bodyOffsetX, actor.y - this.topOffset - 24, actor.displayName, {
+      fontFamily: BrawlZ.FONT,
+      fontSize: '15px',
+      color: actor.isPlayer ? '#7cf3c2' : '#ff9c9c',
+      rtl: true
+    }).setOrigin(0.5).setDepth(22);
+
+    this.bubble = scene.add.text(actor.x + this.bodyOffsetX, actor.y - this.topOffset - 34, '', {
+      fontFamily: BrawlZ.FONT,
+      fontSize: '17px',
+      color: '#ffffff',
+      backgroundColor: 'rgba(18,14,30,0.92)',
+      padding: { x: 12, y: 8 },
+      align: 'right',
+      rtl: true,
+      wordWrap: { width: 300 }
+    }).setOrigin(0.5, 1).setDepth(31).setVisible(false);
+
+    this.knockbackTimer = 0;
+    this.bubbleEvent = null;
+    this.dashing = false;
+    this.dashTimer = 0;
+    this.dashLanding = null;
+    this.concealed = false;
+
+    // Extra poses, when the character has them. The procedural hop stays either
+    // way — frames move the limbs, the hop carries the weight.
+    this.frames = {};
+    var self = this;
+    ['idle', 'walk_a', 'walk_b', 'attack'].forEach(function (name) {
+      var key = 'frame_' + actor.def.id + '_' + name;
+      if (scene.textures.exists(key)) self.frames[name] = key;
+    });
+    this.baseTexture = texKey;
+    this.currentFrame = null;
+    this.attackFrameUntil = 0;
+  }
+
+  /** Picks the pose for this instant: attack beats walk, walk beats idle. */
+  Fighter.prototype.applyFrame = function (moving) {
+    var wanted = null;
+    if (this.attackFrameUntil > this.scene.time.now && this.frames.attack) {
+      wanted = this.frames.attack;
+    } else if (moving && (this.frames.walk_a || this.frames.walk_b)) {
+      var second = Math.sin(this.animPhase) < 0;
+      wanted = (second ? this.frames.walk_b : this.frames.walk_a) ||
+               this.frames.walk_a || this.frames.walk_b;
+    } else {
+      wanted = this.frames.idle || this.baseTexture;
+    }
+    if (wanted && wanted !== this.currentFrame) {
+      this.currentFrame = wanted;
+      this.art.setTexture(wanted);
+    }
+  };
+
+  /** Foot anchor for this character's artwork, as [x, y] fractions. */
+  Fighter.prototype.lookupAnchor = function (scene, actor) {
+    var fallback = [0.5, 0.62];
+    if (!this.hasArt || !actor.def.sprite) return fallback;
+
+    // Served build: the report arrives over HTTP. Single-file build: there is
+    // no HTTP, so the same data is handed over as a global instead.
+    var meta = scene.cache.json.get('spriteMeta') || global.BRAWLZ_SPRITE_META;
+    if (!meta || !meta.length) return fallback;
+
+    // spriteFile survives when the sprite path itself became a data URI
+    var base = actor.def.spriteFile || actor.def.sprite.split('/').pop();
+    for (var i = 0; i < meta.length; i++) {
+      if (meta[i].file === base && meta[i].anchor) return meta[i].anchor;
+    }
+    return fallback;
+  };
+
+  /* ---------------- movement ---------------- */
+
+  Fighter.prototype.move = function (dirX, dirY) {
+    if (!this.actor.canMove() || this.dashing) return;
+    if (this.knockbackTimer > 0) return;      // let the hit push land first
+
+    var len = Math.sqrt(dirX * dirX + dirY * dirY);
+    if (len < 0.15) {
+      this.sprite.setVelocity(0, 0);
+      return;
+    }
+    var speed = this.actor.moveSpeed;
+    this.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);
+  };
+
+  Fighter.prototype.aimAt = function (x, y) {
+    this.actor.aim = Math.atan2(y - this.sprite.y, x - this.sprite.x);
+  };
+
+  Fighter.prototype.aimTowards = function (angle) {
+    this.actor.aim = angle;
+  };
+
+  /**
+   * Fixed-distance lunge used by gap-closing ultimates. Damping is switched off
+   * for the duration, otherwise drag eats most of the travel and the dash lands
+   * far short of its advertised range.
+   */
+  Fighter.prototype.dash = function (angle, speed, durationMs, onLand) {
+    this.dashing = true;
+    if (this.scene.setFighterCollisions) this.scene.setFighterCollisions(this, false);
+    this.sprite.setDamping(false);
+    this.sprite.setDrag(0, 0);
+    this.sprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+
+    // Counted down in update() rather than by a timer callback: the dash then
+    // ends on the same clock that moves the body, so the distance travelled
+    // matches the intent even when the frame rate drops. A timer that fires on
+    // wall-clock while physics runs behind lands the leap in the wrong place —
+    // or, when the timer stalls, never lands it at all.
+    this.dashTimer = durationMs / 1000;
+    this.dashLanding = onLand || null;
+  };
+
+  Fighter.prototype.endDash = function () {
+    this.dashing = false;
+    this.dashTimer = 0;
+    if (this.scene.setFighterCollisions) this.scene.setFighterCollisions(this, true);
+    this.sprite.setVelocity(0, 0);
+    this.sprite.setDamping(true);
+    this.sprite.setDrag(DEFAULT_DRAG);
+    this.art.setScale(1);
+
+    var land = this.dashLanding;
+    this.dashLanding = null;
+    if (land) land();
+  };
+
+  Fighter.prototype.knockback = function (angle, force) {
+    if (!force) return;
+    this.knockbackTimer = 0.28;
+    this.sprite.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
+  };
+
+  /* ---------------- basic attack ---------------- */
+
+  Fighter.prototype.attack = function () {
+    var plan = this.system.requestAttack(this.actor);
+    if (!plan) return false;
+
+    var self = this;
+    this.punchAnim();
+    this.attackFrameUntil = this.scene.time.now + 260;
+
+    this.scene.time.delayedCall(plan.windup * 1000, function () {
+      if (!self.actor.alive) return;
+      if (plan.kind === 'melee') {
+        self.scene.showSwing(self, plan);
+        self.system.resolveMelee(self.actor, plan);
+      } else {
+        self.scene.spawnProjectile({
+          owner: self.actor,
+          x: self.sprite.x + Math.cos(plan.aim) * 34,
+          y: self.sprite.y + Math.sin(plan.aim) * 34,
+          angle: plan.aim,
+          speed: plan.projectileSpeed,
+          radius: plan.projectileRadius,
+          damage: plan.damage,
+          knockback: plan.knockback,
+          range: plan.reach,
+          color: self.theme.accent
+        });
+      }
+    });
+    return true;
+  };
+
+  Fighter.prototype.punchAnim = function () {
+    var self = this;
+    this.scene.tweens.add({
+      targets: this.art,
+      scaleX: 1.18,
+      scaleY: 0.86,
+      duration: 90,
+      yoyo: true,
+      onComplete: function () { self.art.setScale(1); }
+    });
+  };
+
+  /* ---------------- ultimate ---------------- */
+
+  Fighter.prototype.castUltimate = function () {
+    var payload = this.system.requestUltimate(this.actor);
+    if (!payload) return false;
+
+    var name = this.actor.ultimate.name;
+    var impl = BrawlZ.Ultimates[name] || BrawlZ.Ultimates._default;
+    impl(this.scene, this, payload);
+    return true;
+  };
+
+  /* ---------------- feedback ---------------- */
+
+  Fighter.prototype.say = function (text) {
+    this.bubble.setText(text).setVisible(true).setAlpha(1);
+    if (this.bubbleEvent) this.bubbleEvent.remove(false);
+    var self = this;
+    this.bubbleEvent = this.scene.time.delayedCall(2800, function () {
+      self.scene.tweens.add({
+        targets: self.bubble,
+        alpha: 0,
+        duration: 350,
+        onComplete: function () { self.bubble.setVisible(false); }
+      });
+    });
+  };
+
+  Fighter.prototype.flash = function (color) {
+    var self = this;
+    this.art.setTintFill(color == null ? 0xffffff : color);
+    this.scene.time.delayedCall(70, function () { self.art.clearTint(); });
+  };
+
+  Fighter.prototype.onDeath = function () {
+    var self = this;
+    this.clearDash();
+    this.sprite.setVelocity(0, 0);
+    this.scene.tweens.add({
+      targets: [this.art, this.shadow],
+      alpha: 0.15,
+      duration: 400
+    });
+    this.scene.tweens.add({
+      targets: this.art,
+      angle: 90,
+      scale: 0.75,
+      duration: 400
+    });
+    this.scene.time.delayedCall(0, function () { self.aimGfx.clear(); });
+  };
+
+  Fighter.prototype.clearDash = function () {
+    if (!this.dashing) return;
+    this.dashLanding = null;      // no landing blast from a corpse
+    this.endDash();
+  };
+
+  Fighter.prototype.onRespawn = function () {
+    this.sprite.setPosition(this.actor.spawnX, this.actor.spawnY);
+    this.sprite.setVelocity(0, 0);
+    this.art.setAlpha(1).setAngle(0).setScale(1);
+    this.shadow.setAlpha(0.32);
+    this.knockbackTimer = 0;
+    this.dashing = false;
+  };
+
+  /* ---------------- per-frame ---------------- */
+
+  /**
+   * Procedural motion, since the artwork is a single frame with no rig: a
+   * two-beat hop while walking, a lean into the direction of travel, squash on
+   * each footfall, and a shadow that tightens as the character rises. Idle gets
+   * a slow breathing bob so a standing character is never perfectly frozen.
+   */
+  Fighter.prototype.animate = function (dt) {
+    var body = this.sprite.body;
+    var speed = body ? Math.sqrt(body.velocity.x * body.velocity.x + body.velocity.y * body.velocity.y) : 0;
+    var moving = speed > 25;
+
+    this.animPhase += dt * (moving ? 13 : 2.4);
+
+    var stride = Math.abs(Math.sin(this.animPhase));
+    var targetHop = moving ? stride * 9 : Math.sin(this.animPhase) * 1.6 + 1.6;
+    this.hop += (targetHop - this.hop) * Math.min(1, dt * 18);
+
+    // lean into travel, and unwind smoothly when stopping
+    var targetLean = moving ? Phaser.Math.Clamp(body.velocity.x / 260, -1, 1) * 7 : 0;
+    if (this.art.flipX) targetLean = -targetLean;
+    this.lean += (targetLean - this.lean) * Math.min(1, dt * 10);
+
+    // footfall squash: widest at the bottom of the step
+    var squash = moving ? 1 + (1 - stride) * 0.06 : 1;
+
+    this.applyFrame(moving);
+
+    this.art.setPosition(this.sprite.x + this.bodyOffsetXVisual(), this.sprite.y - this.hop);
+    if (!this.tweenOwnsArt()) {
+      this.art.setAngle(this.lean);
+      this.art.setScale(squash, 2 - squash);
+    }
+
+    // the shadow stays on the ground and shrinks as the character rises
+    var lift = 1 - Math.min(this.hop, 12) / 26;
+    this.shadow.setPosition(this.sprite.x + this.bodyOffsetXVisual(), this.sprite.y + this.topOffset * 0.42);
+    this.shadow.setScale(lift, lift);
+  };
+
+  /** Hidden in a bush: the character and everything above it stops drawing. */
+  Fighter.prototype.setConcealed = function (hidden) {
+    if (this.concealed === hidden) return;
+    this.concealed = hidden;
+    this.art.setVisible(!hidden);
+    this.shadow.setVisible(!hidden);
+    this.nameText.setVisible(!hidden);
+    if (hidden) {
+      this.barGfx.clear();
+      this.aimGfx.clear();
+    }
+  };
+
+  /** True while a tween is driving the artwork, so per-frame motion backs off. */
+  Fighter.prototype.tweenOwnsArt = function () {
+    return this.dashing || this.scene.tweens.isTweening(this.art);
+  };
+
+  Fighter.prototype.bodyOffsetXVisual = function () {
+    return this.art && this.art.flipX ? -this.bodyOffsetX : this.bodyOffsetX;
+  };
+
+  Fighter.prototype.update = function (dt) {
+    var a = this.actor;
+
+    // push the rendered transform back into the rules layer
+    a.x = this.sprite.x;
+    a.y = this.sprite.y;
+
+    if (this.knockbackTimer > 0) this.knockbackTimer -= dt;
+
+    if (this.dashing) {
+      this.dashTimer -= dt;
+      if (this.dashTimer <= 0) this.endDash();
+    }
+
+    if (!a.alive) {
+      this.barGfx.clear();
+      this.aimGfx.clear();
+      this.nameText.setVisible(false);
+      this.bubble.setPosition(this.sprite.x, this.sprite.y - this.topOffset);
+      return;
+    }
+
+    this.animate(dt);
+
+    var bodyX = this.sprite.x + this.bodyOffsetXVisual();
+    var headY = this.sprite.y - this.hop - this.topOffset;
+    if (this.concealed) { this.barGfx.clear(); this.aimGfx.clear(); return; }
+    this.nameText.setVisible(true).setPosition(bodyX, headY - 24);
+    this.bubble.setPosition(bodyX, headY - 34);
+
+    // Artwork is drawn facing right; mirror it when aiming left.
+    if (this.hasArt) this.art.setFlipX(Math.abs(a.aim) > Math.PI / 2);
+
+    // spawn protection shimmer
+    this.art.setAlpha(a.invulnerableFor > 0 ? 0.55 + 0.35 * Math.sin(this.scene.time.now / 60) : 1);
+
+    // facing arrow
+    this.aimGfx.clear();
+    this.aimGfx.lineStyle(4, Phaser.Display.Color.HexStringToColor(this.theme.accent).color, 0.75);
+    this.aimGfx.beginPath();
+    this.aimGfx.moveTo(this.sprite.x + Math.cos(a.aim) * 32, this.sprite.y + Math.sin(a.aim) * 32);
+    this.aimGfx.lineTo(this.sprite.x + Math.cos(a.aim) * 52, this.sprite.y + Math.sin(a.aim) * 52);
+    this.aimGfx.strokePath();
+
+    // health bar
+    var w = 72, h = 9, x = bodyX - w / 2, y = headY - 10;
+    this.barGfx.clear();
+    this.barGfx.fillStyle(0x000000, 0.55);
+    this.barGfx.fillRoundedRect(x - 2, y - 2, w + 4, h + 4, 5);
+    this.barGfx.fillStyle(0x3a3450, 1);
+    this.barGfx.fillRoundedRect(x, y, w, h, 4);
+    var ratio = a.hpRatio();
+    var color = ratio > 0.5 ? 0x54e08a : ratio > 0.25 ? 0xf2c14e : 0xef4a5b;
+    this.barGfx.fillStyle(color, 1);
+    if (ratio > 0) this.barGfx.fillRoundedRect(x, y, Math.max(4, w * ratio), h, 4);
+  };
+
+  Fighter.prototype.destroy = function () {
+    this.sprite.destroy();
+    this.art.destroy();
+    this.shadow.destroy();
+    this.barGfx.destroy();
+    this.aimGfx.destroy();
+    this.nameText.destroy();
+    this.bubble.destroy();
+  };
+
+  BrawlZ.Fighter = Fighter;
+  BrawlZ.BODY_RADIUS = BODY_RADIUS;
+})(typeof window !== 'undefined' ? window : globalThis);

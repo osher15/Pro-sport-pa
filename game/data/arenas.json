@@ -1,0 +1,230 @@
+{
+  "version": "Beta 0.2",
+  "tile": 80,
+  "legend": {
+    "#": "wall — blocks movement and shots",
+    "*": "bush — hides you from anyone more than two tiles away",
+    ".": "open floor",
+    "A": "team A spawn",
+    "B": "team B spawn"
+  },
+  "arenas": [
+    {
+      "id": "arena_mine",
+      "name": "Gold Mine",
+      "name_he": "מכרה הזהב",
+      "blurb_he": "הזירה הקלאסית. קירות אבן, שיחים בפינות, ואף אחד לא נופל עליך מלמעלה.",
+      "difficulty": 1,
+      "grid": [
+        "....................",
+        "..**....####....**..",
+        "..**....#..#....**..",
+        ".A......#..#......B.",
+        "....##..........##..",
+        "..*...####..####...*",
+        "....##..........##..",
+        ".A......#..#......B.",
+        "..**....#..#....**..",
+        "..**....####....**..",
+        "...................."
+      ],
+      "art": {
+        "floor": "assets/arena_mine_floor.png",
+        "wall": "assets/arena_mine_wall.png",
+        "bush": "assets/arena_mine_bush.png"
+      },
+      "palette": {
+        "sky": "#171232",
+        "fog": "#171232",
+        "floor": "#c9a86a",
+        "wall": "#8a6b4f",
+        "wallCap": "#a8865f",
+        "bush": "#4f9b45",
+        "rim": "#5c4633",
+        "surround": "#241b45",
+        "sun": "#fff0cf"
+      },
+      "hazards": []
+    },
+    {
+      "id": "arena_meteor",
+      "name": "Meteor Yard",
+      "name_he": "מגרש המטאורים",
+      "blurb_he": "פתוח, מסוכן, ומשמיים נופלות אבנים בוערות. הצל על הרצפה הוא ההתראה היחידה שתקבל.",
+      "difficulty": 3,
+      "grid": [
+        "....................",
+        ".....##......##.....",
+        "..*.............*...",
+        ".A....##....##....B.",
+        "....................",
+        "...##....##....##...",
+        "....................",
+        ".A....##....##....B.",
+        "..*.............*...",
+        ".....##......##.....",
+        "...................."
+      ],
+      "art": {
+        "floor": "assets/arena_meteor_floor.png",
+        "wall": "assets/arena_meteor_wall.png",
+        "bush": "assets/arena_meteor_bush.png"
+      },
+      "palette": {
+        "sky": "#2b0f14",
+        "fog": "#3a1410",
+        "floor": "#a8724a",
+        "wall": "#6e4230",
+        "wallCap": "#8a5539",
+        "bush": "#5f7a3a",
+        "rim": "#3d2117",
+        "surround": "#1a0a0c",
+        "sun": "#ffb27a"
+      },
+      "hazards": [
+        {
+          "type": "meteor_rain",
+          "first": 6,
+          "interval": 5.5,
+          "warning": 1.5,
+          "count": 2,
+          "damage": 850,
+          "radius": 135,
+          "knockback": 460
+        },
+        {
+          "type": "supply_drop",
+          "first": 16,
+          "interval": 22,
+          "fall": 2.2,
+          "heal": 0.35,
+          "superCharge": 1
+        }
+      ]
+    },
+    {
+      "id": "arena_garden",
+      "name": "Glow Garden",
+      "name_he": "הגן הזוהר",
+      "blurb_he": "יער סגול־זוהר עם המון מחבואים. על הרצפה יש רפידות אנרגיה — לעמוד עליהן טוען את האולטימייט, אבל כולם רואים אותך שם.",
+      "difficulty": 2,
+      "grid": [
+        "....................",
+        ".**....*....*....**.",
+        ".**..#####..###..**.",
+        ".A...#.........#..B.",
+        "..*..#..*...*..#..*.",
+        ".....#.........#....",
+        "..*..#..*...*..#..*.",
+        ".A...#.........#..B.",
+        ".**..###..#####..**.",
+        ".**....*....*....**.",
+        "...................."
+      ],
+      "art": {
+        "floor": "assets/arena_garden_floor.png",
+        "wall": "assets/arena_garden_wall.png",
+        "bush": "assets/arena_garden_bush.png"
+      },
+      "palette": {
+        "sky": "#0d1b2a",
+        "fog": "#132a3d",
+        "floor": "#6f8f7a",
+        "wall": "#4a6b7a",
+        "wallCap": "#6f96a3",
+        "bush": "#3fbf7f",
+        "rim": "#25404a",
+        "surround": "#08131d",
+        "sun": "#b6ffe4"
+      },
+      "hazards": [
+        {
+          "type": "energy_pad",
+          "chargePerSecond": 0.14,
+          "tiles": [
+            [
+              10,
+              2
+            ],
+            [
+              10,
+              8
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              15,
+              5
+            ]
+          ]
+        },
+        {
+          "type": "supply_drop",
+          "first": 12,
+          "interval": 18,
+          "fall": 2.2,
+          "heal": 0.3,
+          "superCharge": 1
+        }
+      ]
+    },
+    {
+      "id": "arena_rooftop",
+      "name": "Sky Rooftop",
+      "name_he": "הגג המרחף",
+      "blurb_he": "לוח צר באוויר. אין לאן לברוח, ומדי כמה שניות נוחתת ארגז אספקה שכולם רוצים.",
+      "difficulty": 3,
+      "grid": [
+        "....................",
+        "....................",
+        "...##..........##...",
+        ".A.....*....*.....B.",
+        "....##........##....",
+        "......#.##.#........",
+        "....##........##....",
+        ".A.....*....*.....B.",
+        "...##..........##...",
+        "....................",
+        "...................."
+      ],
+      "art": {
+        "floor": "assets/arena_rooftop_floor.png",
+        "wall": "assets/arena_rooftop_wall.png",
+        "bush": "assets/arena_rooftop_bush.png"
+      },
+      "palette": {
+        "sky": "#1b2f5e",
+        "fog": "#2a4a8a",
+        "floor": "#b8b4c8",
+        "wall": "#7a7f9c",
+        "wallCap": "#9aa0bd",
+        "bush": "#57a86b",
+        "rim": "#4a4f6b",
+        "surround": "#0e1836",
+        "sun": "#ffffff"
+      },
+      "hazards": [
+        {
+          "type": "supply_drop",
+          "first": 8,
+          "interval": 12,
+          "fall": 2.4,
+          "heal": 0.3,
+          "superCharge": 1
+        },
+        {
+          "type": "meteor_rain",
+          "first": 20,
+          "interval": 14,
+          "warning": 1.8,
+          "count": 1,
+          "damage": 700,
+          "radius": 120,
+          "knockback": 620
+        }
+      ]
+    }
+  ]
+}
