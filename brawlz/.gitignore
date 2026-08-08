@@ -5,3 +5,7 @@ __pycache__/
 # Raw generator output. The processed tiles in art/tiles are what the game
 # loads and those are committed; the 1024px originals are not worth the weight.
 art/generated/
+
+# Playwright, installed locally to run tools/test.
+node_modules/
+tools/test/shots/
