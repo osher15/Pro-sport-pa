@@ -305,15 +305,9 @@ details.fold .bd{padding:0 12px 13px}
 .fit-pre.on{border-color:var(--acc);background:var(--accDim)}
 .fit-exgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .fit-ex{border:1px solid var(--line);border-radius:14px;background:var(--panel2);padding:11px;cursor:pointer;text-align:center}
-.fit-ex svg{width:74px;height:74px}
+.fit-ex img{width:74px;height:74px;border-radius:10px}
 .fit-ex b{display:block;font-size:13.5px;margin-top:5px}
 .fit-ex span{font-size:11px;color:var(--faint)}
-.fig2{overflow:visible}
-.fig2 .limb{stroke:var(--ink);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
-.fig2 .torso{stroke:var(--acc);stroke-width:10;stroke-linecap:round;fill:none}
-.fig2 .hd{fill:var(--acc);stroke:var(--panel2);stroke-width:2}
-.fig2 .hl{fill:rgba(255,255,255,.5);stroke:none}
-.fig2 .gnd{fill:var(--ink);opacity:.1;stroke:none}
 .dicewrap{display:flex;gap:16px;justify-content:center;margin:14px 0}
 .die{width:104px;height:104px;border-radius:18px;background:linear-gradient(160deg,#13301f,#0a1c12);border:2px solid var(--acc);
   display:grid;place-items:center;text-align:center;padding:6px;transition:transform .5s}
@@ -3701,176 +3695,13 @@ const REC=(function(){
    ============================================================ */
 const FIT=(function(){
   /* ---------- exercise library ---------- */
-  /* ---------- מנוע איורים (ריג מפרקים) ---------- */
-  const STAND={hd:[50,20],nk:[50,30],hip:[50,54],
-    shL:[42,32],elL:[38,45],haL:[35,58],
-    shR:[58,32],elR:[62,45],haR:[65,58],
-    knL:[45,71],ftL:[43,90],
-    knR:[55,71],ftR:[57,90]};
-  const P=over=>Object.assign({},STAND,over);
-
-  function human(frames,dur){
-    dur=dur||1.4;
-    const seg2=(a,b)=>`M${a[0]} ${a[1]} L${b[0]} ${b[1]}`;
-    const seg3=(a,b,c)=>`M${a[0]} ${a[1]} L${b[0]} ${b[1]} L${c[0]} ${c[1]}`;
-    const anim=(attr,vals)=>`<animate attributeName="${attr}" values="${vals.join(";")}" dur="${dur}s" repeatCount="indefinite"/>`;
-    const torso=frames.map(f=>seg2(f.nk,f.hip));
-    const armL=frames.map(f=>seg3(f.shL,f.elL,f.haL));
-    const armR=frames.map(f=>seg3(f.shR,f.elR,f.haR));
-    const legL=frames.map(f=>seg3(f.hip,f.knL,f.ftL));
-    const legR=frames.map(f=>seg3(f.hip,f.knR,f.ftR));
-    const hx=frames.map(f=>f.hd[0]), hy=frames.map(f=>f.hd[1]);
-    const hlx=hx.map(x=>x-3), hly=hy.map(y=>y-3);
-    return `<svg viewBox="0 0 100 100" class="fig2">`+
-      `<ellipse class="gnd" cx="50" cy="96" rx="18" ry="3"/>`+
-      `<path class="limb" d="${armL[0]}">${anim("d",armL)}</path>`+
-      `<path class="limb" d="${armR[0]}">${anim("d",armR)}</path>`+
-      `<path class="limb" d="${legL[0]}">${anim("d",legL)}</path>`+
-      `<path class="limb" d="${legR[0]}">${anim("d",legR)}</path>`+
-      `<path class="torso" d="${torso[0]}">${anim("d",torso)}</path>`+
-      `<circle class="hd" cx="${hx[0]}" cy="${hy[0]}" r="9">${anim("cx",hx)}${anim("cy",hy)}</circle>`+
-      `<circle class="hl" cx="${hlx[0]}" cy="${hly[0]}" r="2.4">${anim("cx",hlx)}${anim("cy",hly)}</circle>`+
-      `</svg>`;
-  }
-  function rig(base,active,dur){ return human([base,active,base],dur); }
-
-  const POSES={
-    squat:[STAND, P({hip:[50,68],nk:[50,37],shL:[43,39],elL:[36,44],haL:[32,50],shR:[57,39],elR:[64,44],haR:[68,50],knL:[38,65],ftL:[36,90],knR:[62,65],ftR:[64,90]})],
-    lunge:[STAND, P({hip:[48,60],nk:[48,40],shL:[41,42],elL:[35,50],haL:[32,58],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]})],
-    stepup:[STAND, P({hip:[52,50],nk:[52,30],knL:[40,52],ftL:[38,32],knR:[60,66],ftR:[64,90],shL:[45,32],elL:[38,26],haL:[34,18],shR:[59,32],elR:[64,42],haR:[68,52]})],
-    calf:[STAND, P({hd:[50,17],nk:[50,27],hip:[50,51],knL:[45,68],knR:[55,68]})],
-    deepsquat:[STAND, P({hip:[50,72],nk:[50,44],shL:[44,46],elL:[36,50],haL:[32,54],shR:[56,46],elR:[64,50],haR:[68,54],knL:[36,68],ftL:[36,90],knR:[64,68],ftR:[64,90]})],
-    hinge:[STAND, P({nk:[46,36],hip:[55,48],shL:[40,38],elL:[38,52],haL:[38,66],shR:[52,38],elR:[50,52],haR:[50,66],knL:[46,68],ftL:[43,89],knR:[60,68],ftR:[62,89]})],
-    kbswing:[P({nk:[46,36],hip:[55,50],shL:[40,38],elL:[40,52],haL:[42,64],shR:[52,38],elR:[50,52],haR:[50,64],knL:[46,68],ftL:[43,89],knR:[60,68],ftR:[62,89]}),
-              P({shL:[42,32],elL:[38,18],haL:[36,6],shR:[58,32],elR:[62,18],haR:[64,6]})],
-    row:[P({nk:[46,36],hip:[54,50],shL:[40,38],elL:[36,52],haL:[34,68],shR:[52,38],elR:[48,52],haR:[46,68],knL:[46,68],ftL:[44,89],knR:[58,68],ftR:[60,89]}),
-         P({nk:[46,36],hip:[54,50],shL:[40,38],elL:[42,44],haL:[48,40],shR:[52,38],elR:[54,44],haR:[60,40],knL:[46,68],ftL:[44,89],knR:[58,68],ftR:[60,89]})],
-    press:[P({shL:[42,32],elL:[36,38],haL:[34,44],shR:[58,32],elR:[64,38],haR:[66,44]}),
-           P({shL:[42,32],elL:[38,20],haL:[38,8],shR:[58,32],elR:[62,20],haR:[62,8]})],
-    pulldown:[P({shL:[42,32],elL:[36,20],haL:[34,8],shR:[58,32],elR:[64,20],haR:[66,8]}),
-              P({shL:[42,32],elL:[34,30],haL:[30,36],shR:[58,32],elR:[66,30],haR:[70,36]})],
-    curl:[STAND, P({elL:[38,45],haL:[42,32],elR:[62,45],haR:[58,32]})],
-    tripush:[P({elL:[38,40],haL:[36,50],elR:[62,40],haR:[64,50]}), P({elL:[38,40],haL:[38,58],elR:[62,40],haR:[62,58]})],
-    carry:[P({knL:[44,68],ftL:[40,90],knR:[56,74],ftR:[64,90]}), P({knL:[56,74],ftL:[64,90],knR:[44,68],ftR:[40,90]})],
-    jack:[STAND, P({nk:[50,27],shL:[38,20],elL:[30,10],haL:[26,3],shR:[62,20],elR:[70,10],haR:[74,3],knL:[38,68],ftL:[30,90],knR:[62,68],ftR:[70,90]})],
-    knees:[P({hip:[50,52],nk:[50,32],knL:[40,50],ftL:[38,72],knR:[60,72],ftR:[62,90],shL:[43,34],elL:[36,30],haL:[34,22],shR:[57,34],elR:[64,42],haR:[68,52]}),
-           P({hip:[50,52],nk:[50,32],knR:[40,50],ftR:[38,72],knL:[60,72],ftL:[62,90],shR:[43,34],elR:[36,30],haR:[34,22],shL:[57,34],elL:[64,42],haL:[68,52]})],
-    buttkick:[P({knL:[43,68],ftL:[40,88],knR:[57,70],ftR:[70,74]}), P({knR:[43,68],ftR:[40,88],knL:[57,70],ftL:[30,74]})],
-    skater:[P({hip:[46,58],nk:[46,36],knL:[34,66],ftL:[26,88],knR:[58,72],ftR:[68,86],shL:[40,38],elL:[30,44],haL:[24,50],shR:[52,38],elR:[62,30],haR:[70,20]}),
-            P({hip:[54,58],nk:[54,36],knR:[66,66],ftR:[74,88],knL:[42,72],ftL:[32,86],shR:[60,38],elR:[70,44],haR:[76,50],shL:[48,38],elL:[38,30],haL:[30,20]})],
-    burpee:[P({hip:[50,66],nk:[50,50],shL:[44,52],elL:[38,58],haL:[34,64],shR:[56,52],elR:[62,58],haR:[66,64],knL:[40,66],ftL:[38,88],knR:[60,66],ftR:[62,88]}),
-            P({hip:[50,46],nk:[50,26],shL:[40,28],elL:[34,18],haL:[30,8],shR:[60,28],elR:[66,18],haR:[70,8],knL:[42,60],ftL:[40,84],knR:[58,60],ftR:[60,84]})],
-    climber:[
-      {hd:[18,45],nk:[26,48],hip:[58,50],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
-       knL:[74,50],ftL:[90,52],knR:[45,46],ftR:[36,56]},
-      {hd:[18,45],nk:[26,48],hip:[58,50],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
-       knL:[45,46],ftL:[36,56],knR:[74,50],ftR:[90,52]}
-    ],
-    plank:[
-      {hd:[18,48],nk:[26,50],hip:[62,52],shL:[28,50],elL:[27,58],haL:[27,64],shR:[28,46],elR:[27,54],haR:[27,60],
-       knL:[80,54],ftL:[94,54],knR:[80,50],ftR:[94,50]},
-      {hd:[18,50],nk:[26,52],hip:[62,53],shL:[28,52],elL:[27,60],haL:[27,66],shR:[28,48],elR:[27,56],haR:[27,62],
-       knL:[80,55],ftL:[94,55],knR:[80,51],ftR:[94,51]}
-    ],
-    splank:[
-      {hd:[20,42],nk:[28,44],hip:[62,50],shL:[30,46],elL:[30,60],haL:[30,72],shR:[30,40],elR:[38,32],haR:[46,24],
-       knL:[80,54],ftL:[95,54],knR:[80,50],ftR:[95,50]},
-      {hd:[20,40],nk:[28,42],hip:[62,48],shL:[30,44],elL:[30,58],haL:[30,70],shR:[30,38],elR:[36,28],haR:[42,18],
-       knL:[80,52],ftL:[95,52],knR:[80,48],ftR:[95,48]}
-    ],
-    push:[
-      {hd:[16,44],nk:[24,48],hip:[60,52],shL:[26,50],elL:[36,58],haL:[46,60],shR:[26,46],elR:[36,54],haR:[46,56],
-       knL:[76,56],ftL:[92,58],knR:[76,52],ftR:[92,54]},
-      {hd:[16,54],nk:[24,58],hip:[60,56],shL:[26,60],elL:[30,64],haL:[46,60],shR:[26,56],elR:[30,60],haR:[46,56],
-       knL:[76,58],ftL:[92,58],knR:[76,54],ftR:[92,54]}
-    ],
-    pike:[
-      {hd:[18,58],nk:[26,52],hip:[58,34],shL:[28,50],elL:[36,58],haL:[46,60],shR:[28,46],elR:[36,54],haR:[46,56],
-       knL:[76,44],ftL:[92,58],knR:[76,40],ftR:[92,54]},
-      {hd:[22,66],nk:[28,58],hip:[58,34],shL:[30,58],elL:[32,66],haL:[46,60],shR:[30,54],elR:[32,62],haR:[46,56],
-       knL:[76,44],ftL:[92,58],knR:[76,40],ftR:[92,54]}
-    ],
-    dip:[
-      {hd:[18,40],nk:[26,44],hip:[46,50],shL:[28,46],elL:[24,56],haL:[26,66],shR:[28,42],elR:[24,52],haR:[26,62],
-       knL:[62,50],ftL:[86,58],knR:[62,46],ftR:[86,54]},
-      {hd:[18,50],nk:[26,54],hip:[46,60],shL:[28,56],elL:[20,58],haL:[24,66],shR:[28,52],elR:[20,54],haR:[24,62],
-       knL:[62,54],ftL:[86,58],knR:[62,50],ftR:[86,54]}
-    ],
-    bench:[
-      {hd:[18,54],nk:[28,54],hip:[64,56],shL:[34,54],elL:[34,66],haL:[34,76],shR:[34,50],elR:[34,62],haR:[34,72],
-       knL:[80,58],ftL:[92,68],knR:[80,54],ftR:[92,64]},
-      {hd:[18,54],nk:[28,54],hip:[64,56],shL:[34,54],elL:[30,40],haL:[26,26],shR:[34,50],elR:[30,38],haR:[26,24],
-       knL:[80,58],ftL:[92,68],knR:[80,54],ftR:[92,64]}
-    ],
-    bearcrawl:[
-      {hd:[22,44],nk:[30,46],hip:[62,44],shL:[32,48],elL:[36,60],haL:[36,72],shR:[32,44],elR:[42,54],haR:[52,58],
-       knL:[74,52],ftL:[74,70],knR:[76,46],ftR:[92,54]},
-      {hd:[22,44],nk:[30,46],hip:[62,44],shL:[32,48],elL:[42,54],haL:[52,58],shR:[32,44],elR:[36,60],haR:[36,72],
-       knL:[76,46],ftL:[92,54],knR:[74,52],ftR:[74,70]}
-    ],
-    situp:[
-      {hd:[24,64],nk:[32,58],hip:[62,52],shL:[34,58],elL:[26,52],haL:[24,44],shR:[34,54],elR:[26,48],haR:[24,40],
-       knL:[80,58],ftL:[94,44],knR:[80,54],ftR:[94,40]},
-      {hd:[46,36],nk:[48,44],hip:[62,52],shL:[46,40],elL:[38,36],haL:[30,32],shR:[46,36],elR:[38,32],haR:[30,28],
-       knL:[80,58],ftL:[94,44],knR:[80,54],ftR:[94,40]}
-    ],
-    bicycle:[
-      {hd:[30,54],nk:[36,50],hip:[62,52],shL:[38,52],elL:[30,46],haL:[24,40],shR:[38,48],elR:[30,42],haR:[24,36],
-       knL:[76,42],ftL:[92,50],knR:[80,58],ftR:[96,64]},
-      {hd:[30,54],nk:[36,50],hip:[62,52],shL:[38,52],elL:[46,44],haL:[54,38],shR:[38,48],elR:[46,40],haR:[54,34],
-       knL:[80,58],ftL:[96,64],knR:[76,42],ftR:[92,50]}
-    ],
-    superman:[
-      {hd:[16,50],nk:[26,50],hip:[60,50],shL:[28,50],elL:[24,52],haL:[16,54],shR:[28,46],elR:[24,44],haR:[16,42],
-       knL:[76,52],ftL:[92,54],knR:[76,48],ftR:[92,46]},
-      {hd:[16,44],nk:[26,46],hip:[60,50],shL:[28,44],elL:[22,38],haL:[12,32],shR:[28,42],elR:[22,36],haR:[12,30],
-       knL:[76,48],ftL:[92,44],knR:[76,46],ftR:[92,42]}
-    ],
-    deadbug:[
-      {hd:[24,42],nk:[32,44],hip:[64,46],shL:[34,44],elL:[30,30],haL:[26,16],shR:[34,40],elR:[30,26],haR:[26,12],
-       knL:[78,40],ftL:[92,26],knR:[78,44],ftR:[92,58]},
-      {hd:[24,42],nk:[32,44],hip:[64,46],shL:[34,44],elL:[30,26],haL:[26,12],shR:[34,40],elR:[42,38],haR:[52,40],
-       knL:[78,40],ftL:[92,58],knR:[78,44],ftR:[92,44]}
-    ],
-    birddog:[
-      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[36,54],haR:[42,58],
-       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]},
-      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[20,36],haR:[8,32],
-       knL:[76,50],ftL:[76,68],knR:[86,40],ftR:[100,30]}
-    ],
-    catcow:[
-      {hd:[22,42],nk:[30,46],hip:[62,44],shL:[32,48],elL:[32,62],haL:[32,74],shR:[32,44],elR:[38,56],haR:[46,60],
-       knL:[76,52],ftL:[76,70],knR:[78,46],ftR:[94,54]},
-      {hd:[22,36],nk:[30,38],hip:[62,52],shL:[32,40],elL:[32,60],haL:[32,74],shR:[32,36],elR:[38,52],haR:[46,58],
-       knL:[76,54],ftL:[76,70],knR:[78,48],ftR:[94,54]}
-    ],
-    hip90:[
-      {hd:[46,30],nk:[48,38],hip:[54,56],shL:[42,40],elL:[36,44],haL:[30,48],shR:[54,40],elR:[60,44],haR:[66,48],
-       knL:[36,60],ftL:[30,70],knR:[66,64],ftR:[78,58]},
-      {hd:[46,30],nk:[48,38],hip:[54,56],shL:[42,40],elL:[36,44],haL:[30,48],shR:[54,40],elR:[60,44],haR:[66,48],
-       knL:[66,64],ftL:[78,58],knR:[36,60],ftR:[30,70]}
-    ],
-    worldgreat:[
-      P({hip:[48,60],nk:[48,40],shL:[41,42],elL:[35,50],haL:[32,58],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]}),
-      P({hip:[48,60],nk:[46,38],shL:[38,36],elL:[30,20],haL:[24,6],shR:[55,42],elR:[61,50],haR:[64,58],knL:[35,66],ftL:[30,90],knR:[62,76],ftR:[70,92]})
-    ],
-    thoracic:[
-      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[36,54],haR:[42,58],
-       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]},
-      {hd:[22,42],nk:[30,44],hip:[62,44],shL:[32,46],elL:[34,58],haL:[34,70],shR:[32,42],elR:[22,28],haR:[14,14],
-       knL:[76,50],ftL:[76,68],knR:[78,46],ftR:[94,54]}
-    ],
-    anklerock:[
-      P({hip:[50,60],nk:[50,42],shL:[42,44],elL:[36,50],haL:[32,56],shR:[58,44],elR:[64,50],haR:[68,56],knL:[42,64],ftL:[36,88],knR:[58,64],ftR:[64,88]}),
-      P({hip:[50,58],nk:[50,40],shL:[42,42],elL:[36,48],haL:[32,54],shR:[58,42],elR:[64,48],haR:[68,54],knL:[38,64],ftL:[36,88],knR:[62,64],ftR:[64,88]})
-    ],
-    shouldercar:[
-      P({shL:[42,32],elL:[34,26],haL:[28,32],shR:[58,32],elR:[66,26],haR:[72,32]}),
-      P({shL:[42,32],elL:[34,40],haL:[30,50],shR:[58,32],elR:[66,40],haR:[70,50]})
-    ]
-  };
-  const FIGS={};
-  Object.keys(POSES).forEach(k=>{ FIGS[k]=rig(POSES[k][0],POSES[k][1]); });
+  /* איורי התרגילים: GIF מונפש תלת-מימדי לכל תרגיל (exercise-gifs/rig), ותמונות
+     אמיתיות ברישיון פתוח לכמה תרגילים נבחרים (exercise-gifs/photo) — ראו
+     exercise-gifs/CREDITS.md לפירוט המקור והרישיון של כל תמונה. */
+  const PHOTO_EX={lunge:1,pike:1,burpee:1,jack:1,knees:1};
+  const rigGif=fig=>`exercise-gifs/rig/${fig}.gif`;
+  const heroGif=e=>PHOTO_EX[e.id]?`exercise-gifs/photo/${e.id}.gif`:rigGif(e.fig);
+  const gifImg=(fig,name,px)=>`<img src="${rigGif(fig)}" alt="${name}" loading="lazy" width="${px}" height="${px}" style="width:${px}px;height:${px}px;object-fit:contain;border-radius:10px">`;
 
   const EX=[
     /* --- כוח: משקל גוף --- */
@@ -4007,7 +3838,7 @@ const FIT=(function(){
     $("#fit-cList").innerHTML=CIR.list.map((e,i)=>`
       <div class="fit-station ${i===now?"now":""}"><div class="ix">${i+1}</div>
         <div class="grow"><b>${e.name}</b><div class="sb">${e.mus} · ${GRPS[e.grp]}</div></div>
-        <div style="width:46px;height:46px">${FIGS[e.fig]}</div></div>`).join("");
+        <div style="width:46px;height:46px">${gifImg(e.fig,e.name,46)}</div></div>`).join("");
   }
   function cStart(){
     ac(); if(!CIR.list.length)return;
@@ -4047,7 +3878,7 @@ const FIT=(function(){
   function openEx(id){
     const e=EX.find(x=>x.id===id); if(!e)return;
     $("#fit-exTitle").textContent=e.name;
-    $("#fit-exFig").innerHTML=`<div style="width:130px;margin:0 auto">${FIGS[e.fig]}</div>`;
+    $("#fit-exFig").innerHTML=`<img src="${heroGif(e)}" alt="${e.name}" loading="lazy" width="130" height="130" style="width:130px;height:130px;object-fit:contain;border-radius:14px;display:block;margin:0 auto">`;
     $("#fit-exBody").innerHTML=`
       <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <span class="pill acc">${GRPS[e.grp]}</span><span class="pill">${e.mus}</span>
@@ -4063,7 +3894,7 @@ const FIT=(function(){
     modal("fit-exModal");
   }
   function renderLib(){
-    $("#fit-exGrid").innerHTML=EX.map(e=>`<div class="fit-ex" data-id="${e.id}">${FIGS[e.fig]}<b>${e.name}</b><span>${GRPS[e.grp]} · ${e.mus}</span></div>`).join("");
+    $("#fit-exGrid").innerHTML=EX.map(e=>`<div class="fit-ex" data-id="${e.id}">${gifImg(e.fig,e.name,74)}<b>${e.name}</b><span>${GRPS[e.grp]} · ${e.mus}</span></div>`).join("");
     $$("#fit-exGrid .fit-ex").forEach(t=>t.addEventListener("click",()=>openEx(t.dataset.id)));
   }
 
@@ -4115,7 +3946,7 @@ const FIT=(function(){
     $("#gym-list").innerHTML=day.ex.map(item=>{
       const e=EX.find(x=>x.id===item.id);
       return `<div class="fit-station" data-id="${item.id}" style="cursor:pointer">
-        <div style="width:42px;height:42px;flex:none">${e?FIGS[e.fig]:""}</div>
+        <div style="width:42px;height:42px;flex:none">${e?gifImg(e.fig,e.name,42):""}</div>
         <div class="grow"><b>${e?e.name:item.id}</b><div class="sb">${e?e.mus+" · 🎒 "+e.eq:""}</div></div>
         <div class="pill acc" style="flex:none">${item.sets}</div></div>`;
     }).join("");
@@ -4143,7 +3974,7 @@ const FIT=(function(){
       const isTime=typeof e.reps.בינוני==="string";
       const amounts=isTime?["15 שנ׳","20 שנ׳","30 שנ׳","40 שנ׳","45 שנ׳","60 שנ׳"]:[5,8,10,12,15,20];
       const amt=amounts[Math.floor(Math.random()*6)];
-      d1.innerHTML=`<div><div class="top" style="font-size:15px;line-height:1.2">${FIGS[e.fig]?"":""}${e.name}</div><div class="bot">${GRPS[e.grp]}</div></div>`;
+      d1.innerHTML=`<div><div class="top" style="font-size:15px;line-height:1.2">${e.name}</div><div class="bot">${GRPS[e.grp]}</div></div>`;
       d2.innerHTML=`<div><div class="top">${amt}</div><div class="bot">${isTime?"זמן":"חזרות"}</div></div>`;
       $("#fit-diceResult").innerHTML=`🎯 ${e.name} × <b style="color:var(--acc)">${amt}</b>`;
       say(e.name+", "+amt); horn();
