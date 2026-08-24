@@ -3695,13 +3695,16 @@ const REC=(function(){
    ============================================================ */
 const FIT=(function(){
   /* ---------- exercise library ---------- */
-  /* איורי התרגילים: GIF מונפש תלת-מימדי לכל תרגיל (exercise-gifs/rig), ותמונות
-     אמיתיות ברישיון פתוח לכמה תרגילים נבחרים (exercise-gifs/photo) — ראו
-     exercise-gifs/CREDITS.md לפירוט המקור והרישיון של כל תמונה. */
+  /* איורי התרגילים, לפי סדר עדיפות: סרטון הדגמה אמיתי (exercise-gifs/video —
+     צולם/הופק במיוחד עבור האפליקציה) < תמונה אמיתית ברישיון פתוח נבחרת
+     (exercise-gifs/photo) < GIF מונפש תלת-מימדי גנרי לכל תרגיל (exercise-gifs/rig).
+     ראו exercise-gifs/CREDITS.md לפירוט המקור והרישיון של כל קובץ. */
+  const VIDEO_EX={curl:1};
   const PHOTO_EX={lunge:1,pike:1,burpee:1,jack:1,knees:1};
-  const rigGif=fig=>`exercise-gifs/rig/${fig}.gif`;
-  const heroGif=e=>PHOTO_EX[e.id]?`exercise-gifs/photo/${e.id}.gif`:rigGif(e.fig);
-  const gifImg=(fig,name,px)=>`<img src="${rigGif(fig)}" alt="${name}" loading="lazy" width="${px}" height="${px}" style="width:${px}px;height:${px}px;object-fit:contain;border-radius:10px">`;
+  const exGifSrc=e=>VIDEO_EX[e.id]?`exercise-gifs/video/${e.id}.gif`
+    :PHOTO_EX[e.id]?`exercise-gifs/photo/${e.id}.gif`
+    :`exercise-gifs/rig/${e.fig}.gif`;
+  const gifImg=(e,px)=>`<img src="${exGifSrc(e)}" alt="${e.name}" loading="lazy" width="${px}" height="${px}" style="width:${px}px;height:${px}px;object-fit:contain;border-radius:10px">`;
 
   const EX=[
     /* --- כוח: משקל גוף --- */
@@ -3838,7 +3841,7 @@ const FIT=(function(){
     $("#fit-cList").innerHTML=CIR.list.map((e,i)=>`
       <div class="fit-station ${i===now?"now":""}"><div class="ix">${i+1}</div>
         <div class="grow"><b>${e.name}</b><div class="sb">${e.mus} · ${GRPS[e.grp]}</div></div>
-        <div style="width:46px;height:46px">${gifImg(e.fig,e.name,46)}</div></div>`).join("");
+        <div style="width:46px;height:46px">${gifImg(e,46)}</div></div>`).join("");
   }
   function cStart(){
     ac(); if(!CIR.list.length)return;
@@ -3878,7 +3881,7 @@ const FIT=(function(){
   function openEx(id){
     const e=EX.find(x=>x.id===id); if(!e)return;
     $("#fit-exTitle").textContent=e.name;
-    $("#fit-exFig").innerHTML=`<img src="${heroGif(e)}" alt="${e.name}" loading="lazy" width="130" height="130" style="width:130px;height:130px;object-fit:contain;border-radius:14px;display:block;margin:0 auto">`;
+    $("#fit-exFig").innerHTML=`<div style="width:130px;margin:0 auto">${gifImg(e,130)}</div>`;
     $("#fit-exBody").innerHTML=`
       <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">
         <span class="pill acc">${GRPS[e.grp]}</span><span class="pill">${e.mus}</span>
@@ -3894,7 +3897,7 @@ const FIT=(function(){
     modal("fit-exModal");
   }
   function renderLib(){
-    $("#fit-exGrid").innerHTML=EX.map(e=>`<div class="fit-ex" data-id="${e.id}">${gifImg(e.fig,e.name,74)}<b>${e.name}</b><span>${GRPS[e.grp]} · ${e.mus}</span></div>`).join("");
+    $("#fit-exGrid").innerHTML=EX.map(e=>`<div class="fit-ex" data-id="${e.id}">${gifImg(e,74)}<b>${e.name}</b><span>${GRPS[e.grp]} · ${e.mus}</span></div>`).join("");
     $$("#fit-exGrid .fit-ex").forEach(t=>t.addEventListener("click",()=>openEx(t.dataset.id)));
   }
 
@@ -3946,7 +3949,7 @@ const FIT=(function(){
     $("#gym-list").innerHTML=day.ex.map(item=>{
       const e=EX.find(x=>x.id===item.id);
       return `<div class="fit-station" data-id="${item.id}" style="cursor:pointer">
-        <div style="width:42px;height:42px;flex:none">${e?gifImg(e.fig,e.name,42):""}</div>
+        <div style="width:42px;height:42px;flex:none">${e?gifImg(e,42):""}</div>
         <div class="grow"><b>${e?e.name:item.id}</b><div class="sb">${e?e.mus+" · 🎒 "+e.eq:""}</div></div>
         <div class="pill acc" style="flex:none">${item.sets}</div></div>`;
     }).join("");
