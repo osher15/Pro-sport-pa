@@ -3699,7 +3699,7 @@ const FIT=(function(){
      צולם/הופק במיוחד עבור האפליקציה) < תמונה אמיתית ברישיון פתוח נבחרת
      (exercise-gifs/photo) < GIF מונפש תלת-מימדי גנרי לכל תרגיל (exercise-gifs/rig).
      ראו exercise-gifs/CREDITS.md לפירוט המקור והרישיון של כל קובץ. */
-  const VIDEO_EX={curl:1,latpull:1};
+  const VIDEO_EX={curl:1,latpull:1,pullup:1};
   const PHOTO_EX={lunge:1,pike:1,burpee:1,jack:1,knees:1};
   const exGifSrc=e=>VIDEO_EX[e.id]?`exercise-gifs/video/${e.id}.gif`
     :PHOTO_EX[e.id]?`exercise-gifs/photo/${e.id}.gif`
