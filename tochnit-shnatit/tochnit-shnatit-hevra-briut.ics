@@ -1,0 +1,1762 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Tochnit Shnatit//HE//
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:תוכנית שנתית תשפ"ז
+X-WR-TIMEZONE:Asia/Jerusalem
+BEGIN:VTIMEZONE
+TZID:Asia/Jerusalem
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0300
+TZNAME:IDT
+DTSTART:19700327T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=FR;BYMONTHDAY=23,24,25,26,27,28,29
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0200
+TZNAME:IST
+DTSTART:19701025T020000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:hlA-2026-09-02-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260902T085000
+DTEND;TZID=Asia/Jerusalem:20260902T093500
+SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: בריא
+ ות — מעבר ל«לא חולה»
+DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
+ ת. סיעור מוחות ומיפוי תפיסות.\nיחידה: מה ז
+ ו בריאות (שיעור 1 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-09-09-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260909T085000
+DTEND;TZID=Asia/Jerusalem:20260909T093500
+SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: בריא
+ ות — מעבר ל«לא חולה» (המשך)
+DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
+ ת. סיעור מוחות ומיפוי תפיסות.\nיחידה: מה ז
+ ו בריאות (שיעור 2 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-09-16-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260916T085000
+DTEND;TZID=Asia/Jerusalem:20260916T093500
+SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: ההרג
+ לים שלי
+DESCRIPTION:שאלון אישי אנונימי: שינה\, תזונה\, ת
+ נועה\, מסכים. בחירת יעד אישי.\nיחידה: מה זו 
+ בריאות (שיעור 3 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-09-23-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260923T085000
+DTEND;TZID=Asia/Jerusalem:20260923T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: אבות המזון
+DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
+ ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
+ תזונה (שיעור 1 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-10-07-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261007T085000
+DTEND;TZID=Asia/Jerusalem:20261007T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: אבות המזון 
+ (המשך)
+DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
+ ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
+ תזונה (שיעור 2 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-10-14-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261014T085000
+DTEND;TZID=Asia/Jerusalem:20261014T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: לקרוא תווי
+ ת מזון
+DESCRIPTION:פעילות מעשית: משווים תוויות של מוצ
+ רים אמיתיים שהתלמידים הביאו.\nיחידה: תזונ
+ ה (שיעור 3 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-10-21-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261021T085000
+DTEND;TZID=Asia/Jerusalem:20261021T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: סוכר ומשקא
+ ות ממותקים
+DESCRIPTION:כמה סוכר יש במה ששותים באמת. הדגמה 
+ חזותית בכפיות סוכר.\nיחידה: תזונה (שיעור 4 
+ מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-10-28-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261028T085000
+DTEND;TZID=Asia/Jerusalem:20261028T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: ארוחת בוקר 
+ וארוחות היום
+DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
+ ארוחות מעשי ליום לימודים.\nיחידה: תזונה (ש
+ יעור 5 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-11-04-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261104T085000
+DTEND;TZID=Asia/Jerusalem:20261104T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: ארוחת בוקר 
+ וארוחות היום (המשך)
+DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
+ ארוחות מעשי ליום לימודים.\nיחידה: תזונה (ש
+ יעור 6 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-11-11-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261111T085000
+DTEND;TZID=Asia/Jerusalem:20261111T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: שיווק מזון 
+ ומיתוסים ברשת
+DESCRIPTION:ניתוח פרסומות ותכני משפיענים. איך 
+ מזהים מידע תזונתי שקרי.\nיחידה: תזונה (שיע
+ ור 7 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-11-18-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261118T085000
+DTEND;TZID=Asia/Jerusalem:20261118T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: תזונה וספו
+ רט
+DESCRIPTION:מה לאכול לפני ואחרי פעילות. חיבור י
+ שיר לשיעורי החנ"ג.\nיחידה: תזונה (שיעור 8 מ
+ תוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-11-25-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261125T085000
+DTEND;TZID=Asia/Jerusalem:20261125T093500
+SUMMARY:חינוך לבריאות ז-7 — תזונה: בונים תפרי
+ ט יום
+DESCRIPTION:פעילות מסכמת — כל קבוצה בונה יום א
+ כילה מאוזן ומציגה.\nיחידה: תזונה (שיעור 9 מ
+ תוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-12-02-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261202T085000
+DTEND;TZID=Asia/Jerusalem:20261202T093500
+SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
+ יאות: כמה תנועה צריך
+DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
+ ירה ומה לא. מיפוי אישי.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 1 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-12-16-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261216T085000
+DTEND;TZID=Asia/Jerusalem:20261216T093500
+SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
+ יאות: כמה תנועה צריך (המשך)
+DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
+ ירה ומה לא. מיפוי אישי.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 2 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-12-23-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261223T085000
+DTEND;TZID=Asia/Jerusalem:20261223T093500
+SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
+ יאות: מה קורה לגוף כשזזים
+DESCRIPTION:לב\, ריאות\, שרירים\, עצמות ומוח. חיב
+ ור למה שמרגישים בשיעור.\nיחידה: פעילות גו
+ פנית ובריאות (שיעור 3 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2026-12-30-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261230T085000
+DTEND;TZID=Asia/Jerusalem:20261230T093500
+SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
+ יאות: מבחני הכושר — מה הם בודקים
+DESCRIPTION:הסבר על כל מדד: ביפ טסט\, כוח\, גמישו
+ ת. קריאת התוצאה האישית.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 4 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-01-06-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270106T085000
+DTEND;TZID=Asia/Jerusalem:20270106T093500
+SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
+ יאות: ישיבה ממושכת ומסכים
+DESCRIPTION:ההשפעה של ישיבה ארוכה\, ומה עושים ב
+ פועל ביום לימודים.\nיחידה: פעילות גופנית 
+ ובריאות (שיעור 5 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-01-13-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270113T085000
+DTEND;TZID=Asia/Jerusalem:20270113T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: שינה — כמה ולמה
+DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
+ וסר שינה על ריכוז\, מצב רוח ובריאות.\nיחיד
+ ה: שינה\, מסכים ובריאות הנפש (שיעור 1 מתוך 6
+ )
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-01-20-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270120T085000
+DTEND;TZID=Asia/Jerusalem:20270120T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: שינה — כמה ולמה (המשך)
+DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
+ וסר שינה על ריכוז\, מצב רוח ובריאות.\nיחיד
+ ה: שינה\, מסכים ובריאות הנפש (שיעור 2 מתוך 6
+ )
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-01-27-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270127T085000
+DTEND;TZID=Asia/Jerusalem:20270127T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: מסכים ושינה
+DESCRIPTION:אור כחול\, גלילה לפני השינה\, והרגלי
+  לילה. בניית שגרת ערב מעשית.\nיחידה: שינה\, 
+ מסכים ובריאות הנפש (שיעור 3 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-02-03-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270203T085000
+DTEND;TZID=Asia/Jerusalem:20270203T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: מסכים ורשתות חברתיות
+DESCRIPTION:השפעה על מצב רוח ודימוי עצמי. השווא
+ ה חברתית ברשת.\nיחידה: שינה\, מסכים ובריאו
+ ת הנפש (שיעור 4 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-02-10-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270210T085000
+DTEND;TZID=Asia/Jerusalem:20270210T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: לחץ וחרדה
+DESCRIPTION:מה קורה בגוף בלחץ\, וכלי ויסות מעשי
+ ים לפני מבחן או מצב חברתי.\nיחידה: שינה\, מ
+ סכים ובריאות הנפש (שיעור 5 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-02-17-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270217T085000
+DTEND;TZID=Asia/Jerusalem:20270217T093500
+SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
+ ות הנפש: למי פונים
+DESCRIPTION:מיפוי מקורות עזרה בבית הספר ומחוצה
+  לו\, כולל קווי סיוע.\nיחידה: שינה\, מסכים ו
+ בריאות הנפש (שיעור 6 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-02-24-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270224T085000
+DTEND;TZID=Asia/Jerusalem:20270224T093500
+SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
+ וי גוף: מה קורה בגיל ההתבגרות
+DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
+ ציה ומענה לשאלות אנונימיות.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 1 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-03-03-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270303T085000
+DTEND;TZID=Asia/Jerusalem:20270303T093500
+SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
+ וי גוף: מה קורה בגיל ההתבגרות (המשך)
+DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
+ ציה ומענה לשאלות אנונימיות.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 2 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-03-10-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270310T085000
+DTEND;TZID=Asia/Jerusalem:20270310T093500
+SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
+ וי גוף: היגיינה ובריאות אישית
+DESCRIPTION:טיפוח\, הזעה\, שיניים ועור. פרקטי ול
+ א מביך.\nיחידה: גיל ההתבגרות ודימוי גוף (ש
+ יעור 3 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-03-17-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270317T085000
+DTEND;TZID=Asia/Jerusalem:20270317T093500
+SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
+ וי גוף: דימוי גוף
+DESCRIPTION:פערים בין הגוף האמיתי לגוף ברשת. ני
+ תוח תמונות ערוכות ופילטרים.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 4 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-03-31-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270331T085000
+DTEND;TZID=Asia/Jerusalem:20270331T093500
+SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
+ וי גוף: השוואה חברתית ולחץ אסתטי
+DESCRIPTION:איך מזהים תוכן שפוגע\, ומה עושים אי
+ תו. חיבור למסוגלות עצמית.\nיחידה: גיל ההתב
+ גרות ודימוי גוף (שיעור 5 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-04-07-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270407T085000
+DTEND;TZID=Asia/Jerusalem:20270407T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: עישון\, אלכוהול ואידוי
+DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
+ . בלי הפחדה.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 1 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-04-14-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270414T085000
+DTEND;TZID=Asia/Jerusalem:20270414T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: עישון\, אלכוהול ואידוי (המשך)
+DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
+ . בלי הפחדה.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 2 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-05-05-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270505T085000
+DTEND;TZID=Asia/Jerusalem:20270505T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: התמכרויות התנהגותיות
+DESCRIPTION:מסכים\, גיימינג והימורים. מתי תחביב
+  הופך לבעיה.\nיחידה: התנהגויות סיכון ובטי
+ חות (שיעור 3 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-05-19-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270519T085000
+DTEND;TZID=Asia/Jerusalem:20270519T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: בטיחות בדרכים
+DESCRIPTION:קורקינט חשמלי\, אופניים וקסדה — הס
+ יכון הכי מוחשי בגיל הזה.\nיחידה: התנהגויו
+ ת סיכון ובטיחות (שיעור 4 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-05-26-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270526T085000
+DTEND;TZID=Asia/Jerusalem:20270526T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: בטיחות בפעילות ובקיץ
+DESCRIPTION:מים\, שמש\, חום ומאמץ. מניעת התייבשו
+ ת ומכת חום.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 5 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-06-02-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270602T085000
+DTEND;TZID=Asia/Jerusalem:20270602T093500
+SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
+ בטיחות: עזרה ראשונה בסיסית
+DESCRIPTION:מה עושים ראשון\, איך מזעיקים עזרה\, 
+ החייאה בסיסית ומצבי חנק.\nיחידה: התנהגויו
+ ת סיכון ובטיחות (שיעור 6 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-06-09-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270609T085000
+DTEND;TZID=Asia/Jerusalem:20270609T093500
+SUMMARY:חינוך לבריאות ז-7 — פרויקט סיום — שגר
+ ירי בריאות: בניית פרויקט הבריאות
+DESCRIPTION:בחירת נושא בקבוצות ובניית תוצר: קמ
+ פיין\, סרטון או שיעור קצר.\nיחידה: פרויקט ס
+ יום — שגרירי בריאות (שיעור 1 מתוך 2)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlA-2027-06-16-2@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270616T085000
+DTEND;TZID=Asia/Jerusalem:20270616T093500
+SUMMARY:חינוך לבריאות ז-7 — פרויקט סיום — שגר
+ ירי בריאות: הצגה וסיכום שנה
+DESCRIPTION:הצגת התוצרים\, הערכת עמיתים וסיכום 
+ מה נשאר מהשנה.\nיחידה: פרויקט סיום — שגרי
+ רי בריאות (שיעור 2 מתוך 2)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-09-03-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260903T114500
+DTEND;TZID=Asia/Jerusalem:20260903T123000
+SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: בריא
+ ות — מעבר ל«לא חולה»
+DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
+ ת. סיעור מוחות ומיפוי תפיסות.\nיחידה: מה ז
+ ו בריאות (שיעור 1 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-09-10-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260910T114500
+DTEND;TZID=Asia/Jerusalem:20260910T123000
+SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: בריא
+ ות — מעבר ל«לא חולה» (המשך)
+DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
+ ת. סיעור מוחות ומיפוי תפיסות.\nיחידה: מה ז
+ ו בריאות (שיעור 2 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-09-17-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260917T114500
+DTEND;TZID=Asia/Jerusalem:20260917T123000
+SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: ההרג
+ לים שלי
+DESCRIPTION:שאלון אישי אנונימי: שינה\, תזונה\, ת
+ נועה\, מסכים. בחירת יעד אישי.\nיחידה: מה זו 
+ בריאות (שיעור 3 מתוך 3)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-09-24-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260924T114500
+DTEND;TZID=Asia/Jerusalem:20260924T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: אבות המזון
+DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
+ ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
+ תזונה (שיעור 1 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-10-08-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261008T114500
+DTEND;TZID=Asia/Jerusalem:20261008T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: אבות המזון 
+ (המשך)
+DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
+ ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
+ תזונה (שיעור 2 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-10-15-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261015T114500
+DTEND;TZID=Asia/Jerusalem:20261015T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: לקרוא תווי
+ ת מזון
+DESCRIPTION:פעילות מעשית: משווים תוויות של מוצ
+ רים אמיתיים שהתלמידים הביאו.\nיחידה: תזונ
+ ה (שיעור 3 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-10-22-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261022T114500
+DTEND;TZID=Asia/Jerusalem:20261022T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: סוכר ומשקא
+ ות ממותקים
+DESCRIPTION:כמה סוכר יש במה ששותים באמת. הדגמה 
+ חזותית בכפיות סוכר.\nיחידה: תזונה (שיעור 4 
+ מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-10-29-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261029T114500
+DTEND;TZID=Asia/Jerusalem:20261029T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: ארוחת בוקר 
+ וארוחות היום
+DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
+ ארוחות מעשי ליום לימודים.\nיחידה: תזונה (ש
+ יעור 5 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-11-05-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261105T114500
+DTEND;TZID=Asia/Jerusalem:20261105T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: ארוחת בוקר 
+ וארוחות היום (המשך)
+DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
+ ארוחות מעשי ליום לימודים.\nיחידה: תזונה (ש
+ יעור 6 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-11-12-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261112T114500
+DTEND;TZID=Asia/Jerusalem:20261112T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: שיווק מזון 
+ ומיתוסים ברשת
+DESCRIPTION:ניתוח פרסומות ותכני משפיענים. איך 
+ מזהים מידע תזונתי שקרי.\nיחידה: תזונה (שיע
+ ור 7 מתוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-11-19-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261119T114500
+DTEND;TZID=Asia/Jerusalem:20261119T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: תזונה וספו
+ רט
+DESCRIPTION:מה לאכול לפני ואחרי פעילות. חיבור י
+ שיר לשיעורי החנ"ג.\nיחידה: תזונה (שיעור 8 מ
+ תוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-11-26-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261126T114500
+DTEND;TZID=Asia/Jerusalem:20261126T123000
+SUMMARY:חינוך לבריאות ז-6 — תזונה: בונים תפרי
+ ט יום
+DESCRIPTION:פעילות מסכמת — כל קבוצה בונה יום א
+ כילה מאוזן ומציגה.\nיחידה: תזונה (שיעור 9 מ
+ תוך 9)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-12-03-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261203T114500
+DTEND;TZID=Asia/Jerusalem:20261203T123000
+SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
+ יאות: כמה תנועה צריך
+DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
+ ירה ומה לא. מיפוי אישי.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 1 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-12-17-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261217T114500
+DTEND;TZID=Asia/Jerusalem:20261217T123000
+SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
+ יאות: כמה תנועה צריך (המשך)
+DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
+ ירה ומה לא. מיפוי אישי.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 2 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-12-24-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261224T114500
+DTEND;TZID=Asia/Jerusalem:20261224T123000
+SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
+ יאות: מה קורה לגוף כשזזים
+DESCRIPTION:לב\, ריאות\, שרירים\, עצמות ומוח. חיב
+ ור למה שמרגישים בשיעור.\nיחידה: פעילות גו
+ פנית ובריאות (שיעור 3 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2026-12-31-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261231T114500
+DTEND;TZID=Asia/Jerusalem:20261231T123000
+SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
+ יאות: מבחני הכושר — מה הם בודקים
+DESCRIPTION:הסבר על כל מדד: ביפ טסט\, כוח\, גמישו
+ ת. קריאת התוצאה האישית.\nיחידה: פעילות גופ
+ נית ובריאות (שיעור 4 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-01-07-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270107T114500
+DTEND;TZID=Asia/Jerusalem:20270107T123000
+SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
+ יאות: ישיבה ממושכת ומסכים
+DESCRIPTION:ההשפעה של ישיבה ארוכה\, ומה עושים ב
+ פועל ביום לימודים.\nיחידה: פעילות גופנית 
+ ובריאות (שיעור 5 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-01-14-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270114T114500
+DTEND;TZID=Asia/Jerusalem:20270114T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: שינה — כמה ולמה
+DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
+ וסר שינה על ריכוז\, מצב רוח ובריאות.\nיחיד
+ ה: שינה\, מסכים ובריאות הנפש (שיעור 1 מתוך 6
+ )
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-01-21-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270121T114500
+DTEND;TZID=Asia/Jerusalem:20270121T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: שינה — כמה ולמה (המשך)
+DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
+ וסר שינה על ריכוז\, מצב רוח ובריאות.\nיחיד
+ ה: שינה\, מסכים ובריאות הנפש (שיעור 2 מתוך 6
+ )
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-01-28-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270128T114500
+DTEND;TZID=Asia/Jerusalem:20270128T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: מסכים ושינה
+DESCRIPTION:אור כחול\, גלילה לפני השינה\, והרגלי
+  לילה. בניית שגרת ערב מעשית.\nיחידה: שינה\, 
+ מסכים ובריאות הנפש (שיעור 3 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-02-04-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270204T114500
+DTEND;TZID=Asia/Jerusalem:20270204T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: מסכים ורשתות חברתיות
+DESCRIPTION:השפעה על מצב רוח ודימוי עצמי. השווא
+ ה חברתית ברשת.\nיחידה: שינה\, מסכים ובריאו
+ ת הנפש (שיעור 4 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-02-11-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270211T114500
+DTEND;TZID=Asia/Jerusalem:20270211T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: לחץ וחרדה
+DESCRIPTION:מה קורה בגוף בלחץ\, וכלי ויסות מעשי
+ ים לפני מבחן או מצב חברתי.\nיחידה: שינה\, מ
+ סכים ובריאות הנפש (שיעור 5 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-02-18-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270218T114500
+DTEND;TZID=Asia/Jerusalem:20270218T123000
+SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
+ ות הנפש: למי פונים
+DESCRIPTION:מיפוי מקורות עזרה בבית הספר ומחוצה
+  לו\, כולל קווי סיוע.\nיחידה: שינה\, מסכים ו
+ בריאות הנפש (שיעור 6 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-02-25-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270225T114500
+DTEND;TZID=Asia/Jerusalem:20270225T123000
+SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
+ וי גוף: מה קורה בגיל ההתבגרות
+DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
+ ציה ומענה לשאלות אנונימיות.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 1 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-03-04-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270304T114500
+DTEND;TZID=Asia/Jerusalem:20270304T123000
+SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
+ וי גוף: מה קורה בגיל ההתבגרות (המשך)
+DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
+ ציה ומענה לשאלות אנונימיות.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 2 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-03-11-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270311T114500
+DTEND;TZID=Asia/Jerusalem:20270311T123000
+SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
+ וי גוף: היגיינה ובריאות אישית
+DESCRIPTION:טיפוח\, הזעה\, שיניים ועור. פרקטי ול
+ א מביך.\nיחידה: גיל ההתבגרות ודימוי גוף (ש
+ יעור 3 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-03-18-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270318T114500
+DTEND;TZID=Asia/Jerusalem:20270318T123000
+SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
+ וי גוף: דימוי גוף
+DESCRIPTION:פערים בין הגוף האמיתי לגוף ברשת. ני
+ תוח תמונות ערוכות ופילטרים.\nיחידה: גיל ה
+ התבגרות ודימוי גוף (שיעור 4 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-03-25-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270325T114500
+DTEND;TZID=Asia/Jerusalem:20270325T123000
+SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
+ וי גוף: השוואה חברתית ולחץ אסתטי
+DESCRIPTION:איך מזהים תוכן שפוגע\, ומה עושים אי
+ תו. חיבור למסוגלות עצמית.\nיחידה: גיל ההתב
+ גרות ודימוי גוף (שיעור 5 מתוך 5)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-04-01-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270401T114500
+DTEND;TZID=Asia/Jerusalem:20270401T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: עישון\, אלכוהול ואידוי
+DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
+ . בלי הפחדה.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 1 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-04-08-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270408T114500
+DTEND;TZID=Asia/Jerusalem:20270408T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: עישון\, אלכוהול ואידוי (המשך)
+DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
+ . בלי הפחדה.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 2 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-05-06-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270506T114500
+DTEND;TZID=Asia/Jerusalem:20270506T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: התמכרויות התנהגותיות
+DESCRIPTION:מסכים\, גיימינג והימורים. מתי תחביב
+  הופך לבעיה.\nיחידה: התנהגויות סיכון ובטי
+ חות (שיעור 3 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-05-13-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270513T114500
+DTEND;TZID=Asia/Jerusalem:20270513T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: בטיחות בדרכים
+DESCRIPTION:קורקינט חשמלי\, אופניים וקסדה — הס
+ יכון הכי מוחשי בגיל הזה.\nיחידה: התנהגויו
+ ת סיכון ובטיחות (שיעור 4 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-05-20-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270520T114500
+DTEND;TZID=Asia/Jerusalem:20270520T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: בטיחות בפעילות ובקיץ
+DESCRIPTION:מים\, שמש\, חום ומאמץ. מניעת התייבשו
+ ת ומכת חום.\nיחידה: התנהגויות סיכון ובטיח
+ ות (שיעור 5 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-05-27-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270527T114500
+DTEND;TZID=Asia/Jerusalem:20270527T123000
+SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
+ בטיחות: עזרה ראשונה בסיסית
+DESCRIPTION:מה עושים ראשון\, איך מזעיקים עזרה\, 
+ החייאה בסיסית ומצבי חנק.\nיחידה: התנהגויו
+ ת סיכון ובטיחות (שיעור 6 מתוך 6)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-06-03-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270603T114500
+DTEND;TZID=Asia/Jerusalem:20270603T123000
+SUMMARY:חינוך לבריאות ז-6 — פרויקט סיום — שגר
+ ירי בריאות: בניית פרויקט הבריאות
+DESCRIPTION:בחירת נושא בקבוצות ובניית תוצר: קמ
+ פיין\, סרטון או שיעור קצר.\nיחידה: פרויקט ס
+ יום — שגרירי בריאות (שיעור 1 מתוך 2)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hlB-2027-06-17-5@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270617T114500
+DTEND;TZID=Asia/Jerusalem:20270617T123000
+SUMMARY:חינוך לבריאות ז-6 — פרויקט סיום — שגר
+ ירי בריאות: הצגה וסיכום שנה
+DESCRIPTION:הצגת התוצרים\, הערכת עמיתים וסיכום 
+ מה נשאר מהשנה.\nיחידה: פרויקט סיום — שגרי
+ רי בריאות (שיעור 2 מתוך 2)
+CATEGORIES:חינוך לבריאות
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-03-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260903T095000
+DTEND;TZID=Asia/Jerusalem:20260903T103500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ מי אנחנו — היכרות ראשונה
+DESCRIPTION:משחקי שם ותנועה\, כרטיסי היכרות. המ
+ ורה מתעד מי מכיר את מי.\nיחידה: פתיחת שנה\, 
+ היכרות ושייכות (שיעור 1 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-07-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260907T133000
+DTEND;TZID=Asia/Jerusalem:20260907T141500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ מי אנחנו — היכרות ראשונה (המשך)
+DESCRIPTION:משחקי שם ותנועה\, כרטיסי היכרות. המ
+ ורה מתעד מי מכיר את מי.\nיחידה: פתיחת שנה\, 
+ היכרות ושייכות (שיעור 2 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-10-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260910T095000
+DTEND;TZID=Asia/Jerusalem:20260910T103500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ הכיתה שלי — מפת קשרים
+DESCRIPTION:פעילות מיפוי חברתי עדינה (למי אני פ
+ ונה כשקשה). כלי מרכזי לזיהוי בודדים.\nיחיד
+ ה: פתיחת שנה\, היכרות ושייכות (שיעור 3 מתוך
+  8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-14-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260914T133000
+DTEND;TZID=Asia/Jerusalem:20260914T141500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ מעבר מיסודי לחטיבה
+DESCRIPTION:מה השתנה\, מה מפחיד\, מה מרגש. שיתוף 
+ בקבוצות קטנות ואז במליאה.\nיחידה: פתיחת ש
+ נה\, היכרות ושייכות (שיעור 4 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-17-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260917T095000
+DTEND;TZID=Asia/Jerusalem:20260917T103500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ משחקי גיבוש
+DESCRIPTION:כרטיסיות משחקי גיבוש — פעילות חוו
+ ייתית בקבוצות מתחלפות.\nיחידה: פתיחת שנה\,
+  היכרות ושייכות (שיעור 5 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-09-24-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20260924T095000
+DTEND;TZID=Asia/Jerusalem:20260924T103500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ משחקי גיבוש (המשך)
+DESCRIPTION:כרטיסיות משחקי גיבוש — פעילות חוו
+ ייתית בקבוצות מתחלפות.\nיחידה: פתיחת שנה\,
+  היכרות ושייכות (שיעור 6 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-05-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261005T133000
+DTEND;TZID=Asia/Jerusalem:20261005T141500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ מה חשוב לי בכיתה
+DESCRIPTION:כל תלמיד מגדיר ערך אחד שחשוב לו שיה
+ יה בכיתה. אלה יהיו הבסיס לתקנון.\nיחידה: פ
+ תיחת שנה\, היכרות ושייכות (שיעור 7 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-08-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261008T095000
+DTEND;TZID=Asia/Jerusalem:20261008T103500
+SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
+ שיחות אישיות — סבב ראשון
+DESCRIPTION:פעילות עצמאית לכיתה + שיחות אישיות 
+ קצרות של המורה עם תלמידים.\nיחידה: פתיחת ש
+ נה\, היכרות ושייכות (שיעור 8 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-12-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261012T133000
+DTEND;TZID=Asia/Jerusalem:20261012T141500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: למה בכלל
+  צריך כללים
+DESCRIPTION:דילמות ומקרים — מה קורה בלי כללים. 
+ מעבר מהפשטה לכיתה שלנו.\nיחידה: תקנון ואק
+ לים כיתה (שיעור 1 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-15-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261015T095000
+DTEND;TZID=Asia/Jerusalem:20261015T103500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: למה בכלל
+  צריך כללים (המשך)
+DESCRIPTION:דילמות ומקרים — מה קורה בלי כללים. 
+ מעבר מהפשטה לכיתה שלנו.\nיחידה: תקנון ואק
+ לים כיתה (שיעור 2 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-19-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261019T133000
+DTEND;TZID=Asia/Jerusalem:20261019T141500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: בונים תק
+ נון — עבודה בקבוצות
+DESCRIPTION:כל קבוצה מנסחת 3 כללים בניסוח חיובי
+  («אנחנו מקשיבים» ולא «אסור להפריע»).\nיחי
+ דה: תקנון ואקלים כיתה (שיעור 3 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-22-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261022T095000
+DTEND;TZID=Asia/Jerusalem:20261022T103500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: מגבשים א
+ ת התקנון
+DESCRIPTION:מיזוג ההצעות\, ויכוח מכובד\, הצבעה. 
+ תקנון סופי.\nיחידה: תקנון ואקלים כיתה (שיע
+ ור 4 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-26-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261026T133000
+DTEND;TZID=Asia/Jerusalem:20261026T141500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: השלכות ו
+ תגובות
+DESCRIPTION:מה קורה כשמפרים כלל — הסכמה מראש ע
+ ל תגובה הוגנת ומדורגת.\nיחידה: תקנון ואקל
+ ים כיתה (שיעור 5 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-10-29-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261029T095000
+DTEND;TZID=Asia/Jerusalem:20261029T103500
+SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: אקלים כי
+ תה — איך זה נראה בפועל
+DESCRIPTION:תרגול מצבים: מישהו נכנס לדברי חבר\, 
+ מישהו נשאר לבד בהפסקה.\nיחידה: תקנון ואקל
+ ים כיתה (שיעור 6 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-02-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261102T133000
+DTEND;TZID=Asia/Jerusalem:20261102T141500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): רגשות — לזהות ולקרוא בשם
+DESCRIPTION:אוצר מילים רגשי\, «מד רגש»\, הבחנה ב
+ ין רגש למחשבה ולהתנהגות.\nיחידה: מיומנויו
+ ת רגשיות־חברתיות (SEL) (שיעור 1 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-05-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261105T095000
+DTEND;TZID=Asia/Jerusalem:20261105T103500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): רגשות — לזהות ולקרוא בשם (המשך)
+DESCRIPTION:אוצר מילים רגשי\, «מד רגש»\, הבחנה ב
+ ין רגש למחשבה ולהתנהגות.\nיחידה: מיומנויו
+ ת רגשיות־חברתיות (SEL) (שיעור 2 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-09-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261109T133000
+DTEND;TZID=Asia/Jerusalem:20261109T141500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): ויסות — מה עושים כשעולה כעס
+DESCRIPTION:טכניקות ויסות מעשיות: נשימה\, פסק ז
+ מן\, ניסוח. תרגול על מקרים אמיתיים.\nיחידה:
+  מיומנויות רגשיות־חברתיות (SEL) (שיעור 3 מת
+ וך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-12-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261112T095000
+DTEND;TZID=Asia/Jerusalem:20261112T103500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): הקשבה אמיתית
+DESCRIPTION:תרגול בזוגות: דובר ומקשיב\, בלי להפ
+ ריע ובלי לתת עצות. עיבוד ההבדל.\nיחידה: מי
+ ומנויות רגשיות־חברתיות (SEL) (שיעור 4 מתוך 1
+ 0)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-16-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261116T133000
+DTEND;TZID=Asia/Jerusalem:20261116T141500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): תקשורת מכבדת ומסרי «אני»
+DESCRIPTION:מעבר מ«אתה תמיד...» ל«אני מרגיש... כש
+ ...». תרגול על קונפליקטים כיתתיים.\nיחידה: 
+ מיומנויות רגשיות־חברתיות (SEL) (שיעור 5 מתו
+ ך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-19-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261119T095000
+DTEND;TZID=Asia/Jerusalem:20261119T103500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): אמפתיה ולקיחת פרספקטיבה
+DESCRIPTION:סיפור מזוויות שונות. מה כל צד חשב ו
+ הרגיש.\nיחידה: מיומנויות רגשיות־חברתיות (
+ SEL) (שיעור 6 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-23-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261123T133000
+DTEND;TZID=Asia/Jerusalem:20261123T141500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): אמפתיה ולקיחת פרספקטיבה (המשך)
+DESCRIPTION:סיפור מזוויות שונות. מה כל צד חשב ו
+ הרגיש.\nיחידה: מיומנויות רגשיות־חברתיות (
+ SEL) (שיעור 7 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-26-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261126T095000
+DTEND;TZID=Asia/Jerusalem:20261126T103500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): פתרון קונפליקטים
+DESCRIPTION:מודל צעד־אחר־צעד לפתרון סכסוך בין 
+ שני תלמידים\, בתרגול משחקי תפקידים.\nיחיד
+ ה: מיומנויות רגשיות־חברתיות (SEL) (שיעור 8 מ
+ תוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-11-30-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261130T133000
+DTEND;TZID=Asia/Jerusalem:20261130T141500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): עבודת צוות
+DESCRIPTION:משימה שדורשת שיתוף אמיתי\, ואז עיבו
+ ד: מה עזר ומה הפריע לצוות.\nיחידה: מיומנוי
+ ות רגשיות־חברתיות (SEL) (שיעור 9 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-03-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261203T095000
+DTEND;TZID=Asia/Jerusalem:20261203T103500
+SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
+ SEL): חוזקות אישיות
+DESCRIPTION:כל תלמיד מזהה חוזקה אחת שלו ואחת של
+  חבר. בסיס להעצמה.\nיחידה: מיומנויות רגשיו
+ ת־חברתיות (SEL) (שיעור 10 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-14-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261214T133000
+DTEND;TZID=Asia/Jerusalem:20261214T141500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : לאן הולך הזמן שלי
+DESCRIPTION:מיפוי יממה אמיתית\, כולל מסכים. תמו
+ נת מצב אישית בלי שיפוטיות.\nיחידה: ניהול ז
+ מן\, למידה ומוטיבציה (שיעור 1 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-17-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261217T095000
+DTEND;TZID=Asia/Jerusalem:20261217T103500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : לאן הולך הזמן שלי (המשך)
+DESCRIPTION:מיפוי יממה אמיתית\, כולל מסכים. תמו
+ נת מצב אישית בלי שיפוטיות.\nיחידה: ניהול ז
+ מן\, למידה ומוטיבציה (שיעור 2 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-21-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261221T133000
+DTEND;TZID=Asia/Jerusalem:20261221T141500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : תכנון שבוע
+DESCRIPTION:בניית לוח שבועי אישי הכולל לימודים
+ \, חוגים\, מנוחה ומסכים.\nיחידה: ניהול זמן\, 
+ למידה ומוטיבציה (שיעור 3 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-24-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261224T095000
+DTEND;TZID=Asia/Jerusalem:20261224T103500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : דחיינות — למה ומה עושים
+DESCRIPTION:זיהוי הטריגרים האישיים וכלי «5 דקו
+ ת ראשונות».\nיחידה: ניהול זמן\, למידה ומוט
+ יבציה (שיעור 4 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-28-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261228T133000
+DTEND;TZID=Asia/Jerusalem:20261228T141500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : איך לומדים למבחן
+DESCRIPTION:שיטות למידה יעילות מול לא יעילות. ת
+ רגול על חומר אמיתי.\nיחידה: ניהול זמן\, למי
+ דה ומוטיבציה (שיעור 5 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2026-12-31-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20261231T095000
+DTEND;TZID=Asia/Jerusalem:20261231T103500
+SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
+ : מוטיבציה — פנימית וחיצונית
+DESCRIPTION:מה מניע אותי באמת. חיבור בין מטרות 
+ אישיות למאמץ יומיומי.\nיחידה: ניהול זמן\, 
+ למידה ומוטיבציה (שיעור 6 מתוך 6)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-04-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270104T133000
+DTEND;TZID=Asia/Jerusalem:20270104T141500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : לחץ חברתי — איך הוא עובד
+DESCRIPTION:ניסויי קונפורמיות מוכרים\, ואז מצב
+ ים אמיתיים מחיי הכיתה.\nיחידה: לחץ חברתי\, 
+ בריונות ואלימות (שיעור 1 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-07-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270107T095000
+DTEND;TZID=Asia/Jerusalem:20270107T103500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : לחץ חברתי — איך הוא עובד (המשך)
+DESCRIPTION:ניסויי קונפורמיות מוכרים\, ואז מצב
+ ים אמיתיים מחיי הכיתה.\nיחידה: לחץ חברתי\, 
+ בריונות ואלימות (שיעור 2 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-11-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270111T133000
+DTEND;TZID=Asia/Jerusalem:20270111T141500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : להגיד לא
+DESCRIPTION:תרגול מעשי של סירוב בלי לאבד מעמד ח
+ ברתי. משחקי תפקידים בזוגות.\nיחידה: לחץ חב
+ רתי\, בריונות ואלימות (שיעור 3 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-14-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270114T095000
+DTEND;TZID=Asia/Jerusalem:20270114T103500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : מעגל הבריונות
+DESCRIPTION:התוקף\, הקורבן\, העומדים מהצד והמגן.
+  מיפוי התפקידים במקרה נתון.\nיחידה: לחץ חב
+ רתי\, בריונות ואלימות (שיעור 4 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-18-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270118T133000
+DTEND;TZID=Asia/Jerusalem:20270118T141500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : העומד מהצד
+DESCRIPTION:הכוח האמיתי בכיתה. מה אפשר לעשות גם
+  כשמפחדים להתערב.\nיחידה: לחץ חברתי\, בריו
+ נות ואלימות (שיעור 5 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-21-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270121T095000
+DTEND;TZID=Asia/Jerusalem:20270121T103500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : אלימות מילולית וברשת
+DESCRIPTION:סייברבולינג\, קבוצות ווטסאפ\, הדרה. 
+ מה נשאר ברשת ומה החוק אומר.\nיחידה: לחץ חב
+ רתי\, בריונות ואלימות (שיעור 6 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-25-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270125T133000
+DTEND;TZID=Asia/Jerusalem:20270125T141500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : אלימות מילולית וברשת (המשך)
+DESCRIPTION:סייברבולינג\, קבוצות ווטסאפ\, הדרה. 
+ מה נשאר ברשת ומה החוק אומר.\nיחידה: לחץ חב
+ רתי\, בריונות ואלימות (שיעור 7 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-01-28-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270128T095000
+DTEND;TZID=Asia/Jerusalem:20270128T103500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : חרם והדרה
+DESCRIPTION:המנגנון החברתי של החרם\, ואיך שוברי
+ ם אותו. פעילות חווייתית.\nיחידה: לחץ חברתי
+ \, בריונות ואלימות (שיעור 8 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-01-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270201T133000
+DTEND;TZID=Asia/Jerusalem:20270201T141500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : למי פונים
+DESCRIPTION:מיפוי מעגלי תמיכה: חבר\, מחנך\, יועצ
+ ת\, הורה\, קו חירום. מספרים בפועל.\nיחידה: ל
+ חץ חברתי\, בריונות ואלימות (שיעור 9 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-04-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270204T095000
+DTEND;TZID=Asia/Jerusalem:20270204T103500
+SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
+ : הכיתה שאני רוצה
+DESCRIPTION:סיכום היחידה — התחייבות כיתתית וה
+ חזרה לתקנון שנכתב בתחילת השנה.\nיחידה: לח
+ ץ חברתי\, בריונות ואלימות (שיעור 10 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-08-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270208T133000
+DTEND;TZID=Asia/Jerusalem:20270208T141500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: מה אנחנו באמת יודעים
+DESCRIPTION:שאלון ידע אנונימי\, ואז השוואה לנתו
+ נים אמיתיים. פירוק מיתוסים.\nיחידה: מניעה 
+ — אלכוהול\, עישון וסמים (שיעור 1 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-11-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270211T095000
+DTEND;TZID=Asia/Jerusalem:20270211T103500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: מה אנחנו באמת יודעים (המשך)
+DESCRIPTION:שאלון ידע אנונימי\, ואז השוואה לנתו
+ נים אמיתיים. פירוק מיתוסים.\nיחידה: מניעה 
+ — אלכוהול\, עישון וסמים (שיעור 2 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-15-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270215T133000
+DTEND;TZID=Asia/Jerusalem:20270215T141500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: אלכוהול — השפעה על גוף מתבגר
+DESCRIPTION:מה קורה למוח בגיל ההתבגרות\, ולמה ג
+ יל ההתחלה משנה.\nיחידה: מניעה — אלכוהול\, 
+ עישון וסמים (שיעור 3 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-18-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270218T095000
+DTEND;TZID=Asia/Jerusalem:20270218T103500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: עישון וניקוטין
+DESCRIPTION:סיגריות\, נרגילה ואידוי. מה בפועל נ
+ כנס לגוף\, והתמכרות כמנגנון.\nיחידה: מניעה
+  — אלכוהול\, עישון וסמים (שיעור 4 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-22-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270222T133000
+DTEND;TZID=Asia/Jerusalem:20270222T141500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: סמים — עובדות וסיכונים
+DESCRIPTION:סוגים\, השפעות\, סיכונים משפטיים וב
+ ריאותיים. בלי דרמה — עם נתונים.\nיחידה: מנ
+ יעה — אלכוהול\, עישון וסמים (שיעור 5 מתוך 8
+ )
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-02-25-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270225T095000
+DTEND;TZID=Asia/Jerusalem:20270225T103500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: סמים — עובדות וסיכונים (המשך)
+DESCRIPTION:סוגים\, השפעות\, סיכונים משפטיים וב
+ ריאותיים. בלי דרמה — עם נתונים.\nיחידה: מנ
+ יעה — אלכוהול\, עישון וסמים (שיעור 6 מתוך 8
+ )
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-01-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270301T133000
+DTEND;TZID=Asia/Jerusalem:20270301T141500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: מצבי סיכון — מה עושים
+DESCRIPTION:תרחישים: מסיבה\, לחץ מחבר\, נהג ששתה.
+  תרגול אסטרטגיות יציאה.\nיחידה: מניעה — א
+ לכוהול\, עישון וסמים (שיעור 7 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-04-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270304T095000
+DTEND;TZID=Asia/Jerusalem:20270304T103500
+SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
+ ים: סיכום ומעגלי תמיכה
+DESCRIPTION:למי פונים\, איך עוזרים לחבר\, ומה עו
+ שים כשמפחדים להלשין.\nיחידה: מניעה — אלכו
+ הול\, עישון וסמים (שיעור 8 מתוך 8)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-08-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270308T133000
+DTEND;TZID=Asia/Jerusalem:20270308T141500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מסוג
+ לות עצמית — מה זה
+DESCRIPTION:האמונה שאני יכול להשפיע על התוצאה. 
+ פעילות פתיחה ומיפוי אישי.\nיחידה: מסוגלות
+  עצמית והעצמה (שיעור 1 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-11-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270311T095000
+DTEND;TZID=Asia/Jerusalem:20270311T103500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מסוג
+ לות עצמית — מה זה (המשך)
+DESCRIPTION:האמונה שאני יכול להשפיע על התוצאה. 
+ פעילות פתיחה ומיפוי אישי.\nיחידה: מסוגלות
+  עצמית והעצמה (שיעור 2 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-15-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270315T133000
+DTEND;TZID=Asia/Jerusalem:20270315T141500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: החוז
+ קות שלי
+DESCRIPTION:זיהוי חוזקות אישיות\, ומשוב חיובי מ
+ חברים בקבוצה.\nיחידה: מסוגלות עצמית והעצמ
+ ה (שיעור 3 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-18-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270318T095000
+DTEND;TZID=Asia/Jerusalem:20270318T103500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: התמו
+ דדות עם כישלון
+DESCRIPTION:תפיסת צמיחה מול תפיסה קבועה. מה אומ
+ רים לעצמנו אחרי כישלון.\nיחידה: מסוגלות ע
+ צמית והעצמה (שיעור 4 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-22-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270322T133000
+DTEND;TZID=Asia/Jerusalem:20270322T141500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: הצבת 
+ מטרות
+DESCRIPTION:מטרה מדידה\, פירוק לצעדים\, זיהוי מכ
+ שולים מראש.\nיחידה: מסוגלות עצמית והעצמה (
+ שיעור 5 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-25-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270325T095000
+DTEND;TZID=Asia/Jerusalem:20270325T103500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מי מש
+ פיע עליי
+DESCRIPTION:מודלים לחיקוי\, השפעת רשתות חברתיו
+ ת ודימוי עצמי.\nיחידה: מסוגלות עצמית והעצ
+ מה (שיעור 6 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-03-29-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270329T133000
+DTEND;TZID=Asia/Jerusalem:20270329T141500
+SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: אני ב
+ עוד שנה
+DESCRIPTION:פעילות סיכום — מכתב לעצמי לסוף כית
+ ה ח׳\, נשמר אצל המחנך.\nיחידה: מסוגלות עצמי
+ ת והעצמה (שיעור 7 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-04-01-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270401T095000
+DTEND;TZID=Asia/Jerusalem:20270401T103500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
+ מים נוראים — חשבון נפש
+DESCRIPTION:סליחה\, מחילה והתחלה חדשה — בהקשר ה
+ כיתתי ולא רק הדתי.\nיחידה: ימי זיכרון וימי
+ ם מיוחדים (שיעור 1 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-04-05-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270405T133000
+DTEND;TZID=Asia/Jerusalem:20270405T141500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
+ מים נוראים — חשבון נפש (המשך)
+DESCRIPTION:סליחה\, מחילה והתחלה חדשה — בהקשר ה
+ כיתתי ולא רק הדתי.\nיחידה: ימי זיכרון וימי
+ ם מיוחדים (שיעור 2 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-04-08-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270408T095000
+DTEND;TZID=Asia/Jerusalem:20270408T103500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: ח
+ נוכה — אור וגבורה
+DESCRIPTION:מה זו גבורה בכיתה שלנו. פעילות חווי
+ יתית ומסיבת כיתה.\nיחידה: ימי זיכרון וימי
+ ם מיוחדים (שיעור 3 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-04-12-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270412T133000
+DTEND;TZID=Asia/Jerusalem:20270412T141500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
+ ום הזיכרון לשואה ולגבורה
+DESCRIPTION:סיפור אישי אחד לעומק במקום נתונים. 
+ הכנה לטקס.\nיחידה: ימי זיכרון וימים מיוחד
+ ים (שיעור 4 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-03-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270503T133000
+DTEND;TZID=Asia/Jerusalem:20270503T141500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
+ ום הזיכרון לחללי מערכות ישראל
+DESCRIPTION:עיבוד\, הכנה לטקס\, והתייחסות לתלמי
+ דים עם קרבה אישית לאובדן.\nיחידה: ימי זיכר
+ ון וימים מיוחדים (שיעור 5 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-06-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270506T095000
+DTEND;TZID=Asia/Jerusalem:20270506T103500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
+ ום העצמאות
+DESCRIPTION:מה זה אומר להיות אזרח. פעילות כיתתי
+ ת חגיגית.\nיחידה: ימי זיכרון וימים מיוחדי
+ ם (שיעור 6 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-10-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270510T133000
+DTEND;TZID=Asia/Jerusalem:20270510T141500
+SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: פ
+ ורים ולג בעומר
+DESCRIPTION:פעילות חברתית קלה\, אחריות ובטיחות 
+ (תחפושות\, מדורות).\nיחידה: ימי זיכרון וימי
+ ם מיוחדים (שיעור 7 מתוך 7)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-13-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270513T095000
+DTEND;TZID=Asia/Jerusalem:20270513T103500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: סיכום מחצית א׳
+DESCRIPTION:מה עבד ומה לא בכיתה ובאישי. סבב משו
+ ב הדדי מובנה.\nיחידה: סיכומי תקופה\, תעודה 
+ וסוף שנה (שיעור 1 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-17-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270517T133000
+DTEND;TZID=Asia/Jerusalem:20270517T141500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: סיכום מחצית א׳ (המשך)
+DESCRIPTION:מה עבד ומה לא בכיתה ובאישי. סבב משו
+ ב הדדי מובנה.\nיחידה: סיכומי תקופה\, תעודה 
+ וסוף שנה (שיעור 2 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-20-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270520T095000
+DTEND;TZID=Asia/Jerusalem:20270520T103500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: התעודה — איך קוראים אותה
+DESCRIPTION:עיבוד התעודה: מה המספר אומר ומה לא\,
+  ומה עושים עם זה.\nיחידה: סיכומי תקופה\, תע
+ ודה וסוף שנה (שיעור 3 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-24-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270524T133000
+DTEND;TZID=Asia/Jerusalem:20270524T141500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: יעדים למחצית ב׳
+DESCRIPTION:כל תלמיד מציב יעד לימודי אחד ויעד ח
+ ברתי אחד.\nיחידה: סיכומי תקופה\, תעודה וסו
+ ף שנה (שיעור 4 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-27-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270527T095000
+DTEND;TZID=Asia/Jerusalem:20270527T103500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: אמצע הדרך — בדיקת יעדים
+DESCRIPTION:חזרה ליעדים שהוצבו\, בדיקה כנה\, ותי
+ קון מסלול.\nיחידה: סיכומי תקופה\, תעודה וס
+ וף שנה (שיעור 5 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-05-31-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270531T133000
+DTEND;TZID=Asia/Jerusalem:20270531T141500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: סיכום שנה — מה השתנה
+DESCRIPTION:השוואה לתחילת השנה: הכיתה\, אני\, הק
+ שרים.\nיחידה: סיכומי תקופה\, תעודה וסוף שנ
+ ה (שיעור 6 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-06-03-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270603T095000
+DTEND;TZID=Asia/Jerusalem:20270603T103500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: סיכום שנה — מה השתנה (המשך)
+DESCRIPTION:השוואה לתחילת השנה: הכיתה\, אני\, הק
+ שרים.\nיחידה: סיכומי תקופה\, תעודה וסוף שנ
+ ה (שיעור 7 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-06-07-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270607T133000
+DTEND;TZID=Asia/Jerusalem:20270607T141500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: מעבר לכיתה ח׳
+DESCRIPTION:מה מצפה לנו\, מה נשמר ומה משתנה. פתי
+ חת המכתב לעצמי.\nיחידה: סיכומי תקופה\, תעו
+ דה וסוף שנה (שיעור 8 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-06-14-7@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270614T133000
+DTEND;TZID=Asia/Jerusalem:20270614T141500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: פרידה ותודות
+DESCRIPTION:פעילות סיום רגשית — מעגל תודות\, ספ
+ ר מחזור כיתתי.\nיחידה: סיכומי תקופה\, תעוד
+ ה וסוף שנה (שיעור 9 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+BEGIN:VEVENT
+UID:hvA-2027-06-17-3@tochnit-shnatit
+DTSTAMP:20260902T200944Z
+DTSTART;TZID=Asia/Jerusalem:20270617T095000
+DTEND;TZID=Asia/Jerusalem:20270617T103500
+SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
+ נה: מסיבת סיום
+DESCRIPTION:פעילות חברתית מסכמת בהובלת ועדת הכ
+ יתה.\nיחידה: סיכומי תקופה\, תעודה וסוף שנה 
+ (שיעור 10 מתוך 10)
+CATEGORIES:חברה
+END:VEVENT
+END:VCALENDAR

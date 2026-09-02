@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>תוכנית שנתית — חינוך גופני, חברה ובריאות</title>
+<meta name="description" content="תוכנית שנתית מלאה: גאנט, שיעור־שיעור לפי תאריך, אות הכושר הגופני ואתגרים.">
+<meta name="theme-color" content="#0b1220">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ap-styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="logo">📅</span>
+    <div><b>תוכנית שנתית</b><small>תשפ"ז · חנ"ג · חברה · בריאות</small></div></div>
+  <a class="pro" href="../index.html" title="פתיחת אפליקציית המגרש PRO">המגרש PRO ↗</a>
+</header>
+
+<main>
+  <section class="view on" id="v-today"></section>
+  <section class="view" id="v-gantt"></section>
+  <section class="view" id="v-sched"></section>
+  <section class="view" id="v-unit"></section>
+  <section class="view" id="v-fitness"></section>
+  <section class="view" id="v-challenges"></section>
+  <section class="view" id="v-timetable"></section>
+  <section class="view" id="v-settings"></section>
+</main>
+
+<nav class="nav">
+  <button data-go="today"     class="on"><span class="ic">📍</span>היום</button>
+  <button data-go="gantt"><span class="ic">📊</span>גאנט</button>
+  <button data-go="sched"><span class="ic">🗓️</span>שיעורים</button>
+  <button data-go="fitness"><span class="ic">🏅</span>אות הכושר</button>
+  <button data-go="challenges"><span class="ic">🎯</span>אתגרים</button>
+  <button data-go="timetable"><span class="ic">🔢</span>מערכת</button>
+  <button data-go="settings"><span class="ic">⚙️</span>הגדרות</button>
+</nav>
+
+<script src="ap-calendar.js"></script>
+<script src="ap-timetable.js"></script>
+<script src="ap-curriculum.js"></script>
+<script src="ap-hevra.js"></script>
+<script src="ap-fitness.js"></script>
+<script src="ap-app.js"></script>
+</body>
+</html>
