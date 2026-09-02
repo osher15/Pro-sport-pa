@@ -24,9 +24,9 @@ END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
 UID:hlA-2026-09-02-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260902T085000
-DTEND;TZID=Asia/Jerusalem:20260902T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260902T090000
+DTEND;TZID=Asia/Jerusalem:20260902T094500
 SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: בריא
  ות — מעבר ל«לא חולה»
 DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
@@ -36,9 +36,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-09-09-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260909T085000
-DTEND;TZID=Asia/Jerusalem:20260909T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260909T090000
+DTEND;TZID=Asia/Jerusalem:20260909T094500
 SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: בריא
  ות — מעבר ל«לא חולה» (המשך)
 DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
@@ -48,9 +48,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-09-16-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260916T085000
-DTEND;TZID=Asia/Jerusalem:20260916T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260916T090000
+DTEND;TZID=Asia/Jerusalem:20260916T094500
 SUMMARY:חינוך לבריאות ז-7 — מה זו בריאות: ההרג
  לים שלי
 DESCRIPTION:שאלון אישי אנונימי: שינה\, תזונה\, ת
@@ -60,9 +60,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-09-23-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260923T085000
-DTEND;TZID=Asia/Jerusalem:20260923T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260923T090000
+DTEND;TZID=Asia/Jerusalem:20260923T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: אבות המזון
 DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
  ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
@@ -71,9 +71,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-10-07-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261007T085000
-DTEND;TZID=Asia/Jerusalem:20261007T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261007T090000
+DTEND;TZID=Asia/Jerusalem:20261007T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: אבות המזון 
  (המשך)
 DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
@@ -83,9 +83,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-10-14-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261014T085000
-DTEND;TZID=Asia/Jerusalem:20261014T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261014T090000
+DTEND;TZID=Asia/Jerusalem:20261014T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: לקרוא תווי
  ת מזון
 DESCRIPTION:פעילות מעשית: משווים תוויות של מוצ
@@ -95,9 +95,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-10-21-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261021T085000
-DTEND;TZID=Asia/Jerusalem:20261021T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261021T090000
+DTEND;TZID=Asia/Jerusalem:20261021T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: סוכר ומשקא
  ות ממותקים
 DESCRIPTION:כמה סוכר יש במה ששותים באמת. הדגמה 
@@ -107,9 +107,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-10-28-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261028T085000
-DTEND;TZID=Asia/Jerusalem:20261028T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261028T090000
+DTEND;TZID=Asia/Jerusalem:20261028T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: ארוחת בוקר 
  וארוחות היום
 DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
@@ -119,9 +119,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-11-04-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261104T085000
-DTEND;TZID=Asia/Jerusalem:20261104T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261104T090000
+DTEND;TZID=Asia/Jerusalem:20261104T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: ארוחת בוקר 
  וארוחות היום (המשך)
 DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
@@ -131,9 +131,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-11-11-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261111T085000
-DTEND;TZID=Asia/Jerusalem:20261111T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261111T090000
+DTEND;TZID=Asia/Jerusalem:20261111T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: שיווק מזון 
  ומיתוסים ברשת
 DESCRIPTION:ניתוח פרסומות ותכני משפיענים. איך 
@@ -143,9 +143,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-11-18-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261118T085000
-DTEND;TZID=Asia/Jerusalem:20261118T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261118T090000
+DTEND;TZID=Asia/Jerusalem:20261118T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: תזונה וספו
  רט
 DESCRIPTION:מה לאכול לפני ואחרי פעילות. חיבור י
@@ -155,9 +155,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-11-25-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261125T085000
-DTEND;TZID=Asia/Jerusalem:20261125T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261125T090000
+DTEND;TZID=Asia/Jerusalem:20261125T094500
 SUMMARY:חינוך לבריאות ז-7 — תזונה: בונים תפרי
  ט יום
 DESCRIPTION:פעילות מסכמת — כל קבוצה בונה יום א
@@ -167,9 +167,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-12-02-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261202T085000
-DTEND;TZID=Asia/Jerusalem:20261202T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261202T090000
+DTEND;TZID=Asia/Jerusalem:20261202T094500
 SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
  יאות: כמה תנועה צריך
 DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
@@ -179,9 +179,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-12-16-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261216T085000
-DTEND;TZID=Asia/Jerusalem:20261216T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261216T090000
+DTEND;TZID=Asia/Jerusalem:20261216T094500
 SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
  יאות: כמה תנועה צריך (המשך)
 DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
@@ -191,9 +191,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-12-23-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261223T085000
-DTEND;TZID=Asia/Jerusalem:20261223T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261223T090000
+DTEND;TZID=Asia/Jerusalem:20261223T094500
 SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
  יאות: מה קורה לגוף כשזזים
 DESCRIPTION:לב\, ריאות\, שרירים\, עצמות ומוח. חיב
@@ -203,9 +203,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2026-12-30-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261230T085000
-DTEND;TZID=Asia/Jerusalem:20261230T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261230T090000
+DTEND;TZID=Asia/Jerusalem:20261230T094500
 SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
  יאות: מבחני הכושר — מה הם בודקים
 DESCRIPTION:הסבר על כל מדד: ביפ טסט\, כוח\, גמישו
@@ -215,9 +215,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-01-06-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270106T085000
-DTEND;TZID=Asia/Jerusalem:20270106T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270106T090000
+DTEND;TZID=Asia/Jerusalem:20270106T094500
 SUMMARY:חינוך לבריאות ז-7 — פעילות גופנית ובר
  יאות: ישיבה ממושכת ומסכים
 DESCRIPTION:ההשפעה של ישיבה ארוכה\, ומה עושים ב
@@ -227,9 +227,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-01-13-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270113T085000
-DTEND;TZID=Asia/Jerusalem:20270113T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270113T090000
+DTEND;TZID=Asia/Jerusalem:20270113T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: שינה — כמה ולמה
 DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
@@ -240,9 +240,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-01-20-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270120T085000
-DTEND;TZID=Asia/Jerusalem:20270120T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270120T090000
+DTEND;TZID=Asia/Jerusalem:20270120T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: שינה — כמה ולמה (המשך)
 DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
@@ -253,9 +253,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-01-27-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270127T085000
-DTEND;TZID=Asia/Jerusalem:20270127T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270127T090000
+DTEND;TZID=Asia/Jerusalem:20270127T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: מסכים ושינה
 DESCRIPTION:אור כחול\, גלילה לפני השינה\, והרגלי
@@ -265,9 +265,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-02-03-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270203T085000
-DTEND;TZID=Asia/Jerusalem:20270203T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270203T090000
+DTEND;TZID=Asia/Jerusalem:20270203T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: מסכים ורשתות חברתיות
 DESCRIPTION:השפעה על מצב רוח ודימוי עצמי. השווא
@@ -277,9 +277,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-02-10-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270210T085000
-DTEND;TZID=Asia/Jerusalem:20270210T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270210T090000
+DTEND;TZID=Asia/Jerusalem:20270210T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: לחץ וחרדה
 DESCRIPTION:מה קורה בגוף בלחץ\, וכלי ויסות מעשי
@@ -289,9 +289,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-02-17-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270217T085000
-DTEND;TZID=Asia/Jerusalem:20270217T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270217T090000
+DTEND;TZID=Asia/Jerusalem:20270217T094500
 SUMMARY:חינוך לבריאות ז-7 — שינה\, מסכים ובריא
  ות הנפש: למי פונים
 DESCRIPTION:מיפוי מקורות עזרה בבית הספר ומחוצה
@@ -301,9 +301,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-02-24-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270224T085000
-DTEND;TZID=Asia/Jerusalem:20270224T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270224T090000
+DTEND;TZID=Asia/Jerusalem:20270224T094500
 SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
  וי גוף: מה קורה בגיל ההתבגרות
 DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
@@ -313,9 +313,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-03-03-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270303T085000
-DTEND;TZID=Asia/Jerusalem:20270303T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270303T090000
+DTEND;TZID=Asia/Jerusalem:20270303T094500
 SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
  וי גוף: מה קורה בגיל ההתבגרות (המשך)
 DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
@@ -325,9 +325,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-03-10-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270310T085000
-DTEND;TZID=Asia/Jerusalem:20270310T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270310T090000
+DTEND;TZID=Asia/Jerusalem:20270310T094500
 SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
  וי גוף: היגיינה ובריאות אישית
 DESCRIPTION:טיפוח\, הזעה\, שיניים ועור. פרקטי ול
@@ -337,9 +337,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-03-17-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270317T085000
-DTEND;TZID=Asia/Jerusalem:20270317T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270317T090000
+DTEND;TZID=Asia/Jerusalem:20270317T094500
 SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
  וי גוף: דימוי גוף
 DESCRIPTION:פערים בין הגוף האמיתי לגוף ברשת. ני
@@ -349,9 +349,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-03-31-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270331T085000
-DTEND;TZID=Asia/Jerusalem:20270331T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270331T090000
+DTEND;TZID=Asia/Jerusalem:20270331T094500
 SUMMARY:חינוך לבריאות ז-7 — גיל ההתבגרות ודימ
  וי גוף: השוואה חברתית ולחץ אסתטי
 DESCRIPTION:איך מזהים תוכן שפוגע\, ומה עושים אי
@@ -361,9 +361,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-04-07-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270407T085000
-DTEND;TZID=Asia/Jerusalem:20270407T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270407T090000
+DTEND;TZID=Asia/Jerusalem:20270407T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: עישון\, אלכוהול ואידוי
 DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
@@ -373,9 +373,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-04-14-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270414T085000
-DTEND;TZID=Asia/Jerusalem:20270414T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270414T090000
+DTEND;TZID=Asia/Jerusalem:20270414T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: עישון\, אלכוהול ואידוי (המשך)
 DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
@@ -385,9 +385,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-05-05-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270505T085000
-DTEND;TZID=Asia/Jerusalem:20270505T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270505T090000
+DTEND;TZID=Asia/Jerusalem:20270505T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: התמכרויות התנהגותיות
 DESCRIPTION:מסכים\, גיימינג והימורים. מתי תחביב
@@ -397,9 +397,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-05-19-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270519T085000
-DTEND;TZID=Asia/Jerusalem:20270519T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270519T090000
+DTEND;TZID=Asia/Jerusalem:20270519T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: בטיחות בדרכים
 DESCRIPTION:קורקינט חשמלי\, אופניים וקסדה — הס
@@ -409,9 +409,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-05-26-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270526T085000
-DTEND;TZID=Asia/Jerusalem:20270526T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270526T090000
+DTEND;TZID=Asia/Jerusalem:20270526T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: בטיחות בפעילות ובקיץ
 DESCRIPTION:מים\, שמש\, חום ומאמץ. מניעת התייבשו
@@ -421,9 +421,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-06-02-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270602T085000
-DTEND;TZID=Asia/Jerusalem:20270602T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270602T090000
+DTEND;TZID=Asia/Jerusalem:20270602T094500
 SUMMARY:חינוך לבריאות ז-7 — התנהגויות סיכון ו
  בטיחות: עזרה ראשונה בסיסית
 DESCRIPTION:מה עושים ראשון\, איך מזעיקים עזרה\, 
@@ -433,9 +433,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-06-09-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270609T085000
-DTEND;TZID=Asia/Jerusalem:20270609T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270609T090000
+DTEND;TZID=Asia/Jerusalem:20270609T094500
 SUMMARY:חינוך לבריאות ז-7 — פרויקט סיום — שגר
  ירי בריאות: בניית פרויקט הבריאות
 DESCRIPTION:בחירת נושא בקבוצות ובניית תוצר: קמ
@@ -445,9 +445,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlA-2027-06-16-2@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270616T085000
-DTEND;TZID=Asia/Jerusalem:20270616T093500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270616T090000
+DTEND;TZID=Asia/Jerusalem:20270616T094500
 SUMMARY:חינוך לבריאות ז-7 — פרויקט סיום — שגר
  ירי בריאות: הצגה וסיכום שנה
 DESCRIPTION:הצגת התוצרים\, הערכת עמיתים וסיכום 
@@ -457,9 +457,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-09-03-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260903T114500
-DTEND;TZID=Asia/Jerusalem:20260903T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260903T114000
+DTEND;TZID=Asia/Jerusalem:20260903T122500
 SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: בריא
  ות — מעבר ל«לא חולה»
 DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
@@ -469,9 +469,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-09-10-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260910T114500
-DTEND;TZID=Asia/Jerusalem:20260910T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260910T114000
+DTEND;TZID=Asia/Jerusalem:20260910T122500
 SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: בריא
  ות — מעבר ל«לא חולה» (המשך)
 DESCRIPTION:הגדרת בריאות גופנית\, נפשית וחברתי
@@ -481,9 +481,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-09-17-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260917T114500
-DTEND;TZID=Asia/Jerusalem:20260917T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260917T114000
+DTEND;TZID=Asia/Jerusalem:20260917T122500
 SUMMARY:חינוך לבריאות ז-6 — מה זו בריאות: ההרג
  לים שלי
 DESCRIPTION:שאלון אישי אנונימי: שינה\, תזונה\, ת
@@ -493,9 +493,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-09-24-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260924T114500
-DTEND;TZID=Asia/Jerusalem:20260924T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260924T114000
+DTEND;TZID=Asia/Jerusalem:20260924T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: אבות המזון
 DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
  ם ומינרלים — מה כל אחד עושה בגוף.\nיחידה: 
@@ -504,9 +504,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-10-08-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261008T114500
-DTEND;TZID=Asia/Jerusalem:20261008T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261008T114000
+DTEND;TZID=Asia/Jerusalem:20261008T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: אבות המזון 
  (המשך)
 DESCRIPTION:פחמימות\, חלבונים\, שומנים\, ויטמיני
@@ -516,9 +516,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-10-15-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261015T114500
-DTEND;TZID=Asia/Jerusalem:20261015T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261015T114000
+DTEND;TZID=Asia/Jerusalem:20261015T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: לקרוא תווי
  ת מזון
 DESCRIPTION:פעילות מעשית: משווים תוויות של מוצ
@@ -528,9 +528,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-10-22-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261022T114500
-DTEND;TZID=Asia/Jerusalem:20261022T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261022T114000
+DTEND;TZID=Asia/Jerusalem:20261022T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: סוכר ומשקא
  ות ממותקים
 DESCRIPTION:כמה סוכר יש במה ששותים באמת. הדגמה 
@@ -540,9 +540,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-10-29-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261029T114500
-DTEND;TZID=Asia/Jerusalem:20261029T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261029T114000
+DTEND;TZID=Asia/Jerusalem:20261029T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: ארוחת בוקר 
  וארוחות היום
 DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
@@ -552,9 +552,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-11-05-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261105T114500
-DTEND;TZID=Asia/Jerusalem:20261105T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261105T114000
+DTEND;TZID=Asia/Jerusalem:20261105T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: ארוחת בוקר 
  וארוחות היום (המשך)
 DESCRIPTION:למה זה משפיע על ריכוז בכיתה. תכנון 
@@ -564,9 +564,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-11-12-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261112T114500
-DTEND;TZID=Asia/Jerusalem:20261112T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261112T114000
+DTEND;TZID=Asia/Jerusalem:20261112T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: שיווק מזון 
  ומיתוסים ברשת
 DESCRIPTION:ניתוח פרסומות ותכני משפיענים. איך 
@@ -576,9 +576,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-11-19-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261119T114500
-DTEND;TZID=Asia/Jerusalem:20261119T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261119T114000
+DTEND;TZID=Asia/Jerusalem:20261119T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: תזונה וספו
  רט
 DESCRIPTION:מה לאכול לפני ואחרי פעילות. חיבור י
@@ -588,9 +588,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-11-26-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261126T114500
-DTEND;TZID=Asia/Jerusalem:20261126T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261126T114000
+DTEND;TZID=Asia/Jerusalem:20261126T122500
 SUMMARY:חינוך לבריאות ז-6 — תזונה: בונים תפרי
  ט יום
 DESCRIPTION:פעילות מסכמת — כל קבוצה בונה יום א
@@ -600,9 +600,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-12-03-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261203T114500
-DTEND;TZID=Asia/Jerusalem:20261203T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261203T114000
+DTEND;TZID=Asia/Jerusalem:20261203T122500
 SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
  יאות: כמה תנועה צריך
 DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
@@ -612,9 +612,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-12-17-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261217T114500
-DTEND;TZID=Asia/Jerusalem:20261217T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261217T114000
+DTEND;TZID=Asia/Jerusalem:20261217T122500
 SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
  יאות: כמה תנועה צריך (המשך)
 DESCRIPTION:ההמלצה של 60 דקות ביום — מה נכנס לספ
@@ -624,9 +624,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-12-24-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261224T114500
-DTEND;TZID=Asia/Jerusalem:20261224T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261224T114000
+DTEND;TZID=Asia/Jerusalem:20261224T122500
 SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
  יאות: מה קורה לגוף כשזזים
 DESCRIPTION:לב\, ריאות\, שרירים\, עצמות ומוח. חיב
@@ -636,9 +636,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2026-12-31-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261231T114500
-DTEND;TZID=Asia/Jerusalem:20261231T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261231T114000
+DTEND;TZID=Asia/Jerusalem:20261231T122500
 SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
  יאות: מבחני הכושר — מה הם בודקים
 DESCRIPTION:הסבר על כל מדד: ביפ טסט\, כוח\, גמישו
@@ -648,9 +648,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-01-07-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270107T114500
-DTEND;TZID=Asia/Jerusalem:20270107T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270107T114000
+DTEND;TZID=Asia/Jerusalem:20270107T122500
 SUMMARY:חינוך לבריאות ז-6 — פעילות גופנית ובר
  יאות: ישיבה ממושכת ומסכים
 DESCRIPTION:ההשפעה של ישיבה ארוכה\, ומה עושים ב
@@ -660,9 +660,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-01-14-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270114T114500
-DTEND;TZID=Asia/Jerusalem:20270114T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270114T114000
+DTEND;TZID=Asia/Jerusalem:20270114T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: שינה — כמה ולמה
 DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
@@ -673,9 +673,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-01-21-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270121T114500
-DTEND;TZID=Asia/Jerusalem:20270121T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270121T114000
+DTEND;TZID=Asia/Jerusalem:20270121T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: שינה — כמה ולמה (המשך)
 DESCRIPTION:צורכי שינה בגיל ההתבגרות\, והשפעת ח
@@ -686,9 +686,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-01-28-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270128T114500
-DTEND;TZID=Asia/Jerusalem:20270128T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270128T114000
+DTEND;TZID=Asia/Jerusalem:20270128T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: מסכים ושינה
 DESCRIPTION:אור כחול\, גלילה לפני השינה\, והרגלי
@@ -698,9 +698,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-02-04-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270204T114500
-DTEND;TZID=Asia/Jerusalem:20270204T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270204T114000
+DTEND;TZID=Asia/Jerusalem:20270204T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: מסכים ורשתות חברתיות
 DESCRIPTION:השפעה על מצב רוח ודימוי עצמי. השווא
@@ -710,9 +710,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-02-11-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270211T114500
-DTEND;TZID=Asia/Jerusalem:20270211T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270211T114000
+DTEND;TZID=Asia/Jerusalem:20270211T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: לחץ וחרדה
 DESCRIPTION:מה קורה בגוף בלחץ\, וכלי ויסות מעשי
@@ -722,9 +722,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-02-18-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270218T114500
-DTEND;TZID=Asia/Jerusalem:20270218T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270218T114000
+DTEND;TZID=Asia/Jerusalem:20270218T122500
 SUMMARY:חינוך לבריאות ז-6 — שינה\, מסכים ובריא
  ות הנפש: למי פונים
 DESCRIPTION:מיפוי מקורות עזרה בבית הספר ומחוצה
@@ -734,9 +734,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-02-25-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270225T114500
-DTEND;TZID=Asia/Jerusalem:20270225T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270225T114000
+DTEND;TZID=Asia/Jerusalem:20270225T122500
 SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
  וי גוף: מה קורה בגיל ההתבגרות
 DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
@@ -746,9 +746,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-03-04-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270304T114500
-DTEND;TZID=Asia/Jerusalem:20270304T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270304T114000
+DTEND;TZID=Asia/Jerusalem:20270304T122500
 SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
  וי גוף: מה קורה בגיל ההתבגרות (המשך)
 DESCRIPTION:שינויים גופניים ורגשיים — נורמליז
@@ -758,9 +758,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-03-11-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270311T114500
-DTEND;TZID=Asia/Jerusalem:20270311T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270311T114000
+DTEND;TZID=Asia/Jerusalem:20270311T122500
 SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
  וי גוף: היגיינה ובריאות אישית
 DESCRIPTION:טיפוח\, הזעה\, שיניים ועור. פרקטי ול
@@ -770,9 +770,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-03-18-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270318T114500
-DTEND;TZID=Asia/Jerusalem:20270318T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270318T114000
+DTEND;TZID=Asia/Jerusalem:20270318T122500
 SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
  וי גוף: דימוי גוף
 DESCRIPTION:פערים בין הגוף האמיתי לגוף ברשת. ני
@@ -782,9 +782,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-03-25-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270325T114500
-DTEND;TZID=Asia/Jerusalem:20270325T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270325T114000
+DTEND;TZID=Asia/Jerusalem:20270325T122500
 SUMMARY:חינוך לבריאות ז-6 — גיל ההתבגרות ודימ
  וי גוף: השוואה חברתית ולחץ אסתטי
 DESCRIPTION:איך מזהים תוכן שפוגע\, ומה עושים אי
@@ -794,9 +794,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-04-01-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270401T114500
-DTEND;TZID=Asia/Jerusalem:20270401T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270401T114000
+DTEND;TZID=Asia/Jerusalem:20270401T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: עישון\, אלכוהול ואידוי
 DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
@@ -806,9 +806,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-04-08-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270408T114500
-DTEND;TZID=Asia/Jerusalem:20270408T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270408T114000
+DTEND;TZID=Asia/Jerusalem:20270408T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: עישון\, אלכוהול ואידוי (המשך)
 DESCRIPTION:עובדות מדויקות והשפעה על גוף מתבגר
@@ -818,9 +818,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-05-06-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270506T114500
-DTEND;TZID=Asia/Jerusalem:20270506T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270506T114000
+DTEND;TZID=Asia/Jerusalem:20270506T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: התמכרויות התנהגותיות
 DESCRIPTION:מסכים\, גיימינג והימורים. מתי תחביב
@@ -830,9 +830,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-05-13-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270513T114500
-DTEND;TZID=Asia/Jerusalem:20270513T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270513T114000
+DTEND;TZID=Asia/Jerusalem:20270513T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: בטיחות בדרכים
 DESCRIPTION:קורקינט חשמלי\, אופניים וקסדה — הס
@@ -842,9 +842,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-05-20-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270520T114500
-DTEND;TZID=Asia/Jerusalem:20270520T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270520T114000
+DTEND;TZID=Asia/Jerusalem:20270520T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: בטיחות בפעילות ובקיץ
 DESCRIPTION:מים\, שמש\, חום ומאמץ. מניעת התייבשו
@@ -854,9 +854,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-05-27-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270527T114500
-DTEND;TZID=Asia/Jerusalem:20270527T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270527T114000
+DTEND;TZID=Asia/Jerusalem:20270527T122500
 SUMMARY:חינוך לבריאות ז-6 — התנהגויות סיכון ו
  בטיחות: עזרה ראשונה בסיסית
 DESCRIPTION:מה עושים ראשון\, איך מזעיקים עזרה\, 
@@ -866,9 +866,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-06-03-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270603T114500
-DTEND;TZID=Asia/Jerusalem:20270603T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270603T114000
+DTEND;TZID=Asia/Jerusalem:20270603T122500
 SUMMARY:חינוך לבריאות ז-6 — פרויקט סיום — שגר
  ירי בריאות: בניית פרויקט הבריאות
 DESCRIPTION:בחירת נושא בקבוצות ובניית תוצר: קמ
@@ -878,9 +878,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hlB-2027-06-17-5@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270617T114500
-DTEND;TZID=Asia/Jerusalem:20270617T123000
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270617T114000
+DTEND;TZID=Asia/Jerusalem:20270617T122500
 SUMMARY:חינוך לבריאות ז-6 — פרויקט סיום — שגר
  ירי בריאות: הצגה וסיכום שנה
 DESCRIPTION:הצגת התוצרים\, הערכת עמיתים וסיכום 
@@ -890,9 +890,9 @@ CATEGORIES:חינוך לבריאות
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-03-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260903T095000
-DTEND;TZID=Asia/Jerusalem:20260903T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260903T094500
+DTEND;TZID=Asia/Jerusalem:20260903T103000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  מי אנחנו — היכרות ראשונה
 DESCRIPTION:משחקי שם ותנועה\, כרטיסי היכרות. המ
@@ -902,9 +902,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-07-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260907T133000
-DTEND;TZID=Asia/Jerusalem:20260907T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260907T132500
+DTEND;TZID=Asia/Jerusalem:20260907T141000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  מי אנחנו — היכרות ראשונה (המשך)
 DESCRIPTION:משחקי שם ותנועה\, כרטיסי היכרות. המ
@@ -914,9 +914,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-10-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260910T095000
-DTEND;TZID=Asia/Jerusalem:20260910T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260910T094500
+DTEND;TZID=Asia/Jerusalem:20260910T103000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  הכיתה שלי — מפת קשרים
 DESCRIPTION:פעילות מיפוי חברתי עדינה (למי אני פ
@@ -927,9 +927,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-14-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260914T133000
-DTEND;TZID=Asia/Jerusalem:20260914T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260914T132500
+DTEND;TZID=Asia/Jerusalem:20260914T141000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  מעבר מיסודי לחטיבה
 DESCRIPTION:מה השתנה\, מה מפחיד\, מה מרגש. שיתוף 
@@ -939,9 +939,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-17-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260917T095000
-DTEND;TZID=Asia/Jerusalem:20260917T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260917T094500
+DTEND;TZID=Asia/Jerusalem:20260917T103000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  משחקי גיבוש
 DESCRIPTION:כרטיסיות משחקי גיבוש — פעילות חוו
@@ -951,9 +951,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-09-24-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20260924T095000
-DTEND;TZID=Asia/Jerusalem:20260924T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20260924T094500
+DTEND;TZID=Asia/Jerusalem:20260924T103000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  משחקי גיבוש (המשך)
 DESCRIPTION:כרטיסיות משחקי גיבוש — פעילות חוו
@@ -963,9 +963,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-05-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261005T133000
-DTEND;TZID=Asia/Jerusalem:20261005T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261005T132500
+DTEND;TZID=Asia/Jerusalem:20261005T141000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  מה חשוב לי בכיתה
 DESCRIPTION:כל תלמיד מגדיר ערך אחד שחשוב לו שיה
@@ -975,9 +975,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-08-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261008T095000
-DTEND;TZID=Asia/Jerusalem:20261008T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261008T094500
+DTEND;TZID=Asia/Jerusalem:20261008T103000
 SUMMARY:חברה ז-5 — פתיחת שנה\, היכרות ושייכות: 
  שיחות אישיות — סבב ראשון
 DESCRIPTION:פעילות עצמאית לכיתה + שיחות אישיות 
@@ -987,9 +987,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-12-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261012T133000
-DTEND;TZID=Asia/Jerusalem:20261012T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261012T132500
+DTEND;TZID=Asia/Jerusalem:20261012T141000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: למה בכלל
   צריך כללים
 DESCRIPTION:דילמות ומקרים — מה קורה בלי כללים. 
@@ -999,9 +999,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-15-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261015T095000
-DTEND;TZID=Asia/Jerusalem:20261015T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261015T094500
+DTEND;TZID=Asia/Jerusalem:20261015T103000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: למה בכלל
   צריך כללים (המשך)
 DESCRIPTION:דילמות ומקרים — מה קורה בלי כללים. 
@@ -1011,9 +1011,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-19-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261019T133000
-DTEND;TZID=Asia/Jerusalem:20261019T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261019T132500
+DTEND;TZID=Asia/Jerusalem:20261019T141000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: בונים תק
  נון — עבודה בקבוצות
 DESCRIPTION:כל קבוצה מנסחת 3 כללים בניסוח חיובי
@@ -1023,9 +1023,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-22-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261022T095000
-DTEND;TZID=Asia/Jerusalem:20261022T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261022T094500
+DTEND;TZID=Asia/Jerusalem:20261022T103000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: מגבשים א
  ת התקנון
 DESCRIPTION:מיזוג ההצעות\, ויכוח מכובד\, הצבעה. 
@@ -1035,9 +1035,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-26-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261026T133000
-DTEND;TZID=Asia/Jerusalem:20261026T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261026T132500
+DTEND;TZID=Asia/Jerusalem:20261026T141000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: השלכות ו
  תגובות
 DESCRIPTION:מה קורה כשמפרים כלל — הסכמה מראש ע
@@ -1047,9 +1047,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-10-29-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261029T095000
-DTEND;TZID=Asia/Jerusalem:20261029T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261029T094500
+DTEND;TZID=Asia/Jerusalem:20261029T103000
 SUMMARY:חברה ז-5 — תקנון ואקלים כיתה: אקלים כי
  תה — איך זה נראה בפועל
 DESCRIPTION:תרגול מצבים: מישהו נכנס לדברי חבר\, 
@@ -1059,9 +1059,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-02-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261102T133000
-DTEND;TZID=Asia/Jerusalem:20261102T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261102T132500
+DTEND;TZID=Asia/Jerusalem:20261102T141000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): רגשות — לזהות ולקרוא בשם
 DESCRIPTION:אוצר מילים רגשי\, «מד רגש»\, הבחנה ב
@@ -1071,9 +1071,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-05-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261105T095000
-DTEND;TZID=Asia/Jerusalem:20261105T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261105T094500
+DTEND;TZID=Asia/Jerusalem:20261105T103000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): רגשות — לזהות ולקרוא בשם (המשך)
 DESCRIPTION:אוצר מילים רגשי\, «מד רגש»\, הבחנה ב
@@ -1083,9 +1083,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-09-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261109T133000
-DTEND;TZID=Asia/Jerusalem:20261109T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261109T132500
+DTEND;TZID=Asia/Jerusalem:20261109T141000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): ויסות — מה עושים כשעולה כעס
 DESCRIPTION:טכניקות ויסות מעשיות: נשימה\, פסק ז
@@ -1096,9 +1096,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-12-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261112T095000
-DTEND;TZID=Asia/Jerusalem:20261112T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261112T094500
+DTEND;TZID=Asia/Jerusalem:20261112T103000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): הקשבה אמיתית
 DESCRIPTION:תרגול בזוגות: דובר ומקשיב\, בלי להפ
@@ -1109,9 +1109,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-16-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261116T133000
-DTEND;TZID=Asia/Jerusalem:20261116T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261116T132500
+DTEND;TZID=Asia/Jerusalem:20261116T141000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): תקשורת מכבדת ומסרי «אני»
 DESCRIPTION:מעבר מ«אתה תמיד...» ל«אני מרגיש... כש
@@ -1122,9 +1122,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-19-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261119T095000
-DTEND;TZID=Asia/Jerusalem:20261119T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261119T094500
+DTEND;TZID=Asia/Jerusalem:20261119T103000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): אמפתיה ולקיחת פרספקטיבה
 DESCRIPTION:סיפור מזוויות שונות. מה כל צד חשב ו
@@ -1134,9 +1134,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-23-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261123T133000
-DTEND;TZID=Asia/Jerusalem:20261123T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261123T132500
+DTEND;TZID=Asia/Jerusalem:20261123T141000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): אמפתיה ולקיחת פרספקטיבה (המשך)
 DESCRIPTION:סיפור מזוויות שונות. מה כל צד חשב ו
@@ -1146,9 +1146,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-26-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261126T095000
-DTEND;TZID=Asia/Jerusalem:20261126T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261126T094500
+DTEND;TZID=Asia/Jerusalem:20261126T103000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): פתרון קונפליקטים
 DESCRIPTION:מודל צעד־אחר־צעד לפתרון סכסוך בין 
@@ -1159,9 +1159,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-11-30-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261130T133000
-DTEND;TZID=Asia/Jerusalem:20261130T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261130T132500
+DTEND;TZID=Asia/Jerusalem:20261130T141000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): עבודת צוות
 DESCRIPTION:משימה שדורשת שיתוף אמיתי\, ואז עיבו
@@ -1171,9 +1171,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-03-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261203T095000
-DTEND;TZID=Asia/Jerusalem:20261203T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261203T094500
+DTEND;TZID=Asia/Jerusalem:20261203T103000
 SUMMARY:חברה ז-5 — מיומנויות רגשיות־חברתיות (
  SEL): חוזקות אישיות
 DESCRIPTION:כל תלמיד מזהה חוזקה אחת שלו ואחת של
@@ -1183,9 +1183,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-14-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261214T133000
-DTEND;TZID=Asia/Jerusalem:20261214T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261214T132500
+DTEND;TZID=Asia/Jerusalem:20261214T141000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : לאן הולך הזמן שלי
 DESCRIPTION:מיפוי יממה אמיתית\, כולל מסכים. תמו
@@ -1195,9 +1195,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-17-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261217T095000
-DTEND;TZID=Asia/Jerusalem:20261217T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261217T094500
+DTEND;TZID=Asia/Jerusalem:20261217T103000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : לאן הולך הזמן שלי (המשך)
 DESCRIPTION:מיפוי יממה אמיתית\, כולל מסכים. תמו
@@ -1207,9 +1207,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-21-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261221T133000
-DTEND;TZID=Asia/Jerusalem:20261221T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261221T132500
+DTEND;TZID=Asia/Jerusalem:20261221T141000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : תכנון שבוע
 DESCRIPTION:בניית לוח שבועי אישי הכולל לימודים
@@ -1219,9 +1219,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-24-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261224T095000
-DTEND;TZID=Asia/Jerusalem:20261224T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261224T094500
+DTEND;TZID=Asia/Jerusalem:20261224T103000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : דחיינות — למה ומה עושים
 DESCRIPTION:זיהוי הטריגרים האישיים וכלי «5 דקו
@@ -1231,9 +1231,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-28-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261228T133000
-DTEND;TZID=Asia/Jerusalem:20261228T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261228T132500
+DTEND;TZID=Asia/Jerusalem:20261228T141000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : איך לומדים למבחן
 DESCRIPTION:שיטות למידה יעילות מול לא יעילות. ת
@@ -1243,9 +1243,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2026-12-31-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20261231T095000
-DTEND;TZID=Asia/Jerusalem:20261231T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20261231T094500
+DTEND;TZID=Asia/Jerusalem:20261231T103000
 SUMMARY:חברה ז-5 — ניהול זמן\, למידה ומוטיבציה
  : מוטיבציה — פנימית וחיצונית
 DESCRIPTION:מה מניע אותי באמת. חיבור בין מטרות 
@@ -1255,9 +1255,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-04-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270104T133000
-DTEND;TZID=Asia/Jerusalem:20270104T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270104T132500
+DTEND;TZID=Asia/Jerusalem:20270104T141000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : לחץ חברתי — איך הוא עובד
 DESCRIPTION:ניסויי קונפורמיות מוכרים\, ואז מצב
@@ -1267,9 +1267,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-07-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270107T095000
-DTEND;TZID=Asia/Jerusalem:20270107T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270107T094500
+DTEND;TZID=Asia/Jerusalem:20270107T103000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : לחץ חברתי — איך הוא עובד (המשך)
 DESCRIPTION:ניסויי קונפורמיות מוכרים\, ואז מצב
@@ -1279,9 +1279,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-11-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270111T133000
-DTEND;TZID=Asia/Jerusalem:20270111T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270111T132500
+DTEND;TZID=Asia/Jerusalem:20270111T141000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : להגיד לא
 DESCRIPTION:תרגול מעשי של סירוב בלי לאבד מעמד ח
@@ -1291,9 +1291,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-14-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270114T095000
-DTEND;TZID=Asia/Jerusalem:20270114T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270114T094500
+DTEND;TZID=Asia/Jerusalem:20270114T103000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : מעגל הבריונות
 DESCRIPTION:התוקף\, הקורבן\, העומדים מהצד והמגן.
@@ -1303,9 +1303,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-18-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270118T133000
-DTEND;TZID=Asia/Jerusalem:20270118T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270118T132500
+DTEND;TZID=Asia/Jerusalem:20270118T141000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : העומד מהצד
 DESCRIPTION:הכוח האמיתי בכיתה. מה אפשר לעשות גם
@@ -1315,9 +1315,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-21-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270121T095000
-DTEND;TZID=Asia/Jerusalem:20270121T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270121T094500
+DTEND;TZID=Asia/Jerusalem:20270121T103000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : אלימות מילולית וברשת
 DESCRIPTION:סייברבולינג\, קבוצות ווטסאפ\, הדרה. 
@@ -1327,9 +1327,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-25-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270125T133000
-DTEND;TZID=Asia/Jerusalem:20270125T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270125T132500
+DTEND;TZID=Asia/Jerusalem:20270125T141000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : אלימות מילולית וברשת (המשך)
 DESCRIPTION:סייברבולינג\, קבוצות ווטסאפ\, הדרה. 
@@ -1339,9 +1339,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-01-28-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270128T095000
-DTEND;TZID=Asia/Jerusalem:20270128T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270128T094500
+DTEND;TZID=Asia/Jerusalem:20270128T103000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : חרם והדרה
 DESCRIPTION:המנגנון החברתי של החרם\, ואיך שוברי
@@ -1351,9 +1351,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-01-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270201T133000
-DTEND;TZID=Asia/Jerusalem:20270201T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270201T132500
+DTEND;TZID=Asia/Jerusalem:20270201T141000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : למי פונים
 DESCRIPTION:מיפוי מעגלי תמיכה: חבר\, מחנך\, יועצ
@@ -1363,9 +1363,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-04-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270204T095000
-DTEND;TZID=Asia/Jerusalem:20270204T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270204T094500
+DTEND;TZID=Asia/Jerusalem:20270204T103000
 SUMMARY:חברה ז-5 — לחץ חברתי\, בריונות ואלימות
  : הכיתה שאני רוצה
 DESCRIPTION:סיכום היחידה — התחייבות כיתתית וה
@@ -1375,9 +1375,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-08-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270208T133000
-DTEND;TZID=Asia/Jerusalem:20270208T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270208T132500
+DTEND;TZID=Asia/Jerusalem:20270208T141000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: מה אנחנו באמת יודעים
 DESCRIPTION:שאלון ידע אנונימי\, ואז השוואה לנתו
@@ -1387,9 +1387,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-11-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270211T095000
-DTEND;TZID=Asia/Jerusalem:20270211T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270211T094500
+DTEND;TZID=Asia/Jerusalem:20270211T103000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: מה אנחנו באמת יודעים (המשך)
 DESCRIPTION:שאלון ידע אנונימי\, ואז השוואה לנתו
@@ -1399,9 +1399,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-15-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270215T133000
-DTEND;TZID=Asia/Jerusalem:20270215T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270215T132500
+DTEND;TZID=Asia/Jerusalem:20270215T141000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: אלכוהול — השפעה על גוף מתבגר
 DESCRIPTION:מה קורה למוח בגיל ההתבגרות\, ולמה ג
@@ -1411,9 +1411,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-18-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270218T095000
-DTEND;TZID=Asia/Jerusalem:20270218T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270218T094500
+DTEND;TZID=Asia/Jerusalem:20270218T103000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: עישון וניקוטין
 DESCRIPTION:סיגריות\, נרגילה ואידוי. מה בפועל נ
@@ -1423,9 +1423,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-22-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270222T133000
-DTEND;TZID=Asia/Jerusalem:20270222T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270222T132500
+DTEND;TZID=Asia/Jerusalem:20270222T141000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: סמים — עובדות וסיכונים
 DESCRIPTION:סוגים\, השפעות\, סיכונים משפטיים וב
@@ -1436,9 +1436,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-02-25-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270225T095000
-DTEND;TZID=Asia/Jerusalem:20270225T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270225T094500
+DTEND;TZID=Asia/Jerusalem:20270225T103000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: סמים — עובדות וסיכונים (המשך)
 DESCRIPTION:סוגים\, השפעות\, סיכונים משפטיים וב
@@ -1449,9 +1449,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-01-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270301T133000
-DTEND;TZID=Asia/Jerusalem:20270301T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270301T132500
+DTEND;TZID=Asia/Jerusalem:20270301T141000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: מצבי סיכון — מה עושים
 DESCRIPTION:תרחישים: מסיבה\, לחץ מחבר\, נהג ששתה.
@@ -1461,9 +1461,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-04-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270304T095000
-DTEND;TZID=Asia/Jerusalem:20270304T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270304T094500
+DTEND;TZID=Asia/Jerusalem:20270304T103000
 SUMMARY:חברה ז-5 — מניעה — אלכוהול\, עישון וסמ
  ים: סיכום ומעגלי תמיכה
 DESCRIPTION:למי פונים\, איך עוזרים לחבר\, ומה עו
@@ -1473,9 +1473,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-08-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270308T133000
-DTEND;TZID=Asia/Jerusalem:20270308T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270308T132500
+DTEND;TZID=Asia/Jerusalem:20270308T141000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מסוג
  לות עצמית — מה זה
 DESCRIPTION:האמונה שאני יכול להשפיע על התוצאה. 
@@ -1485,9 +1485,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-11-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270311T095000
-DTEND;TZID=Asia/Jerusalem:20270311T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270311T094500
+DTEND;TZID=Asia/Jerusalem:20270311T103000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מסוג
  לות עצמית — מה זה (המשך)
 DESCRIPTION:האמונה שאני יכול להשפיע על התוצאה. 
@@ -1497,9 +1497,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-15-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270315T133000
-DTEND;TZID=Asia/Jerusalem:20270315T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270315T132500
+DTEND;TZID=Asia/Jerusalem:20270315T141000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: החוז
  קות שלי
 DESCRIPTION:זיהוי חוזקות אישיות\, ומשוב חיובי מ
@@ -1509,9 +1509,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-18-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270318T095000
-DTEND;TZID=Asia/Jerusalem:20270318T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270318T094500
+DTEND;TZID=Asia/Jerusalem:20270318T103000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: התמו
  דדות עם כישלון
 DESCRIPTION:תפיסת צמיחה מול תפיסה קבועה. מה אומ
@@ -1521,9 +1521,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-22-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270322T133000
-DTEND;TZID=Asia/Jerusalem:20270322T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270322T132500
+DTEND;TZID=Asia/Jerusalem:20270322T141000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: הצבת 
  מטרות
 DESCRIPTION:מטרה מדידה\, פירוק לצעדים\, זיהוי מכ
@@ -1533,9 +1533,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-25-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270325T095000
-DTEND;TZID=Asia/Jerusalem:20270325T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270325T094500
+DTEND;TZID=Asia/Jerusalem:20270325T103000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: מי מש
  פיע עליי
 DESCRIPTION:מודלים לחיקוי\, השפעת רשתות חברתיו
@@ -1545,9 +1545,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-03-29-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270329T133000
-DTEND;TZID=Asia/Jerusalem:20270329T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270329T132500
+DTEND;TZID=Asia/Jerusalem:20270329T141000
 SUMMARY:חברה ז-5 — מסוגלות עצמית והעצמה: אני ב
  עוד שנה
 DESCRIPTION:פעילות סיכום — מכתב לעצמי לסוף כית
@@ -1557,9 +1557,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-04-01-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270401T095000
-DTEND;TZID=Asia/Jerusalem:20270401T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270401T094500
+DTEND;TZID=Asia/Jerusalem:20270401T103000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
  מים נוראים — חשבון נפש
 DESCRIPTION:סליחה\, מחילה והתחלה חדשה — בהקשר ה
@@ -1569,9 +1569,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-04-05-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270405T133000
-DTEND;TZID=Asia/Jerusalem:20270405T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270405T132500
+DTEND;TZID=Asia/Jerusalem:20270405T141000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
  מים נוראים — חשבון נפש (המשך)
 DESCRIPTION:סליחה\, מחילה והתחלה חדשה — בהקשר ה
@@ -1581,9 +1581,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-04-08-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270408T095000
-DTEND;TZID=Asia/Jerusalem:20270408T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270408T094500
+DTEND;TZID=Asia/Jerusalem:20270408T103000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: ח
  נוכה — אור וגבורה
 DESCRIPTION:מה זו גבורה בכיתה שלנו. פעילות חווי
@@ -1593,9 +1593,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-04-12-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270412T133000
-DTEND;TZID=Asia/Jerusalem:20270412T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270412T132500
+DTEND;TZID=Asia/Jerusalem:20270412T141000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
  ום הזיכרון לשואה ולגבורה
 DESCRIPTION:סיפור אישי אחד לעומק במקום נתונים. 
@@ -1605,9 +1605,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-03-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270503T133000
-DTEND;TZID=Asia/Jerusalem:20270503T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270503T132500
+DTEND;TZID=Asia/Jerusalem:20270503T141000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
  ום הזיכרון לחללי מערכות ישראל
 DESCRIPTION:עיבוד\, הכנה לטקס\, והתייחסות לתלמי
@@ -1617,9 +1617,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-06-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270506T095000
-DTEND;TZID=Asia/Jerusalem:20270506T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270506T094500
+DTEND;TZID=Asia/Jerusalem:20270506T103000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: י
  ום העצמאות
 DESCRIPTION:מה זה אומר להיות אזרח. פעילות כיתתי
@@ -1629,9 +1629,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-10-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270510T133000
-DTEND;TZID=Asia/Jerusalem:20270510T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270510T132500
+DTEND;TZID=Asia/Jerusalem:20270510T141000
 SUMMARY:חברה ז-5 — ימי זיכרון וימים מיוחדים: פ
  ורים ולג בעומר
 DESCRIPTION:פעילות חברתית קלה\, אחריות ובטיחות 
@@ -1641,9 +1641,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-13-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270513T095000
-DTEND;TZID=Asia/Jerusalem:20270513T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270513T094500
+DTEND;TZID=Asia/Jerusalem:20270513T103000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: סיכום מחצית א׳
 DESCRIPTION:מה עבד ומה לא בכיתה ובאישי. סבב משו
@@ -1653,9 +1653,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-17-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270517T133000
-DTEND;TZID=Asia/Jerusalem:20270517T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270517T132500
+DTEND;TZID=Asia/Jerusalem:20270517T141000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: סיכום מחצית א׳ (המשך)
 DESCRIPTION:מה עבד ומה לא בכיתה ובאישי. סבב משו
@@ -1665,9 +1665,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-20-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270520T095000
-DTEND;TZID=Asia/Jerusalem:20270520T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270520T094500
+DTEND;TZID=Asia/Jerusalem:20270520T103000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: התעודה — איך קוראים אותה
 DESCRIPTION:עיבוד התעודה: מה המספר אומר ומה לא\,
@@ -1677,9 +1677,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-24-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270524T133000
-DTEND;TZID=Asia/Jerusalem:20270524T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270524T132500
+DTEND;TZID=Asia/Jerusalem:20270524T141000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: יעדים למחצית ב׳
 DESCRIPTION:כל תלמיד מציב יעד לימודי אחד ויעד ח
@@ -1689,9 +1689,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-27-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270527T095000
-DTEND;TZID=Asia/Jerusalem:20270527T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270527T094500
+DTEND;TZID=Asia/Jerusalem:20270527T103000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: אמצע הדרך — בדיקת יעדים
 DESCRIPTION:חזרה ליעדים שהוצבו\, בדיקה כנה\, ותי
@@ -1701,9 +1701,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-05-31-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270531T133000
-DTEND;TZID=Asia/Jerusalem:20270531T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270531T132500
+DTEND;TZID=Asia/Jerusalem:20270531T141000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: סיכום שנה — מה השתנה
 DESCRIPTION:השוואה לתחילת השנה: הכיתה\, אני\, הק
@@ -1713,9 +1713,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-06-03-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270603T095000
-DTEND;TZID=Asia/Jerusalem:20270603T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270603T094500
+DTEND;TZID=Asia/Jerusalem:20270603T103000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: סיכום שנה — מה השתנה (המשך)
 DESCRIPTION:השוואה לתחילת השנה: הכיתה\, אני\, הק
@@ -1725,9 +1725,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-06-07-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270607T133000
-DTEND;TZID=Asia/Jerusalem:20270607T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270607T132500
+DTEND;TZID=Asia/Jerusalem:20270607T141000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: מעבר לכיתה ח׳
 DESCRIPTION:מה מצפה לנו\, מה נשמר ומה משתנה. פתי
@@ -1737,9 +1737,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-06-14-7@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270614T133000
-DTEND;TZID=Asia/Jerusalem:20270614T141500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270614T132500
+DTEND;TZID=Asia/Jerusalem:20270614T141000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: פרידה ותודות
 DESCRIPTION:פעילות סיום רגשית — מעגל תודות\, ספ
@@ -1749,9 +1749,9 @@ CATEGORIES:חברה
 END:VEVENT
 BEGIN:VEVENT
 UID:hvA-2027-06-17-3@tochnit-shnatit
-DTSTAMP:20260902T200944Z
-DTSTART;TZID=Asia/Jerusalem:20270617T095000
-DTEND;TZID=Asia/Jerusalem:20270617T103500
+DTSTAMP:20260902T202846Z
+DTSTART;TZID=Asia/Jerusalem:20270617T094500
+DTEND;TZID=Asia/Jerusalem:20270617T103000
 SUMMARY:חברה ז-5 — סיכומי תקופה\, תעודה וסוף ש
  נה: מסיבת סיום
 DESCRIPTION:פעילות חברתית מסכמת בהובלת ועדת הכ

@@ -4,37 +4,50 @@
    ניתן לערוך הכול מתוך «הגדרות ← מערכת שעות» (נשמר במכשיר).
    ============================================================ */
 
-/* צלצולים — ברירת מחדל של חטיבה עליונה. לעדכן לפי בית הספר. */
+/* צלצולים — הועתק מלוח הצלצולים התלוי בחדר המורים. */
 window.AP_BELLS = [
-  {h:1, s:"08:00", e:"08:45"},
-  {h:2, s:"08:50", e:"09:35"},
-  {h:3, s:"09:50", e:"10:35"},
-  {h:4, s:"10:40", e:"11:25"},
-  {h:5, s:"11:45", e:"12:30"},
-  {h:6, s:"12:35", e:"13:20"},
-  {h:7, s:"13:30", e:"14:15"},
-  {h:8, s:"14:20", e:"15:05"},
-  {h:9, s:"15:10", e:"15:55"}
+  {h:1,  s:"08:10", e:"08:55"},
+  {h:2,  s:"09:00", e:"09:45"},
+  {h:3,  s:"09:45", e:"10:30"},
+  {h:4,  s:"10:50", e:"11:35"},
+  {h:5,  s:"11:40", e:"12:25"},
+  {h:6,  s:"12:35", e:"13:20"},
+  {h:7,  s:"13:25", e:"14:10"},
+  {h:8,  s:"14:15", e:"15:00"},
+  {h:9,  s:"15:10", e:"15:55"},
+  {h:10, s:"16:00", e:"16:45"}
 ];
-window.AP_BELLS_VERIFY = true; /* ברירת מחדל — לאשר מול לוח הצלצולים בפועל */
+window.AP_BELLS_VERIFY = false; /* לוח אמיתי, לא ברירת מחדל */
+
+/* ההפסקות — לתצוגה בלבד, לא משבצות הוראה */
+window.AP_BREAKS = [
+  {after:1, s:"08:55", e:"09:00", name:"הפסקה"},
+  {after:3, s:"10:30", e:"10:50", name:"הפסקה גדולה"},
+  {after:4, s:"11:35", e:"11:40", name:"הפסקה"},
+  {after:5, s:"12:25", e:"12:35", name:"הפסקה"},
+  {after:6, s:"13:20", e:"13:25", name:"הפסקה"},
+  {after:7, s:"14:10", e:"14:15", name:"הפסקה"},
+  {after:8, s:"15:00", e:"15:10", name:"הפסקה"},
+  {after:9, s:"15:55", e:"16:00", name:"הפסקה"}
+];
 
 /* קבוצות ההוראה.
    track = מסלול תוכנית הלימודים (ראו ap-curriculum.js)
    freq  = כמה שיעורים בשבוע (מחושב אוטומטית, כאן לתיעוד) */
 window.AP_GROUPS = {
-  "peA": {label:'חנ"ג ז-1, ז-3',        subject:"pe",     track:"g7",      grade:"ז",  color:"#f472b6"},
-  "peB": {label:'חנ"ג ז-5',             subject:"pe",     track:"g7",      grade:"ז",  color:"#fb7185"},
-  "peC": {label:'חנ"ג ז-9, ז-10 תקשורת',subject:"pe",     track:"g7comm",  grade:"ז",  color:"#c084fc"},
-  "peD": {label:'חנ"ג ח-3',             subject:"pe",     track:"g8",      grade:"ח",  color:"#fbbf24"},
-  "peE": {label:'חנ"ג ט-1, ט-4',        subject:"pe",     track:"g9",      grade:"ט",  color:"#f97316"},
-  "peF": {label:'חנ"ג ט-2',             subject:"pe",     track:"g9",      grade:"ט",  color:"#fb923c"},
-  "peG": {label:'חנ"ג יא-6 (+ע"ח)',     subject:"pe",     track:"g11",     grade:"יא", color:"#38bdf8"},
-  "peH": {label:'חנ"ג יא-7',            subject:"pe",     track:"g11",     grade:"יא", color:"#22d3ee"},
-  "peI": {label:'חנ"ג יב-1, יב-2',      subject:"pe",     track:"g12",     grade:"יב", color:"#34d399"},
-  "peJ": {label:'חנ"ג יב-3 (ע"ח)',      subject:"pe",     track:"g12",     grade:"יב", color:"#4ade80"},
-  "hlA": {label:"חינוך לבריאות ז-7",     subject:"health", track:"health",  grade:"ז",  color:"#a3e635", room:"122"},
-  "hlB": {label:"חינוך לבריאות ז-6",     subject:"health", track:"health",  grade:"ז",  color:"#bef264", room:"123"},
-  "hvA": {label:"חברה ז-5",             subject:"hevra",  track:"hevra",   grade:"ז",  color:"#818cf8", room:"124"}
+  "peA": {label:'חנ"ג ז-1, ז-3',        subject:"pe",     track:"g7",      grade:"ז",  color:"#db2777"},
+  "peB": {label:'חנ"ג ז-5',             subject:"pe",     track:"g7",      grade:"ז",  color:"#e11d48"},
+  "peC": {label:'חנ"ג ז-9, ז-10 תקשורת',subject:"pe",     track:"g7comm",  grade:"ז",  color:"#7c3aed"},
+  "peD": {label:'חנ"ג ח-3',             subject:"pe",     track:"g8",      grade:"ח",  color:"#b45309"},
+  "peE": {label:'חנ"ג ט-1, ט-4',        subject:"pe",     track:"g9",      grade:"ט",  color:"#ea580c"},
+  "peF": {label:'חנ"ג ט-2',             subject:"pe",     track:"g9",      grade:"ט",  color:"#c2410c"},
+  "peG": {label:'חנ"ג יא-6 (+ע"ח)',     subject:"pe",     track:"g11",     grade:"יא", color:"#0369a1"},
+  "peH": {label:'חנ"ג יא-7',            subject:"pe",     track:"g11",     grade:"יא", color:"#0e7490"},
+  "peI": {label:'חנ"ג יב-1, יב-2',      subject:"pe",     track:"g12",     grade:"יב", color:"#047857"},
+  "peJ": {label:'חנ"ג יב-3 (ע"ח)',      subject:"pe",     track:"g12",     grade:"יב", color:"#15803d"},
+  "hlA": {label:"חינוך לבריאות ז-7",     subject:"health", track:"health",  grade:"ז",  color:"#4d7c0f", room:"122"},
+  "hlB": {label:"חינוך לבריאות ז-6",     subject:"health", track:"health",  grade:"ז",  color:"#65a30d", room:"123"},
+  "hvA": {label:"חברה ז-5",             subject:"hevra",  track:"hevra",   grade:"ז",  color:"#4f46e5", room:"124"}
 };
 
 /* משבצות שאינן הוראה — מוצגות במערכת אבל לא נכנסות לתוכנית השנתית */

@@ -550,6 +550,8 @@ function renderTimetable(){
       else cells+=`<td class="n"><span>${esc((n||{}).label||k)}</span>${n&&n.note?`<small>${esc(n.note)}</small>`:""}</td>`;
     }
     rows+=`<tr><th class="hh">${h}<small>${LTR(b.s)}<br>${LTR(b.e)}</small></th>${cells}</tr>`;
+    const br=(window.AP_BREAKS||[]).find(x=>x.after===h);
+    if(br && h<maxH) rows+=`<tr class="brk"><td colspan="6">${esc(br.name)} · ${LTR(br.s+"–"+br.e)}</td></tr>`;
   }
   const load={};
   for(const gid in window.AP_GROUPS){ const g=window.AP_GROUPS[gid]; load[g.subject]=(load[g.subject]||0)+SCHED.byGroup[gid].length; }
