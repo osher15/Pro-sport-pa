@@ -399,3 +399,6 @@ button.chip.pick{cursor:pointer;font:inherit;font-size:12px}
   .bigpct{font-size:44px}
 }
 @media print{ .ltabs,.qopts,.sgroups,.matchwrap{display:none!important} }
+/* תיקוני ליטוש */
+.mcard .row .chip{border-inline-start-color:var(--line)}
+.qfig{max-width:210px}
