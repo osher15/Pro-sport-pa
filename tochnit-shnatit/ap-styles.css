@@ -482,3 +482,73 @@ button.chip.pick{cursor:pointer;font:inherit;font-size:12px}
 .bedrow b{font-size:20px;font-weight:800;color:var(--tx2)}
 .bedrow.best{border-color:var(--ok);background:#eefaf3}
 .bedrow.best b{color:var(--ok)}
+
+/* ============================================================
+   בונה דף המבחן
+   ============================================================ */
+.pchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.pchip{background:var(--card2);border:1.5px solid var(--line);border-radius:20px;padding:6px 12px;
+  font:inherit;font-size:12.5px;color:var(--tx2);cursor:pointer}
+.pchip.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.prange{width:100%;accent-color:var(--acc)}
+.pnum{font-size:13px;color:var(--tx2);margin-bottom:4px}
+.pnum b{font-size:20px;color:var(--acc)}
+.sheetprev{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;
+  max-height:520px;overflow:auto}
+
+/* ---- גיליון ההדפסה ---- */
+#printSheet{display:none}
+.sheet{background:#fff;color:#111;direction:rtl;text-align:right;
+  font-family:"Heebo","David",serif;font-size:12pt;line-height:1.5}
+.sheet.big{font-size:14pt}
+.sheet .ph{border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:12px}
+.sheet .pht{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sheet .pht b{font-size:16pt}
+.sheet .pht span{font-size:10pt;color:#555}
+.sheet .phf{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:11pt}
+.sheet .phf .score{margin-inline-start:auto;font-weight:700}
+.sheet .pql{padding-inline-start:20px;margin:0}
+.sheet .pq{margin:0 0 14px;break-inside:avoid}
+.sheet .pqt{font-weight:700;margin-bottom:5px}
+.sheet .popts{list-style:none;padding:0;margin:0}
+.sheet .popts li{margin:3px 0;display:flex;gap:7px;align-items:flex-start}
+.sheet .pbox{flex:0 0 auto;display:inline-block;min-width:19px;height:19px;line-height:17px;
+  border:1.5px solid #111;border-radius:4px;text-align:center;font-size:10pt;font-weight:700}
+.sheet .imgq .pqfig{width:118px;margin:6px 0}
+.sheet .imgq .bodysvg{max-height:180px}
+.sheet .pline{margin-top:6px;font-size:11pt}
+.sheet .pbreak{break-before:page;padding-top:8px}
+.sheet .pkey{padding-inline-start:20px;margin:0}
+.sheet .pkey li{margin:0 0 9px;break-inside:avoid}
+.sheet .pka{font-weight:700}
+.sheet .pka b{display:inline-block;min-width:17px;text-align:center;border:1.5px solid #111;
+  border-radius:4px;font-size:10pt}
+.sheet .pkq{font-size:10.5pt;color:#333}
+.sheet .pkw{font-size:9.5pt;color:#666}
+.sheet .pbt{margin:14px 0 6px;border-bottom:1px solid #bbb;padding-bottom:3px;break-after:avoid}
+.sheet .plv{font-size:9pt;color:#777;font-weight:400}
+
+@media print{
+  body.printing{background:#fff!important;padding:0!important}
+  body.printing > *{display:none!important}
+  body.printing > #printSheet{display:block!important}
+  #printSheet{position:static;width:100%}
+  .sheet .bodysvg .bd-base{fill:#eee;stroke:#999}
+  .sheet .bodysvg .bd-m{opacity:.25}
+  .sheet .bodysvg .bd-m.on{opacity:1}
+  .sheet .bodysvg .bd-m.dim{opacity:.14}
+  @page{size:A4 portrait;margin:14mm}
+}
+/* שאלות תמונה — שתי עמודות, כדי לא לבזבז דפים */
+.sheet .pql.two{column-count:2;column-gap:12mm}
+.sheet .pql.two .pq{break-inside:avoid;-webkit-column-break-inside:avoid}
+.sheet .imgq{text-align:center}
+.sheet .imgq .pqt{text-align:right}
+.sheet .imgq .pqfig{width:104px;margin:4px auto}
+.sheet .imgq .bodysvg{max-height:150px}
+.sheet .imgq .pline{text-align:right}
+@media print{
+  /* שרירים שאינם מסומנים — אפורים, לחיסכון בדיו ולניגוד ברור */
+  .sheet .bodysvg .bd-m{opacity:.2;filter:grayscale(1)}
+  .sheet .bodysvg .bd-m.on{opacity:1;filter:none}
+}
