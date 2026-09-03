@@ -285,3 +285,117 @@ bdi{unicode-bidi:isolate}
 .card h3{margin-top:18px;font-size:15px;color:var(--tx2)}
 .card h3:first-child{margin-top:0}
 .tt tr.brk td{background:var(--card2);color:var(--tx3);font-size:10.5px;padding:3px;letter-spacing:.5px}
+
+/* ============================================================
+   מודול הלמידה
+   ============================================================ */
+.ltabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 4px}
+.ltabs button{flex:1 1 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;font:inherit;font-size:13.5px;font-weight:600;color:var(--tx2);cursor:pointer}
+.ltabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+
+/* ---- מפת שרירים ---- */
+.sidesw{display:flex;gap:6px;margin-bottom:10px}
+.sidesw button{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:9px;
+  padding:7px;font:inherit;font-size:13px;font-weight:600;color:var(--tx2);cursor:pointer}
+.sidesw button.on{background:var(--tx);color:#fff;border-color:var(--tx)}
+.bodywrap{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.bodyfig{flex:0 0 210px;margin:0 auto}
+.bodyinfo{flex:1 1 260px;min-width:0}
+.bodysvg{width:100%;height:auto;max-height:460px;display:block}
+.bodysvg .bd-base{fill:var(--card2);stroke:var(--line);stroke-width:1}
+.bodysvg .bd-m{fill:var(--mc);opacity:.82;cursor:pointer;transition:opacity .15s,filter .15s}
+.bodysvg .bd-m:hover{opacity:1;filter:brightness(1.08)}
+.bodysvg .bd-m.dim{opacity:.16}
+.bodysvg .bd-m.on{opacity:1;filter:drop-shadow(0 0 5px var(--mc))}
+.pickhint{background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:14px}
+.pickhint b{display:block;margin-bottom:4px}
+.chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:5px}
+button.chip.pick{cursor:pointer;font:inherit;font-size:12px}
+.mcard{background:var(--card2);border:1px solid var(--line);border-inline-start:4px solid var(--c);
+  border-radius:12px;padding:14px}
+.mcard h3{margin-bottom:0;color:var(--c)}
+.mcard .lat{font-size:12px;color:var(--tx3);font-style:italic;margin-bottom:8px}
+
+/* ---- אריחי בחנים ---- */
+.qgrid,.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:9px}
+.qtile,.ftile{position:relative;text-align:right;background:var(--card);border:1px solid var(--line);
+  border-top:3px solid var(--c,var(--acc));border-radius:12px;padding:12px;font:inherit;cursor:pointer;
+  box-shadow:var(--sh);display:flex;flex-direction:column;gap:2px}
+.ftile{border-top-color:var(--acc)}
+.qtile:active,.ftile:active{transform:translateY(1px)}
+.qtile .em,.ftile .em{font-size:24px;line-height:1}
+.qtile b,.ftile b{font-size:14.5px}
+.qtile small,.ftile small{font-size:11.5px;color:var(--tx3);line-height:1.45}
+.best{position:absolute;top:8px;left:10px;font-size:11px;color:var(--ok);font-weight:700}
+
+.lvlpick{text-align:center}
+.lvlpick .btn.lvl{display:block;width:100%;margin:8px 0;text-align:right;background:var(--card2);
+  color:var(--tx);border:1px solid var(--line);font-size:15px;padding:12px 14px}
+.lvlpick .btn.lvl small{display:block;font-weight:400;font-size:12px;color:var(--tx3);margin-top:2px}
+
+/* ---- מסך שאלה ---- */
+.quiz{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);
+  border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.qtop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--tx2)}
+.qtop .sc{margin-inline-start:auto;font-weight:800;color:var(--c)}
+.qbar{height:5px;background:var(--card2);border-radius:5px;overflow:hidden;margin:8px 0 12px}
+.qbar i{display:block;height:100%;background:var(--c,var(--acc));transition:width .3s}
+.qfig{max-width:170px;margin:0 auto 8px}
+.qtext{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:12px}
+.qopts{display:flex;flex-direction:column;gap:8px}
+.qopt{text-align:right;background:var(--card2);border:1.5px solid var(--line);border-radius:10px;
+  padding:12px 14px;font:inherit;font-size:15px;color:var(--tx);cursor:pointer;transition:.15s}
+.qopt:hover:not(:disabled){border-color:var(--acc);background:var(--card)}
+.qopt:disabled{cursor:default}
+.qopt.right{border-color:var(--ok);background:#eefaf3;color:#14653f;font-weight:700}
+.qopt.wrong{border-color:var(--bad);background:#fdeef0;color:#8f2231}
+.fb{margin-top:12px;border-radius:10px;padding:12px;font-size:14px}
+.fb.ok{background:#eefaf3;border:1px solid #c6e8d6;color:#14653f}
+.fb.no{background:#fff5f0;border:1px solid #f6d5c4;color:#8a4a22}
+.fb b{display:block;margin-bottom:3px;font-size:15px}
+.fb .btn{margin-top:10px}
+
+.done{text-align:center;border-top:4px solid var(--c)}
+.bigpct{font-size:52px;font-weight:800;color:var(--c);line-height:1.1}
+.newbest{background:#fdf6e3;border:1px solid #f0dfae;color:#8a6d1f;border-radius:9px;
+  padding:8px;margin:10px 0;font-weight:700}
+.review{text-align:right;background:var(--card2);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;margin:10px 0;font-size:13.5px}
+.review ul{margin:5px 0 0}
+.done .links{justify-content:center}
+
+/* ---- משחק התאמה ---- */
+.matchwrap{display:flex;gap:10px;margin-top:10px}
+.mcol{flex:1;min-width:0}
+.mcol h4{font-size:12px;color:var(--tx3);margin:0 0 6px;font-weight:600}
+.mtile{display:block;width:100%;text-align:right;background:var(--card2);border:1.5px solid var(--line);
+  border-inline-start:4px solid var(--c);border-radius:9px;padding:10px;margin-bottom:7px;
+  font:inherit;font-size:13px;color:var(--tx);cursor:pointer;transition:.15s}
+.mtile.sel{border-color:var(--acc);background:var(--card);box-shadow:0 0 0 2px rgba(14,127,196,.18)}
+.mtile.done{opacity:.4;background:#eefaf3;border-color:#c6e8d6;cursor:default}
+
+/* ---- משחק מיון ---- */
+.sortitem{text-align:center;background:var(--card2);border:1px solid var(--line);border-radius:12px;
+  padding:14px;margin:10px 0}
+.sortitem .fem{font-size:44px;display:block;line-height:1.1}
+.sortitem b{font-size:19px}
+.sortitem small{display:block;font-size:11.5px;color:var(--tx3);margin-top:3px}
+.sgroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.sgrp{background:var(--card2);border:1.5px solid var(--line);border-top:3px solid var(--c);
+  border-radius:10px;padding:11px 8px;font:inherit;font-size:13px;font-weight:600;color:var(--tx);cursor:pointer}
+.sgrp .em{display:block;font-size:24px;line-height:1.2}
+.sgrp:hover:not(:disabled){background:var(--card)}
+.sgrp.right{border-color:var(--ok);background:#eefaf3}
+.sgrp.wrong{border-color:var(--bad);background:#fdeef0}
+.sgrp:disabled{cursor:default}
+
+.res h3{font-size:16px}
+.res .tag{font-weight:400}
+
+@media(max-width:560px){
+  .bodyfig{flex-basis:100%;max-width:230px}
+  .qtext{font-size:16px}
+  .bigpct{font-size:44px}
+}
+@media print{ .ltabs,.qopts,.sgroups,.matchwrap{display:none!important} }

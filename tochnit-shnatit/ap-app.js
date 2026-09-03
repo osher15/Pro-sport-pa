@@ -198,7 +198,7 @@ function unitSpans(gid){
 }
 
 /* ---------- ניווט ---------- */
-const VIEWS=["today","gantt","sched","fitness","challenges","timetable","settings"];
+const VIEWS=["today","gantt","sched","fitness","challenges","learn","timetable","settings"];
 function go(v){
   let unit=null;
   if(v.startsWith("unit/")){ unit=v.slice(5); v="unit"; }
@@ -206,7 +206,8 @@ function go(v){
   $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===v));
   ({today:renderToday,gantt:renderGantt,sched:renderSched,fitness:renderFitness,
-    challenges:renderChallenges,timetable:renderTimetable,settings:renderSettings,
+    challenges:renderChallenges,learn:()=>window.LEARN.render(),
+    timetable:renderTimetable,settings:renderSettings,
     unit:()=>renderUnit(unit)}[v])();
   window.scrollTo(0,0);
 }
