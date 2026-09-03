@@ -402,3 +402,83 @@ button.chip.pick{cursor:pointer;font:inherit;font-size:12px}
 /* תיקוני ליטוש */
 .mcard .row .chip{border-inline-start-color:var(--line)}
 .qfig{max-width:210px}
+
+/* ---- סיבי שריר על הדמות ---- */
+.bodysvg .bd-m path{fill:var(--mc)}
+.bodysvg .bd-m .fib{fill:none;stroke:rgba(255,255,255,.55);stroke-width:.9;stroke-linecap:round}
+.bodysvg .bd-m.on .fib{stroke:rgba(255,255,255,.85);stroke-width:1.1}
+
+/* ---- אנימציית הכיווץ ---- */
+.animbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}
+.animhead{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12.5px;color:var(--tx3);margin-bottom:4px}
+.animhead b{font-size:14px;color:var(--tx)}
+.animsvg{width:100%;height:auto;max-height:230px;display:block}
+.animsvg .bone rect{fill:#e6ebf3;stroke:#c3cddc;stroke-width:1.5}
+.animsvg .pivot{fill:#fff;stroke:#8fa0b8;stroke-width:2.5}
+.animsvg .am path{fill:var(--mc)}
+.animsvg .am .fib{fill:none;stroke:rgba(255,255,255,.6);stroke-width:1;stroke-linecap:round}
+.animsvg .am.anta{opacity:.9}
+.animsvg .albl{font-size:9px;fill:var(--tx3);text-anchor:middle;font-family:inherit}
+.animctl{display:flex;align-items:center;gap:9px;margin-top:6px}
+.animctl input[type=range]{flex:1;accent-color:var(--acc)}
+.animstate{font-size:12px;font-weight:700;color:var(--acc);min-width:74px;text-align:center}
+.animlegend{display:flex;flex-wrap:wrap;gap:12px;margin-top:7px;font-size:11.5px;color:var(--tx2)}
+.animlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}
+
+/* ---- הלב ---- */
+.heartsvg{width:100%;height:auto;max-height:290px;display:block;margin:6px auto}
+.heartsvg .ch{stroke:#fff;stroke-width:2}
+.heartsvg .ch.b{fill:url(#hgB)} .heartsvg .ch.r{fill:url(#hgR)}
+.heartsvg .hin{font-size:8.5px;fill:#fff;text-anchor:middle;font-weight:600;font-family:inherit}
+.heartsvg .hin.sm{font-size:7px;opacity:.85;font-weight:400}
+.heartsvg .hlbl{font-size:8.5px;fill:var(--tx3);text-anchor:middle;font-family:inherit}
+.heartsvg .hnote{font-size:11px;fill:var(--tx2);text-anchor:middle;font-weight:700;font-family:inherit}
+.heartsvg .vessel{stroke-width:11;stroke-linecap:round;fill:none}
+.heartsvg .vein,.heartsvg .lung{stroke:#7cc4f5}
+.heartsvg .art,.heartsvg .lungr{stroke:#f8798a}
+.heartsvg .valve path{stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round}
+.hctl{margin-top:8px}
+.hctl label{font-size:13px;color:var(--tx2)}
+.hctl label b{color:var(--acc);font-size:17px}
+.hctl input[type=range]{width:100%;accent-color:var(--acc);margin:6px 0}
+.hpresets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hout{display:flex;gap:8px;flex-wrap:wrap}
+.hout .stat{flex:1 1 90px}
+.hfacts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.hfact{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}
+.hfact .em{font-size:22px;display:block;line-height:1.2}
+.hfact b{display:block;margin:2px 0 3px}
+.hfact div{color:var(--tx2);font-size:12.5px}
+.tapwrap{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.tapbtn{flex:0 0 128px;height:128px;border-radius:50%;border:0;background:var(--bad);color:#fff;
+  font:inherit;font-size:15px;font-weight:800;cursor:pointer;line-height:1.3;box-shadow:var(--sh)}
+.tapbtn.pulse{animation:tp .25s ease}
+@keyframes tp{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+.tapout{flex:1 1 140px;text-align:center}
+.tapout b{display:block;font-size:44px;font-weight:800;color:var(--bad);line-height:1.1}
+.tapout span{display:block;font-size:12.5px;color:var(--tx3);margin-bottom:8px}
+.agelbl{font-size:13.5px;color:var(--tx2);display:block;margin:6px 0}
+.agelbl input{width:74px;margin-inline-start:6px}
+.maxhr{font-size:13.5px;margin:8px 0 6px}
+.maxhr b{color:var(--acc);font-size:17px}
+.zrow{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;background:var(--card2);
+  border-inline-start:5px solid var(--c);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.zrow b{flex:0 0 78px}
+.zrow .zr{font-weight:800;color:var(--tx);font-variant-numeric:tabular-nums;direction:ltr}
+.zrow .zw{flex:1 1 150px;color:var(--tx3);font-size:12px}
+
+/* ---- שינה וגדילה ---- */
+.nightbar{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
+.nb{flex:1 1 62px;background:var(--card2);border:1.5px solid var(--line);border-bottom:3px solid var(--c);
+  border-radius:9px;padding:8px 4px;font:inherit;cursor:pointer;text-align:center}
+.nb span{font-size:20px;display:block;line-height:1.2}
+.nb small{font-size:10.5px;color:var(--tx3)}
+.nb.on{background:var(--card);box-shadow:0 0 0 2px rgba(14,127,196,.18);border-color:var(--c)}
+.stagecard{background:var(--card2);border:1px solid var(--line);border-inline-start:4px solid var(--c);
+  border-radius:10px;padding:12px;font-size:13.5px}
+.stagecard b{display:block;font-size:15px;margin-bottom:4px}
+.bedrow{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;background:var(--card2);
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin:6px 0;font-size:13px}
+.bedrow b{font-size:20px;font-weight:800;color:var(--tx2)}
+.bedrow.best{border-color:var(--ok);background:#eefaf3}
+.bedrow.best b{color:var(--ok)}
