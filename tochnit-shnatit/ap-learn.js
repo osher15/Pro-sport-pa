@@ -505,13 +505,54 @@ const lsave=()=>{ try{ localStorage.setItem(LKEY,JSON.stringify(LS)); }catch(e){
 
 let TAB="body", ST=null;   /* ST = מצב הפעילות הרצה */
 
-/* ---------- ציור הדמות ---------- */
+/* ---------- ציור הדמות ----------
+   השרירים מצוירים כצורת "בטן שריר" אמיתית: צרה בשני הקצוות (שם הם
+   הופכים לגיד) ורחבה באמצע, עם סיבים שמתכנסים אל הגידים — במקום
+   אליפסה שטוחה. הצורה נגזרת מאותם פרמטרים שכבר קיימים בנתונים.
+   -------------------------------------------------------------- */
+
+/* בטן שריר בצורת ציר (fusiform) מתוך פרמטרי אליפסה */
+function bellyPath(sh){
+  const {cx,cy,rx,ry}=sh;
+  if(ry>=rx){   /* שריר אנכי */
+    return `M${cx},${cy-ry} C${cx+rx},${cy-ry*0.5} ${cx+rx},${cy+ry*0.5} ${cx},${cy+ry}`
+         + ` C${cx-rx},${cy+ry*0.5} ${cx-rx},${cy-ry*0.5} ${cx},${cy-ry} Z`;
+  }
+  return `M${cx-rx},${cy} C${cx-rx*0.5},${cy-ry} ${cx+rx*0.5},${cy-ry} ${cx+rx},${cy}`
+       + ` C${cx+rx*0.5},${cy+ry} ${cx-rx*0.5},${cy+ry} ${cx-rx},${cy} Z`;
+}
+/* סיבי שריר שמתכנסים אל שני הקצוות */
+function bellyFibers(sh){
+  const {cx,cy,rx,ry}=sh, out=[];
+  if(ry>=rx){
+    for(const k of [-0.6,-0.28,0.28,0.6])
+      out.push(`M${cx},${cy-ry*0.94} Q${cx+rx*k},${cy} ${cx},${cy+ry*0.94}`);
+  }else{
+    for(const k of [-0.6,-0.28,0.28,0.6])
+      out.push(`M${cx-rx*0.94},${cy} Q${cx},${cy+ry*k} ${cx+rx*0.94},${cy}`);
+  }
+  return out.map(d=>`<path class="fib" d="${d}"/>`).join("");
+}
 function shape(sh, extra){
   const a = extra||"";
   if(sh.t==="ellipse") return `<ellipse cx="${sh.cx}" cy="${sh.cy}" rx="${sh.rx}" ry="${sh.ry}" ${a}/>`;
   return `<rect x="${sh.x}" y="${sh.y}" width="${sh.w}" height="${sh.h}" rx="${sh.r||0}" ${a}/>`;
 }
-/* opts: {side, highlight, clickable, quiz} */
+/* צורת שריר לתצוגה — כולל סיבים */
+function muscleShape(sh){
+  if(sh.t==="ellipse") return `<path d="${bellyPath(sh)}"/>` + bellyFibers(sh);
+  /* מלבנים (בטן, טרפז, זוקפי גב) — חלוקה לראשי שריר, כמו במציאות */
+  const segs=[];
+  const n = sh.h>sh.w ? 3 : 2;
+  for(let i=1;i<n;i++){
+    const y=sh.y+sh.h*i/n;
+    segs.push(`<path class="fib" d="M${sh.x+2},${y} L${sh.x+sh.w-2},${y}"/>`);
+  }
+  segs.push(`<path class="fib" d="M${sh.x+sh.w/2},${sh.y+2} L${sh.x+sh.w/2},${sh.y+sh.h-2}"/>`);
+  return shape(sh) + segs.join("");
+}
+
+/* opts: {side, highlight, clickable} */
 function bodySvg(opts){
   const o = opts||{}, side = o.side||"front";
   const ms = window.AP_BODY.muscles.filter(m=>m.side===side);
@@ -521,24 +562,100 @@ function bodySvg(opts){
     const cls = "bd-m" + (on?" on":"") + (o.highlight && !on ? " dim":"");
     const clickable = o.clickable ? `data-muscle="${m.id}"` : 'pointer-events="none"';
     g += `<g class="${cls}" style="--mc:${m.color}" ${clickable}>` +
-         m.shapes.map(s=>shape(s)).join("") +
+         m.shapes.map(muscleShape).join("") +
          (o.clickable?`<title>${E(m.name)}</title>`:"") + `</g>`;
   }
   return `<svg class="bodysvg" viewBox="0 0 200 400" role="img"
      aria-label="${side==="front"?"מבט מלפנים":"מבט מאחור"}">${g}</svg>`;
 }
 
+/* ============================================================
+   אנימציית הכיווץ — המפרק, השריר שמתכווץ והשריר שמתארך.
+   כשהמפרק נסגר, בטן השריר מתקצרת ומתעבה (הנפח נשמר) והסיבים
+   מתכנסים — בדיוק מה שרואים ביד כשמכופפים אותה.
+   ============================================================ */
+const JOINTS={
+  bi:      {j:"מרפק", b1:"עצם הזרוע", b2:"אמה",   anta:"תלת ראשי",   flex:true},
+  tri:     {j:"מרפק", b1:"עצם הזרוע", b2:"אמה",   anta:"דו ראשי",    flex:false},
+  fore:    {j:"שורש כף יד", b1:"אמה", b2:"כף יד", anta:"פושטי האמה", flex:true},
+  delt:    {j:"כתף",  b1:"גו",        b2:"זרוע",  anta:"רחב גבי",    flex:true},
+  pec:     {j:"כתף",  b1:"בית החזה",  b2:"זרוע",  anta:"טרפז",       flex:true},
+  lat:     {j:"כתף",  b1:"גו",        b2:"זרוע",  anta:"דלתא",       flex:false},
+  trap:    {j:"שכמה", b1:"עמוד שדרה", b2:"שכמה",  anta:"מקרב שכמות", flex:true},
+  quad:    {j:"ברך",  b1:"ירך",       b2:"שוק",   anta:"ירך אחורית", flex:false},
+  ham:     {j:"ברך",  b1:"ירך",       b2:"שוק",   anta:"ארבע ראשי",  flex:true},
+  glute:   {j:"ירך",  b1:"אגן",       b2:"ירך",   anta:"כופפי ירך",  flex:false},
+  add:     {j:"ירך",  b1:"אגן",       b2:"ירך",   anta:"מרחיקי ירך", flex:true},
+  calf:    {j:"קרסול",b1:"שוק",       b2:"כף רגל",anta:"שוק קדמי",   flex:false},
+  tib:     {j:"קרסול",b1:"שוק",       b2:"כף רגל",anta:"תאומים",     flex:true},
+  abs:     {j:"גו",   b1:"אגן",       b2:"בית החזה", anta:"זוקפי גב",flex:true},
+  obl:     {j:"גו",   b1:"אגן",       b2:"בית החזה", anta:"אלכסון נגדי",flex:true},
+  erector: {j:"גו",   b1:"אגן",       b2:"בית החזה", anta:"שרירי בטן",flex:false}
+};
+
+/* שריר בין שתי נקודות — מתעבה ככל שהוא מתקצר (שימור נפח) */
+function muscleBetween(p1,p2,base,cls,color){
+  const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+  const ux=dx/len, uy=dy/len, nx=-uy, ny=ux;
+  const w = Math.min(base*2.2, base*Math.sqrt(96/Math.max(len,18)));
+  const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+  const c1={x:p1.x+ux*len*0.28+nx*w, y:p1.y+uy*len*0.28+ny*w};
+  const c2={x:p2.x-ux*len*0.28+nx*w, y:p2.y-uy*len*0.28+ny*w};
+  const d1={x:p2.x-ux*len*0.28-nx*w, y:p2.y-uy*len*0.28-ny*w};
+  const d2={x:p1.x+ux*len*0.28-nx*w, y:p1.y+uy*len*0.28-ny*w};
+  const body=`M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`
+            +` C${d1.x},${d1.y} ${d2.x},${d2.y} ${p1.x},${p1.y} Z`;
+  let fib="";
+  for(const k of [-0.55,-0.2,0.2,0.55]){
+    fib+=`<path class="fib" d="M${p1.x},${p1.y} Q${mx+nx*w*k*1.7},${my+ny*w*k*1.7} ${p2.x},${p2.y}"/>`;
+  }
+  return `<g class="am ${cls}" style="--mc:${color}"><path d="${body}"/>${fib}</g>`;
+}
+function rot(px,py,ox,oy,deg){
+  const r=deg*Math.PI/180, c=Math.cos(r), s=Math.sin(r);
+  return {x:ox+(px-ox)*c-(py-oy)*s, y:oy+(px-ox)*s+(py-oy)*c};
+}
+/* t: 0 = מנוחה (מפרק פתוח) · 1 = כיווץ מלא */
+function animSvg(m,t){
+  const J=JOINTS[m.id]||JOINTS.bi;
+  const O={x:146,y:130};
+  const ang = J.flex ? 88*t : 88*(1-t);   /* חיובי = קיפול כלפי מעלה, לכיוון הכופף */
+  const B2end= rot(O.x-98,O.y,O.x,O.y,ang);
+  const insT = rot(O.x-36,O.y-15,O.x,O.y,ang);
+  const insB = rot(O.x-36,O.y+15,O.x,O.y,ang);
+  const orgT = {x:O.x+64, y:O.y-18};
+  const orgB = {x:O.x+64, y:O.y+18};
+  const top  = J.flex;
+  const aP1=top?orgT:orgB, aP2=top?insT:insB;
+  const bP1=top?orgB:orgT, bP2=top?insB:insT;
+  return `<svg class="animsvg" viewBox="0 12 250 158" role="img" aria-label="אנימציית כיווץ שריר">
+    <g class="bone">
+      <rect x="${O.x-6}" y="${O.y-9}" width="98" height="18" rx="9"/>
+      <rect x="${O.x-102}" y="${O.y-8}" width="106" height="16" rx="8"
+            transform="rotate(${ang} ${O.x} ${O.y})"/>
+    </g>
+    ${muscleBetween(bP1,bP2,7,"anta","#9aa8bd")}
+    ${muscleBetween(aP1,aP2,9,"agon",m.color)}
+    <circle class="pivot" cx="${O.x}" cy="${O.y}" r="7"/>
+    <text class="albl" x="${O.x+48}" y="${O.y+34}">${E(J.b1)}</text>
+    <text class="albl" x="${Math.max(24,Math.min(226,B2end.x-16))}"
+          y="${Math.max(16,Math.min(174,B2end.y+20))}">${E(J.b2)}</text>
+  </svg>`;
+}
+
 /* ---------- מסך ראשי ---------- */
 function render(){
-  const tabs=[["body","🧍","מפת שרירים"],["quiz","📝","בחנים ומשחקים"],["links","🌐","מוכן לשימוש"]];
+  const tabs=[["body","🧍","שרירים"],["heart","🫀","לב ודופק"],["sleep","🌙","שינה וגדילה"],
+              ["quiz","📝","בחנים ומשחקים"],["links","🌐","מוכן לשימוש"]];
   $L("#v-learn").innerHTML =
    `<div class="hero"><h1>למידה אינטראקטיבית</h1>
       <div class="hsub">גוף האדם, תזונה, שינה וכושר — לשיעורי חינוך לבריאות, לשיעורי עיון בחנ"ג ולימי גשם.
       הכול עובד במכשיר, גם בלי רשת.</div></div>
     <div class="ltabs">${tabs.map(t=>`<button data-ltab="${t[0]}" class="${TAB===t[0]?"on":""}">${t[1]} ${t[2]}</button>`).join("")}</div>
     <div id="lbody"></div>`;
-  document.querySelectorAll("[data-ltab]").forEach(b=>b.onclick=()=>{TAB=b.dataset.ltab;ST=null;render();});
-  ({body:viewBody, quiz:viewQuizMenu, links:viewLinks}[TAB])();
+  document.querySelectorAll("[data-ltab]").forEach(b=>b.onclick=()=>{TAB=b.dataset.ltab;ST=null;stopAnim();window.HEART.stopHeart();render();});
+  ({body:viewBody, heart:()=>window.HEART.viewHeart(), sleep:()=>window.HEART.viewSleep(),
+     quiz:viewQuizMenu, links:viewLinks}[TAB])();
 }
 
 /* ---------- א. מפת שרירים ---------- */
@@ -562,18 +679,75 @@ function viewBody(){
      </div>
    </div>
    <div class="hint">אפשר להקרין את המסך הזה בכיתה ולשאול «מי יודע מה השריר הזה עושה?» לפני שלוחצים.</div>`;
-  document.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{SIDE=b.dataset.side;PICK=null;viewBody();});
+  document.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{SIDE=b.dataset.side;PICK=null;stopAnim();viewBody();});
   document.querySelectorAll("[data-muscle]").forEach(el=>el.onclick=()=>{PICK=el.dataset.muscle;viewBody();});
+  stopAnim();
+  if(m) startAnim(m);
 }
 function muscleCard(m){
+  const J=JOINTS[m.id]||{};
   return `<div class="mcard" style="--c:${m.color}">
     <h3>${E(m.name)}</h3><div class="lat">${E(m.lat)}</div>
+
+    <div class="animbox">
+      <div class="animhead">
+        <b>איך הוא מתכווץ</b>
+        <span>מפרק ה${E(J.j||"")} · נגדי: ${E(J.anta||"")}</span>
+      </div>
+      <div id="animBox">${animSvg(m,0)}</div>
+      <div class="animctl">
+        <button class="btn sm" id="animPlay">⏸ עצור</button>
+        <input type="range" id="animRange" min="0" max="100" value="0">
+        <span id="animLbl" class="animstate">מנוחה</span>
+      </div>
+      <div class="animlegend">
+        <span><i style="background:${m.color}"></i>${E(m.name)} — מתקצר ומתעבה</span>
+        <span><i style="background:#9aa8bd"></i>${E(J.anta||"השריר הנגדי")} — מתארך</span>
+      </div>
+      <div class="hint">שריר יכול רק למשוך, אף פעם לא לדחוף — ולכן לכל תנועה יש שריר הפוך שמחזיר אותה.</div>
+    </div>
+
     <div class="row"><b>מה הוא עושה</b><span>${E(m.does)}</span></div>
     <div class="row"><b>איך מאמנים</b><span>${m.train.map(t=>`<span class="chip">${E(t)}</span>`).join("")}</span></div>
     <div class="row"><b>איזה מבדק מודד</b><span>${E(m.test)}</span></div>
     <div class="row"><b>מתיחה</b><span>${E(m.stretch)}</span></div>
     <div class="row why"><b>שווה לדעת</b><span>${E(m.fact)}</span></div>
     <button class="btn sm ghost" data-muscle="">← חזרה לרשימה</button></div>`;
+}
+
+/* ---- הנעת האנימציה ---- */
+let ANIM={t:0,dir:1,timer:null,play:true};
+function stopAnim(){ if(ANIM.timer){clearInterval(ANIM.timer);ANIM.timer=null;} }
+function animLabel(t){ return t<0.12?"מנוחה" : t>0.88?"כיווץ מלא" : (ANIM.dir>0?"מתכווץ…":"מתארך…"); }
+function paintAnim(m){
+  const box=document.getElementById("animBox"); if(!box) return;
+  box.innerHTML=animSvg(m,ANIM.t);
+  const r=document.getElementById("animRange"); if(r&&document.activeElement!==r) r.value=Math.round(ANIM.t*100);
+  const l=document.getElementById("animLbl"); if(l) l.textContent=animLabel(ANIM.t);
+}
+function startAnim(m){
+  stopAnim(); ANIM.t=0; ANIM.dir=1; ANIM.play=true;
+  const btn=document.getElementById("animPlay"), rng=document.getElementById("animRange");
+  if(btn) btn.onclick=()=>{
+    ANIM.play=!ANIM.play;
+    btn.textContent = ANIM.play?"⏸ עצור":"▶ הפעל";
+    if(ANIM.play) tickOn(m); else stopAnim();
+  };
+  if(rng) rng.oninput=()=>{
+    ANIM.play=false; stopAnim();
+    if(btn) btn.textContent="▶ הפעל";
+    ANIM.t=+rng.value/100; paintAnim(m);
+  };
+  tickOn(m);
+}
+function tickOn(m){
+  stopAnim();
+  ANIM.timer=setInterval(()=>{
+    ANIM.t += 0.022*ANIM.dir;
+    if(ANIM.t>=1){ANIM.t=1;ANIM.dir=-1;}
+    if(ANIM.t<=0){ANIM.t=0;ANIM.dir=1;}
+    paintAnim(m);
+  },40);
 }
 
 /* ---------- ב. תפריט הבחנים ---------- */
