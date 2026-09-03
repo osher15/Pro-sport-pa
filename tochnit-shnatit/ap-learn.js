@@ -783,9 +783,17 @@ function viewQuizMenu(){
      <button class="ftile" data-fmt="${f.id}">
        <span class="em">${f.em}</span><b>${E(f.n)}</b><small>${E(f.d)}</small>${best(f.id)}</button>`).join("")}</div>
 
+   <h2 class="sec">להדפסה</h2>
+   <div class="fgrid">
+     <button class="ftile" data-print>
+       <span class="em">🖨️</span><b>בונה דף מבחן</b>
+       <small>בוחרים נושאים, רמה ומספר שאלות — ומקבלים דף מוכן לתלמיד עם שורת שם וכיתה, ומפתח תשובות למורה בעמוד נפרד.</small></button>
+   </div>
+
    <div class="hint">כל הפעילויות עובדות גם בלי רשת. השיא האישי נשמר במכשיר הזה בלבד.
      למשחקים תחרותיים בין תלמידים עם טלפונים — ראו «מוכן לשימוש».</div>`;
   document.querySelectorAll("[data-quiz]").forEach(b=>b.onclick=()=>askLevel(b.dataset.quiz));
+  const pb=document.querySelector("[data-print]"); if(pb) pb.onclick=viewPrint;
   document.querySelectorAll("[data-fmt]").forEach(b=>b.onclick=()=>{
     const f=b.dataset.fmt;
     if(f==="img") askLevel("img"); else if(f==="tf") startTF();
@@ -1016,6 +1024,185 @@ function viewLinks(){
       </section>`).join("")}`).join("") +
    `<div class="hint">הקישורים נפתחים באתרים חיצוניים ודורשים אינטרנט. הפעילויות שבנויות כאן באפליקציה
      עובדות גם בלי רשת — לכן שווה להכיר את שתי האפשרויות: אלה לשיעור מתוכנן עם מחשב, ואלה לאולם.</div>`;
+}
+
+
+/* ============================================================
+   ו. בונה דף מבחן להדפסה
+   מייצר דף לתלמיד (בלי תשובות) ודף מפתח למורה, מאותו מאגר
+   שאלות של הבחנים במסך. הכול נבנה בדפדפן — אין צורך ברשת.
+   ============================================================ */
+const HEB_LETTERS=["א","ב","ג","ד","ה"];
+let PR={topics:[],lvl:2,n:12,fmt:"mc",head:true,key:true,big:false,shuffle:true};
+
+function viewPrint(){
+  const T=window.AP_QUIZZES;
+  const avail = PR.topics.length?PR.topics:T.map(t=>t.id);
+  const pool  = countPool(avail,PR.lvl,PR.fmt);
+  $L("#lbody").innerHTML=`
+   <div class="card">
+     <h2>🖨️ בונה דף מבחן</h2>
+     <div class="hint">בוחרים נושאים ורמה, והדף נבנה מוכן להדפסה — כולל מקום לשם ולכיתה, ומפתח תשובות למורה בעמוד נפרד.</div>
+
+     <h3>נושאים</h3>
+     <div class="pchips">
+       <button class="pchip${PR.topics.length?"":" on"}" data-tall>הכול</button>
+       ${T.map(t=>`<button class="pchip${PR.topics.includes(t.id)?" on":""}" data-ptopic="${t.id}">${t.em} ${E(t.name)}</button>`).join("")}
+     </div>
+
+     <h3>סוג השאלות</h3>
+     <div class="pchips">
+       ${[["mc","📝 אמריקאי"],["img","🧍 תמונות — זהה את השריר"],["tf","✅ נכון או מיתוס"],["mix","🎲 מעורב"]]
+         .map(f=>`<button class="pchip${PR.fmt===f[0]?" on":""}" data-pfmt="${f[0]}">${f[1]}</button>`).join("")}
+     </div>
+
+     <h3>רמת קושי</h3>
+     <div class="pchips">
+       ${[[1,"🟢 קל"],[2,"🟡 עד בינוני"],[3,"🔴 הכול"]]
+         .map(l=>`<button class="pchip${PR.lvl===l[0]?" on":""}" data-plvl="${l[0]}">${l[1]}</button>`).join("")}
+     </div>
+
+     <h3>מספר שאלות <small>(במאגר: ${pool})</small></h3>
+     <input type="range" id="pn" min="5" max="${Math.max(5,pool)}" value="${Math.min(PR.n,Math.max(5,pool))}" class="prange">
+     <div class="pnum"><b id="pnLbl">${Math.min(PR.n,Math.max(5,pool))}</b> שאלות</div>
+
+     <h3>אפשרויות</h3>
+     <div class="pchips">
+       <button class="pchip${PR.head?" on":""}" data-popt="head">שורת שם, כיתה ותאריך</button>
+       <button class="pchip${PR.key?" on":""}"  data-popt="key">מפתח תשובות למורה</button>
+       <button class="pchip${PR.big?" on":""}"  data-popt="big">גופן גדול</button>
+       <button class="pchip${PR.shuffle?" on":""}" data-popt="shuffle">ערבוב שאלות</button>
+     </div>
+
+     <div class="links">
+       <button class="btn" id="pPrint">🖨️ הדפסה</button>
+       <button class="btn ghost" id="pPrev">👁️ תצוגה מקדימה</button>
+       <button class="btn ghost" id="pKeyOnly">📋 רק מפתח תשובות</button>
+       <button class="btn ghost" id="pAll">📚 כל מאגר השאלות למורה</button>
+     </div>
+     <div class="hint">בחלון ההדפסה כדאי לסמן «גרפיקת רקע» כדי שהמסגרות יודפסו, ולבחור A4 לאורך.</div>
+   </div>
+   <div id="pPreview"></div>`;
+
+  document.querySelector("[data-tall]").onclick=()=>{PR.topics=[];viewPrint();};
+  document.querySelectorAll("[data-ptopic]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.ptopic, i=PR.topics.indexOf(id);
+    if(i<0) PR.topics.push(id); else PR.topics.splice(i,1);
+    viewPrint();
+  });
+  document.querySelectorAll("[data-pfmt]").forEach(b=>b.onclick=()=>{PR.fmt=b.dataset.pfmt;viewPrint();});
+  document.querySelectorAll("[data-plvl]").forEach(b=>b.onclick=()=>{PR.lvl=+b.dataset.plvl;viewPrint();});
+  document.querySelectorAll("[data-popt]").forEach(b=>b.onclick=()=>{PR[b.dataset.popt]=!PR[b.dataset.popt];viewPrint();});
+  const pn=$L("#pn");
+  pn.oninput=()=>{PR.n=+pn.value;$L("#pnLbl").textContent=PR.n;};
+  $L("#pPrint").onclick=()=>doPrint(buildSheet());
+  $L("#pPrev").onclick =()=>{ $L("#pPreview").innerHTML=`<div class="card"><h3>תצוגה מקדימה</h3>
+      <div class="sheetprev">${buildSheet()}</div></div>`;
+      $L("#pPreview").scrollIntoView({behavior:"smooth",block:"start"}); };
+  $L("#pKeyOnly").onclick=()=>doPrint(buildSheet(true));
+  $L("#pAll").onclick=()=>doPrint(buildBank());
+}
+
+function countPool(ids,lvl,fmt){
+  if(fmt==="img") return window.AP_BODY.muscles.length;
+  if(fmt==="tf")  return window.AP_MYTHS.length;
+  let n=window.AP_QUIZZES.filter(t=>ids.includes(t.id))
+        .reduce((a,t)=>a+t.qs.filter(q=>q.l<=lvl).length,0);
+  if(fmt==="mix") n+=window.AP_MYTHS.length+window.AP_BODY.muscles.length;
+  return n;
+}
+
+/* בונה את רשימת הפריטים לפי ההגדרות */
+function collectItems(){
+  const ids = PR.topics.length?PR.topics:window.AP_QUIZZES.map(t=>t.id);
+  let items=[];
+  const addMC=()=>{
+    window.AP_QUIZZES.filter(t=>ids.includes(t.id)).forEach(t=>{
+      t.qs.filter(q=>q.l<=PR.lvl).forEach(q=>{
+        items.push({kind:"mc",topic:t.name,q:q.q,opts:q.a.slice(),c:q.c,why:q.why});
+      });
+    });
+  };
+  const addTF=()=>window.AP_MYTHS.forEach(m=>
+    items.push({kind:"tf",topic:"נכון או מיתוס",q:m.s,opts:["נכון","מיתוס"],c:m.t?0:1,why:m.why}));
+  const addIMG=()=>window.AP_BODY.muscles.forEach(m=>
+    items.push({kind:"img",topic:"זהה את השריר",q:"מהו השריר המסומן?",side:m.side,hl:m.id,
+                ans:m.name,why:`${m.name} (${m.lat}) — ${m.does}`}));
+  if(PR.fmt==="mc")  addMC();
+  if(PR.fmt==="tf")  addTF();
+  if(PR.fmt==="img") addIMG();
+  if(PR.fmt==="mix"){ addMC(); addTF(); addIMG(); }
+  if(PR.shuffle) items=shuffle(items);
+  return items.slice(0,PR.n);
+}
+
+function sheetHead(title,sub){
+  return `<div class="ph"><div class="pht"><b>${E(title)}</b><span>${E(sub||"")}</span></div>
+    ${PR.head?`<div class="phf">
+      <span>שם: ______________________</span><span>כיתה: __________</span><span>תאריך: ____________</span>
+      <span class="score">ציון: ______</span></div>`:""}</div>`;
+}
+
+function buildSheet(keyOnly){
+  const items=collectItems();
+  const sub=`${items.length} שאלות · ${PR.lvl===1?"רמה קלה":PR.lvl===2?"עד רמה בינונית":"כל הרמות"}`;
+  let body="";
+  if(!keyOnly){
+    body += sheetHead("מבחן — חינוך גופני ובריאות", sub);
+    /* שאלות תמונה תופסות הרבה גובה — שתי עמודות חוסכות כמחצית מהדפים */
+    const twoCol = items.filter(i=>i.kind==="img").length > items.length/2;
+    body += `<ol class="pql${twoCol?" two":""}">` + items.map(it=>{
+      if(it.kind==="img"){
+        return `<li class="pq imgq"><div class="pqt">${E(it.q)}</div>
+          <div class="pqfig">${bodySvg({side:it.side,highlight:it.hl})}</div>
+          <div class="pline">תשובה: ______________________________</div></li>`;
+      }
+      return `<li class="pq"><div class="pqt">${E(it.q)}</div>
+        <ol class="popts">${it.opts.map((o,i)=>
+          `<li><span class="pbox">${HEB_LETTERS[i]}</span>${E(o)}</li>`).join("")}</ol></li>`;
+    }).join("") + `</ol>`;
+  }
+  if(PR.key || keyOnly){
+    body += `<div class="${keyOnly?"":"pbreak"}">${sheetHead("מפתח תשובות — למורה","לא לחלוקה לתלמידים")}
+      <ol class="pkey">` + items.map(it=>{
+        const ans = it.kind==="img" ? it.ans : it.opts[it.c];
+        const let_ = it.kind==="img" ? "" : `<b>${HEB_LETTERS[it.c]}</b> · `;
+        return `<li><div class="pka">${let_}${E(ans)}</div>
+                <div class="pkq">${E(it.q)}</div>
+                <div class="pkw">${E(it.why)}</div></li>`;
+      }).join("") + `</ol></div>`;
+  }
+  return `<div class="sheet${PR.big?" big":""}">${body}</div>`;
+}
+
+/* כל מאגר השאלות — דף עזר למורה */
+function buildBank(){
+  let body=sheetHead("מאגר השאלות המלא — למורה",
+    `${window.AP_QUIZZES.reduce((a,t)=>a+t.qs.length,0)} שאלות · ${window.AP_QUIZZES.length} נושאים`);
+  window.AP_QUIZZES.forEach(t=>{
+    body+=`<h3 class="pbt">${t.em} ${E(t.name)} <small>${E(t.grades)}</small></h3><ol class="pkey">`;
+    t.qs.forEach(q=>{
+      const lv=["","קל","בינוני","מאתגר"][q.l]||"";
+      body+=`<li><div class="pka"><b>${HEB_LETTERS[q.c]}</b> · ${E(q.a[q.c])} <span class="plv">${lv}</span></div>
+        <div class="pkq">${E(q.q)}</div><div class="pkw">${E(q.why)}</div></li>`;
+    });
+    body+=`</ol>`;
+  });
+  return `<div class="sheet">${body}</div>`;
+}
+
+function doPrint(html){
+  let box=document.getElementById("printSheet");
+  if(!box){ box=document.createElement("div"); box.id="printSheet"; document.body.appendChild(box); }
+  box.innerHTML=html;
+  document.body.classList.add("printing");
+  /* הניקוי נשען על afterprint. הרשת הביטחונית ארוכה בכוונה: מחלקת
+     printing משפיעה רק בתוך @media print, ולכן אם היא נשארת רגע נוסף
+     זה לא נראה על המסך — אבל ניקוי מוקדם מדי באמצע דיאלוג ההדפסה
+     היה מדפיס דף ריק. */
+  const clean=()=>{ document.body.classList.remove("printing"); window.removeEventListener("afterprint",clean); };
+  window.addEventListener("afterprint",clean);
+  setTimeout(()=>{ window.print(); setTimeout(clean,30000); },60);
 }
 
 /* ---------- ייצוא ---------- */
