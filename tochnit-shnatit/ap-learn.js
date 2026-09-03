@@ -466,6 +466,17 @@ window.AP_RESOURCES = [
    how:"מקרינים את המפה, לוחצים על שריר, וקוראים יחד מה הוא עושה.",
    links:[{t:"מערכת השרירים",u:"https://www.innerbody.com/image/musfov.html"}]},
 
+  {n:"BioMan Biology — כיווץ שריר אינטראקטיבי", em:"🔬", free:"חינם",
+   d:"סימולציה אינטראקטיבית של כיווץ השריר ברמת הסיב: מודל החוטים המחליקים (אקטין ומיוזין), וגם הדגמה של כופפים ופושטים עם הדו־ראשי והתלת־ראשי כדוגמה.",
+   how:"מקרינים בכיתה ומריצים שלב־שלב. זה המקור שמראה מה קורה *בתוך* השריר, מתחת למה שרואים באנימציה שבאפליקציה.",
+   links:[{t:"Muscle Contraction Interactive",u:"https://biomanbio.com/HTML5GamesandLabs/Physiologygames/muscle_contractionpage.html"}]},
+
+  {n:"מודל תלת־ממד של אקטין ומיוזין", em:"🧩", free:"חינם לצפייה",
+   d:"מודל תלת־ממדי מונפש שאפשר לסובב בדפדפן, של המנגנון שמייצר את הכיווץ בפועל.",
+   how:"טוב לשכבה בוגרת (י\"א–י\"ב) אחרי שכבר ראו את הכיווץ ברמת השריר השלם.",
+   links:[{t:"Sketchfab — Actin & Myosin",u:"https://sketchfab.com/3d-models/actin-and-mysosin-animated-34eb3e551a034528ae2d3b1f1c53684e"},
+          {t:"סימולציית Wolfram",u:"https://demonstrations.wolfram.com/SlidingFilamentModelOfMuscleContraction/"}]},
+
   {n:"MuscleWiki", em:"💪", free:"חינם",
    d:"לוחצים על שריר בדמות ומקבלים רשימת תרגילים שמאמנים אותו, עם סרטוני ביצוע קצרים.",
    how:"שימושי במיוחד בשיעור חדר כושר בי\"א — התלמיד מוצא בעצמו תרגיל לשריר שהוא רוצה לחזק.",
