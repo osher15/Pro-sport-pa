@@ -552,3 +552,27 @@ button.chip.pick{cursor:pointer;font:inherit;font-size:12px}
   .sheet .bodysvg .bd-m{opacity:.2;filter:grayscale(1)}
   .sheet .bodysvg .bd-m.on{opacity:1;filter:none}
 }
+
+/* ---- ראשי שריר ותרגילים ---- */
+.bodysvg .bd-m.soft{opacity:.3}
+.bodysvg .bd-m.soft .fib{stroke:rgba(255,255,255,.4)}
+.heads{margin:8px 0}
+.hrow{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.hrow b{font-size:13.5px}
+.headrow{display:block;width:100%;text-align:right;background:var(--card2);
+  border:1.5px solid var(--line);border-inline-start:4px solid var(--c);border-radius:9px;
+  padding:8px 10px;margin-bottom:5px;font:inherit;cursor:pointer;transition:.15s}
+.headrow b{display:block;font-size:13px}
+.headrow b small{font-weight:400;color:var(--tx3);font-size:11px}
+.headrow span{font-size:12px;color:var(--tx2)}
+.headrow.on{background:var(--card);box-shadow:0 0 0 2px rgba(14,127,196,.2);border-color:var(--c)}
+.exs{margin:10px 0}
+.exs>b{font-size:13.5px;display:block;margin-bottom:5px}
+.exrow{display:flex;flex-wrap:wrap;gap:6px}
+.exbtn{background:var(--card2);border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;
+  font:inherit;font-size:12.5px;color:var(--tx);cursor:pointer;text-align:right;transition:.15s}
+.exbtn small{display:block;font-size:10.5px;color:var(--tx3)}
+.exbtn.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.exbtn.on small{color:rgba(255,255,255,.85)}
+/* צללית הדמות אינה לחיצה — רק השרירים עצמם */
+.bodysvg .bd-base{pointer-events:none}
