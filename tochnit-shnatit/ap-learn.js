@@ -8,167 +8,6 @@
    ============================================================ */
 
 /* ============================================================
-   1. מפת השרירים — דמות שאפשר ללחוץ עליה
-   הצורות מוגדרות כנתונים ולא כ-SVG כתוב ביד, כדי שאפשר
-   יהיה להוסיף שריר בלי לגעת בקוד הציור.
-   ============================================================ */
-window.AP_BODY = {
-  /* השלד של הדמות — נצבע באפור ומתחת לשרירים */
-  base:[
-    {t:"ellipse", cx:100, cy:34,  rx:19, ry:22},   /* ראש */
-    {t:"rect",    x:92,  y:52,  w:16, h:16, r:6},  /* צוואר */
-    {t:"rect",    x:70,  y:64,  w:60, h:126, r:16},/* גו */
-    {t:"rect",    x:76,  y:180, w:48, h:30, r:12}, /* אגן */
-    {t:"ellipse", cx:56, cy:112, rx:11, ry:26},    /* זרוע ימין */
-    {t:"ellipse", cx:144,cy:112, rx:11, ry:26},
-    {t:"ellipse", cx:50, cy:158, rx:9,  ry:26},    /* אמה ימין */
-    {t:"ellipse", cx:150,cy:158, rx:9,  ry:26},
-    {t:"ellipse", cx:47, cy:190, rx:8,  ry:9},     /* כף יד */
-    {t:"ellipse", cx:153,cy:190, rx:8,  ry:9},
-    {t:"ellipse", cx:86, cy:242, rx:16, ry:40},    /* ירך */
-    {t:"ellipse", cx:114,cy:242, rx:16, ry:40},
-    {t:"ellipse", cx:86, cy:288, rx:10, ry:11},    /* ברך */
-    {t:"ellipse", cx:114,cy:288, rx:10, ry:11},
-    {t:"ellipse", cx:86, cy:325, rx:12, ry:34},    /* שוק */
-    {t:"ellipse", cx:114,cy:325, rx:12, ry:34},
-    {t:"ellipse", cx:86, cy:366, rx:11, ry:8},     /* כף רגל */
-    {t:"ellipse", cx:114,cy:366, rx:11, ry:8}
-  ],
-
-  muscles:[
-  /* ---------- מבט מלפנים ---------- */
-  {id:"delt", side:"front", name:"שריר הדלתא (כתף)", lat:"Deltoid", color:"#f97316",
-   shapes:[{t:"ellipse",cx:66,cy:82,rx:15,ry:14},{t:"ellipse",cx:134,cy:82,rx:15,ry:14}],
-   does:"מרים את הזרוע לצדדים, קדימה ואחורה. השריר שאחראי כמעט על כל תנועה של הכתף.",
-   train:["הרמות צד עם גומייה או משקולת","לחיצת כתפיים מעל הראש","שכיבות סמיכה בשיפוע"],
-   test:"נמדד בעקיפין בשכיבות סמיכה ובזריקה לשער",
-   stretch:"משיכת יד ישרה על פני החזה, החזקה 20 שניות לכל צד",
-   fact:"זה השריר הכי נפוץ בפציעות של שחקני כדוריד וכדורעף — בגלל תנועת הזריקה מעל הראש."},
-
-  {id:"pec", side:"front", name:"שריר החזה", lat:"Pectoralis major", color:"#ef4444",
-   shapes:[{t:"ellipse",cx:86,cy:98,rx:16,ry:13},{t:"ellipse",cx:114,cy:98,rx:16,ry:13}],
-   does:"דוחף — מקרב את הזרוע אל מרכז הגוף. כל דחיפה קדימה מפעילה אותו.",
-   train:["שכיבות סמיכה","לחיצת חזה","זריקת כדור רפואה מהחזה"],
-   test:"מבדק שכיבות הסמיכה",
-   stretch:"עמידה בפתח דלת, אמות על המשקוף, נטייה קדימה — 20 שניות",
-   fact:"אם עושים רק דחיפות ולא משיכות, החזה מתקצר והכתפיים מתעגלות קדימה. לכן תמיד מאזנים דחיפה במשיכה."},
-
-  {id:"bi", side:"front", name:"שריר הזרוע הדו־ראשי", lat:"Biceps brachii", color:"#f59e0b",
-   shapes:[{t:"ellipse",cx:56,cy:110,rx:10,ry:22},{t:"ellipse",cx:144,cy:110,rx:10,ry:22}],
-   does:"מכופף את המרפק ומסובב את כף היד כלפי מעלה.",
-   train:["כפיפת מרפקים בגומייה","מתח באחיזה תחתונה","משיכה אופקית במוט נמוך"],
-   test:"מבדק המתח",
-   stretch:"יד ישרה אחורה על קיר, סיבוב עדין של הגוף",
-   fact:"למרות השם, זה לא השריר הכי חזק בכיפוף המרפק — הברכיאליס שמתחתיו עושה חלק גדול מהעבודה."},
-
-  {id:"fore", side:"front", name:"שרירי האמה", lat:"Forearm flexors", color:"#fbbf24",
-   shapes:[{t:"ellipse",cx:50,cy:156,rx:9,ry:24},{t:"ellipse",cx:150,cy:156,rx:9,ry:24}],
-   does:"אחיזה. כל תפיסה של כדור, מוט או חבל עוברת דרכם.",
-   train:["תלייה על מוט","הליכת חקלאי עם משקל","קפיצה בחבל"],
-   test:"תלייה סטטית — החלופה למי שלא מבצע מתח",
-   stretch:"יד ישרה קדימה, משיכת האצבעות כלפי מטה ואז כלפי מעלה",
-   fact:"כוח אחיזה נחשב מדד בריאות מוכר — קשר סטטיסטי לתפקוד כללי לאורך החיים."},
-
-  {id:"abs", side:"front", name:"שריר הבטן הישר", lat:"Rectus abdominis", color:"#22d3ee",
-   shapes:[{t:"rect",x:87,y:114,w:26,h:52,r:9}],
-   does:"מכופף את הגו קדימה, ובעיקר — מייצב את האגן ומונע מהגב התחתון להתקמר.",
-   train:["פלאנק","Dead bug","הרמות רגליים בשליטה"],
-   test:"מבדק הפלאנק",
-   stretch:"שכיבה על הבטן ודחיפה עדינה לקשת (קוברה) — 15 שניות",
-   fact:"«שש חבילות» הוא עניין של אחוז שומן, לא של כוח. אפשר להיות חזק מאוד בליבה בלי שרואים כלום."},
-
-  {id:"obl", side:"front", name:"שרירים אלכסוניים", lat:"Obliques", color:"#38bdf8",
-   shapes:[{t:"ellipse",cx:78,cy:140,rx:8,ry:24},{t:"ellipse",cx:122,cy:140,rx:8,ry:24}],
-   does:"מסובבים את הגו ומטים אותו לצד. אחראים על כל זריקה, בעיטה וחבטה.",
-   train:["Pallof press בגומייה","הליכת מזוודה עם משקל ביד אחת","זריקת כדור לקיר מהצד"],
-   test:"נמדד בעקיפין במעבורת 4×10 — כל שינוי כיוון עובר דרכם",
-   stretch:"ישיבה וסיבוב עדין של הגו לכל צד",
-   fact:"מהירות הזריקה בכדוריד מגיעה יותר מהסיבוב של הגו מאשר מהיד עצמה."},
-
-  {id:"quad", side:"front", name:"שריר הירך הארבע־ראשי", lat:"Quadriceps", color:"#a78bfa",
-   shapes:[{t:"ellipse",cx:86,cy:238,rx:15,ry:38},{t:"ellipse",cx:114,cy:238,rx:15,ry:38}],
-   does:"מיישר את הברך. השריר המרכזי בקפיצה, בזינוק ובעלייה במדרגות.",
-   train:["סקוואט","לאנג׳","קפיצות סקוואט"],
-   test:"קפיצה לרוחק מהמקום וריצת 60/100 מ׳",
-   stretch:"עמידה, משיכת עקב לישבן, ברך מצביעה מטה — 20 שניות",
-   fact:"הוא בנוי מארבעה ראשים, ואחד מהם (הרקטוס פמוריס) חוצה גם את מפרק הירך — לכן מתיחה נכונה דורשת אגן ישר."},
-
-  {id:"add", side:"front", name:"מקרבי הירך", lat:"Adductors", color:"#c084fc",
-   shapes:[{t:"ellipse",cx:100,cy:228,rx:9,ry:28}],
-   does:"מקרבים את הרגל למרכז. עובדים חזק בשינוי כיוון ובבעיטה פנימית בכדורגל.",
-   train:["סקוואט רחב","לאנג׳ הצידה","לחיצת ברכיים על כדור"],
-   test:"מעבורת 4×10 מ׳",
-   stretch:"ישיבת פרפר, לחיצה עדינה של הברכיים כלפי מטה",
-   fact:"«מתיחה במפשעה» היא אחת הפציעות הנפוצות בכדורגל, וכמעט תמיד היא במקרבים."},
-
-  {id:"tib", side:"front", name:"שריר השוק הקדמי", lat:"Tibialis anterior", color:"#2dd4bf",
-   shapes:[{t:"ellipse",cx:86,cy:322,rx:10,ry:30},{t:"ellipse",cx:114,cy:322,rx:10,ry:30}],
-   does:"מרים את כף הרגל. מונע מהבהונות להיתקל בקרקע בזמן ריצה.",
-   train:["הליכה על העקבים","הרמת בהונות בישיבה","ריצה בעלייה"],
-   test:"נמדד בעקיפין בריצות המהירות",
-   stretch:"ישיבה על העקבים עם גב כף הרגל על הרצפה",
-   fact:"«שין ספלינטס» — הכאב הקלאסי בשוק אצל מתחילים בריצה — קשור ישירות לעומס יתר עליו."},
-
-  /* ---------- מבט מאחור ---------- */
-  {id:"trap", side:"back", name:"שריר הטרפז", lat:"Trapezius", color:"#f97316",
-   shapes:[{t:"rect",x:80,y:66,w:40,h:44,r:12}],
-   does:"מקרב ומייצב את השכמות, ומרים את הכתפיים. אחראי גדול על היציבה בישיבה.",
-   train:["חתירה בגומייה","קירוב שכמות","תלייה על מוט"],
-   test:"נמדד בעקיפין במתח ובמשיכות",
-   stretch:"הטיית ראש לצד עם משיכה עדינה — 20 שניות לכל צד",
-   fact:"ישיבה ארוכה מול מסך מקצרת את החלק העליון שלו ומחלישה את התחתון — זה מה שיוצר את «כאב בין השכמות»."},
-
-  {id:"lat", side:"back", name:"השריר הרחב הגבי", lat:"Latissimus dorsi", color:"#ef4444",
-   shapes:[{t:"ellipse",cx:83,cy:130,rx:14,ry:28},{t:"ellipse",cx:117,cy:130,rx:14,ry:28}],
-   does:"מושך — מוריד את הזרוע מלמעלה למטה ומקרב אותה לגוף. השריר הגדול בגב.",
-   train:["מתח","משיכת פולי עליון","משיכה אופקית במוט נמוך"],
-   test:"מבדק המתח",
-   stretch:"אחיזה בעמוד ונטייה אחורה עם יד ישרה",
-   fact:"בשחייה הוא השריר המרכזי בכל משיכה — ולכן שחיינים מזוהים בגב הרחב."},
-
-  {id:"tri", side:"back", name:"שריר הזרוע התלת־ראשי", lat:"Triceps brachii", color:"#f59e0b",
-   shapes:[{t:"ellipse",cx:56,cy:110,rx:10,ry:22},{t:"ellipse",cx:144,cy:110,rx:10,ry:22}],
-   does:"מיישר את המרפק. אחראי על כל דחיפה ועל הזריקה בסיומה.",
-   train:["שכיבות סמיכה צרות","מקבילים / דחיפה מספסל","הדיפה בגומייה"],
-   test:"מבדק שכיבות הסמיכה",
-   stretch:"יד מאחורי הראש, משיכת המרפק כלפי מטה",
-   fact:"הוא מהווה כשני שלישים מנפח הזרוע — יותר מהביצפס, בניגוד למה שרובם חושבים."},
-
-  {id:"erector", side:"back", name:"זוקפי הגב", lat:"Erector spinae", color:"#22d3ee",
-   shapes:[{t:"rect",x:92,y:130,w:16,h:56,r:7}],
-   does:"מחזיקים את עמוד השדרה זקוף ומייצבים אותו בהרמה של משקל.",
-   train:["סופרמן","Bird dog","הרמה מהרצפה בטכניקה נכונה (Hip hinge)"],
-   test:"מבדק הפלאנק (בשילוב שרירי הבטן)",
-   stretch:"«תנוחת ילד» — ישיבה על העקבים עם ידיים קדימה",
-   fact:"רוב כאבי הגב התחתון בגיל בית הספר קשורים לחולשה שלהם ולישיבה ממושכת — לא לפציעה."},
-
-  {id:"glute", side:"back", name:"שרירי הישבן", lat:"Gluteus maximus", color:"#a78bfa",
-   shapes:[{t:"ellipse",cx:87,cy:194,rx:17,ry:17},{t:"ellipse",cx:113,cy:194,rx:17,ry:17}],
-   does:"מיישר את מפרק הירך. מנוע הכוח המרכזי בקפיצה, בזינוק ובריצה.",
-   train:["גשר ישבן","סקוואט עמוק","מכרעים (לאנג׳) אחוריים"],
-   test:"קפיצה לרוחק מהמקום",
-   stretch:"שכיבה על הגב, משיכת ברך אחת אל החזה בזווית",
-   fact:"זה השריר החזק בגוף. «ישבן רדום» מישיבה ממושכת הוא סיבה מוכרת לכאבי ברך וגב אצל מתבגרים."},
-
-  {id:"ham", side:"back", name:"ירך אחורית", lat:"Hamstrings", color:"#c084fc",
-   shapes:[{t:"ellipse",cx:86,cy:242,rx:15,ry:38},{t:"ellipse",cx:114,cy:242,rx:15,ry:38}],
-   does:"מכופפת את הברך ומסייעת ליישור הירך. בולמת את הרגל בסוף כל צעד ריצה.",
-   train:["גשר רגל אחת","Nordic curl בעזרת שותף","דדליפט רומני קל"],
-   test:"כפיפת גו קדימה (גמישות) וריצות המהירות",
-   stretch:"רגל ישרה על ספסל נמוך, נטייה קדימה עם גב ישר",
-   fact:"קרע בירך האחורית הוא הפציעה מספר אחת בספורט מהיר — וכמעט תמיד קורית בהאטה, לא בהאצה."},
-
-  {id:"calf", side:"back", name:"תאומי השוק", lat:"Gastrocnemius / Soleus", color:"#2dd4bf",
-   shapes:[{t:"ellipse",cx:86,cy:322,rx:12,ry:32},{t:"ellipse",cx:114,cy:322,rx:12,ry:32}],
-   does:"דוחפים את הגוף מהקרקע. עובדים בכל צעד, קפיצה ודילוג.",
-   train:["הרמות עקב","דילוגי חבל","קפיצות רצופות"],
-   test:"קפיצה לרוחק וריצת המהירות",
-   stretch:"עמידה מול קיר, רגל אחורית ישרה והעקב על הרצפה",
-   fact:"גיד אכילס שמתחתיו הוא הגיד החזק בגוף — ועומד בכוחות שגדולים פי כמה ממשקל הגוף בכל קפיצה."}
-  ]
-};
-
-/* ============================================================
    2. בחנים — לכל שאלה יש הסבר שנחשף אחרי התשובה.
    ההסבר חשוב יותר מהניקוד: אפשר לעצור עליו ולדבר בכיתה.
    ============================================================ */
@@ -517,64 +356,90 @@ const lsave=()=>{ try{ localStorage.setItem(LKEY,JSON.stringify(LS)); }catch(e){
 let TAB="body", ST=null;   /* ST = מצב הפעילות הרצה */
 
 /* ---------- ציור הדמות ----------
-   השרירים מצוירים כצורת "בטן שריר" אמיתית: צרה בשני הקצוות (שם הם
-   הופכים לגיד) ורחבה באמצע, עם סיבים שמתכנסים אל הגידים — במקום
-   אליפסה שטוחה. הצורה נגזרת מאותם פרמטרים שכבר קיימים בנתונים.
+   כל שריר מורכב מראשים, ולכל ראש צורה משלו: בטן ציר (ellipse,
+   אפשר מסובבת), מצולע לשרירים מניפתיים (chest, lat, trap), או
+   מלבנים לשרירים מקוטעים (בטן). זה מה שנותן לכל שריר צורה
+   ואורך משלו במקום אליפסה אחידה.
    -------------------------------------------------------------- */
 
-/* בטן שריר בצורת ציר (fusiform) מתוך פרמטרי אליפסה */
+const lerp=(a,b,k)=>[a[0]+(b[0]-a[0])*k, a[1]+(b[1]-a[1])*k];
+
 function bellyPath(sh){
   const {cx,cy,rx,ry}=sh;
-  if(ry>=rx){   /* שריר אנכי */
+  if(ry>=rx)
     return `M${cx},${cy-ry} C${cx+rx},${cy-ry*0.5} ${cx+rx},${cy+ry*0.5} ${cx},${cy+ry}`
          + ` C${cx-rx},${cy+ry*0.5} ${cx-rx},${cy-ry*0.5} ${cx},${cy-ry} Z`;
-  }
   return `M${cx-rx},${cy} C${cx-rx*0.5},${cy-ry} ${cx+rx*0.5},${cy-ry} ${cx+rx},${cy}`
        + ` C${cx+rx*0.5},${cy+ry} ${cx-rx*0.5},${cy+ry} ${cx-rx},${cy} Z`;
 }
-/* סיבי שריר שמתכנסים אל שני הקצוות */
 function bellyFibers(sh){
   const {cx,cy,rx,ry}=sh, out=[];
-  if(ry>=rx){
-    for(const k of [-0.6,-0.28,0.28,0.6])
-      out.push(`M${cx},${cy-ry*0.94} Q${cx+rx*k},${cy} ${cx},${cy+ry*0.94}`);
-  }else{
-    for(const k of [-0.6,-0.28,0.28,0.6])
-      out.push(`M${cx-rx*0.94},${cy} Q${cx},${cy+ry*k} ${cx+rx*0.94},${cy}`);
+  if(ry>=rx) for(const k of [-0.6,-0.28,0.28,0.6])
+    out.push(`M${cx},${cy-ry*0.94} Q${cx+rx*k},${cy} ${cx},${cy+ry*0.94}`);
+  else for(const k of [-0.6,-0.28,0.28,0.6])
+    out.push(`M${cx-rx*0.94},${cy} Q${cx},${cy+ry*k} ${cx+rx*0.94},${cy}`);
+  return out;
+}
+function polyPath(p){ return "M"+p.map(q=>q.join(",")).join(" L")+" Z"; }
+function polyFibers(p){
+  const out=[];
+  if(p.length===4){                     /* מניפה בין שתי הצלעות הארוכות */
+    for(const k of [0.22,0.45,0.68,0.88]){
+      const A=lerp(p[0],p[1],k), B=lerp(p[3],p[2],k);
+      out.push(`M${A[0]},${A[1]} L${B[0]},${B[1]}`);
+    }
+  }else if(p.length===3){               /* משולש — מניפה מהקודקוד */
+    for(const k of [0.2,0.5,0.8]){
+      const A=lerp(p[0],p[1],k);
+      out.push(`M${p[2][0]},${p[2][1]} L${A[0]},${A[1]}`);
+    }
+  }else{                                /* מצולע חופשי — מניפה מהנקודה הראשונה */
+    for(let i=2;i<p.length-1;i++) out.push(`M${p[0][0]},${p[0][1]} L${p[i][0]},${p[i][1]}`);
   }
-  return out.map(d=>`<path class="fib" d="${d}"/>`).join("");
+  return out;
 }
 function shape(sh, extra){
-  const a = extra||"";
+  const a=extra||"";
   if(sh.t==="ellipse") return `<ellipse cx="${sh.cx}" cy="${sh.cy}" rx="${sh.rx}" ry="${sh.ry}" ${a}/>`;
+  if(sh.t==="poly")    return `<path d="${polyPath(sh.p)}" ${a}/>`;
   return `<rect x="${sh.x}" y="${sh.y}" width="${sh.w}" height="${sh.h}" rx="${sh.r||0}" ${a}/>`;
 }
-/* צורת שריר לתצוגה — כולל סיבים */
+/* צורת שריר לתצוגה — גוף + סיבים, עם סיבוב אם הוגדר */
 function muscleShape(sh){
-  if(sh.t==="ellipse") return `<path d="${bellyPath(sh)}"/>` + bellyFibers(sh);
-  /* מלבנים (בטן, טרפז, זוקפי גב) — חלוקה לראשי שריר, כמו במציאות */
-  const segs=[];
-  const n = sh.h>sh.w ? 3 : 2;
-  for(let i=1;i<n;i++){
-    const y=sh.y+sh.h*i/n;
-    segs.push(`<path class="fib" d="M${sh.x+2},${y} L${sh.x+sh.w-2},${y}"/>`);
+  let body,fibs;
+  if(sh.t==="ellipse"){ body=`<path d="${bellyPath(sh)}"/>`; fibs=bellyFibers(sh); }
+  else if(sh.t==="poly"){ body=`<path d="${polyPath(sh.p)}"/>`; fibs=polyFibers(sh.p); }
+  else {
+    body=shape(sh); fibs=[];
+    const n = sh.h>sh.w ? 2 : 1;
+    for(let i=1;i<=n;i++) fibs.push(`M${sh.x+1.5},${sh.y+sh.h*i/(n+1)} L${sh.x+sh.w-1.5},${sh.y+sh.h*i/(n+1)}`);
   }
-  segs.push(`<path class="fib" d="M${sh.x+sh.w/2},${sh.y+2} L${sh.x+sh.w/2},${sh.y+sh.h-2}"/>`);
-  return shape(sh) + segs.join("");
+  const inner = body + fibs.map(d=>`<path class="fib" d="${d}"/>`).join("");
+  return sh.rot ? `<g transform="rotate(${sh.rot} ${sh.cx} ${sh.cy})">${inner}</g>` : inner;
 }
 
-/* opts: {side, highlight, clickable} */
+/* הראשים של שריר שנראים בצד מסוים */
+function headsOn(m,side){ return (m.heads||[]).filter(h=>h.side===side); }
+function musclesOn(side){ return window.AP_BODY.muscles.filter(m=>headsOn(m,side).length); }
+
+/* opts: {side, highlight, heads, clickable}
+   heads — מערך מזהי ראשים להדגשה. שאר הראשים של אותו שריר
+   נשארים גלויים אך עמומים, כדי שרואים את כל השריר. */
 function bodySvg(opts){
-  const o = opts||{}, side = o.side||"front";
-  const ms = window.AP_BODY.muscles.filter(m=>m.side===side);
+  const o=opts||{}, side=o.side||"front";
   let g = window.AP_BODY.base.map(s=>shape(s,'class="bd-base"')).join("");
-  for(const m of ms){
-    const on  = o.highlight===m.id;
-    const cls = "bd-m" + (on?" on":"") + (o.highlight && !on ? " dim":"");
-    const clickable = o.clickable ? `data-muscle="${m.id}"` : 'pointer-events="none"';
-    g += `<g class="${cls}" style="--mc:${m.color}" ${clickable}>` +
-         m.shapes.map(muscleShape).join("") +
-         (o.clickable?`<title>${E(m.name)}</title>`:"") + `</g>`;
+  for(const m of musclesOn(side)){
+    const on = o.highlight===m.id;
+    const dim = o.highlight && !on;
+    for(const h of headsOn(m,side)){
+      const emph = on && (!o.heads || !o.heads.length || o.heads.includes(h.id));
+      const soft = on && o.heads && o.heads.length && !o.heads.includes(h.id);
+      const cls = "bd-m" + (emph?" on":"") + (soft?" soft":"") + (dim?" dim":"");
+      const click = o.clickable ? `data-muscle="${m.id}"` : 'pointer-events="none"';
+      g += `<g class="${cls}" style="--mc:${m.color}" ${click}>`
+         + h.shapes.map(muscleShape).join("")
+         + (o.clickable?`<title>${E(m.name)} — ${E(h.name)}</title>`:"") + `</g>`;
+    }
   }
   return `<svg class="bodysvg" viewBox="0 0 200 400" role="img"
      aria-label="${side==="front"?"מבט מלפנים":"מבט מאחור"}">${g}</svg>`;
@@ -670,9 +535,10 @@ function render(){
 }
 
 /* ---------- א. מפת שרירים ---------- */
-let SIDE="front", PICK=null;
+let SIDE="front", PICK=null, PICKH=null;   /* PICKH — ראשים מודגשים */
 function viewBody(){
   const m = PICK && window.AP_BODY.muscles.find(x=>x.id===PICK);
+  const list = musclesOn(SIDE);
   $L("#lbody").innerHTML=`
    <div class="card">
      <div class="sidesw">
@@ -680,31 +546,59 @@ function viewBody(){
        <button data-side="back"  class="${SIDE==="back"?"on":""}">מאחור</button>
      </div>
      <div class="bodywrap">
-       <div class="bodyfig">${bodySvg({side:SIDE,clickable:true,highlight:PICK})}</div>
+       <div class="bodyfig">${bodySvg({side:SIDE,clickable:true,highlight:PICK,heads:PICKH})}</div>
        <div class="bodyinfo">${ m ? muscleCard(m) :
          `<div class="pickhint"><b>לוחצים על שריר בדמות</b>
-          <div>ומקבלים מה הוא עושה, אילו תרגילים מאמנים אותו, איזה מבדק כושר מודד אותו, ואיך מותחים אותו.</div>
-          <div class="chips">${window.AP_BODY.muscles.filter(x=>x.side===SIDE)
-            .map(x=>`<button class="chip pick" data-muscle="${x.id}" style="--c:${x.color}">${E(x.name)}</button>`).join("")}</div>
+          <div>ומקבלים את הראשים שלו, מה כל ראש עושה, ואיזה תרגיל מדגיש איזה ראש.</div>
+          <div class="chips">${list.map(x=>`<button class="chip pick" data-muscle="${x.id}" style="--c:${x.color}">${E(x.name)}</button>`).join("")}</div>
          </div>` }</div>
      </div>
    </div>
-   <div class="hint">אפשר להקרין את המסך הזה בכיתה ולשאול «מי יודע מה השריר הזה עושה?» לפני שלוחצים.</div>`;
-  document.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{SIDE=b.dataset.side;PICK=null;stopAnim();viewBody();});
-  document.querySelectorAll("[data-muscle]").forEach(el=>el.onclick=()=>{PICK=el.dataset.muscle;viewBody();});
+   <div class="hint">אפשר להקרין את המסך הזה בכיתה: בוחרים תרגיל, ורואים איזה חלק מהשריר מודגש.</div>`;
+  document.querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{SIDE=b.dataset.side;PICK=null;PICKH=null;stopAnim();viewBody();});
+  document.querySelectorAll("[data-muscle]").forEach(el=>el.onclick=()=>{PICK=el.dataset.muscle;PICKH=null;viewBody();});
+  document.querySelectorAll("[data-head]").forEach(el=>el.onclick=()=>{
+    const id=el.dataset.head;
+    PICKH = (PICKH && PICKH.length===1 && PICKH[0]===id) ? null : [id];
+    viewBody();
+  });
+  document.querySelectorAll("[data-ex]").forEach(el=>el.onclick=()=>{
+    const hs=el.dataset.ex.split(",").filter(Boolean);
+    PICKH = (PICKH && PICKH.join()===hs.join()) ? null : hs;
+    viewBody();
+  });
+  const ca=document.querySelector("[data-clearh]");
+  if(ca) ca.onclick=()=>{PICKH=null;viewBody();};
   stopAnim();
   if(m) startAnim(m);
 }
+
 function muscleCard(m){
   const J=JOINTS[m.id]||{};
+  const sel = PICKH||[];
+  const headSide = h => h.side===SIDE ? "" : ` <small>(נראה מ${h.side==="front"?"לפנים":"אחור"})</small>`;
   return `<div class="mcard" style="--c:${m.color}">
     <h3>${E(m.name)}</h3><div class="lat">${E(m.lat)}</div>
 
+    <div class="heads">
+      <div class="hrow"><b>ראשי השריר (${m.heads.length})</b>
+        ${sel.length?`<button class="btn sm ghost" data-clearh>הצג את כולו</button>`:""}</div>
+      ${m.heads.map(h=>`
+        <button class="headrow${sel.includes(h.id)?" on":""}" data-head="${h.id}">
+          <b>${E(h.name)}${headSide(h)}</b><span>${E(h.does)}</span></button>`).join("")}
+    </div>
+
+    <div class="exs">
+      <b>תרגילים — לוחצים ורואים מה מודגש</b>
+      <div class="exrow">${m.ex.map(e=>`
+        <button class="exbtn${sel.join()===e.h.join()?" on":""}" data-ex="${e.h.join(",")}">
+          ${E(e.n)}<small>${e.h.map(id=>E((m.heads.find(h=>h.id===id)||{}).name||"")).join(" · ")}</small>
+        </button>`).join("")}</div>
+    </div>
+
     <div class="animbox">
-      <div class="animhead">
-        <b>איך הוא מתכווץ</b>
-        <span>מפרק ה${E(J.j||"")} · נגדי: ${E(J.anta||"")}</span>
-      </div>
+      <div class="animhead"><b>איך הוא מתכווץ</b>
+        <span>מפרק ה${E(J.j||"")} · נגדי: ${E(J.anta||"")}</span></div>
       <div id="animBox">${animSvg(m,0)}</div>
       <div class="animctl">
         <button class="btn sm" id="animPlay">⏸ עצור</button>
@@ -719,7 +613,6 @@ function muscleCard(m){
     </div>
 
     <div class="row"><b>מה הוא עושה</b><span>${E(m.does)}</span></div>
-    <div class="row"><b>איך מאמנים</b><span>${m.train.map(t=>`<span class="chip">${E(t)}</span>`).join("")}</span></div>
     <div class="row"><b>איזה מבדק מודד</b><span>${E(m.test)}</span></div>
     <div class="row"><b>מתיחה</b><span>${E(m.stretch)}</span></div>
     <div class="row why"><b>שווה לדעת</b><span>${E(m.fact)}</span></div>
@@ -922,7 +815,7 @@ function finish(){
 function startMatch(){
   const pick=shuffle(window.AP_BODY.muscles).slice(0,6);
   ST={kind:"match",id:"match",
-      pairs:pick.map(m=>({id:m.id,name:m.name,ex:m.train[0],color:m.color})),
+      pairs:pick.map(m=>({id:m.id,name:m.name,ex:(m.ex&&m.ex[0]?m.ex[0].n:m.does),color:m.color})),
       sel:null, done:[], tries:0};
   ST.left  = shuffle(ST.pairs);
   ST.right = shuffle(ST.pairs);
