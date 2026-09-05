@@ -1097,6 +1097,8 @@ function doPrint(html){
   window.addEventListener("afterprint",clean);
   setTimeout(()=>{ window.print(); setTimeout(clean,30000); },60);
 }
+/* מנגנון ההדפסה גנרי — גם הגאנט משתמש בו */
+window.AP_PRINT = doPrint;
 
 /* ---------- ייצוא ---------- */
 window.LEARN = {

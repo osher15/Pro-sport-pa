@@ -202,6 +202,9 @@ const VIEWS=["today","gantt","sched","fitness","challenges","learn","timetable",
 function go(v){
   let unit=null;
   if(v.startsWith("unit/")){ unit=v.slice(5); v="unit"; }
+  /* «#gantt/2026-10» — עמוד של חודש בודד; «#gantt» — המבט השנתי */
+  if(v.startsWith("gantt/")){ GF.m=v.slice(6); v="gantt"; }
+  else if(v==="gantt") GF.m="all";
   if(!VIEWS.includes(v)&&v!=="unit") v="today";
   $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===v));
@@ -297,18 +300,61 @@ function renderToday(){
 }
 
 /* ---------- גאנט שנתי ---------- */
+/* GF.m = "all" למבט השנתי, או "2026-10" לעמוד של חודש בודד */
+let GF={m:"all"};
+
+/* חודשי שנת הלימודים לפי הסדר: "2026-09" ... "2027-06" */
+function yearMonths(){
+  const Y=window.AP_YEAR, out=[], last=Y.end.slice(0,7);
+  let y=+Y.start.slice(0,4), n=+Y.start.slice(5,7);
+  for(;;){
+    const m=y+"-"+String(n).padStart(2,"0");
+    out.push(m);
+    if(m>=last) break;
+    if(++n>12){ n=1; y++; }
+  }
+  return out;
+}
+/* גבולות החודש, חתוכים לשנת הלימודים */
+function monthBounds(m){
+  const Y=window.AP_YEAR;
+  let [y,n]=m.split("-").map(Number);
+  const first=m+"-01";
+  if(++n>12){ n=1; y++; }
+  const nextFirst=y+"-"+String(n).padStart(2,"0")+"-01";
+  return {from:(first<Y.start?Y.start:first), to:(D.add(nextFirst,-1)>Y.end?Y.end:D.add(nextFirst,-1))};
+}
+const monthLabel = m => D.month(m+"-01")+" "+m.slice(0,4);
+
+/* שורת הכפתורים — «שנה מלאה» וכל חודש בנפרד */
+function ganttChips(){
+  const cur=GF.m;
+  let c=`<a class="gchip${cur==="all"?" on":""}" href="#gantt">כל השנה</a>`;
+  for(const m of yearMonths())
+    c+=`<a class="gchip${cur===m?" on":""}" href="#gantt/${m}">${esc(D.month(m+"-01"))}</a>`;
+  return `<div class="gchips">${c}</div>`;
+}
+
 function renderGantt(){
+  const months=yearMonths();
+  if(GF.m!=="all" && months.includes(GF.m)) renderGanttMonth(GF.m);
+  else { GF.m="all"; renderGanttYear(); }
+}
+
+/* ===== המבט השנתי — עמוד ראשון, תמונה אחת של כל השנה ===== */
+function renderGanttYear(){
   const Y=window.AP_YEAR;
   const first=D.add(Y.start,-D.dow(Y.start));           /* ראשון של שבוע הפתיחה */
   const weeks=Math.ceil((D.between(first,Y.end)+1)/7);
   const W=26;
   const wk = d => Math.floor(D.between(first,d)/7);
 
-  /* כותרת חודשים */
-  let months="",last="";
+  /* כותרת חודשים — כל תא הוא קישור לעמוד של אותו חודש */
+  let head="",last="";
   for(let i=0;i<weeks;i++){
-    const d=D.add(first,i*7), mn=D.month(d);
-    months+=`<div class="gm${mn!==last?" nm":""}" style="width:${W}px">${mn!==last?esc(mn.slice(0,3)):""}</div>`;
+    const d=D.add(first,i*7), mn=D.month(d), m=d.slice(0,7);
+    head+=`<a class="gm${mn!==last?" nm":""}" href="#gantt/${m}" title="${esc(monthLabel(m))}"
+      style="width:${W}px">${mn!==last?esc(mn.slice(0,3)):""}</a>`;
     last=mn;
   }
 
@@ -349,16 +395,186 @@ function renderGantt(){
   $("#v-gantt").innerHTML=`
    <div class="hero"><h1>גאנט שנתי</h1>
      <div class="hsub">${window.AP_YEAR.label} · כל קבוצה, כל יחידת הוראה, על ציר השנה. לחיצה על פס פותחת את מערך היחידה.</div></div>
+   ${ganttChips()}
    <div class="glegend">
      <span class="lg"><i class="sw vac"></i>חופשה</span>
      <span class="lg"><i class="sw test"></i>חלון מדידה</span>
      <span class="lg"><i class="sw drift"></i>יחידת מדידה שחורגת מהחלון</span>
    </div>
    <div class="gwrap"><div class="gscroll">
-     <div class="ghead"><div class="glab"></div><div class="gtrack" style="width:${weeks*W}px">${months}</div></div>
+     <div class="ghead"><div class="glab"></div><div class="gtrack" style="width:${weeks*W}px">${head}</div></div>
      ${rows}
    </div></div>
-   <div class="hint">רוחב עמודה = שבוע. הפסים מחושבים מהמערכת שלך ומלוח החופשות — אם משנים חופשה בהגדרות, הגאנט מתעדכן.</div>`;
+   <div class="hint">רוחב עמודה = שבוע. לחיצה על שם חודש בכותרת פותחת את החודש הזה בעמוד משלו, בגדול.</div>
+   <div class="gacts"><button class="btn sm ghost" id="gPrintAll">🖨️ הדפסה — כל חודש בעמוד נפרד</button></div>`;
+  $("#gPrintAll").onclick=()=>printGanttMonths();
+}
+
+/* ===== עמוד של חודש בודד ===== */
+/* היחידות שרצות בחודש, חתוכות לגבולותיו, עם סימון אם הן נמשכות מעבר */
+function monthSpans(gid,from,to){
+  const out=[];
+  for(const s of unitSpans(gid)){
+    if(s.to<from||s.from>to) continue;
+    const a=(s.from<from?from:s.from), b=(s.to>to?to:s.to);
+    const n=(SCHED.byGroup[gid]||[]).filter(x=>x.unit&&x.unit.id===s.unit.id&&x.date>=a&&x.date<=b).length;
+    out.push({unit:s.unit,from:a,to:b,n,cutS:s.from<from,cutE:s.to>to,fullFrom:s.from,fullTo:s.to});
+  }
+  return out;
+}
+
+function renderGanttMonth(m){
+  const Y=window.AP_YEAR, B=monthBounds(m);
+  const N=D.between(B.from,B.to)+1;                       /* ימי לוח בחודש (חתוך לשנה) */
+  const pos = d => (D.between(B.from,d)/N)*100;           /* מיקום באחוזים — מתאים לכל רוחב מסך */
+  const span = (a,b) => ((D.between(a,b)+1)/N)*100;
+  const months=yearMonths(), i=months.indexOf(m);
+
+  /* רקע: סופי שבוע, קווי שבוע, חופשות וחלונות מדידה */
+  let bg="";
+  for(let d=B.from; d<=B.to; d=D.add(d,1)){
+    if(D.dow(d)===5) bg+=`<div class="mwe" style="right:${pos(d)}%;width:${span(d,D.add(d,1)>B.to?B.to:D.add(d,1))}%"></div>`;
+    if(D.dow(d)===0 && d!==B.from) bg+=`<div class="mgl" style="right:${pos(d)}%"></div>`;
+  }
+  for(const v of vacations()){
+    if(v.to<B.from||v.from>B.to) continue;
+    const a=(v.from<B.from?B.from:v.from), b=(v.to>B.to?B.to:v.to);
+    bg+=`<div class="gvac" style="right:${pos(a)}%;width:${span(a,b)}%" title="${esc(v.name)}"></div>`;
+  }
+  let tws="";
+  for(const w of window.AP_TEST_WINDOWS){
+    if(w.to<B.from||w.from>B.to) continue;
+    const a=(w.from<B.from?B.from:w.from), b=(w.to>B.to?B.to:w.to);
+    tws+=`<div class="gtest" style="right:${pos(a)}%;width:${span(a,b)}%;--c:${w.color}" title="${esc(w.name)}"></div>`;
+  }
+
+  /* סרגל תאריכים — תווית לכל יום ראשון. תווית ליום הראשון בחודש רק
+     אם היא לא נדחסת אל התווית הבאה. */
+  let ticks="", firstSun=B.from;
+  while(D.dow(firstSun)!==0 && firstSun<=B.to) firstSun=D.add(firstSun,1);
+  for(let d=B.from; d<=B.to; d=D.add(d,1)){
+    if(d!==B.from && D.dow(d)!==0) continue;
+    if(d===B.from && D.dow(d)!==0 && D.between(B.from,firstSun)<3) continue;
+    ticks+=`<div class="mtick" style="right:${pos(d)}%">${esc(D.he(d))}</div>`;
+  }
+
+  const order=Object.keys(window.AP_GROUPS);
+  let rows="", total=0;
+  for(const gid of order){
+    const g=window.AP_GROUPS[gid];
+    const list=(SCHED.byGroup[gid]||[]).filter(x=>x.date>=B.from&&x.date<=B.to);
+    total+=list.length;
+    const spans=monthSpans(gid,B.from,B.to);
+    let bars="";
+    for(const s of spans){
+      const tw=s.unit.test?windowFor(s.unit.test,g.grade):null;
+      const drift = tw && (s.fullFrom<D.add(tw.from,-7)||s.fullTo>D.add(tw.to,7));
+      bars+=`<a class="gbar${drift?" drift":""}${s.cutS?" cutS":""}${s.cutE?" cutE":""}"
+        href="#unit/${g.track}/${s.unit.id}"
+        style="right:${pos(s.from)}%;width:${span(s.from,s.to)}%;--c:${s.unit.color}"
+        title="${esc(s.unit.name)} · ${s.n} שיעורים החודש · ${D.he(s.from)}–${D.he(s.to)}${s.cutS||s.cutE?" · היחידה נמשכת מעבר לחודש":""}">
+        <span>${s.unit.em} ${esc(s.unit.name)}</span></a>`;
+    }
+    if(!bars) bars=`<div class="gnone">אין שיעורים בחודש זה</div>`;
+    rows+=`<div class="grow${list.length?"":" off"}"><div class="glab" style="--c:${g.color}">${esc(g.label)}
+      <small>${{pe:'חנ"ג',health:"בריאות",hevra:"חברה"}[g.subject]} · ${list.length} שיעורים החודש</small></div>
+      <div class="mtrack">${bg}${tws}${bars}</div></div>`;
+  }
+
+  /* ימי לימוד בפועל בחודש */
+  const sdays=schoolDays().filter(d=>d.date>=B.from&&d.date<=B.to).length;
+
+  $("#v-gantt").innerHTML=`
+   <div class="hero"><h1>${esc(monthLabel(m))}</h1>
+     <div class="hsub">${sdays} ימי לימוד · ${total} שיעורים · ${LTR(D.he(B.from)+"–"+D.he(B.to))}</div></div>
+   ${ganttChips()}
+   <div class="mnav">
+     ${i>0?`<a class="btn sm ghost" href="#gantt/${months[i-1]}">‹ ${esc(D.month(months[i-1]+"-01"))}</a>`:`<span></span>`}
+     <a class="btn sm ghost" href="#gantt">כל השנה</a>
+     ${i<months.length-1?`<a class="btn sm ghost" href="#gantt/${months[i+1]}">${esc(D.month(months[i+1]+"-01"))} ›</a>`:`<span></span>`}
+   </div>
+   <div class="gwrap month">
+     <div class="ghead"><div class="glab"></div><div class="mtrack head">${ticks}</div></div>
+     ${rows}
+   </div>
+   ${monthNotes(B)}
+   ${monthList(B)}
+   <div class="gacts">
+     <a class="btn sm ghost" href="#sched">🗓️ לשיעורים עצמם</a>
+     <button class="btn sm ghost" id="gPrintAll">🖨️ הדפסה — כל חודש בעמוד נפרד</button>
+   </div>`;
+  $("#gPrintAll").onclick=()=>printGanttMonths();
+}
+
+/* רשימת היחידות של החודש בטקסט מלא — במסך צר הפסים נחתכים,
+   וכאן רואים את השם המלא של כל יחידה בלי לרחף עם העכבר. */
+function monthList(B){
+  let rows="";
+  for(const gid of Object.keys(window.AP_GROUPS)){
+    const g=window.AP_GROUPS[gid];
+    const spans=monthSpans(gid,B.from,B.to);
+    if(!spans.length) continue;
+    const items=spans.map(s=>`<a class="mu" href="#unit/${g.track}/${s.unit.id}" style="--c:${s.unit.color}">
+      ${s.unit.em} ${esc(s.unit.name)}
+      <small>${LTR(D.he(s.from)+"–"+D.he(s.to))} · ${s.n} שיעורים${s.cutS||s.cutE?" · נמשכת":""}</small></a>`).join("");
+    rows+=`<div class="murow"><b style="--c:${g.color}">${esc(g.label)}</b><div class="mus">${items}</div></div>`;
+  }
+  if(!rows) return "";
+  return `<div class="card mulist"><h2>יחידות החודש, לפי קבוצה</h2>${rows}</div>`;
+}
+
+/* «מה קורה החודש» — חופשות, ימים מיוחדים וחלונות מדידה */
+function monthNotes(B){
+  const vs=vacations().filter(v=>!(v.to<B.from||v.from>B.to));
+  const sp=window.AP_SPECIAL.filter(s=>s.date>=B.from&&s.date<=B.to);
+  const tw=window.AP_TEST_WINDOWS.filter(w=>!(w.to<B.from||w.from>B.to));
+  if(!vs.length&&!sp.length&&!tw.length) return "";
+  let out=`<div class="card mnotes"><h2>מה קורה החודש</h2>`;
+  for(const w of tw)
+    out+=`<div class="row"><b style="color:${w.color}">📏 ${esc(w.name)}</b>
+      <span>${LTR(D.he(w.from)+"–"+D.he(w.to))} · ${esc(w.why)}</span></div>`;
+  for(const v of vs)
+    out+=`<div class="row"><b>🏖️ ${esc(v.name)}</b>
+      <span>${LTR(D.he(v.from)+"–"+D.he(v.to))}${v.back?" · חוזרים ב-"+LTR(D.he(v.back)):""}</span></div>`;
+  for(const s of sp)
+    out+=`<div class="row"><b>📌 ${esc(s.name)}</b>
+      <span>${LTR(D.he(s.date))} · ${esc(s.pe||"")}</span></div>`;
+  return out+`</div>`;
+}
+
+/* ===== הדפסה: כל חודש בעמוד נפרד ===== */
+function printGanttMonths(){
+  let html="";
+  for(const m of yearMonths()){
+    const B=monthBounds(m);
+    const sdays=schoolDays().filter(d=>d.date>=B.from&&d.date<=B.to).length;
+    let body="",total=0;
+    for(const gid of Object.keys(window.AP_GROUPS)){
+      const g=window.AP_GROUPS[gid];
+      const list=(SCHED.byGroup[gid]||[]).filter(x=>x.date>=B.from&&x.date<=B.to);
+      total+=list.length;
+      if(!list.length) continue;
+      const spans=monthSpans(gid,B.from,B.to);
+      /* הכול בשורה אחת לכל יחידה — כדי שחודש שלם ייכנס לעמוד A4 יחיד */
+      const cells=spans.map(s=>`<span class="pgu">${s.unit.em} ${esc(s.unit.name)}
+        <small>${LTR(D.he(s.from)+"–"+D.he(s.to))} · ${s.n} ש׳${s.cutS||s.cutE?" · נמשכת":""}</small></span>`).join("");
+      body+=`<tr><th>${esc(g.label)}<small>${list.length} שיעורים</small></th><td>${cells||"—"}</td></tr>`;
+    }
+    const vs=vacations().filter(v=>!(v.to<B.from||v.from>B.to))
+      .map(v=>esc(v.name)+" "+LTR(D.he(v.from)+"–"+D.he(v.to))).join(" · ");
+    const tw=window.AP_TEST_WINDOWS.filter(w=>!(w.to<B.from||w.from>B.to))
+      .map(w=>esc(w.name)+" "+LTR(D.he(w.from)+"–"+D.he(w.to))).join(" · ");
+    html+=`<section class="pgm">
+      <h1>${esc(monthLabel(m))}</h1>
+      <div class="pgs">${sdays} ימי לימוד · ${total} שיעורים · ${LTR(D.he(B.from)+"–"+D.he(B.to))}</div>
+      ${tw?`<div class="pgn"><b>חלון מדידה:</b> ${tw}</div>`:""}
+      ${vs?`<div class="pgn"><b>חופשות:</b> ${vs}</div>`:""}
+      <table class="pgt">${body||`<tr><td>אין שיעורים בחודש זה</td></tr>`}</table>
+    </section>`;
+  }
+  const p=window.AP_PRINT;
+  if(p) p(`<div class="sheet gantt">${html}</div>`);
+  else { toast("ההדפסה אינה זמינה"); }
 }
 
 /* ---------- לוח שיעורים ---------- */
