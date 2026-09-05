@@ -1,12 +1,13 @@
 /* Service worker — מאפשר לאפליקציה לעבוד גם בלי רשת (מגרש, אולם, שטח).
    אסטרטגיה: רשת קודם, וכשאין רשת — מהמטמון. כך התוכן תמיד עדכני כשיש
    חיבור, ואף פעם לא נתקעים על גרסה ישנה אחרי פריסה. */
-const CACHE = "tochnit-shnatit-v1";
+const CACHE = "tochnit-shnatit-v2";
 const SHELL = [
   "./", "./index.html", "./ap-styles.css",
   "./ap-calendar.js", "./ap-timetable.js", "./ap-curriculum.js",
   "./ap-hevra.js", "./ap-fitness.js", "./ap-body.js", "./ap-heart.js", "./ap-learn.js", "./ap-app.js",
-  "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"
+  "./manifest.webmanifest", "./icon-192.png", "./icon-512.png",
+  "./icon-maskable-512.png", "./apple-touch-icon.png"
 ];
 
 self.addEventListener("install", e=>{
