@@ -180,6 +180,56 @@ select,input[type=date],input[type=time],input[type=text]{
 .gbar.drift{outline:2px dashed var(--bad);outline-offset:-2px}
 .gbar:hover{filter:saturate(1.25) brightness(.97)}
 
+/* ---- בורר החודשים ---- */
+.gchips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.gchips::-webkit-scrollbar{display:none}
+.gchip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--line);border-radius:999px;
+  padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--tx2);text-decoration:none;white-space:nowrap;transition:.15s}
+.gchip:hover{border-color:var(--acc);color:var(--acc)}
+.gchip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.mnav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 8px}
+.gacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* ---- עמוד של חודש: מיקום באחוזים, בלי גלילה לצדדים ---- */
+.gwrap.month .ghead,.gwrap.month .grow{min-width:0}
+.mtrack{position:relative;flex:1;min-width:0;min-height:46px}
+.mgl{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.mtrack.head{min-height:26px;background-image:none}
+.mtick{position:absolute;top:6px;font-size:10px;color:var(--tx3);transform:translateX(50%);
+  padding-inline-start:4px;border-inline-end:1px solid var(--line);line-height:14px}
+.mwe{position:absolute;top:0;bottom:0;background:rgba(21,34,56,.045)}
+.gnone{position:absolute;inset:0;display:flex;align-items:center;padding-inline-start:12px;
+  font-size:11.5px;color:var(--tx3)}
+.grow.off .glab{opacity:.55}
+.gwrap.month .gbar{top:8px;bottom:8px;font-size:12px;min-width:0}
+.gbar.cutS{border-start-end-radius:0;border-end-end-radius:0;border-inline-end:3px dotted rgba(255,255,255,.75)}
+.gbar.cutE{border-start-start-radius:0;border-end-start-radius:0;border-inline-start:3px dotted rgba(255,255,255,.75)}
+.mulist .murow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.mulist .murow:last-child{border-bottom:0}
+.mulist .murow>b{flex:0 0 108px;font-size:12.5px;border-inline-start:4px solid var(--c);padding-inline-start:7px}
+.mus{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.mu{background:var(--card2);border:1px solid var(--line);border-inline-start:4px solid var(--c);
+  border-radius:9px;padding:5px 9px;font-size:12px;font-weight:600;color:var(--tx);text-decoration:none}
+.mu small{display:block;font-weight:400;font-size:10.5px;color:var(--tx3)}
+.mu:hover{border-color:var(--acc)}
+.mnotes .row{align-items:flex-start}
+.mnotes .row b{flex:0 0 auto;min-width:150px}
+
+/* ---- גיליון הדפסה של הגאנט: חודש בעמוד ---- */
+.sheet.gantt .pgm{break-after:page}
+.sheet.gantt .pgm:last-child{break-after:auto}
+.sheet.gantt h1{font-size:17pt;margin:0 0 1.5mm}
+.sheet.gantt .pgs{font-size:10pt;color:#444;margin-bottom:2mm}
+.sheet.gantt .pgn{font-size:9pt;color:#333;margin-bottom:1mm}
+.sheet.gantt .pgt{width:100%;border-collapse:collapse;margin-top:2mm}
+.sheet.gantt .pgt th,.sheet.gantt .pgt td{border:1px solid #bbb;padding:1.2mm 2mm;text-align:right;vertical-align:top}
+.sheet.gantt .pgt tr{break-inside:avoid}
+.sheet.gantt .pgt th{width:30mm;background:#f2f2f2;font-size:9.5pt}
+.sheet.gantt .pgt th small{display:block;font-weight:400;font-size:8pt;color:#555}
+.sheet.gantt .pgu{font-size:9.5pt;display:inline;white-space:normal}
+.sheet.gantt .pgu+.pgu:before{content:" · ";color:#999}
+.sheet.gantt .pgu small{font-size:8.5pt;color:#666;white-space:nowrap}
+
 /* ---------- טבלאות ---------- */
 .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
 .tbl th,.tbl td{border:1px solid var(--line);padding:6px 8px;text-align:right}
