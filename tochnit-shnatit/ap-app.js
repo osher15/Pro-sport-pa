@@ -794,17 +794,74 @@ function renderTimetable(){
    ${window.AP_BELLS_VERIFY?`<div class="banner warn"><b>לוח הצלצולים הוא ברירת מחדל</b><div>השעות שמוצגות הן לוח צלצולים סטנדרטי של חטיבה עליונה. לעדכון לשעות האמיתיות של בית הספר — «הגדרות ← לוח צלצולים». השעות משפיעות על מסך «היום» ועל הייצוא ליומן.</div></div>`:""}`;
 }
 
+/* ---------- התקנה על מסך הבית ---------- */
+/* כרום שולח את beforeinstallprompt פעם אחת, מוקדם — שומרים אותו כדי
+   שכפתור «התקנה» בהגדרות יוכל להפעיל את הדיאלוג האמיתי של המערכת. */
+let INSTALL_EVT=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); INSTALL_EVT=e;
+  if(($("#v-settings")||{}).classList && $("#v-settings").classList.contains("on")) renderSettings();
+});
+window.addEventListener("appinstalled",()=>{
+  INSTALL_EVT=null; toast("האפליקציה נוספה למסך הבית ✓");
+  if(($("#v-settings")||{}).classList && $("#v-settings").classList.contains("on")) renderSettings();
+});
+/* האם אנחנו רצים כאפליקציה מותקנת ולא בתוך דפדפן */
+function isStandalone(){
+  return (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true;
+}
+const isIOS = ()=> /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                   (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+/* דפדפן מוטמע בתוך אפליקציה אחרת (צ׳אט, רשת חברתית). שם אי אפשר
+   להתקין כלום, וזה הגורם הכי נפוץ ל«כתוב שהותקן אבל אין כלום». */
+function isInAppBrowser(){
+  const u=navigator.userAgent;
+  if(/FBAN|FBAV|Instagram|Line\/|Twitter|WhatsApp|Telegram|MicroMessenger|Snapchat|Pinterest/i.test(u)) return true;
+  if(/Android/.test(u) && /; wv\)/.test(u)) return true;                  /* WebView של אנדרואיד */
+  if(isIOS() && /Safari/.test(u)===false && /CriOS|FxiOS|EdgiOS/.test(u)===false) return true;
+  return false;
+}
+/* הכתובת שצריך לפתוח בדפדפן אמיתי */
+function appUrl(){ return location.origin+location.pathname; }
+
+/* מה להראות בכרטיס ההתקנה — תלוי איפה האפליקציה רצה כרגע */
+function installBlock(){
+  if(isStandalone())
+    return `<div class="banner ok"><b>מותקנת ✓</b>
+      <div>אתה פותח אותה עכשיו כאפליקציה, לא מתוך דפדפן. אם אינך מוצא אותה במסך הבית —
+      באנדרואיד היא יושבת במגירת האפליקציות (החלקה מלמטה למעלה), וחיפוש «תוכנית» מוצא אותה.</div></div>`;
+  if(isInAppBrowser())
+    return `<div class="banner warn"><b>הדף פתוח בתוך אפליקציה אחרת</b>
+      <div>זה דפדפן מוטמע (של צ׳אט או רשת חברתית), ובו <b>אי אפשר להתקין</b> — גם אם כתוב שההתקנה הצליחה,
+      שום דבר לא נוסף למסך הבית. מעתיקים את הכתובת שלמטה, פותחים
+      ${isIOS()?"<b>ספארי</b>":"<b>כרום</b>"} ומדביקים אותה שם. אחר כך מתקינים.</div></div>`;
+  if(INSTALL_EVT)
+    return `<p>לחיצה אחת והאפליקציה נוספת למסך הבית — נפתחת במסך מלא בלי סרגל הדפדפן,
+      <b>ועובדת גם בלי רשת</b> (מגרש, אולם, טיול).</p>
+      <div class="links"><button class="btn" id="btnInstall">📲 התקנה על מסך הבית</button></div>`;
+  if(isIOS())
+    return `<p>מוסיפים למסך הבית ונפתחת כאפליקציה במסך מלא, <b>גם בלי רשת</b>.</p>
+      <div class="row"><b>אייפון</b><span>חייב להיות <b>ספארי</b> (לא כרום ולא דפדפן שבתוך צ׳אט):
+        כפתור השיתוף למטה ← גוללים ← «הוספה למסך הבית» ← «הוסף».</span></div>`;
+  return `<p>מוסיפים למסך הבית ונפתחת כאפליקציה במסך מלא, <b>גם בלי רשת</b>.</p>
+    <div class="row"><b>אנדרואיד</b><span>כרום ← תפריט ⋮ ← «התקנת אפליקציה» או «הוספה למסך הבית».</span></div>
+    <div class="row"><b>אייפון</b><span>ספארי ← כפתור השיתוף ← «הוספה למסך הבית».</span></div>
+    <div class="hint">אם הכפתור האוטומטי אינו מופיע — סימן שהדף אינו פתוח בכרום או בספארי עצמם.</div>`;
+}
+
 /* ---------- הגדרות ---------- */
 function renderSettings(){
   const b=bells();
   $("#v-settings").innerHTML=`
    <div class="hero"><h1>הגדרות</h1><div class="hsub">הכול נשמר במכשיר הזה בלבד.</div></div>
 
-   <section class="card"><h2>📱 התקנה על הנייד</h2>
-     <p>אפשר להוסיף את התוכנית למסך הבית של הטלפון — היא נפתחת כאפליקציה במסך מלא, בלי סרגל הדפדפן, <b>ועובדת גם בלי רשת</b> (מגרש, אולם, טיול).</p>
-     <div class="row"><b>אנדרואיד</b><span>פותחים את הכתובת בכרום ← תפריט ⋮ ← «התקנת אפליקציה» או «הוספה למסך הבית».</span></div>
-     <div class="row"><b>אייפון</b><span>פותחים בספארי ← כפתור השיתוף ← «הוספה למסך הבית».</span></div>
-     <div class="hint">הנתונים שנשמרו (הערות, סימוני «בוצע») נשארים גם אחרי ההתקנה — זה אותו אחסון מקומי.</div>
+   <section class="card"><h2>📱 התקנה על מסך הבית</h2>
+     ${installBlock()}
+     <div class="urls"><div class="urlrow"><b>הכתובת</b>
+       <input type="text" readonly value="${esc(appUrl())}">
+       <button class="btn sm ghost" data-copy>העתקה</button></div></div>
+     <div class="hint">הסמל שיופיע: ריבוע ירוק עם משקולת ותפוח, והשם מתחתיו — <b>תוכנית</b>.
+       ההערות וסימוני «בוצע» נשארים גם אחרי ההתקנה, זה אותו אחסון מקומי.</div>
    </section>
 
    <section class="card"><h2>📅 חיבור ליומן</h2>
@@ -879,6 +936,15 @@ function renderSettings(){
      <div class="hint">גרסה 1.0 · ${window.AP_YEAR.label}</div>
    </section>`;
 
+  const bi=$("#btnInstall");
+  if(bi) bi.onclick=async()=>{
+    if(!INSTALL_EVT) return;
+    INSTALL_EVT.prompt();
+    const r=await INSTALL_EVT.userChoice.catch(()=>null);
+    INSTALL_EVT=null;                       /* האירוע חד־פעמי */
+    if(!r||r.outcome!=="accepted") toast("ההתקנה בוטלה");
+    renderSettings();
+  };
   $$("[data-copy]").forEach(b=>b.onclick=()=>{
     const inp=b.previousElementSibling;
     inp.select(); inp.setSelectionRange(0,999);

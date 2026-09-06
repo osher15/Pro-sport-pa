@@ -89,6 +89,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
   border-radius:10px;padding:11px 13px;margin:10px 0;font-size:14px}
 .banner b{display:block;margin-bottom:2px}
 .banner.warn{border-inline-start-color:var(--warn)}
+.banner.ok{border-inline-start-color:var(--ok)}
 .banner.test{border-inline-start-color:var(--c,var(--ok))}
 .banner.memorial{border-inline-start-color:#94a3b8}
 .banner.fast{border-inline-start-color:var(--warn)}
