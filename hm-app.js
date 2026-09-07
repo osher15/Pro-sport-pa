@@ -9,7 +9,7 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
-const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
+const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:"",theme:"dark",touch:false},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
@@ -155,9 +155,22 @@ function homeStats(){
 /* ---------- top clock ---------- */
 setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); },1000);
 
+/* ---------- ערכת רקע ומצב מגע ----------
+   הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
+function applyTheme(){
+  document.body.dataset.theme=SET.theme||"dark";
+  if(SET.touch)document.body.dataset.touch="1"; else delete document.body.dataset.touch;
+  const mt=document.querySelector('meta[name="theme-color"]');
+  if(mt)mt.setAttribute("content",{day:"#f4f6fa",sun:"#ffffff",turf:"#07130d",slate:"#101216"}[SET.theme]||"#0c0e1a");
+  $$("#set-theme .thm").forEach(b=>b.classList.toggle("on",b.dataset.t===(SET.theme||"dark")));
+}
+
 /* ---------- settings ---------- */
 function wireSettings(){
-$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake;
+$$("#set-theme .thm").forEach(b=>b.addEventListener("click",()=>{
+  SET.theme=b.dataset.t; saveSet(); applyTheme(); }));
+$("#set-touch").addEventListener("change",e=>{ SET.touch=e.target.checked; saveSet(); applyTheme(); });
+$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
@@ -2240,6 +2253,6 @@ const FIT=(function(){
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,isGuest,role:()=>ROLE};
-window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
+  setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
+window.HMBoot=function(){ applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };

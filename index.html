@@ -9,6 +9,7 @@
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#0c0e1a"/><circle cx="50" cy="50" r="26" fill="none" stroke="#38bdf8" stroke-width="4"/><text x="50" y="59" font-family="Inter,Helvetica,sans-serif" font-size="22" font-weight="600" fill="#38bdf8" text-anchor="middle">מג</text></svg></template>
 <x-dc>
 <helmet>
+<meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css">
@@ -19,6 +20,7 @@
 <script src="hm-tools.js"></script>
 <script src="hm-plans.js"></script>
 <script src="hm-lesson.js"></script>
+<script src="hm-build.js"></script>
 <script src="hm-new.js"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -765,8 +767,15 @@
     <button data-go="fit">⏱ כושר</button>
     <button data-go="games">🎮 משחקים</button>
   </div>
+  <div class="pf-tabs" id="ls-modeTabs">
+    <button data-lm="fast" class="on">⚡ מהיר — מערך בלחיצה</button>
+    <button data-lm="manual">🧩 בונה ידני — שלב אחרי שלב</button>
+  </div>
+  <div id="ls-fastWrap">
   <div class="card">
     <h2><span class="dot"></span> בניית מערך שיעור</h2>
+    <div class="hint" style="margin:-4px 0 11px">בוחרים נושא ולוחצים — מערך מלא בשניות. רוצה להרכיב בעצמך כל חלק?
+      עבור ללשונית «בונה ידני» למעלה.</div>
     <div class="row">
       <div class="field" style="width:190px"><label>שכבה</label>
         <div class="seg" id="ls-gradeSeg"><button data-g="mid" class="on">חטיבה ז׳–ט׳</button><button data-g="high">תיכון י׳–י״ב</button></div>
@@ -813,6 +822,8 @@
       <button class="btn ghost" id="ls-again" title="גרסה אחרת לאותו נושא">🎲 גרסה אחרת</button>
     </div>
   </div>
+  </div>
+  <div id="ls-manWrap" style="display:none"></div>
 
   <div class="card" id="ls-planCard" style="display:none">
     <div class="row" style="justify-content:space-between">
@@ -1040,11 +1051,22 @@
 <div class="modal" id="setModal"><div class="box">
   <h3>⚙️ הגדרות<button class="x" data-close="setModal">✕</button></h3>
   <div class="field"><label>שם בית הספר (מופיע בכותרת, בתעודות ובמצב טלוויזיה)</label><input type="text" id="set-school" placeholder="מקיף גימל באר שבע"></div>
+  <div class="field" style="margin-top:12px"><label>ערכת רקע — נשמרת במכשיר הזה</label>
+    <div class="thm-pick" id="set-theme">
+      <button class="thm" data-t="dark"><span class="sw"></span>לילה</button>
+      <button class="thm" data-t="turf"><span class="sw"></span>דשא</button>
+      <button class="thm" data-t="slate"><span class="sw"></span>רגוע</button>
+      <button class="thm" data-t="day"><span class="sw"></span>יום</button>
+      <button class="thm" data-t="sun"><span class="sw"></span>שמש חזקה</button>
+    </div>
+    <div class="hint" style="margin-top:6px">«יום» ו«שמש חזקה» נועדו לשימוש במגרש באור יום — רקע בהיר וניגודיות גבוהה שנקראים גם בשמש ישירה.</div>
+  </div>
   <div class="row" style="margin-top:11px">
     <label class="check"><input type="checkbox" id="set-sound" checked> צלילים</label>
     <label class="check"><input type="checkbox" id="set-voice" checked> כריזה קולית</label>
     <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
     <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
+    <label class="check"><input type="checkbox" id="set-touch"> כפתורים גדולים (הפעלה ביד אחת תוך כדי שיעור)</label>
   </div>
   <div class="field" style="margin-top:13px"><label>קישור לטופס העלאת סרטונים (Google Forms)</label>
     <input type="url" id="set-driveForm" placeholder="https://forms.gle/..." style="direction:ltr;text-align:left;font-size:12px"></div>
