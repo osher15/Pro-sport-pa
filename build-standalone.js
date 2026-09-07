@@ -14,7 +14,7 @@ const body=dc[1].replace(/<helmet>[\s\S]*?<\/helmet>/,"").trim();
 
 const css=R("hm-styles.css");
 /* חייב להישאר זהה לסדר תגי ה-script ב-index.html */
-const SCRIPTS=["hm-app.js","hm-qr.js","hm-howto.js","hm-know.js","hm-tools.js","hm-plans.js","hm-lesson.js","hm-new.js"];
+const SCRIPTS=["hm-app.js","hm-qr.js","hm-howto.js","hm-know.js","hm-tools.js","hm-plans.js","hm-lesson.js","hm-build.js","hm-new.js"];
 /* בדיקת שפיות: כל סקריפט שמופיע ב-index.html חייב להיכלל גם כאן */
 const inHtml=[...html.matchAll(/<script src="(hm-[\w-]+\.js)"><\/script>/g)].map(m=>m[1]);
 const missing=inHtml.filter(f=>!SCRIPTS.includes(f));
@@ -26,6 +26,7 @@ const out=`<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0e1a">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

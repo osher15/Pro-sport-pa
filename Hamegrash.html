@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0e1a">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,17 +16,24 @@
   --acc:#a78bfa; --accDim:rgba(167,139,250,.20);
   --cy:#38bdf8; --lime:#a3e635; --orange:#fb923c; --gold:#fbbf24; --violet:#a78bfa; --pink:#f472b6; --green:#34d399;
   --warn:#ffd23f; --stop:#ff4d5e;
+  --inset:var(--inset);            /* רקע שדות קלט ופנימיות */
+  --onAcc:var(--onAcc);           /* טקסט על גבי צבע ההדגשה */
+  --bar:6,16,12;             /* בסיס הסרגל העליון והתחתון (RGB) */
+  --shadow:0 8px 26px rgba(0,0,0,.32);
+  --touch:0px;               /* תוספת גובה למצב «כפתורים גדולים» */
   --r:16px; --nav-h:64px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{font-family:'Heebo',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden;
-  background:
+  background:var(--bgimg)}
+/* הרקע מוגדר על body (ולא על :root) כדי ש-var(--accDim) יתעדכן לפי המודול הפעיל */
+body{--bgimg:
     radial-gradient(1200px 620px at 88% -12%, var(--accDim), transparent 62%),
     radial-gradient(1000px 520px at -8% 4%, rgba(56,189,248,.10), transparent 58%),
     radial-gradient(900px 500px at 50% 108%, rgba(244,114,182,.07), transparent 60%),
     repeating-linear-gradient(180deg, transparent 0 40px, rgba(255,255,255,.012) 40px 41px),
-    linear-gradient(180deg,#0c0e1a,#07080f);}
+    linear-gradient(180deg,#0c0e1a,#07080f)}
 body[data-mod="beep"]{--acc:#38bdf8;--accDim:rgba(56,189,248,.20)}
 body[data-mod="photo"]{--acc:#fb923c;--accDim:rgba(251,146,60,.20)}
 body[data-mod="rec"]{--acc:#fbbf24;--accDim:rgba(251,191,36,.18)}
@@ -36,7 +44,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .app{max-width:1180px;margin:0 auto;padding:0 14px calc(var(--nav-h) + 26px)}
 /* ---------- topbar scoreboard ---------- */
 .topbar{position:sticky;top:0;z-index:60;margin:0 -14px 14px;padding:9px 14px;
-  background:linear-gradient(180deg,rgba(6,16,12,.97),rgba(6,16,12,.82));backdrop-filter:blur(10px);
+  background:linear-gradient(180deg,rgba(var(--bar),.97),rgba(var(--bar),.82));backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;
@@ -45,14 +53,14 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .brand .sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 .sboard{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
 .sboard .clock{font-family:'Share Tech Mono';font-size:20px;letter-spacing:1px;color:var(--acc);
-  background:#04110a;border:1px solid var(--line);border-radius:10px;padding:5px 11px}
+  background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:5px 11px}
 .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
   color:var(--ink);font-size:17px;display:grid;place-items:center;cursor:pointer}
 .iconbtn:active{transform:scale(.94)}
 /* ---------- bottom nav ---------- */
 .nav{position:fixed;bottom:0;inset-inline:0;z-index:70;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom:env(safe-area-inset-bottom);
-  background:linear-gradient(0deg,rgba(4,9,7,.99),rgba(4,9,7,.92));backdrop-filter:blur(12px);
+  background:linear-gradient(0deg,rgba(var(--bar),.99),rgba(var(--bar),.90));backdrop-filter:blur(12px);
   border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:stretch}
 .nav button{flex:1;max-width:140px;background:none;border:none;color:var(--faint);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Heebo';font-size:11.5px;font-weight:600;position:relative}
@@ -75,7 +83,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .view.on{display:block}
 @keyframes vin{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:var(--r);
-  padding:16px;margin-bottom:14px;box-shadow:0 8px 26px rgba(0,0,0,.32)}
+  padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
 .card h2{margin:0 0 12px;font-family:'Inter';font-size:18px;display:flex;align-items:center;gap:9px}
 .card h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);flex:none}
 .hint{font-size:12.5px;color:var(--muted);line-height:1.55}
@@ -86,7 +94,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
   color:var(--ink);font-family:'Heebo';font-weight:700;font-size:14.5px;padding:11px 17px;cursor:pointer;
   display:inline-flex;align-items:center;gap:8px;transition:.15s;user-select:none}
 .btn:active{transform:scale(.96)}
-.btn.acc{background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 55%,#000));border-color:transparent;color:#03130a;text-shadow:none}
+.btn.acc{background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 55%,#000));border-color:transparent;color:var(--onAcc);text-shadow:none}
 .btn.stop{background:linear-gradient(135deg,#ff4d5e,#a31423);border-color:transparent;color:#fff}
 .btn.ghost{background:transparent}
 .btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
@@ -94,14 +102,14 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .btn:disabled{opacity:.38;cursor:not-allowed;transform:none}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
 .field label{font-size:12px;color:var(--muted);font-weight:600}
-.field input,.field select,.field textarea{background:#04110a;border:1px solid var(--line);border-radius:10px;color:var(--ink);
+.field input,.field select,.field textarea{background:var(--inset);border:1px solid var(--line);border-radius:10px;color:var(--ink);
   font-family:'Heebo';font-size:15px;padding:10px 12px;width:100%}
 .field input:focus,.field select:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
-.seg{display:flex;background:#04110a;border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg{display:flex;background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
 .seg button{flex:1;border:none;background:transparent;color:var(--muted);font-family:'Heebo';font-weight:700;font-size:13.5px;
   padding:9px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.seg button.on{background:var(--acc);color:#03130a}
-.stepper{display:flex;align-items:center;gap:8px;background:#04110a;border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button.on{background:var(--acc);color:var(--onAcc)}
+.stepper{display:flex;align-items:center;gap:8px;background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:4px}
 .stepper button{width:38px;height:38px;border:none;border-radius:9px;background:var(--panel2);color:var(--ink);font-size:19px;font-weight:900;cursor:pointer}
 .stepper .val{min-width:64px;text-align:center;font-family:'Share Tech Mono';font-size:18px}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;border-radius:99px;padding:3px 10px;border:1px solid var(--line);color:var(--muted)}
@@ -116,12 +124,12 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .tbl .rk{font-family:'Inter';font-size:16px;width:42px;text-align:center}
 .tbl .mono{font-family:'Share Tech Mono';white-space:nowrap}
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
-.gr-in{width:56px;background:#04110a;border:1px solid var(--line);border-radius:8px;color:var(--ink);
+.gr-in{width:56px;background:var(--inset);border:1px solid var(--line);border-radius:8px;color:var(--ink);
   padding:6px 4px;text-align:center;font-family:'Share Tech Mono';font-size:13px}
 .gr-in:focus{border-color:var(--acc);outline:none}
 .tbl th .x{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0 2px}
 .tbl th .x:hover{color:#ff6b81}
-.catpill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;color:#03130a;white-space:nowrap}
+.catpill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;color:var(--onAcc);white-space:nowrap}
 /* ---------- הערכת עמיתים קבוצתית ---------- */
 .pa-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pa-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 12px;font-size:12.5px}
@@ -143,7 +151,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .pa-item .row{justify-content:space-between;align-items:flex-start}
 /* ---------- big timer / stat panels ---------- */
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.stat{background:#04110a;border:1px solid var(--line);border-radius:14px;padding:11px 13px;text-align:center}
+.stat{background:var(--inset);border:1px solid var(--line);border-radius:14px;padding:11px 13px;text-align:center}
 .stat .lb{font-size:11px;color:var(--faint);font-weight:700;margin-bottom:4px}
 .stat .vl{font-family:'Share Tech Mono';font-size:clamp(21px,5.4vw,30px);color:var(--ink);line-height:1.06}
 .stat .vl.acc{color:var(--acc)}
@@ -151,7 +159,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
   text-shadow:0 0 26px var(--accDim);letter-spacing:1px;margin:6px 0;font-variant-numeric:tabular-nums}
 /* ---------- toast / modal / confetti ---------- */
 #toast{position:fixed;bottom:calc(var(--nav-h) + 18px);inset-inline:0;display:flex;justify-content:center;z-index:200;pointer-events:none}
-#toast .t{background:#04110a;border:1px solid var(--acc);color:var(--ink);font-size:14px;font-weight:600;border-radius:12px;
+#toast .t{background:var(--inset);border:1px solid var(--acc);color:var(--ink);font-size:14px;font-weight:600;border-radius:12px;
   padding:11px 18px;max-width:88vw;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transform:translateY(12px);transition:.25s}
 #toast .t.show{opacity:1;transform:none}
 .modal{position:fixed;inset:0;z-index:220;background:rgba(2,7,5,.78);backdrop-filter:blur(5px);display:none;place-items:center;padding:16px}
@@ -173,13 +181,13 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .lane:active{transform:scale(.985)}
 .lane::after{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:var(--lc)}
 .lane .num{font-family:'Share Tech Mono';font-size:25px;color:var(--lc);width:40px;height:40px;flex:none;border:2px solid var(--lc);
-  border-radius:50%;display:grid;place-items:center;background:#04110a}
+  border-radius:50%;display:grid;place-items:center;background:var(--inset)}
 .lane .tx{min-width:0;flex:1}
 .lane .tx b{font-family:'Inter';font-size:17.5px;display:block}
 .lane .tx span{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.4}
 .lane .go{font-size:20px;color:var(--lc);transform:scaleX(-1)}
 .qstats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:13px}
-.qs{background:#04110a;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}
+.qs{background:var(--inset);border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}
 .qs .n{font-family:'Share Tech Mono';font-size:20px;color:var(--acc)}
 .qs .l{font-size:10.5px;color:var(--faint);font-weight:700;margin-top:2px}
 @media(min-width:760px){.lanes{display:grid;grid-template-columns:1fr 1fr}}
@@ -195,7 +203,7 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .bt-warn{display:none;background:rgba(255,210,63,.1);border:1px solid rgba(255,210,63,.45);color:var(--warn);
   border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.5;margin-top:10px}
 .bt-warn.show{display:block}
-details.fold{border:1px solid var(--line);border-radius:13px;background:#04110a;margin-top:11px}
+details.fold{border:1px solid var(--line);border-radius:13px;background:var(--inset);margin-top:11px}
 details.fold summary{cursor:pointer;padding:11px 14px;font-weight:700;font-size:13.5px;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
 details.fold summary::-webkit-details-marker{display:none}
 details.fold summary::after{content:"▾";margin-inline-start:auto;transition:.2s}
@@ -205,7 +213,7 @@ details.fold .bd{padding:0 12px 13px}
 .pf-tabs{display:flex;gap:6px;margin-bottom:13px;overflow-x:auto}
 .pf-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;
   padding:8px 16px;font-family:'Heebo';font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap}
-.pf-tabs button.on{background:var(--acc);color:#170800;border-color:transparent}
+.pf-tabs button.on{background:var(--acc);color:var(--onAcc);border-color:transparent}
 .pf-stage{position:relative;background:#000;border:1px solid var(--line);border-radius:16px;overflow:hidden;
   width:100%;aspect-ratio:16/9;max-height:72vh}
 .pf-stage.fs{position:fixed;inset:0;z-index:150;border-radius:0;aspect-ratio:auto;max-height:none}
@@ -272,12 +280,12 @@ details.fold .bd{padding:0 12px 13px}
 .cmp-row{margin-bottom:12px}
 .cmp-row .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;font-size:13px}
 .cmp-row .num{font-family:'Share Tech Mono';font-size:15px}
-.cmp-row .track{height:11px;background:#04110a;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.cmp-row .track{height:11px;background:var(--inset);border:1px solid var(--line);border-radius:99px;overflow:hidden}
 .cmp-row .fill{height:100%;border-radius:99px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
 .cmp-row .fill.school{background:linear-gradient(90deg,var(--acc),#ffe79a)}
 .cmp-row .fill.israel{background:#4ea3ff}
 .cmp-row .fill.world{background:#ff7a3d}
-.vbtn{border:1px solid var(--line);background:#04110a;color:var(--acc);border-radius:9px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.vbtn{border:1px solid var(--line);background:var(--inset);color:var(--acc);border-radius:9px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
 .empty-state{text-align:center;color:var(--faint);padding:26px 10px;font-size:14px;line-height:1.7}
 .empty-state .big{font-size:38px}
 #rec-kiosk{position:fixed;inset:0;z-index:240;background:#020805;display:none;flex-direction:column;padding:3vh 4vw;overflow:hidden}
@@ -296,7 +304,7 @@ details.fold .bd{padding:0 12px 13px}
 .fit-phase .ph{font-family:'Inter';font-size:clamp(19px,5vw,27px);letter-spacing:.5px}
 .fit-phase .tm{font-family:'Share Tech Mono';font-size:clamp(64px,21vw,130px);line-height:1;margin:6px 0;font-variant-numeric:tabular-nums}
 .fit-phase .nx{font-size:13.5px;color:var(--muted)}
-.fit-prog{height:9px;background:#04110a;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:14px}
+.fit-prog{height:9px;background:var(--inset);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:14px}
 .fit-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s linear}
 .fit-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
 .fit-pre{border:1px solid var(--line);border-radius:13px;background:var(--panel2);padding:12px;cursor:pointer;text-align:center}
@@ -315,7 +323,7 @@ details.fold .bd{padding:0 12px 13px}
 @keyframes droll{0%{transform:rotate(0) scale(1)}50%{transform:rotate(190deg) scale(.78)}100%{transform:rotate(360deg) scale(1)}}
 .die .top{font-size:33px;line-height:1.1}
 .die .bot{font-size:12.5px;font-weight:800;margin-top:3px}
-.fit-station{border:1px solid var(--line);border-radius:13px;background:#04110a;padding:11px 13px;display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.fit-station{border:1px solid var(--line);border-radius:13px;background:var(--inset);padding:11px 13px;display:flex;align-items:center;gap:11px;margin-bottom:8px}
 .fit-station .ix{font-family:'Share Tech Mono';width:30px;height:30px;border-radius:50%;border:2px solid var(--violet);display:grid;place-items:center;color:var(--violet);flex:none}
 .fit-station.now{border-color:var(--acc);background:var(--accDim)}
 .fit-station .sb{font-size:11.5px;color:var(--muted)}
@@ -328,7 +336,7 @@ details.fold .bd{padding:0 12px 13px}
 }
 
 /* ===== merged-original additions ===== */
-.lvlbar{height:9px;background:#04110a;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:7px}
+.lvlbar{height:9px;background:var(--inset);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:7px}
 .lvlbar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--acc),#9fe870);transition:width .25s}
 .board-flash{animation:bflash .5s}
 @keyframes bflash{0%{box-shadow:0 0 0 3px var(--acc) inset}100%{box-shadow:none}}
@@ -382,12 +390,12 @@ body{font-family:'Inter','Heebo',sans-serif}
 .stat .vl,.qs .n,.tbl .mono,.bigclock,.bt-dist,.fit-phase .tm,.cmp-row .num,.rec-tile .vl,.lane .num,.stepper .val{font-variant-numeric:tabular-nums}
 .btn{transition:.16s;font-weight:600}
 .btn:hover{border-color:color-mix(in srgb,var(--acc) 60%,var(--line))}
-.btn.acc{box-shadow:0 6px 20px var(--accDim);color:#0b0b16}
+.btn.acc{box-shadow:0 6px 20px var(--accDim);color:var(--onAcc)}
 .btn.acc:hover{filter:brightness(1.08);box-shadow:0 8px 26px var(--accDim)}
 .btn.stop{box-shadow:0 6px 20px rgba(255,77,94,.28)}
 .btn.big{box-shadow:0 8px 30px var(--accDim)}
-.seg button.on{color:#0b0b16;box-shadow:0 2px 12px var(--accDim)}
-.pf-tabs button.on,.pf-modes button.on{color:#0b0b16;box-shadow:0 3px 14px var(--accDim)}
+.seg button.on{color:var(--onAcc);box-shadow:0 2px 12px var(--accDim)}
+.pf-tabs button.on,.pf-modes button.on{color:var(--onAcc);box-shadow:0 3px 14px var(--accDim)}
 .lane{transition:.18s}
 .lane:hover{border-color:var(--lc);box-shadow:0 10px 34px color-mix(in srgb,var(--lc) 28%,transparent)}
 .qs .n,.stat .vl.acc{text-shadow:0 0 18px var(--accDim)}
@@ -439,7 +447,7 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .stu-row{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:11px 13px;cursor:pointer;transition:.14s}
 .stu-row:hover{border-color:var(--acc);box-shadow:0 6px 20px var(--accDim);transform:translateX(-2px)}
 .stu-row .av{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:16px;
-  background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 40%,#000));color:#0b0b16}
+  background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 40%,#000));color:var(--onAcc)}
 .stu-row .sb{font-size:11.5px;color:var(--muted);margin-top:1px}
 .stu-row .tr{font-size:13px;font-weight:800}
 .stu-row .tr.up{color:var(--green)}.stu-row .tr.dn{color:var(--stop)}
@@ -452,7 +460,7 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #nut-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
 #nut-cats::-webkit-scrollbar{display:none}
 #nut-cats button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;padding:8px 15px;font-family:'Heebo','Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
-#nut-cats button.on{background:var(--acc);color:#0b0b16;border-color:transparent;box-shadow:0 3px 14px var(--accDim)}
+#nut-cats button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;box-shadow:0 3px 14px var(--accDim)}
 
 /* ===== teacher lock ===== */
 #lockOv{position:fixed;inset:0;z-index:400;display:none;place-items:center;padding:22px;
@@ -690,6 +698,189 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
   background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
   padding:12px 14px;max-height:56vh;overflow:auto}
 .arc-item.builtin{border-inline-start:3px solid var(--acc)}
+
+/* ============================================================
+   הבונה הידני של מערך השיעור (hm-build.js)
+   ============================================================ */
+.bw-stepbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 15px;padding-bottom:2px}
+.bw-stepbar::-webkit-scrollbar{display:none}
+.bw-step{flex:1;min-width:88px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px 6px;cursor:pointer;
+  color:var(--faint);font-family:'Heebo';font-size:11.5px;font-weight:700;white-space:nowrap;transition:.16s}
+.bw-step .e{font-size:17px;line-height:1}
+.bw-step:hover{border-color:color-mix(in srgb,var(--acc) 55%,var(--line))}
+.bw-step.done{color:var(--muted);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.bw-step.on{color:var(--ink);border-color:transparent;background:var(--accDim);box-shadow:0 4px 16px var(--accDim)}
+.bw-step.on .e{transform:scale(1.1)}
+
+.bw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;align-items:end}
+.bw-seg{width:100%;max-width:520px}
+.bw-seg button{flex:1}
+
+.bw-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}
+.bw-chips::-webkit-scrollbar{display:none}
+.bw-chips button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;
+  padding:8px 14px;font-family:'Heebo';font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:.16s}
+.bw-chips button .cnt{opacity:.6;font-size:11px}
+.bw-chips button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;box-shadow:0 3px 14px var(--accDim)}
+
+.bw-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px;margin-top:4px}
+.bw-card{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 13px;
+  cursor:pointer;transition:.16s;display:flex;flex-direction:column;gap:7px}
+.bw-card:hover{border-color:var(--acc);box-shadow:0 8px 24px var(--accDim);transform:translateY(-1px)}
+.bw-card .hd{display:flex;align-items:center;gap:8px;font-size:14.5px;line-height:1.3}
+.bw-card .hd .em{font-size:20px;flex:none}
+.bw-card .sb{font-size:12.5px;color:var(--muted);line-height:1.55}
+.bw-card .mt{display:flex;flex-wrap:wrap;gap:5px}
+.bw-card.on{border-color:var(--acc);background:linear-gradient(160deg,var(--accDim),var(--panel2))}
+.bw-card.on::after{content:"✓";position:absolute;top:9px;inset-inline-end:11px;color:var(--acc);font-weight:800;font-size:15px}
+.bw-card .num{position:absolute;top:8px;inset-inline-end:9px;width:22px;height:22px;border-radius:50%;
+  background:var(--acc);color:var(--onAcc);display:grid;place-items:center;font-size:12px;font-weight:800;z-index:2}
+.bw-card.on .num+.hd{padding-inline-end:26px}
+
+.bw-note{background:var(--panel2);border:1px solid var(--line);border-inline-start:3px solid var(--acc);
+  border-radius:10px;padding:10px 12px;margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.bw-note b{color:var(--ink)}
+.bw-warn{background:rgba(255,210,63,.10);border:1px solid var(--warn);border-radius:10px;padding:10px 12px;
+  margin-top:12px;font-size:13px;color:var(--warn);font-weight:600}
+
+.bw-bar{display:flex;height:34px;border-radius:10px;overflow:hidden;border:1px solid var(--line);font-size:11.5px;font-weight:700}
+.bw-bar>div{display:grid;place-items:center;color:var(--onAcc);white-space:nowrap;overflow:hidden;min-width:0}
+.bw-bar .seg-w{background:linear-gradient(180deg,var(--orange),#b35c1a)}
+.bw-bar .seg-m{background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 55%,#000))}
+.bw-bar .seg-f{background:linear-gradient(180deg,var(--cy),#1173a8)}
+
+.bw-sum{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px}
+.bw-sum h4{margin:0 0 5px;font-size:13px;color:var(--acc)}
+.bw-sum p{margin:0;font-size:13.5px;line-height:1.6}
+.bw-nav{margin-top:14px;gap:9px}
+.bw-nav .btn{min-width:120px;justify-content:center}
+@media(max-width:520px){
+  .bw-cards{grid-template-columns:1fr}
+  .bw-step{min-width:72px;font-size:10.5px}
+}
+
+/* ============================================================
+   ערכות רקע ותצוגה
+   ------------------------------------------------------------
+   נבחרות בהגדרות ⚙ ונשמרות במכשיר. הכל דרך משתני CSS —
+   כל רכיב באפליקציה מקבל את הערכה בלי שינוי קוד נוסף.
+   ============================================================ */
+
+/* --- דשא: ירוק מגרש, נעים לעין באולם ובחוץ בצל --- */
+body[data-theme="turf"]{
+  --bg:#07130d; --bg2:#050f0a; --panel:#0f2118; --panel2:#153021; --line:#27543a;
+  --ink:#eaf5ee; --muted:#9fbdab; --faint:#6c8a78; --inset:#04120b;
+  --bar:5,20,13;
+  --bgimg:
+    radial-gradient(1100px 580px at 85% -10%, var(--accDim), transparent 60%),
+    radial-gradient(900px 480px at -6% 6%, rgba(52,211,153,.10), transparent 58%),
+    repeating-linear-gradient(90deg, transparent 0 78px, rgba(255,255,255,.018) 78px 80px),
+    linear-gradient(180deg,#08160f,#040b07);
+}
+
+/* --- לילה רגוע: כמעט בלי גרדיאנטים, פחות הסחות דעת --- */
+body[data-theme="slate"]{
+  --bg:#101216; --bg2:#0b0d10; --panel:#191c22; --panel2:#22262e; --line:#343a45;
+  --ink:#eceef2; --muted:#a6acb8; --faint:#767d8a; --inset:#0d1013;
+  --bar:12,14,18;
+  --shadow:0 4px 14px rgba(0,0,0,.28);
+  --bgimg:linear-gradient(180deg,#131519,#0b0d10);
+}
+
+/* --- יום: רקע בהיר לשימוש בחוץ באור יום --- */
+body[data-theme="day"]{
+  --bg:#f4f6fa; --bg2:#eef1f7; --panel:#ffffff; --panel2:#f5f7fb; --line:#d3d9e4;
+  --ink:#161a24; --muted:#5b6272; --faint:#858c9b; --inset:#ffffff;
+  --onAcc:#ffffff; --acc:#6d3ff0; --accDim:rgba(109,63,240,.14);
+  --bar:255,255,255;
+  --shadow:0 4px 16px rgba(20,26,44,.10);
+  --bgimg:
+    radial-gradient(1100px 560px at 88% -12%, var(--accDim), transparent 62%),
+    radial-gradient(900px 460px at -6% 4%, rgba(56,189,248,.10), transparent 58%),
+    linear-gradient(180deg,#f7f9fc,#eef1f7);
+}
+body[data-theme="day"]{color-scheme:light}
+body[data-theme="day"] .topbar,body[data-theme="day"] .nav{border-color:var(--line)}
+body[data-theme="day"] .sboard .clock{background:#fff;color:var(--acc)}
+body[data-theme="day"] .brand .logo{background:linear-gradient(135deg,var(--acc),#3a1f8f);color:#fff}
+body[data-theme="day"] .tbl td{border-bottom:1px solid #e6e9f0}
+body[data-theme="day"] .aiBox{background:linear-gradient(160deg,#f1ecff,#f8f6ff)}
+body[data-theme="day"] .btn.acc{color:#fff}
+body[data-theme="day"] .card{box-shadow:var(--shadow)}
+body[data-theme="day"][data-mod="beep"]{--acc:#0284c7;--accDim:rgba(2,132,199,.14)}
+body[data-theme="day"][data-mod="photo"]{--acc:#c2410c;--accDim:rgba(194,65,12,.14)}
+body[data-theme="day"][data-mod="rec"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
+body[data-theme="day"][data-mod="fit"]{--acc:#6d3ff0;--accDim:rgba(109,63,240,.14)}
+body[data-theme="day"][data-mod="stu"]{--acc:#047857;--accDim:rgba(4,120,87,.14)}
+body[data-theme="day"][data-mod="lesson"]{--acc:#be185d;--accDim:rgba(190,24,93,.14)}
+body[data-theme="day"][data-mod="nut"]{--acc:#15803d;--accDim:rgba(21,128,61,.14)}
+
+/* --- שמש חזקה: ניגודיות מקסימלית לקריאה במגרש בצהריים --- */
+body[data-theme="sun"]{
+  --bg:#ffffff; --bg2:#ffffff; --panel:#ffffff; --panel2:#f2f4f8; --line:#4a5163;
+  --ink:#000000; --muted:#2c3140; --faint:#4a5163; --inset:#ffffff;
+  --onAcc:#ffffff; --acc:#0b3ea8; --accDim:rgba(11,62,168,.13);
+  --bar:255,255,255;
+  --shadow:0 2px 8px rgba(0,0,0,.16);
+  --bgimg:#ffffff;
+}
+body[data-theme="sun"]{color-scheme:light}
+body[data-theme="sun"] .card,body[data-theme="sun"] .bw-card,body[data-theme="sun"] .arc-item{border-width:2px}
+body[data-theme="sun"] .hint,body[data-theme="sun"] .field label,body[data-theme="sun"] .bw-card .sb{color:#2c3140}
+body[data-theme="sun"] .btn{border-width:2px;font-weight:700}
+body[data-theme="sun"] .btn.acc{color:#fff}
+body[data-theme="sun"] .brand .logo{background:var(--acc);color:#fff}
+body[data-theme="sun"] .sboard .clock{background:#fff;color:#000}
+body[data-theme="sun"] .tbl td{border-bottom:1px solid #c8ccd6}
+body[data-theme="sun"] .aiBox{background:#f2f4f8}
+body[data-theme="sun"][data-mod]{--acc:#0b3ea8;--accDim:rgba(11,62,168,.13)}
+
+/* ============================================================
+   מצב «כפתורים גדולים» — לשימוש תוך כדי שיעור, ביד אחת
+   ============================================================ */
+body[data-touch="1"]{--touch:6px}
+body[data-touch="1"] .btn{padding:calc(11px + var(--touch)) calc(17px + var(--touch));font-size:15.5px}
+body[data-touch="1"] .btn.sm{padding:calc(7px + var(--touch)) calc(12px + var(--touch));font-size:14px}
+body[data-touch="1"] .field input,body[data-touch="1"] .field select,body[data-touch="1"] .field textarea{
+  padding:calc(10px + var(--touch)) 12px;font-size:16px}
+body[data-touch="1"] .seg button{padding:calc(8px + var(--touch)) 10px}
+body[data-touch="1"] .pf-tabs button,body[data-touch="1"] .bw-chips button{padding:calc(8px + var(--touch)) 18px;font-size:14.5px}
+body[data-touch="1"] .check{font-size:15px}
+body[data-touch="1"] .check input{width:21px;height:21px}
+body[data-touch="1"] .nav{--nav-h:72px}
+body[data-touch="1"] .bw-card{padding:14px 15px}
+body[data-touch="1"] .hint{font-size:13.5px}
+
+/* ============================================================
+   בורר הערכות בהגדרות
+   ============================================================ */
+.thm-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-top:6px}
+.thm{border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer;background:var(--panel2);
+  display:flex;flex-direction:column;gap:6px;align-items:center;font-family:'Heebo';font-size:12px;font-weight:700;color:var(--muted)}
+.thm .sw{width:100%;height:30px;border-radius:8px;border:1px solid var(--line)}
+.thm.on{border-color:var(--acc);color:var(--ink);box-shadow:0 4px 14px var(--accDim)}
+.thm[data-t="dark"] .sw{background:linear-gradient(135deg,#151831,#07080f)}
+.thm[data-t="turf"] .sw{background:linear-gradient(135deg,#15412a,#040b07)}
+.thm[data-t="slate"] .sw{background:linear-gradient(135deg,#242832,#0b0d10)}
+.thm[data-t="day"]  .sw{background:linear-gradient(135deg,#ffffff,#dfe4ee)}
+.thm[data-t="sun"]  .sw{background:linear-gradient(135deg,#ffffff,#ffffff);border-color:#000}
+
+/* רכיבים בודדים שנצבעו קשיח בכהה — התאמה לערכות הבהירות.
+   משטחי וידאו ומצלמה (#pf-stage, #pf-strip, מצב טלוויזיה) נשארים כהים בכוונה. */
+body[data-theme="day"] .die,body[data-theme="sun"] .die{
+  background:linear-gradient(160deg,#fff,#eef1f7);color:var(--ink)}
+body[data-theme="day"] .hx-ch .track,body[data-theme="sun"] .hx-ch .track{background:#e6e9f0}
+body[data-theme="day"] .rec-shwarn code,body[data-theme="sun"] .rec-shwarn code{background:rgba(0,0,0,.07)}
+body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="sun"]{background:#fff}
+
+/* הכרטיס הנבחר בחלק העיקרי מסומן במספר סדר — ולכן בלי סימן ✓ כפול */
+.bw-card.numbered.on::after{content:none}
+.bw-picked{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accDim);border:1px solid var(--acc);
+  color:var(--ink);border-radius:99px;padding:6px 12px;font-family:'Heebo';font-size:12.5px;font-weight:700;cursor:pointer}
+.bw-tag span{color:var(--acc);font-weight:800}
+.bw-tag:hover{background:var(--panel2)}
 
 </style>
 </head>
@@ -1438,8 +1629,15 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
     <button data-go="fit">⏱ כושר</button>
     <button data-go="games">🎮 משחקים</button>
   </div>
+  <div class="pf-tabs" id="ls-modeTabs">
+    <button data-lm="fast" class="on">⚡ מהיר — מערך בלחיצה</button>
+    <button data-lm="manual">🧩 בונה ידני — שלב אחרי שלב</button>
+  </div>
+  <div id="ls-fastWrap">
   <div class="card">
     <h2><span class="dot"></span> בניית מערך שיעור</h2>
+    <div class="hint" style="margin:-4px 0 11px">בוחרים נושא ולוחצים — מערך מלא בשניות. רוצה להרכיב בעצמך כל חלק?
+      עבור ללשונית «בונה ידני» למעלה.</div>
     <div class="row">
       <div class="field" style="width:190px"><label>שכבה</label>
         <div class="seg" id="ls-gradeSeg"><button data-g="mid" class="on">חטיבה ז׳–ט׳</button><button data-g="high">תיכון י׳–י״ב</button></div>
@@ -1486,6 +1684,8 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
       <button class="btn ghost" id="ls-again" title="גרסה אחרת לאותו נושא">🎲 גרסה אחרת</button>
     </div>
   </div>
+  </div>
+  <div id="ls-manWrap" style="display:none"></div>
 
   <div class="card" id="ls-planCard" style="display:none">
     <div class="row" style="justify-content:space-between">
@@ -1713,11 +1913,22 @@ body[data-mod="tools"]{--acc:#818cf8;--accDim:rgba(129,140,248,.18)}
 <div class="modal" id="setModal"><div class="box">
   <h3>⚙️ הגדרות<button class="x" data-close="setModal">✕</button></h3>
   <div class="field"><label>שם בית הספר (מופיע בכותרת, בתעודות ובמצב טלוויזיה)</label><input type="text" id="set-school" placeholder="מקיף גימל באר שבע"></div>
+  <div class="field" style="margin-top:12px"><label>ערכת רקע — נשמרת במכשיר הזה</label>
+    <div class="thm-pick" id="set-theme">
+      <button class="thm" data-t="dark"><span class="sw"></span>לילה</button>
+      <button class="thm" data-t="turf"><span class="sw"></span>דשא</button>
+      <button class="thm" data-t="slate"><span class="sw"></span>רגוע</button>
+      <button class="thm" data-t="day"><span class="sw"></span>יום</button>
+      <button class="thm" data-t="sun"><span class="sw"></span>שמש חזקה</button>
+    </div>
+    <div class="hint" style="margin-top:6px">«יום» ו«שמש חזקה» נועדו לשימוש במגרש באור יום — רקע בהיר וניגודיות גבוהה שנקראים גם בשמש ישירה.</div>
+  </div>
   <div class="row" style="margin-top:11px">
     <label class="check"><input type="checkbox" id="set-sound" checked> צלילים</label>
     <label class="check"><input type="checkbox" id="set-voice" checked> כריזה קולית</label>
     <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
     <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
+    <label class="check"><input type="checkbox" id="set-touch"> כפתורים גדולים (הפעלה ביד אחת תוך כדי שיעור)</label>
   </div>
   <div class="field" style="margin-top:13px"><label>קישור לטופס העלאת סרטונים (Google Forms)</label>
     <input type="url" id="set-driveForm" placeholder="https://forms.gle/..." style="direction:ltr;text-align:left;font-size:12px"></div>
@@ -1780,7 +1991,7 @@ const LS={
   get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
 };
-const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:""},LS.get("settings",{}));
+const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:"",theme:"dark",touch:false},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
 
@@ -1926,9 +2137,22 @@ function homeStats(){
 /* ---------- top clock ---------- */
 setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); },1000);
 
+/* ---------- ערכת רקע ומצב מגע ----------
+   הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
+function applyTheme(){
+  document.body.dataset.theme=SET.theme||"dark";
+  if(SET.touch)document.body.dataset.touch="1"; else delete document.body.dataset.touch;
+  const mt=document.querySelector('meta[name="theme-color"]');
+  if(mt)mt.setAttribute("content",{day:"#f4f6fa",sun:"#ffffff",turf:"#07130d",slate:"#101216"}[SET.theme]||"#0c0e1a");
+  $$("#set-theme .thm").forEach(b=>b.classList.toggle("on",b.dataset.t===(SET.theme||"dark")));
+}
+
 /* ---------- settings ---------- */
 function wireSettings(){
-$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake;
+$$("#set-theme .thm").forEach(b=>b.addEventListener("click",()=>{
+  SET.theme=b.dataset.t; saveSet(); applyTheme(); }));
+$("#set-touch").addEventListener("change",e=>{ SET.touch=e.target.checked; saveSet(); applyTheme(); });
+$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
@@ -4011,8 +4235,8 @@ const FIT=(function(){
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
-  setRole,isStudent,isGuest,role:()=>ROLE};
-window.HMBoot=function(){ wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
+  setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
+window.HMBoot=function(){ applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
   go(location.hash.slice(1)||"home"); homeStats(); };
 
 ;
@@ -6061,13 +6285,20 @@ const WARM={
     {n:"תופסת שדה",d:"תופסת זוגות במגרש מסומן — מי שנתפס מצטרף לתופסים. מעלה דופק תוך כדי משחק."},
     {n:"ג׳וגינג + תרגילי תנועה",d:"2 הקפות קלות, ואז סקיפים, עקבים לישבן, צעדים צידיים, פתיחות ידיים — 20 מ׳ לכל תרגיל."},
     {n:"מראה בזוגות",d:"בן זוג א׳ מוביל תנועה, ב׳ מחקה. מחליפים כל 30 שנ׳. מעלה דופק ומכניס לקשב."},
-    {n:"מספרים וקבוצות",d:"ריצה חופשית; המורה קורא מספר — מתארגנים בקבוצות בגודל הזה ומבצעים תרגיל."}
+    {n:"מספרים וקבוצות",d:"ריצה חופשית; המורה קורא מספר — מתארגנים בקבוצות בגודל הזה ומבצעים תרגיל."},
+    {n:"4 תחנות 40/20",d:"ג׳אמפינג ג׳ק · ברכיים גבוהות · סקוואטים · מטפס הרים. 40 שנ׳ עבודה, 20 מעבר, 2 סבבים."},
+    {n:"קוביית חימום",d:"6 תרגילים ממוספרים; כל הטלה = 30 שנ׳ מהתרגיל שיצא. 6 הטלות = חימום שלם."},
+    {n:"עצור וזוז למוזיקה",d:"מוזיקה — תנועה רציפה בשטח; עצירה — קופאים בתנוחה שהמורה הכריז ל-10 שנ׳. 8 סבבים."},
+    {n:"חימום זוגי עם כדור",d:"20 מסירות בצעדי צד, 20 בהקפצה בהליכה לאחור, ואז 10 מסירות עם סיבוב לפני הקליטה."}
   ],
   high:[
     {n:"ג׳וגינג פרוגרסיבי",d:"3 דק׳ בקצב עולה מ־50% ל־75% דופק מרבי, ואז 60 שנ׳ הליכה."},
     {n:"מוביליטי ואקטיבציה",d:"לאנג׳ הליכה עם סיבוב, פלאנק כתפיים, סקוואט תחתית 10 שנ׳ ×3, הנפות רגליים."},
     {n:"האצות קצרות",d:"4×40 מ׳ בעלייה הדרגתית 60→90%, הליכה חזרה כמנוחה."},
-    {n:"חימום 11+ מקוצר",d:"ריצות טכניקה · פלאנק · עמידה על רגל אחת עם מסירה · סקוואט · נחיתות רכות. הפרוטוקול המבוסס־ראיות למניעת פציעות."}
+    {n:"חימום 11+ מקוצר",d:"ריצות טכניקה · פלאנק · עמידה על רגל אחת עם מסירה · סקוואט · נחיתות רכות. הפרוטוקול המבוסס־ראיות למניעת פציעות."},
+    {n:"RAMP מלא",d:"R העלאת דופק 2 דק׳ · A אקטיבציה (גשר ישבן, פלאנק, בירד־דוג) · M ניידות בתנועה · P 3 האצות בקצב עולה."},
+    {n:"ABC אתלטי",d:"סקיפ א׳, סקיפ ב׳, עקבים לישבן, צעדי הצלבה, ריצה לאחור — 20 מ׳ לכל תרגיל, הליכה חזרה."},
+    {n:"חימום חדר כושר",d:"5 דק׳ אירובי קל, אקטיבציה בגומייה (משיכות שכמות, monster walk), ניידות ירך וקרסול, וסט חימום ב-50% משקל."}
   ]
 };
 
@@ -6075,6 +6306,9 @@ const COOL=[
   {n:"הרפיה ומתיחות",d:"מתיחות סטטיות 20–30 שנ׳ לקבוצות השרירים שעבדו + 5 נשימות עמוקות."},
   {n:"סבב משוב",d:"במעגל: כל תלמיד מילה אחת על השיעור. המורה מציין הישג אחד בולט בשם."},
   {n:"יעד אישי",d:"כל תלמיד מנסח בקול יעד אחד לשיעור הבא. מתיחות תוך כדי."},
+  {n:"נשימות והורדת דופק",d:"נשימה 4-4-6 × 8 חזרות בשכיבה, ואז מדידת דופק ידנית והשוואה לסוף החלק העיקרי."},
+  {n:"רצף יוגה קצר",d:"הר → כלב מביט מטה → לאנג׳ נמוך → ילד → פיתול בשכיבה. 5 נשימות בכל תנוחה, שני צדדים."},
+  {n:"שחרור עצמי",d:"3 אזורים שעבדו היום, 30–45 שנ׳ לכל אזור בגליל או בכדור טניס, ואז מתיחה סטטית קצרה."},
   {n:"נשימה והרגעה",d:"שכיבה על הגב, 8 נשימות 4־4־6, סריקת גוף קצרה — הורדת דופק לפני השיעור הבא."}
 ];
 
@@ -6764,10 +6998,1314 @@ window.LESSON=(function(){
       e.target.value="";
     });
     renderLib();
+    if(window.LBUILD)window.LBUILD.init();
     const pre=H().LS.get("ls.pickGame",null);
     if(pre)H().toast("משחק נבחר ממתין — לחץ «בנה מערך»");
   }
-  return {init, topics:()=>TOPICS, std:()=>STD};
+  /* טעינת מערך שנבנה בבונה הידני — אותו כרטיס, אותה הפעלה, אותה הדפסה */
+  function usePlan(p){
+    plan=p; renderPlan();
+    const card=H().$("#ls-planCard");
+    if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  return {init, usePlan, topics:()=>TOPICS, std:()=>STD};
+})();
+})();
+
+;
+"use strict";
+/* ============================================================
+   המגרש PRO — הבונה הידני של מערך השיעור
+   ------------------------------------------------------------
+   המחולל המהיר (hm-lesson.js) בונה מערך שלם בלחיצה אחת.
+   הקובץ הזה נותן את הדרך השנייה, האיטית: המורה מרכיב את המערך
+   בעצמו — חלק אחרי חלק — ובוחר בדיוק מה נכנס לכל חלק.
+
+   מבנה המערך זהה לחלוטין לזה של המחולל המהיר, ולכן הפלט
+   מוזרם לאותו כרטיס «המערך» וממשיך לעבוד עם ההפעלה החיה,
+   השמירה לספרייה, ההדפסה והמשוב — בלי כפילות קוד.
+
+   מקורות התוכן: מודל RAMP לחימום (Raise · Activate · Mobilise ·
+   Potentiate, Jeffreys/UKSCA), פרוטוקול FIFA 11+ למניעת פציעות,
+   מודל STEP להתאמות (Space · Task · Equipment · People),
+   וסטנדרטי SHAPE America 2024 — אותם עוגנים שהאפליקציה כבר
+   משתמשת בהם בשאר המודולים.
+   ============================================================ */
+(function(){
+const H=()=>window.HM;
+const today=()=>new Date().toISOString().slice(0,10);
+
+/* ============================================================
+   1. חימום — שלושה סוגים
+   ============================================================ */
+
+/* ---------- 1א. חימום כללי (לא תלוי ענף) ---------- */
+const WU_GENERAL=[
+  {id:"w-ramp", em:"🔥", name:"RAMP מלא — 4 שלבים", min:10, grade:["mid","high"], place:["field","hall"], eq:["קונוסים"],
+   why:"המבנה המקובל בעולם לחימום מודרני: העלאת דופק, אקטיבציה, ניידות, והכנה לעצימות השיעור.",
+   steps:["R — העלאת דופק: 2 דק׳ ג׳וגינג קל בקצב שיחה סביב המגרש.",
+          "A — אקטיבציה: גלוט ברידג׳ ×10, פלאנק 20 שנ׳, בירד־דוג ×8 לכל צד.",
+          "M — ניידות: לאנג׳ הליכה עם סיבוב ×8, הנפות רגל קדימה־אחורה ×10, עיגולי כתפיים ×8.",
+          "P — הכנה לעצימות: 3 האצות של 20 מ׳ ב-70% → 80% → 90%, הליכה חזרה."]},
+  {id:"w-jog", em:"🏃", name:"ג׳וגינג + תרגילי ריצה (ABC)", min:9, grade:["mid","high"], place:["field","hall"], eq:["קונוסים"],
+   why:"קלאסיקה שעובדת בכל מזג אוויר ובכל גודל כיתה — ומלמדת טכניקת ריצה תוך כדי.",
+   steps:["2 הקפות קלות סביב המגרש בקצב שבו אפשר לדבר.",
+          "מסדרים את הכיתה בשורות של 6 על קו הרוחב.",
+          "20 מ׳ לכל תרגיל, הליכה חזרה: סקיפ א׳, סקיפ ב׳, עקבים לישבן, צעדי צד, צעדי הצלבה (קרוסאובר), ריצה לאחור.",
+          "מסיימים ב-2 האצות של 20 מ׳ ב-80%."]},
+  {id:"w-mirror", em:"🪞", name:"מראה בזוגות", min:7, grade:["mid","high"], place:["field","hall","class"], eq:[],
+   why:"מכניס לקשב ולעבודה עם בן זוג, ומעלה דופק בלי שאף אחד מרגיש שהוא ״מתאמן״.",
+   steps:["מתחלקים לזוגות שעומדים זה מול זה במרחק 2 מ׳.",
+          "בן זוג א׳ מוביל תנועה רציפה (צעדי צד, קפיצות, ירידות), ב׳ מחקה כמו במראה.",
+          "מחליפים תפקידים כל 30 שניות, 6 סבבים.",
+          "בסבב האחרון מוסיפים תנאי: כל תנועה חייבת לכלול שינוי גובה."]},
+  {id:"w-numbers", em:"🔢", name:"מספרים וקבוצות", min:7, grade:["mid","high"], place:["field","hall"], eq:[],
+   why:"מעלה דופק, מפזר את הכיתה במרחב, ומחלק לקבוצות בלי ״בחירת קפטנים״ שפוגעת בילדים.",
+   steps:["ריצה חופשית בשטח מסומן, שינוי כיוון בכל שריקה.",
+          "המורה קורא מספר — התלמידים מתארגנים בקבוצות בגודל הזה תוך 5 שניות.",
+          "כל קבוצה מבצעת מיד תרגיל שהמורה קורא (5 סקוואטים, פלאנק 10 שנ׳).",
+          "המספר האחרון שנקרא הוא גודל הקבוצות להמשך השיעור."]},
+  {id:"w-station4", em:"🔄", name:"4 תחנות חימום — 40/20", min:9, grade:["mid","high"], place:["field","hall","gym"], eq:["קונוסים"],
+   why:"מבנה קבוע שהכיתה לומדת פעם אחת, ואחר כך מתחילה לבד תוך 30 שניות בכל שיעור.",
+   steps:["4 תחנות בפינות: ג׳אמפינג ג׳ק · ברכיים גבוהות · סקוואטים · מטפס הרים.",
+          "40 שניות עבודה, 20 שניות מעבר לתחנה הבאה.",
+          "2 סבבים מלאים (סה״כ 8 דקות).",
+          "בין הסבבים 30 שניות הליכה ונשימות."]},
+  {id:"w-music", em:"🎵", name:"חימום למוזיקה — עצור וזוז", min:8, grade:["mid"], place:["field","hall","class"], eq:["רמקול"],
+   why:"עובד מצוין בחטיבה: המוזיקה עושה את העבודה של השריקה, והאווירה מתחילה גבוה.",
+   steps:["מוזיקה מתנגנת — כולם בתנועה רציפה בשטח (ריצה קלה, דילוג, צעדי צד).",
+          "המוזיקה נעצרת — כולם קופאים בתנוחה שהמורה הכריז עליה (פלאנק, עמידה על רגל אחת, סקוואט נמוך) ל-10 שניות.",
+          "6–8 סבבים, כל סבב מעט מהיר יותר.",
+          "בסבב האחרון התלמידים בוחרים את התנוחה בעצמם."]},
+  {id:"w-rope", em:"🪢", name:"קפיצה בדילגית — פירמידה", min:8, grade:["mid","high"], place:["field","hall"], eq:["חבל"],
+   why:"מעלה דופק מהר מאוד בשטח קטן, ומשפר תיאום וקפיצות רכות.",
+   steps:["כל תלמיד עם דילגית, פרוס בשטח עם מרחב של 2 מ׳.",
+          "פירמידה: 20 שנ׳ קפיצה / 20 מנוחה → 30/20 → 40/20 → 30/20 → 20/20.",
+          "מי שאין לו דילגית מבצע קפיצה מדומה באותו קצב.",
+          "בסיום: 10 נשימות עמוקות ומתיחת שוקיים."]},
+  {id:"w-11plus", em:"🛡", name:"FIFA 11+ מקוצר", min:10, grade:["high"], place:["field","hall"], eq:["קונוסים"],
+   why:"הפרוטוקול המבוסס־ראיות שמוריד פציעות בברך ובקרסול בכ-30%. שווה להריץ אותו כשגרה לפני משחק.",
+   steps:["חלק 1 — ריצות טכניקה: ריצה ישרה, ריצה עם ירך פנימה/החוצה, ריצה סביב בן זוג, ריצה עם מגע כתף. 2 הקפות של 20 מ׳ בכל תרגיל.",
+          "חלק 2 — כוח ויציבות: פלאנק 20 שנ׳ ×2, פלאנק צד 20 שנ׳ לכל צד, נורדיק המסטרינג ×5 בזוגות, עמידה על רגל אחת עם מסירת כדור 30 שנ׳.",
+          "חלק 3 — קפיצות ונחיתות: קפיצות אנכיות עם נחיתה רכה ×10, קפיצות צד ×10, נחיתה מייצבת מקפיצה ×6 — הדגש הוא על הנחיתה, לא על הגובה.",
+          "חלק 4 — ריצות מהירות: 3 האצות של 30 מ׳ בעלייה הדרגתית."]},
+  {id:"w-prog", em:"📈", name:"ג׳וגינג פרוגרסיבי + האצות", min:9, grade:["high"], place:["field"], eq:[],
+   why:"חימום שמכין באמת לעצימות גבוהה — לא רק ״מחמם״, אלא מעלה את הגוף בהדרגה לקצב העבודה.",
+   steps:["3 דקות בקצב עולה: מ-50% דופק מרבי ל-75%, בלי לעצור.",
+          "60 שניות הליכה + מוביליטי ירכיים וקרסוליים.",
+          "4 האצות של 40 מ׳ ב-60% → 75% → 85% → 90%, הליכה חזרה כמנוחה.",
+          "בדיקת מוכנות: כל תלמיד מדרג בקול 1–10 עד כמה הוא מרגיש מוכן לעבודה."]},
+  {id:"w-class", em:"🪑", name:"חימום בכיתה — ליד השולחן", min:7, grade:["mid","high"], place:["class"], eq:[],
+   why:"לשיעור שיצא מהמגרש בגלל גשם או מבחן באולם — מרחב של מטר אחד לכל תלמיד מספיק.",
+   steps:["30 שניות עבודה / 15 מנוחה × 6 סבבים.",
+          "התרגילים: ג׳אמפינג ג׳ק · ברכיים גבוהות במקום · סקוואטים · סיבובי כתפיים וידיים · צעדי צד ליד השולחן · עלייה על קצות האצבעות.",
+          "בין הסבבים נשימה עמוקה של 3 שניות פנימה, 5 החוצה.",
+          "בסיום: מתיחת צוואר, כתפיים וגב עליון בישיבה."]},
+  {id:"w-gym", em:"🏋️", name:"חימום לחדר כושר", min:9, grade:["high"], place:["gym"], eq:["גומיית התנגדות"],
+   why:"אימון התנגדות בלי אקטיבציה מוקדמת הוא המקום שבו נוצרות רוב הפציעות בחדר הכושר בבית ספר.",
+   steps:["5 דקות אירובי קל: הליכה מהירה במסילה / אופניים / חתירה — עד להזעה קלה.",
+          "אקטיבציה בגומייה: משיכות שכמות ×15, פתיחות כתף ×15, הליכת מפלצת (monster walk) 10 מ׳ לכל כיוון.",
+          "ניידות: ישיבה עמוקה 30 שנ׳, נדנוד קרסול ×10 לכל צד, סיבוב בית חזה ×8 לכל צד.",
+          "סט חימום ייעודי: הסט הראשון של כל תרגיל עיקרי מבוצע ב-50% מהמשקל, 8–10 חזרות."]},
+  {id:"w-partner", em:"🤝", name:"חימום זוגי עם כדור", min:8, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   why:"משלב חימום עם מגע ראשון בכדור — חוסך את המעבר המלאכותי בין ״חימום״ ל״שיעור״.",
+   steps:["זוגות במרחק 3 מ׳: 20 מסירות חזה תוך כדי צעדי צד לאורך המגרש.",
+          "החלפה: מסירה בהקפצה, תוך כדי הליכה לאחור.",
+          "מסירה + סיבוב 360° לפני הקליטה, 10 חזרות.",
+          "אתגר: 10 מסירות רצופות בלי נפילה תוך כדי ריצה — כל נפילה מאפסת את הספירה."]},
+  {id:"w-hoop", em:"⭕", name:"חישוקים — מסלול תנועה", min:8, grade:["mid"], place:["field","hall"], eq:["חישוקים"],
+   why:"מסלול ויזואלי שהכיתה מבינה בלי הסבר ארוך, ומאמן קפיצה, נחיתה ותיאום.",
+   steps:["פורסים 12 חישוקים במסלול מפותל.",
+          "סבב 1 — קפיצה בשתי רגליים מחישוק לחישוק.",
+          "סבב 2 — קפיצה על רגל אחת, החלפה בכל חישוק.",
+          "סבב 3 — ריצת סולם: שתי רגליים בכל חישוק, קצב מהיר.",
+          "סבב 4 — התלמידים ממציאים דרך מעבר חדשה ומדגימים לכיתה."]},
+  {id:"w-dice", em:"🎲", name:"קוביית חימום", min:7, grade:["mid","high"], place:["field","hall","class"], eq:[],
+   why:"הקובייה מקבלת את ההחלטה — ואף תלמיד לא מתווכח איתה. עובד מצוין בכיתות מאתגרות.",
+   steps:["6 תרגילים ממוספרים על הלוח: 1 ג׳אמפינג ג׳ק · 2 סקוואט · 3 פלאנק · 4 ברכיים גבוהות · 5 לאנג׳ · 6 ברפי.",
+          "מטילים קובייה (או משתמשים בקוביית הכושר באפליקציה) — כל התלמידים מבצעים 30 שניות מהתרגיל שיצא.",
+          "6 הטלות = חימום שלם.",
+          "בהטלה האחרונה: התלמיד שהטיל בוחר את התרגיל בעצמו."]},
+];
+
+/* ---------- 1ב. חימום ספציפי לענף ---------- */
+const WU_SPECIFIC=[
+  {id:"ws-foot", em:"⚽", sport:"כדורגל", name:"חימום כדורגל — כדור לכל תלמיד", min:10, grade:["mid","high"], place:["field","hall"], eq:["כדורים","קונוסים"],
+   why:"מגע ראשון בכדור כבר בחימום — התלמידים עושים 200 מגעים לפני שהמשחק בכלל התחיל.",
+   steps:["כדור לכל תלמיד: כדרור חופשי בשטח מסומן, שינוי כיוון בכל שריקה.",
+          "כדרור בתוספת פקודות: ״שמאל בלבד״, ״סוליה״, ״חיצוני״ — 30 שניות לכל פקודה.",
+          "זוגות: 20 מסירות פנים כף רגל במרחק 5 מ׳, ואז 20 בשתי נגיעות.",
+          "אקטיבציה: עמידה על רגל אחת עם מסירה מבן הזוג 30 שנ׳ לכל רגל.",
+          "3 האצות של 20 מ׳ עם כדור ברגל בקצב עולה."]},
+  {id:"ws-basket", em:"🏀", sport:"כדורסל", name:"חימום כדורסל — כדרור וקליעה", min:10, grade:["mid","high"], place:["field","hall"], eq:["כדורים","קונוסים"],
+   why:"בונה קצב מיד: הכיתה בתנועה, כל תלמיד עם כדור, ואף אחד לא עומד בתור.",
+   steps:["כדרור חופשי בחצי מגרש — יד ימין, יד שמאל, החלפה מול הגוף, בין הרגליים.",
+          "כדרור עם ראש למעלה: המורה מרים אצבעות, התלמידים קוראים את המספר בקול.",
+          "זוגות: מסירת חזה, מסירת הקפצה, מסירת בייסבול — 15 כל אחת.",
+          "מיינה־לייאפ בשני טורים, 2 דקות רצופות.",
+          "אקטיבציה: החלקות הגנה בקווי הרוחב, 4 מעברים."]},
+  {id:"ws-volley", em:"🏐", sport:"כדורעף", name:"חימום כדורעף — כתפיים ומגע", min:10, grade:["mid","high"], place:["hall","field"], eq:["כדורים","רשת"],
+   why:"הכתף היא המפרק שנפגע הכי הרבה בכדורעף — הפעלה שלה לפני מסירות עליונות היא לא רשות.",
+   steps:["ריצה קלה 2 דקות + עיגולי כתפיים קדימה ואחורה ×10 לכל כיוון.",
+          "ניידות כתף: פתיחות עם ידיים ישרות, מתיחת חזה בזוגות 20 שניות.",
+          "זוגות: 20 מסירות עליונות, 20 מסירות תחתונות, במרחק 4 מ׳.",
+          "מסירה לעצמי גבוה ואז לבן הזוג — 15 חזרות.",
+          "קפיצות: 10 קפיצות חסימה ליד הרשת עם נחיתה רכה על שתי רגליים."]},
+  {id:"ws-hand", em:"🤾", sport:"כדוריד", name:"חימום כדוריד — מסירות ותנועה", min:10, grade:["mid","high"], place:["hall","field"], eq:["כדורים"],
+   why:"קצב גבוה, הרבה מסירות, והכנה של הכתף לזריקה — שלושת הדברים שהשיעור צריך.",
+   steps:["ריצה עם מסירות בקבוצות של 3 לאורך המגרש, 4 מעברים.",
+          "אקטיבציה כתף: סיבובים חיצוניים בגומייה או בלי, ×15 לכל יד.",
+          "זוגות: מסירת כתף במקום ×20, מסירת הקפצה ×15.",
+          "3 צעדים + זריקה לשער ריק — 5 חזרות לכל תלמיד.",
+          "החלקות הגנה 6 מ׳ ימינה ושמאלה, 4 מעברים."]},
+  {id:"ws-athl", em:"🏃‍♂️", sport:"אתלטיקה", name:"חימום אתלטיקה — טכניקת ריצה", min:10, grade:["mid","high"], place:["field"], eq:["קונוסים"],
+   why:"תרגילי ה-ABC הם גם חימום וגם השיעור עצמו — כל שיעור אתלטיקה מתחיל כך.",
+   steps:["2 הקפות ג׳וגינג קל.",
+          "מוביליטי בתנועה: לאנג׳ הליכה עם סיבוב ×8, בעיטות ישרות ×10, פתיחת ירך בהליכה ×8.",
+          "ABC על 20 מ׳: סקיפ א׳ · סקיפ ב׳ · סקיפ ג׳ · עקבים לישבן · ריצת ברכיים גבוהות · דילוגים.",
+          "האצות: 3×30 מ׳ בעלייה הדרגתית 70→90%, הליכה מלאה חזרה.",
+          "יציאות מזינוק גבוה ×3 — הדגש על 3 הצעדים הראשונים."]},
+  {id:"ws-gym", em:"🤸", sport:"התעמלות", name:"חימום התעמלות — שורש כף יד וליבה", min:10, grade:["mid","high"], place:["hall"], eq:["מזרנים"],
+   why:"שורש כף היד סופג את כל משקל הגוף בהתעמלות — חימום שלו הוא ההבדל בין שיעור לפציעה.",
+   steps:["2 דקות ריצה קלה + דילוגים.",
+          "שורש כף יד: סיבובים, מתיחה קדימה ואחורה, לחיצות קלות על הרצפה — 60 שניות סה״כ.",
+          "ליבה: פלאנק 20 שנ׳, hollow hold 15 שנ׳, סופרמן ×10.",
+          "ניידות: גשר כתפיים ×10, חתול־פרה ×10, ישיבת פרפר 30 שנ׳.",
+          "התקדמות: 5 גלגולים קדימה על מזרן בקצב איטי ומבוקר."]},
+  {id:"ws-tennis", em:"🎾", sport:"מטקות / טניס", name:"חימום מחבט — מגע ותיאום", min:9, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   why:"תיאום עין־יד לפני עבודה עם מחבט — התלמידים מגיעים למשחק כשהם כבר קולעים.",
+   steps:["ריצה קלה 2 דקות + עיגולי כתפיים ומרפקים.",
+          "כדור לכל תלמיד: הקפצה עצמית עם המחבט 20 פעם, ואז 20 בצד השני של המחבט.",
+          "זוגות במרחק 4 מ׳: מסירות בהקפצה אחת, 30 רצופות.",
+          "אתגר: כמה מסירות רצופות בלי נפילה בדקה.",
+          "מתיחת שורש כף יד ואמה 20 שניות לכל כיוון."]},
+  {id:"ws-fit", em:"💪", sport:"כושר גופני", name:"חימום לפני עבודת כוח", min:9, grade:["mid","high"], place:["field","hall","gym"], eq:[],
+   why:"אקטיבציה של הישבן והליבה לפני סקוואטים ולאנג׳ים מונעת קריסת ברכיים פנימה.",
+   steps:["3 דקות אירובי קל — ג׳וגינג או חבל.",
+          "אקטיבציה: גשר ישבן ×15, קלאם (פתיחת ברך בשכיבת צד) ×12 לכל צד, בירד־דוג ×8 לכל צד.",
+          "ניידות: ישיבה עמוקה 30 שנ׳, נדנוד קרסול ×10, סיבוב בית חזה ×8.",
+          "תרגול תבנית: 10 סקוואטים במשקל גוף לאט (3 שניות ירידה) — עם משוב טכניקה.",
+          "5 קפיצות אנכיות עם נחיתה רכה כדי להעיר את מערכת העצבים."]},
+  {id:"ws-run", em:"🫁", sport:"סבולת", name:"חימום לפני ריצת סבולת / ביפ", min:9, grade:["mid","high"], place:["field","hall"], eq:["קונוסים"],
+   why:"מכין בדיוק לפרוטוקול הביפ: היכרות עם המרחק, עם הקצב ועם צליל הביפ — לפני שהמבחן מתחיל.",
+   steps:["2 דקות הליכה מהירה + 2 דקות ג׳וגינג קל.",
+          "מוביליטי בתנועה: פתיחת ירך, בעיטות ישרות, לאנג׳ עם סיבוב — 20 מ׳ לכל תרגיל.",
+          "היכרות עם המרחק: 4 מעברים של 20 מ׳ בקצב הביפ הראשון (איטי מאוד — רוב התלמידים רצים מהר מדי בהתחלה).",
+          "2 האצות של 20 מ׳ ב-85%.",
+          "3 דקות שקט לפני הזינוק: שתייה, נשימה, הסבר קצר על מה עוצר את המבחן."]},
+  {id:"ws-danc", em:"💃", sport:"מחול ותנועה", name:"חימום תנועה וקצב", min:9, grade:["mid","high"], place:["hall","class"], eq:["רמקול"],
+   why:"מחבר בין חימום לבין שפת התנועה של השיעור — הכיתה מגיעה לחלק העיקרי כשהיא כבר בקצב.",
+   steps:["הליכה בחלל למוזיקה, שינוי כיוון וגובה בכל 8 ספירות.",
+          "איזולציות: ראש, כתפיים, בית חזה, אגן — 8 ספירות לכל חלק.",
+          "רצף בסיסי של 8 תנועות שהמורה מדגים, חוזרים 4 פעמים.",
+          "בזוגות: כל תלמיד מוסיף תנועה אחת לרצף.",
+          "מתיחות דינמיות בקצב: הנפות רגליים, פתיחות ידיים, גלגול עמוד שדרה."]},
+  {id:"ws-swim", em:"🏊", sport:"שחייה (יבשה)", name:"חימום יבשה לפני מים", min:8, grade:["mid","high"], place:["field","hall"], eq:[],
+   why:"חימום יבשה קצר לפני הכניסה למים מוריד התכווצויות ומכין את הכתף למחזור היד.",
+   steps:["2 דקות ריצה קלה או קפיצות במקום.",
+          "עיגולי כתף גדולים קדימה ואחורה ×10, ואז ״חתירה יבשה״ — סימולציית מחזור יד ×20.",
+          "מתיחת חזה בזוגות 20 שניות, פתיחת גב עליון.",
+          "קרסוליים: כיפוף ופשיטה ×15 לכל רגל, סיבובים ×10.",
+          "רענון כללי בטיחות מים לפני הכניסה — ולא אחריה."]},
+  {id:"ws-ult", em:"🥏", sport:"אולטימטיבי / פריזבי", name:"חימום פריזבי — זריקה וקליטה", min:9, grade:["mid","high"], place:["field"], eq:["פריזבי"],
+   why:"רוב התלמידים לא זרקו פריזבי מעולם — 5 דקות של זריקות לפני המשחק חוסכות שיעור מתסכל.",
+   steps:["ריצה קלה 2 דקות עם שינויי כיוון.",
+          "זוגות במרחק 5 מ׳: זריקת בקהנד (Backhand) — 20 זריקות לכל תלמיד.",
+          "זריקת פורהנד (Flick) — 15 זריקות, גם אם לא מדויקות.",
+          "קליטה בשתי ידיים (״לסת תנין״) — 10 חזרות, ואז קליטה תוך כדי ריצה.",
+          "אקטיבציה: 4 שינויי כיוון חדים (cut) עם קליטה בסוף."]},
+  {id:"ws-def", em:"🛡", sport:"משחקי מגע", name:"חימום לפני משחק מגע", min:9, grade:["high"], place:["field","hall"], eq:["וסטים"],
+   why:"משחק עם מגע גוף דורש הכנת קרסול, ברך וכתף — ותיאום ציפיות לגבי מה מותר.",
+   steps:["3 דקות ג׳וגינג עם שינויי כיוון בשריקה.",
+          "יציבות: עמידה על רגל אחת 30 שנ׳ לכל רגל, ואז עם דחיפה קלה מבן זוג.",
+          "נחיתות: 10 קפיצות עם עצירה מלאה בנחיתה — ״נחיתה שקטה״.",
+          "מגע מבוקר: דחיפות כתף בזוגות בעמידה יציבה, 10 לכל צד.",
+          "תיאום כללים: המורה מסביר בדיוק מה מותר ומה עוצר את המשחק — לפני הכדור הראשון."]},
+  {id:"ws-cold", em:"🥶", sport:"מזג אוויר קר", name:"חימום ליום קר", min:11, grade:["mid","high"], place:["field"], eq:[],
+   why:"בקור השרירים מתקררים מהר — החימום צריך להיות ארוך יותר, רציף, ובלי עצירות ארוכות להסברים.",
+   steps:["4 דקות תנועה רציפה בלי עצירה — ג׳וגינג, דילוגים, צעדי צד.",
+          "כל ההסברים נאמרים תוך כדי תנועה, לא בעמידה.",
+          "מוביליטי דינמי בלבד (בלי מתיחות סטטיות ארוכות): הנפות רגליים, לאנג׳ הליכה, פתיחות ידיים.",
+          "4 האצות קצרות של 20 מ׳ להעלאת חום הגוף.",
+          "מתחילים את החלק העיקרי מיד — בלי הפסקה של יותר מדקה."]},
+];
+
+/* ---------- 1ג. משחקי חימום ---------- */
+const WU_GAMES=[
+  {id:"wg-tag", em:"🏃", name:"תופסת זוגות", min:7, grade:["mid","high"], place:["field","hall"], eq:["וסטים"],
+   who:"כל הכיתה · 12–40",
+   why:"החימום הכי מהיר להפעלה שיש: אין הסבר, אין ציוד, וכל הכיתה בדופק גבוה תוך 30 שניות.",
+   steps:["2 תופסים עם וסט מתחילים; כל מי שנתפס מצטרף לתופסים.",
+          "הנתפסים מחזיקים ידיים עם התופס שתפס אותם — ״שרשרת״ שגדלה.",
+          "כשהשרשרת מגיעה ל-4, היא מתפצלת לשתי שרשראות של 2.",
+          "הסיבוב נגמר כשנשארו 3 תלמידים חופשיים — הם התופסים בסיבוב הבא."],
+   vars:["מגבילים את השטח כדי לקצר את הסיבוב.","הנתפסים הופכים ל״שערים״ שאפשר לשחרר דרכם."]},
+  {id:"wg-freeze", em:"🧊", name:"תופסת קפואה עם שחרור", min:7, grade:["mid"], place:["field","hall"], eq:[],
+   who:"כל הכיתה · 12–40",
+   why:"אף אחד לא יוצא מהמשחק — התלמיד ה״חלש״ ממשיך לזוז גם אחרי שנתפס.",
+   steps:["3 תופסים; מי שנתפס קופא בפיסוק עם ידיים למעלה.",
+          "חבר משחרר בזחילה מתחת לרגליים של הקפוא.",
+          "מחליפים תופסים כל 90 שניות.",
+          "בסבב האחרון: השחרור דורש 3 סקוואטים משותפים."],
+   vars:["שחרור בכף יד בלבד לכיתות שלא נוח להן עם זחילה.","תופס נוסף כל 30 שניות כדי להאיץ את הסיום."]},
+  {id:"wg-tail", em:"🐕", name:"זנבות", min:7, grade:["mid","high"], place:["field","hall"], eq:["וסטים"],
+   who:"כל הכיתה · 10–40",
+   why:"תחרות אישית שמייצרת ריצה מקסימלית בלי שאף אחד מרגיש שהוא רץ ריצת חובה.",
+   steps:["לכל תלמיד ״זנב״ (סרט או וסט) תחוב בגומיית המכנס מאחור.",
+          "כולם נגד כולם: מושכים זנבות של אחרים ושומרים על שלכם.",
+          "מי שאיבד זנב מבצע 5 ג׳אמפינג ג׳ק ומקבל זנב חדש — אף אחד לא יושב בצד.",
+          "אחרי 3 דקות: מי אסף הכי הרבה זנבות."],
+   vars:["בזוגות — שומרים אחד על השני.","זנב אחד לכל זוג, השני מגן."]},
+  {id:"wg-cones", em:"🔺", name:"קונוסים למעלה למטה", min:6, grade:["mid","high"], place:["field","hall"], eq:["קונוסים"],
+   who:"שתי קבוצות · 12–40",
+   why:"6 דקות של ריצה בעצימות גבוהה שהתלמידים מבקשים לחזור עליהן — ואפס הסברים.",
+   steps:["פורסים 30 קונוסים בשטח, חצי עומדים וחצי הפוכים.",
+          "קבוצה א׳ מעמידה קונוסים, קבוצה ב׳ הופכת אותם.",
+          "3 סבבים של 60–90 שניות; בסוף כל סבב סופרים.",
+          "אף אחד לא נוגע ביד של השני — נוגעים רק בקונוס."],
+   vars:["מוסיפים כדור לכל קבוצה שחייב לעבור ביניהם.","סבב אחרון: כל קונוס דורש סקוואט לפני ההיפוך."]},
+  {id:"wg-island", em:"🏝", name:"איים בטוחים", min:7, grade:["mid"], place:["field","hall"], eq:["חישוקים"],
+   who:"כל הכיתה · 12–36",
+   why:"משלב ריצה עם קבלת החלטות מהירה — והפחתת החישוקים יוצרת שיתוף פעולה אמיתי.",
+   steps:["פורסים חישוקים בשטח — ״איים״ שבהם אי אפשר להיתפס.",
+          "תלמידים רצים חופשי; בשריקה כולם חייבים למצוא אי.",
+          "אפשר לעמוד באי אחד בכמה תלמידים — אבל כל כף רגל חייבת לגעת.",
+          "בכל סבב מורידים חישוק אחד — עד שכל הכיתה על 3 חישוקים."],
+   vars:["בכל סבב סוג תנועה אחר: דילוג, צעדי צד, ריצה לאחור.","מי שלא הספיק לאי מבצע 5 קפיצות ונשאר במשחק."]},
+  {id:"wg-number", em:"🔢", name:"מלחמת מספרים", min:8, grade:["mid","high"], place:["field","hall"], eq:["כדורים","קונוסים"],
+   who:"שתי קבוצות · 12–30",
+   why:"רגע ההמתנה בין הקריאות הוא בדיוק מה שמכניס מתח לשיעור — והריצה יוצאת מקסימלית.",
+   steps:["שתי קבוצות יושבות בשורות מול, כל תלמיד עם מספר.",
+          "כדור באמצע. המורה קורא מספר — שני התלמידים רצים לכדור.",
+          "מי שהביא את הכדור לקו הבית שלו — נקודה לקבוצה.",
+          "אפשר לקרוא שני מספרים יחד כדי לייצר 2 נגד 2."],
+   vars:["קריאת פעולה במקום מספר: ״כל מי שנועל נעליים לבנות״.","הכדור חייב להיות מכודרר ולא מוחזק ביד."]},
+  {id:"wg-chain", em:"🔗", name:"שרשרת אנושית", min:7, grade:["mid","high"], place:["field","hall"], eq:[],
+   who:"כל הכיתה · 12–40",
+   why:"תופסת עם שיתוף פעולה מובנה — קבוצה שלא מתאמת לא תופסת אף אחד.",
+   steps:["מתחילים בזוג תופסים שמחזיקים ידיים.",
+          "כל נתפס מצטרף לשרשרת; אפשר לתפוס רק עם הידיים החיצוניות.",
+          "השרשרת חייבת להישאר שלמה — שרשרת שנקרעת חייבת להתחבר לפני שהיא תופסת שוב.",
+          "כשהשרשרת מגיעה ל-6 היא מתפצלת לשתיים."],
+   vars:["שתי שרשראות מתחילות בו זמנית — תחרות מי תופסת יותר.","השרשרת חייבת לקרוא בקול את שם מי שהיא רודפת אחריו."]},
+  {id:"wg-hunter", em:"🎯", name:"צייד וטרף בשלשות", min:7, grade:["mid","high"], place:["field","hall"], eq:[],
+   who:"כל הכיתה · 15–39",
+   why:"תופסת עם עומק טקטי — כל שלישייה חייבת לתקשר, וזה קורה מעצמו.",
+   steps:["מתחלקים לשלשות: לכל שלישייה ״צייד״, ״טרף״ ו״שומר״.",
+          "הצייד מנסה לגעת בטרף; השומר חוסם בגוף בלי מגע יד.",
+          "60 שניות ואז מחליפים תפקידים — כל תלמיד עובר את שלושת התפקידים.",
+          "3 סבבים מלאים."],
+   vars:["מקטינים את השטח לכל שלישייה כדי להעלות עצימות.","השומר יכול רק להחליק ולא לרוץ."]},
+  {id:"wg-ball", em:"⚽", name:"תופסת כדור מתגלגל", min:7, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   who:"כל הכיתה · 12–30",
+   why:"חימום שכבר עובד על שליטה בכדור — התלמידים מגיעים לחלק העיקרי עם מגע חם.",
+   steps:["2–3 תלמידים עם כדור מנסים לגעת באחרים על ידי גלגול הכדור ברגל.",
+          "פגיעה מתחת לברך בלבד — אין בעיטות באוויר.",
+          "מי שנפגע לוקח כדור ומצטרף לתופסים.",
+          "הסיבוב נגמר כשנשארו 3 חופשיים."],
+   vars:["בכדורסל: התופס חייב לכדרר בזמן שהוא נוגע.","בכדוריד: מגע רק ביד הלא־דומיננטית."]},
+  {id:"wg-rps", em:"✊", name:"אבן נייר ומספריים רץ", min:6, grade:["mid"], place:["field","hall"], eq:["קונוסים"],
+   who:"שתי קבוצות · 12–36",
+   why:"אין רגע מת: מי שהפסיד רץ, מי שניצח רץ — וכולם צוחקים.",
+   steps:["שתי קבוצות בשני קצוות, קו אמצע מסומן.",
+          "כל קבוצה בוחרת בסתר אבן/נייר/מספריים.",
+          "בשריקה — הקבוצות נפגשות באמצע ומראות. המנצחת רודפת, המפסידה בורחת לקו הבית.",
+          "כל מי שנתפס עובר לקבוצה השנייה. 6 סבבים."],
+   vars:["בזוגות במקום קבוצות.","סוג תנועה משתנה כל סבב: דילוג, צעדי צד."]},
+  {id:"wg-relay", em:"🏁", name:"שליחים עם אתגר", min:8, grade:["mid","high"], place:["field","hall"], eq:["קונוסים","חישוקים"],
+   who:"4–6 קבוצות · 12–40",
+   why:"מבנה מוכר שמייצר עצימות גבוהה, וקל להתאים בו את המשימה לנושא של השיעור.",
+   steps:["4 שורות מאחורי קו הזינוק, קונוס במרחק 15 מ׳.",
+          "סבב 1 — ריצה רגילה סביב הקונוס וחזרה, מסירת מקל/יד.",
+          "סבב 2 — בדרך הלוך דילוג, בחזור ריצה לאחור.",
+          "סבב 3 — משימה באמצע: 5 סקוואטים בחישוק לפני החזרה.",
+          "סבב 4 — הקבוצה בוחרת את המשימה בעצמה."],
+   vars:["מוסיפים כדור שצריך לכדרר.","הקבוצה כולה רצה יחד ומחזיקה ידיים."]},
+  {id:"wg-ninja", em:"🥷", name:"נינג׳ה סטופ", min:6, grade:["mid"], place:["field","hall","class"], eq:["רמקול"],
+   who:"כל הכיתה · 10–40",
+   why:"מדהים כפתיחה: מוריד רעש, מעלה קשב, ומעלה דופק — הכל באותן 6 דקות.",
+   steps:["מוזיקה — כולם בתנועה בשטח בסוג התנועה שהמורה הכריז.",
+          "המוזיקה נעצרת — קופאים לגמרי. מי שזז, מבצע 3 ג׳אמפינג ג׳ק וממשיך.",
+          "בכל עצירה המורה מכריז תנוחה: פלאנק, עמידת עץ, סקוואט נמוך.",
+          "8 סבבים, כל סבב קצר יותר מהקודם."],
+   vars:["התלמידים בתורות מכריזים את התנוחה.","מוסיפים ״הפוך״: כשהמוזיקה עוצרת — זזים, כשהיא מתנגנת — קופאים."]},
+  {id:"wg-crab", em:"🦀", name:"תופסת סרטן", min:7, grade:["mid"], place:["hall","field"], eq:["מזרנים"],
+   who:"כל הכיתה · 10–30",
+   why:"מפעיל ליבה, כתפיים וישבן בלי אף תרגיל כוח רשמי — התלמידים לא שמים לב שהם מתאמנים.",
+   steps:["כולם בעמידת סרטן (ישיבה על הידיים והרגליים, בטן למעלה).",
+          "2 תופסים נעים באותה תנוחה ומנסים לגעת ברגל של אחרים.",
+          "מי שנתפס עובר לתנוחת גשר עד ששחרר אותו חבר במעבר מתחתיו.",
+          "90 שניות לסבב, 3 סבבים עם החלפת תופסים."],
+   vars:["בזחילת דוב במקום עמידת סרטן.","שטח קטן יותר כדי להעלות עצימות."]},
+  {id:"wg-bomb", em:"💣", name:"פצצה מתקתקת", min:6, grade:["mid","high"], place:["field","hall","class"], eq:["כדורים"],
+   who:"מעגלים של 6–10",
+   why:"מתח גבוה, זמן קצר, ואפס ריצה — מושלם לחימום בשטח מוגבל או ביום גשם.",
+   steps:["מעגלים של 8. כדור עובר במסירות מהירות.",
+          "המורה מפעיל טיימר בזמן אקראי (30–60 שניות).",
+          "כשהטיימר צופר — מי שמחזיק את הכדור מבצע 5 ברפי, וכולם איתו.",
+          "6 סבבים; בכל סבב מוסיפים כדור נוסף למעגל."],
+   vars:["מוסיפים כלל: אסור למסור למי שמסר לך.","המסירה חייבת להיות בהקפצה."]},
+  {id:"wg-color", em:"🎨", name:"פינות צבעים", min:7, grade:["mid"], place:["field","hall"], eq:["קונוסים"],
+   who:"כל הכיתה · 12–40",
+   why:"מחלק את הכיתה לקבוצות תוך כדי ריצה, בלי רגע אחד של עמידה בשורה.",
+   steps:["4 פינות עם קונוסים בצבעים שונים.",
+          "התלמידים רצים חופשי; המורה קורא צבע — כולם רצים לפינה, ומבצעים את התרגיל שרשום שם.",
+          "בכל קריאה מוסיפים משימה: ריצה + סקוואטים, ריצה + פלאנק.",
+          "בקריאה האחרונה — הפינה שבה עמדת היא הקבוצה שלך להמשך."],
+   vars:["צבע כפול — חצי לכל פינה.","קריאת שני צבעים = מסלול בין שתי פינות."]},
+  {id:"wg-king", em:"👑", name:"מלך המגרש (חימום)", min:8, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   who:"כל הכיתה · 12–30",
+   why:"תחרות מהירה שמעלה דופק ומכניסה מיד לרוח המשחק של החלק העיקרי.",
+   steps:["מסמנים ריבוע לכל תלמיד (או זוג) בתוך שטח גדול.",
+          "המשחק: מסירת כדור לריבוע של מישהו אחר — הוא חייב לקלוט לפני הקפצה שנייה.",
+          "מי שלא קלט — יורד ריבוע אחד, מי שהצליח — עולה.",
+          "3 דקות; ״המלך״ הוא מי שסיים בריבוע העליון."],
+   vars:["מסירה ברגל לשיעור כדורגל.","מסירה עליונה לשיעור כדורעף."]},
+];
+
+/* ============================================================
+   2. החלק העיקרי — מאגר תרגילים לבחירה
+   ------------------------------------------------------------
+   cat  — קטגוריה (ראה MAIN_CATS)
+   lvl  — רמות שבהן התרגיל מתאים: 1 קל · 2 בינוני · 3 מתקדם
+   dose — מינון מוצע לכל רמה
+   easy/hard — התאמה למטה ולמעלה במקום (מודל STEP)
+   ============================================================ */
+const MAIN_CATS=[
+  ["str",    "כוח — משקל גוף", "💪"],
+  ["strEq",  "כוח — עם ציוד",  "🏋️"],
+  ["core",   "ליבה ויציבות",   "🧱"],
+  ["cardio", "אירובי ואינטרוולים","🫁"],
+  ["agil",   "זריזות ומהירות", "⚡"],
+  ["ball",   "מיומנויות כדור", "🏐"],
+  ["mob",    "ניידות וגמישות", "🧘"],
+  ["coop",   "אתגר קבוצתי",    "🤝"]
+];
+
+const DRILLS=[
+  /* ---------- כוח — משקל גוף ---------- */
+  {id:"d-squat", em:"🦵", name:"סקוואט משקל גוף", cat:"str", mus:"רגליים · ישבן", eq:[], lvl:[1,2,3],
+   dose:{1:"2×8",2:"3×12",3:"4×20"}, cue:"ברכיים בכיוון האצבעות, חזה קדימה, ירידה עד 90°.",
+   easy:"סקוואט לספסל — נוגעים ועולים.", hard:"סקוואט קפיצה, או 3 שניות ירידה איטית."},
+  {id:"d-push", em:"🙌", name:"שכיבות סמיכה", cat:"str", mus:"חזה · ידיים · ליבה", eq:[], lvl:[1,2,3],
+   dose:{1:"2×6",2:"3×12",3:"4×20"}, cue:"גוף קרש אחד — אגן לא שוקע ולא בולט.",
+   easy:"ידיים על ספסל או קיר — ככל שגבוה יותר, קל יותר.", hard:"ידיים צרות, או עצירה של 2 שניות למטה."},
+  {id:"d-lunge", em:"🚶", name:"לאנג׳ הליכה", cat:"str", mus:"רגליים · שיווי משקל", eq:[], lvl:[1,2,3],
+   dose:{1:"2×8 לכל רגל",2:"3×10",3:"3×16"}, cue:"שתי הברכיים ב-90°, גו זקוף, ברך אחורית לא נוגעת בכוח.",
+   easy:"לאנג׳ במקום עם יד על קיר לאיזון.", hard:"לאנג׳ עם קפיצת החלפה, או משקולת ביד."},
+  {id:"d-glute", em:"🌉", name:"גשר ישבן", cat:"str", mus:"ישבן · גב תחתון", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×10",2:"3×15",3:"3×20 (רגל אחת)"}, cue:"דוחפים דרך העקבים, סוחטים ישבן — בלי קשת בגב.",
+   easy:"טווח קטן יותר, החזקה של שנייה בלבד.", hard:"רגל אחת, או החזקה של 3 שניות למעלה."},
+  {id:"d-wall", em:"🧱", name:"כיסא קיר", cat:"str", mus:"רגליים", eq:[], lvl:[1,2,3],
+   dose:{1:"3×20 שנ׳",2:"3×40 שנ׳",3:"3×60 שנ׳"}, cue:"ירכיים מקבילות לרצפה, גב צמוד לקיר, ידיים לא על הברכיים.",
+   easy:"זווית גבוהה יותר — פחות כיפוף ברך.", hard:"הרמת רגל אחת לחילופין כל 5 שניות."},
+  {id:"d-step", em:"📦", name:"עליות לספסל", cat:"str", mus:"רגליים · שיווי משקל", eq:["ספסל"], lvl:[1,2,3],
+   dose:{1:"2×8 לכל רגל",2:"3×12",3:"3×16 מהיר"}, cue:"דוחפים מהרגל שעל הספסל — לא קופצים מהרגל התחתונה.",
+   easy:"ספסל נמוך יותר או מדרגה.", hard:"עלייה עם הרמת ברך גבוהה בסוף, או משקולת ביד."},
+  {id:"d-dip", em:"💺", name:"דיפים על ספסל", cat:"str", mus:"טרייספס · כתפיים", eq:["ספסל"], lvl:[1,2,3],
+   dose:{1:"2×6",2:"3×10",3:"3×15"}, cue:"מרפקים אחורה וצמודים, כתפיים רחוקות מהאוזניים.",
+   easy:"ברכיים כפופות, רגליים קרוב לגוף.", hard:"רגליים ישרות ומורמות על ספסל שני."},
+  {id:"d-pike", em:"🔺", name:"שכיבות פייק", cat:"str", mus:"כתפיים", eq:[], lvl:[2,3],
+   dose:{2:"3×8",3:"4×12"}, cue:"אגן גבוה, ראש יורד בין הידיים.",
+   easy:"אגן נמוך יותר — קרוב לשכיבת סמיכה רגילה.", hard:"רגליים על ספסל — עמידת ידיים מודרכת."},
+  {id:"d-bear", em:"🐻", name:"זחילת דוב", cat:"str", mus:"כל הגוף · ליבה", eq:[], lvl:[1,2,3],
+   dose:{1:"3×6 מ׳",2:"3×10 מ׳",3:"4×15 מ׳ כולל לאחור"}, cue:"ברכיים מרחפות סנטימטר מהרצפה, גב שטוח.",
+   easy:"זחילה על הברכיים.", hard:"זחילה עם ספל מים על הגב — בלי לשפוך."},
+  {id:"d-calf", em:"🦶", name:"עליות עקבים", cat:"str", mus:"שוקיים", eq:[], lvl:[1,2,3],
+   dose:{1:"2×12",2:"3×20",3:"3×25 (רגל אחת)"}, cue:"עלייה איטית, שנייה למעלה, ירידה מבוקרת.",
+   easy:"שתי רגליים עם יד על הקיר.", hard:"רגל אחת מקצה מדרגה."},
+  {id:"d-nordic", em:"🦵", name:"נורדיק המסטרינג (בזוגות)", cat:"str", mus:"האמסטרינג", eq:["מזרנים"], lvl:[2,3],
+   dose:{2:"3×5",3:"3×8"}, cue:"ירידה איטית ככל האפשר, ידיים מוכנות לבלימה. התרגיל שמוריד קרעי האמסטרינג.",
+   easy:"טווח קצר — יורדים רק 20°.", hard:"ירידה של 5 שניות עד הרצפה."},
+  {id:"d-sldl", em:"⚖️", name:"דדליפט רגל אחת (משקל גוף)", cat:"str", mus:"ישבן · שיווי משקל", eq:[], lvl:[2,3],
+   dose:{2:"3×8 לכל רגל",3:"3×12"}, cue:"הגוף והרגל האחורית יורדים כמו קרש אחד, האגן לא מסתובב.",
+   easy:"אצבע הרגל האחורית נוגעת ברצפה לאיזון.", hard:"עיניים עצומות, או משקולת ביד הנגדית."},
+
+  /* ---------- כוח — עם ציוד ---------- */
+  {id:"d-goblet", em:"🏺", name:"סקוואט גביע", cat:"strEq", mus:"רגליים · ליבה", eq:["משקולות יד"], lvl:[1,2,3],
+   dose:{1:"2×8",2:"3×12",3:"4×15"}, cue:"המשקולת צמודה לחזה, מרפקים בתוך הברכיים בתחתית.",
+   easy:"משקולת קלה או בלי משקולת בכלל.", hard:"עצירה של 2 שניות בתחתית."},
+  {id:"d-row", em:"🚣", name:"חתירה עם משקולת", cat:"strEq", mus:"גב · ביצפס", eq:["משקולות יד"], lvl:[1,2,3],
+   dose:{1:"2×10",2:"3×12",3:"4×12 כבד"}, cue:"מרפק נשלף אחורה וצמוד לגוף, השכמה נסחטת בסוף.",
+   easy:"תמיכה עם יד על ספסל.", hard:"חתירה בשתי ידיים בכפיפה, בלי תמיכה."},
+  {id:"d-press", em:"⬆️", name:"לחיצת כתפיים", cat:"strEq", mus:"כתפיים · טרייספס", eq:["משקולות יד"], lvl:[1,2,3],
+   dose:{1:"2×8",2:"3×12",3:"4×12"}, cue:"ליבה מהודקת — בלי קשת בגב התחתון.",
+   easy:"לחיצה בישיבה עם משענת.", hard:"לחיצה ביד אחת לחילופין — אתגר לליבה."},
+  {id:"d-rdl", em:"🪝", name:"דדליפט רומני", cat:"strEq", mus:"ישבן · האמסטרינג", eq:["משקולות יד"], lvl:[2,3],
+   dose:{2:"3×10",3:"4×12"}, cue:"הירך נעה אחורה, הגב נשאר ישר — המשקולות מחליקות על הרגליים.",
+   easy:"טווח קצר עד הברך בלבד.", hard:"רגל אחת, או עצירה של 2 שניות בתחתית."},
+  {id:"d-band", em:"🎗", name:"משיכה בגומייה", cat:"strEq", mus:"גב · ביצפס", eq:["גומיית התנגדות"], lvl:[1,2,3],
+   dose:{1:"2×12",2:"3×15",3:"3×20"}, cue:"המשיכה מתחילה מהשכמות ולא מהזרועות.",
+   easy:"גומייה חלשה יותר או אחיזה קרובה לעיגון.", hard:"גומייה חזקה + עצירה של שנייה בסוף המשיכה."},
+  {id:"d-pull", em:"🧗", name:"מתח / מתח בעזרה", cat:"strEq", mus:"גב · ביצפס", eq:["מוט מתח"], lvl:[2,3],
+   dose:{2:"3×3 בעזרה",3:"4×8"}, cue:"מושכים את החזה למוט, ירידה מבוקרת עד יישור מלא.",
+   easy:"גומייה כעזרה, או תלייה איזומטרית 15 שניות.", hard:"ירידה איטית של 5 שניות (אקסצנטרי)."},
+  {id:"d-kb", em:"🔔", name:"נדנוד קטלבל", cat:"strEq", mus:"ישבן · גב · ליבה", eq:["קטלבל"], lvl:[2,3],
+   dose:{2:"4×10",3:"5×15"}, cue:"התנועה מהירך ולא מהזרועות — דחיפת אגן נפיצה.",
+   easy:"נדנוד עד גובה החזה בלבד, משקל קל.", hard:"נדנוד אמריקאי עד מעל הראש."},
+  {id:"d-carry", em:"🧳", name:"הליכת חקלאי", cat:"strEq", mus:"ליבה · אחיזה", eq:["משקולות יד"], lvl:[1,2,3],
+   dose:{1:"3×15 מ׳",2:"4×25 מ׳",3:"4×40 מ׳ כבד"}, cue:"כתפיים אחורה ולמטה, צעדים קטנים ויציבים.",
+   easy:"משקל קל ומרחק קצר.", hard:"משקל ביד אחת בלבד — הליבה עובדת כפול."},
+  {id:"d-medball", em:"🎯", name:"זריקת כדור כוח לקיר", cat:"strEq", mus:"כל הגוף · כוח מתפרץ", eq:["כדור כוח"], lvl:[2,3],
+   dose:{2:"4×8",3:"5×10"}, cue:"הכוח מגיע מהרגליים ומהירך — הידיים רק מעבירות.",
+   easy:"כדור קל, זריקה מהחזה בלבד.", hard:"זריקה מעל הראש בסיבוב, מרחק גדול יותר."},
+
+  /* ---------- ליבה ---------- */
+  {id:"d-plank", em:"🪵", name:"פלאנק", cat:"core", mus:"ליבה · כתפיים", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"3×20 שנ׳",2:"3×40 שנ׳",3:"4×60 שנ׳"}, cue:"מרפקים מתחת לכתפיים, בטן אסופה, נשימה רציפה.",
+   easy:"פלאנק על הברכיים או בשיפוע על ספסל.", hard:"הרמת יד או רגל לחילופין כל 5 שניות."},
+  {id:"d-splank", em:"📐", name:"פלאנק צד", cat:"core", mus:"ליבה · אלכסונים", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×15 שנ׳",2:"3×30 שנ׳",3:"3×45 שנ׳"}, cue:"קו ישר מהראש לקרסול — הישבן לא נופל ולא בולט.",
+   easy:"ברך תחתונה על הרצפה.", hard:"הרמת רגל עליונה, או הורדה והרמה של האגן ×10."},
+  {id:"d-deadbug", em:"🐞", name:"Dead bug", cat:"core", mus:"ליבה · יציבות", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×6 לכל צד",2:"3×10",3:"3×14 איטי"}, cue:"הגב התחתון צמוד לרצפה לכל אורך התרגיל.",
+   easy:"רק רגליים, ידיים נשארות למעלה.", hard:"תנועה של 4 שניות לכל חזרה."},
+  {id:"d-birddog", em:"🐦", name:"Bird dog", cat:"core", mus:"ליבה · יציבות", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×6 לכל צד",2:"3×10",3:"3×12 עם עצירה"}, cue:"האגן לא מסתובב — יד ורגל נגדיות מתארכות יחד.",
+   easy:"רק רגל, בלי יד.", hard:"עצירה של 3 שניות + נגיעת מרפק בברך בין חזרות."},
+  {id:"d-hollow", em:"🌙", name:"Hollow hold", cat:"core", mus:"בטן", eq:["מזרנים"], lvl:[2,3],
+   dose:{2:"3×20 שנ׳",3:"4×35 שנ׳"}, cue:"הגב התחתון דבוק לרצפה — אם הוא מתרומם, מקצרים את המנוף.",
+   easy:"ברכיים כפופות, ידיים לצד הגוף.", hard:"ידיים מעל הראש ורגליים ישרות ונמוכות."},
+  {id:"d-bicycle", em:"🚲", name:"כפיפות אופניים", cat:"core", mus:"בטן · אלכסונים", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×10",2:"3×16",3:"3×24 איטי"}, cue:"מרפק פוגש ברך נגדית באיטיות — בלי משיכה בצוואר.",
+   easy:"רק סיבוב פלג גוף עליון, רגליים על הרצפה.", hard:"תנועה של 3 שניות לכל צד."},
+  {id:"d-superman", em:"🦸", name:"סופרמן", cat:"core", mus:"גב תחתון", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×8",2:"3×12",3:"3×20"}, cue:"מרימים ידיים ורגליים יחד, מבט לרצפה — הצוואר בהמשך לגב.",
+   easy:"יד ורגל נגדיות בלבד.", hard:"החזקה של 3 שניות בכל חזרה."},
+  {id:"d-rtwist", em:"🔄", name:"סיבובי רוסי", cat:"core", mus:"בטן · אלכסונים", eq:["כדורים"], lvl:[1,2,3],
+   dose:{1:"2×10",2:"3×20",3:"3×30 עם כדור"}, cue:"הסיבוב מגיע מבית החזה, לא רק מהידיים.",
+   easy:"רגליים על הרצפה, בלי כדור.", hard:"רגליים מורמות + כדור כוח."},
+  {id:"d-coreCirc", em:"⭕", name:"מעגל ליבה — 4 תרגילים", cat:"core", mus:"ליבה מלאה", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2 סבבים 20/10",2:"3 סבבים 30/15",3:"4 סבבים 40/20"},
+   cue:"פלאנק · כפיפות אופניים · סופרמן · פלאנק צד — ברצף, בלי מנוחה בין תרגילים.",
+   easy:"סבב אחד + מנוחה מלאה של דקה.", hard:"מוסיפים hollow hold כתחנה חמישית."},
+
+  /* ---------- אירובי ואינטרוולים ---------- */
+  {id:"d-tabata", em:"⏱", name:"טאבטה — 8×20/10", cat:"cardio", mus:"כל הגוף", eq:[], lvl:[2,3],
+   dose:{2:"סבב אחד (4 דק׳)",3:"2 סבבים עם דקה מנוחה"},
+   cue:"20 שניות מאמץ מרבי, 10 מנוחה — 8 פעמים. תרגיל אחד לכל סבב.",
+   easy:"30 שניות מנוחה במקום 10.", hard:"מחליפים תרגיל בכל סבב, בלי הפסקה."},
+  {id:"d-emom", em:"🕐", name:"EMOM — בכל דקה בשעון", cat:"cardio", mus:"כל הגוף", eq:[], lvl:[2,3],
+   dose:{2:"8 דקות",3:"12 דקות"},
+   cue:"בתחילת כל דקה מבצעים את המכסה (למשל 10 סקוואטים + 5 ברפי) — מה שנשאר מהדקה הוא המנוחה.",
+   easy:"מכסה קטנה יותר — 6 חזרות בלבד.", hard:"מוסיפים חזרה אחת בכל דקה."},
+  {id:"d-shuttle", em:"↔️", name:"ריצות מעבר (Shuttle)", cat:"cardio", mus:"אירובי · זריזות", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"6×20 מ׳",2:"8×20 מ׳",3:"10×20 מ׳ על זמן"},
+   cue:"נגיעה ביד בקו בכל מעבר — לא ״כמעט״.",
+   easy:"מרחק 10 מ׳ ומנוחה של 45 שניות.", hard:"מנוחה קצובה של 20 שניות בלבד."},
+  {id:"d-pace", em:"📊", name:"ריצת קצב מודרגת", cat:"cardio", mus:"סבולת לב־ריאה", eq:[], lvl:[1,2,3],
+   dose:{1:"2×3 דק׳",2:"3×4 דק׳",3:"3×5 דק׳"},
+   cue:"בלוק ראשון בקצב שיחה, שני מעט מהיר, שלישי הקצב המהיר שאפשר לשמר — לא ספרינט.",
+   easy:"הליכה מהירה בין הבלוקים.", hard:"מנוחה של 60 שניות בלבד בין בלוקים."},
+  {id:"d-station6", em:"🔄", name:"מעגל אירובי 6 תחנות", cat:"cardio", mus:"כל הגוף", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"2 סבבים 20/20",2:"3 סבבים 40/20",3:"4 סבבים 45/15"},
+   cue:"ג׳אמפינג ג׳ק · ברכיים גבוהות · מטפס הרים · דילוגים · סקיפים · ריצת סרק.",
+   easy:"הליכה במקום ריצה בתחנות הקשות.", hard:"מוסיפים ברפי כתחנה שביעית."},
+  {id:"d-fartlek", em:"🌊", name:"פרטלק — משחק קצב", cat:"cardio", mus:"סבולת", eq:["רמקול"], lvl:[2,3],
+   dose:{2:"10 דקות",3:"16 דקות"},
+   cue:"ריצה רציפה; בשריקה מאיצים ל-30 שניות ואז חוזרים לקצב הבסיס. השינויים אקראיים.",
+   easy:"האצות של 15 שניות בלבד.", hard:"האצות של 45 שניות כל דקה וחצי."},
+  {id:"d-amrap", em:"🔁", name:"AMRAP — כמה שיותר סבבים", cat:"cardio", mus:"כל הגוף", eq:[], lvl:[2,3],
+   dose:{2:"8 דקות",3:"12 דקות"},
+   cue:"רשימת תרגילים קבועה, וסופרים כמה סבבים שלמים מספיקים בזמן. כל תלמיד מול עצמו.",
+   easy:"מספר חזרות קטן יותר בכל תחנה.", hard:"רושמים תוצאה ומנסים לשפר אותה בשיעור הבא."},
+  {id:"d-hill", em:"⛰", name:"ריצות עלייה", cat:"cardio", mus:"רגליים · סבולת", eq:[], lvl:[2,3],
+   dose:{2:"6×20 מ׳",3:"10×25 מ׳"},
+   cue:"עלייה בעצימות גבוהה, ירידה בהליכה כמנוחה. צעדים קצרים ותכופים.",
+   easy:"עלייה מתונה ומרחק קצר.", hard:"מנוחה קצובה — יוצאים כל 60 שניות."},
+
+  /* ---------- זריזות ומהירות ---------- */
+  {id:"d-ladder", em:"🪜", name:"סולם זריזות / חישוקים", cat:"agil", mus:"תיאום · רגליים", eq:["חישוקים"], lvl:[1,2,3],
+   dose:{1:"4 מעברים",2:"6 מעברים",3:"8 מעברים על זמן"},
+   cue:"מבט קדימה ולא ברגליים, רגליים מהירות ושקטות.", easy:"הליכה בתבנית לפני שמאיצים.",
+   hard:"תבנית לרוחב + סיבוב 180° בסוף."},
+  {id:"d-tdrill", em:"🇹", name:"תרגיל T — שינויי כיוון", cat:"agil", mus:"זריזות", eq:["קונוסים"], lvl:[2,3],
+   dose:{2:"4 חזרות",3:"6 חזרות על זמן"},
+   cue:"ריצה קדימה 10 מ׳, החלקות צד 5 מ׳ לכל צד, ריצה לאחור לקו הזינוק.",
+   easy:"מרחקים קטנים ובלי מדידת זמן.", hard:"מדידה בפוטו־פיניש והשוואה אישית."},
+  {id:"d-react", em:"👀", name:"תגובה לאות", cat:"agil", mus:"מהירות תגובה", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"6 יציאות",2:"8 יציאות",3:"10 יציאות מתנוחות שונות"},
+   cue:"התלמידים בתנוחת מוכנות; המורה נותן אות ויזואלי (יד) ולא קולי — האצה של 10 מ׳.",
+   easy:"אות קולי ברור ומרחק 5 מ׳.", hard:"יציאה משכיבה על הבטן, או מישיבה."},
+  {id:"d-sprint", em:"💨", name:"האצות קצרות", cat:"agil", mus:"מהירות", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"4×20 מ׳",2:"6×30 מ׳",3:"8×30 מ׳ מנוחה מלאה"},
+   cue:"מנוחה מלאה בין האצות — מהירות מתאמנת רעננה, לא עייפה.",
+   easy:"מרחק 15 מ׳ ב-80%.", hard:"יציאה מזינוק נמוך + מדידה בפוטו־פיניש."},
+  {id:"d-jump", em:"🦘", name:"פליאומטריקה בסיסית", cat:"agil", mus:"כוח מתפרץ", eq:["חישוקים"], lvl:[2,3],
+   dose:{2:"3×8",3:"4×12"},
+   cue:"הדגש על הנחיתה: שקטה, ברכיים לא קורסות פנימה. איכות לפני כמות.",
+   easy:"קפיצות במקום בלי מכשול.", hard:"קפיצת עומק מספסל נמוך עם עצירה מלאה."},
+  {id:"d-mirror", em:"🪞", name:"רדיפה בזוגות (מראה)", cat:"agil", mus:"זריזות · תגובה", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"4×20 שנ׳",2:"6×30 שנ׳",3:"8×30 שנ׳"},
+   cue:"אחד מוביל בשינויי כיוון, השני נשאר צמוד. מחליפים כל סבב.",
+   easy:"שטח קטן וקצב איטי יותר.", hard:"המוביל עם כדור מכודרר."},
+  {id:"d-cone5", em:"🔺", name:"מסלול 5 קונוסים", cat:"agil", mus:"זריזות · תיאום", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"4 מעברים",2:"6 מעברים",3:"8 מעברים על זמן"},
+   cue:"5 קונוסים בצורת יהלום — ריצה קדימה, אלכסון, לאחור, החלקת צד.",
+   easy:"מעבר אחד בכל פעם, בהליכה.", hard:"מוסיפים כדור או מסירה בכל נקודה."},
+
+  /* ---------- מיומנויות כדור ---------- */
+  {id:"d-fdrib", em:"⚽", name:"כדורגל — כדרור ומסירה", cat:"ball", sport:"כדורגל", mus:"מיומנות", eq:["כדורים","קונוסים"], lvl:[1,2,3],
+   dose:{1:"3×2 דק׳",2:"4×3 דק׳",3:"משחקון 4×4"},
+   cue:"כדור קרוב לרגל, ראש למעלה בין נגיעה לנגיעה.",
+   easy:"מסלול ישר בלי לחץ יריב.", hard:"שתי נגיעות בלבד, עם מגן פסיבי."},
+  {id:"d-fshoot", em:"🥅", name:"כדורגל — סיום לשער", cat:"ball", sport:"כדורגל", mus:"מיומנות · דיוק", eq:["כדורים"], lvl:[1,2,3],
+   dose:{1:"8 בעיטות",2:"12 בעיטות משתי רגליים",3:"סיום אחרי מסירה בתנועה"},
+   cue:"רגל תומכת ליד הכדור, קרסול נעול, מבט לכדור ברגע הבעיטה.",
+   easy:"כדור נייח משער ריק.", hard:"מסירה + שתי נגיעות בלבד + שוער."},
+  {id:"d-bdrib", em:"🏀", name:"כדורסל — כדרור בשתי ידיים", cat:"ball", sport:"כדורסל", mus:"מיומנות", eq:["כדורים","קונוסים"], lvl:[1,2,3],
+   dose:{1:"3×90 שנ׳",2:"4×2 דק׳",3:"מסלול על זמן"},
+   cue:"קצות אצבעות ולא כף היד, ראש למעלה — מסתכלים על המורה ולא על הכדור.",
+   easy:"כדרור במקום לפני שמתקדמים בתנועה.", hard:"שתי כדורים במקביל, או כדרור עם מגן."},
+  {id:"d-blay", em:"🎯", name:"כדורסל — לייאפ וקליעה", cat:"ball", sport:"כדורסל", mus:"מיומנות · דיוק", eq:["כדורים"], lvl:[1,2,3],
+   dose:{1:"10 לייאפים",2:"15 משני הצדדים",3:"לייאפ אחרי מסירה בריצה"},
+   cue:"ימין־שמאל־קפיצה (או הפוך משמאל), הכדור נוגע בריבוע.",
+   easy:"מהמקום, בלי צעדים.", hard:"אחרי כדרור מהירות + הגנה פסיבית."},
+  {id:"d-vpass", em:"🏐", name:"כדורעף — מסירה עליונה ותחתונה", cat:"ball", sport:"כדורעף", mus:"מיומנות", eq:["כדורים","רשת"], lvl:[1,2,3],
+   dose:{1:"20 מסירות בזוגות",2:"3×20 לסירוגין",3:"3 נגיעות רצופות בקבוצה"},
+   cue:"רגליים מתחת לכדור לפני הידיים — התנועה מהרגליים ולא מהזרועות.",
+   easy:"מסירה אחרי הקפצה על הרצפה.", hard:"מסירה עליונה בלבד, 20 רצופות בלי נפילה."},
+  {id:"d-vserve", em:"🎾", name:"כדורעף — הגשה", cat:"ball", sport:"כדורעף", mus:"מיומנות · דיוק", eq:["כדורים","רשת"], lvl:[1,2,3],
+   dose:{1:"10 הגשות מ-4 מ׳",2:"15 מקו ההגשה",3:"10 הגשות לאזור מסומן"},
+   cue:"זריקה עקבית של הכדור — רוב ההחטאות מתחילות בזריקה ולא בחבטה.",
+   easy:"הגשה מלמטה, ממרחק קצר.", hard:"הגשה מלמעלה לאזור מסומן, 6 מתוך 10."},
+  {id:"d-hthrow", em:"🤾", name:"כדוריד — 3 צעדים וזריקה", cat:"ball", sport:"כדוריד", mus:"מיומנות", eq:["כדורים"], lvl:[1,2,3],
+   dose:{1:"8 זריקות",2:"12 זריקות",3:"זריקה בקפיצה מ-9 מ׳"},
+   cue:"קצב 3 צעדים קבוע, הזרוע מאחור והכתף מובילה.",
+   easy:"מהמקום, לשער ריק.", hard:"זריקה בקפיצה מעל מגן פסיבי."},
+  {id:"d-ult", em:"🥏", name:"אולטימטיבי — זריקה וקליטה", cat:"ball", sport:"פריזבי", mus:"מיומנות", eq:["פריזבי"], lvl:[1,2,3],
+   dose:{1:"20 זריקות בזוגות",2:"בקהנד + פורהנד",3:"משחקון 4×4 עם 3 מסירות"},
+   cue:"שורש כף היד עושה את העבודה — לא הזרוע כולה.",
+   easy:"מרחק 4 מ׳, בקהנד בלבד.", hard:"קליטה תוך כדי ריצה, עם מגן."},
+  {id:"d-smallg", em:"🔲", name:"משחקון קטן 3×3 / 4×4", cat:"ball", mus:"טקטיקה · קבלת החלטות", eq:["כדורים","וסטים"], lvl:[1,2,3],
+   dose:{1:"4 משחקונים של 3 דק׳",2:"5 משחקונים של 4 דק׳",3:"טורניר קצר"},
+   cue:"מגרשים קטנים = הרבה יותר מגעים לכל תלמיד מאשר משחק 11 נגד 11.",
+   easy:"מוסיפים שחקן ניטרלי שמשחק תמיד עם הקבוצה שמחזיקה.", hard:"מגבילים לשתי נגיעות."},
+  {id:"d-keep", em:"🔁", name:"החזקת כדור 5 מול 2", cat:"ball", mus:"מסירה · לחץ", eq:["כדורים"], lvl:[1,2,3],
+   dose:{1:"4×90 שנ׳",2:"5×2 דק׳",3:"4 מול 2 בשטח קטן"},
+   cue:"10 מסירות רצופות = נקודה. מי שאיבד נכנס לאמצע.",
+   easy:"6 מול 2 בשטח גדול.", hard:"נגיעה אחת בלבד."},
+
+  /* ---------- ניידות וגמישות ---------- */
+  {id:"d-flow", em:"🧘", name:"רצף ניידות (Flow)", cat:"mob", mus:"כל הגוף", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2 סבבים",2:"3 סבבים",3:"4 סבבים איטיים"},
+   cue:"חתול־פרה → כלב מביט מטה → לאנג׳ עם סיבוב → ישיבה עמוקה → חזרה. תנועה רציפה עם הנשימה.",
+   easy:"עצירה של 3 נשימות בכל תנוחה.", hard:"תנועה איטית של 5 שניות בין תנוחות."},
+  {id:"d-hip", em:"🦴", name:"ניידות ירכיים 90/90", cat:"mob", mus:"ירכיים", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×6 לכל צד",2:"3×10",3:"3×12 בלי ידיים"},
+   cue:"מעבר צד לצד בלי להישען על הידיים, גב זקוף.",
+   easy:"נעזרים בידיים ובטווח קצר.", hard:"עצירה של 5 שניות בכל צד, ידיים על החזה."},
+  {id:"d-thor", em:"🌀", name:"סיבוב בית החזה", cat:"mob", mus:"גב עליון", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"2×6 לכל צד",2:"3×10",3:"3×12 עם עצירה"},
+   cue:"האגן לא זז — הסיבוב מגיע רק מבית החזה.",
+   easy:"בישיבה על הברכיים.", hard:"עצירה של 3 שניות בקצה + נשימה עמוקה."},
+  {id:"d-static", em:"🕊", name:"מתיחות סטטיות מלאות", cat:"mob", mus:"כל הגוף", eq:["מזרנים"], lvl:[1,2,3],
+   dose:{1:"20 שנ׳ לכל מתיחה",2:"30 שנ׳",3:"40 שנ׳ ×2 סבבים"},
+   cue:"רק בסוף השיעור, אף פעם לא במקום חימום. נושמים לתוך המתיחה, לא נועלים אוויר.",
+   easy:"טווח קטן — עד תחושת מתיחה קלה בלבד.", hard:"מתיחה עם עזרה עדינה של בן זוג."},
+
+  /* ---------- אתגר קבוצתי ---------- */
+  {id:"d-coop1", em:"🧩", name:"מעבר המכשולים בשיתוף", cat:"coop", mus:"שיתוף פעולה", eq:["חישוקים","קונוסים"], lvl:[1,2,3],
+   dose:{1:"2 ניסיונות",2:"3 ניסיונות עם שיפור זמן",3:"תחרות בין קבוצות"},
+   cue:"כל הקבוצה חייבת לעבור — הזמן נעצר כשהאחרון עבר. אין ״הכי חזק לוקח״.",
+   easy:"מסלול קצר יותר, פחות תחנות.", hard:"מגבלה: שני תלמידים מחוברים בידיים לאורך המסלול."},
+  {id:"d-coop2", em:"🏗", name:"מגדל הקבוצה", cat:"coop", mus:"תכנון · תקשורת", eq:["קונוסים","חישוקים"], lvl:[1,2,3],
+   dose:{1:"5 דק׳",2:"8 דק׳",3:"8 דק׳ בלי דיבור"},
+   cue:"בונים מבנה גבוה ככל האפשר מהציוד — כל חבר קבוצה חייב לגעת לפחות פעם אחת.",
+   easy:"מותר לתכנן דקה לפני שמתחילים.", hard:"אסור לדבר — רק סימנים."},
+  {id:"d-coop3", em:"🎌", name:"אתגר הקבוצה על זמן", cat:"coop", mus:"סבולת · לכידות", eq:["קונוסים"], lvl:[1,2,3],
+   dose:{1:"מכסה של 100 חזרות",2:"200 חזרות",3:"300 חזרות"},
+   cue:"מכסה קבוצתית משותפת (למשל 200 סקוואטים) — הקבוצה מחליטה איך לחלק ביניהם.",
+   easy:"מכסה קטנה יותר וזמן פתוח.", hard:"מכסה גדולה עם מגבלת זמן."},
+  {id:"d-coop4", em:"🗣", name:"מסלול עיוור בזוגות", cat:"coop", mus:"אמון · תקשורת", eq:["קונוסים","חישוקים"], lvl:[1,2],
+   dose:{1:"2 מסלולים",2:"3 מסלולים + החלפה"},
+   cue:"אחד עוצם עיניים, השני מנווט אותו בקול בלבד דרך המסלול. אין מגע.",
+   easy:"מסלול ישר וקצר.", hard:"שני זוגות במסלול במקביל — צריך להבדיל בין הקולות."},
+];
+
+/* ---------- מבני עבודה לחלק העיקרי ---------- */
+const MAIN_FORMATS=[
+  {id:"stations", em:"🔄", name:"תחנות", d:"כל תרגיל בתחנה משלו, הכיתה מסתובבת. הכי מתאים לכיתה גדולה עם מעט ציוד.",
+   fmt:(n,min)=>`${n} תחנות · ${Math.max(1,Math.round(min/n))} דק׳ בכל תחנה · 20 שנ׳ מעבר`},
+  {id:"circuit", em:"⭕", name:"מעגל אימון", d:"כל התרגילים ברצף, ואז מנוחה וסבב נוסף. עצימות גבוהה וזמן מת מינימלי.",
+   fmt:(n,min)=>`${n} תרגילים ברצף · 40/20 שנ׳ · ${Math.max(2,Math.round(min/(n*1)))} סבבים`},
+  {id:"sets", em:"📋", name:"סטים וחזרות", d:"עובדים תרגיל אחרי תרגיל, כל אחד עד הסוף. הכי מתאים ללימוד טכניקה ולחדר כושר.",
+   fmt:(n,min)=>`${n} תרגילים · 3 סטים כל אחד · 60 שנ׳ מנוחה בין סטים`},
+  {id:"pairs", em:"👥", name:"עבודה בזוגות", d:"אחד עובד, השני סופר ונותן משוב טכניקה — ואז מחליפים. לומדים גם להעריך.",
+   fmt:(n,min)=>`${n} תרגילים · אחד עובד 40 שנ׳, השני צופה ומעיר · החלפה`},
+  {id:"amrap", em:"🔁", name:"AMRAP — כמה שיותר סבבים", d:"רשימת תרגילים קבועה וזמן קבוע. כל תלמיד מול עצמו, בלי השוואה לכיתה.",
+   fmt:(n,min)=>`${n} תרגילים · ${min} דק׳ · כמה שיותר סבבים שלמים`},
+  {id:"emom", em:"🕐", name:"EMOM — בכל דקה בשעון", d:"מכסה קבועה בתחילת כל דקה; מה שנשאר הוא המנוחה. מלמד לנהל קצב.",
+   fmt:(n,min)=>`${min} דקות · תרגיל מתחלף בכל דקה מתוך ${n}`},
+  {id:"free", em:"🎯", name:"תרגול חופשי מודרך", d:"התלמידים בוחרים על מה לעבוד מתוך הרשימה, המורה עובר ונותן משוב אישי.",
+   fmt:(n,min)=>`${min} דק׳ תרגול · ${n} תחנות פתוחות לבחירה · משוב אישי`}
+];
+
+/* ============================================================
+   3. החלק הסופי
+   ------------------------------------------------------------
+   kind: game  — משחק סיום שמשאיר את הכיתה עם חיוך
+         calm  — הרגעה, מתיחות וסגירה רגשית
+         chall — אתגר או תחרות קצרה
+   ============================================================ */
+const FINAL_KINDS=[["game","משחק סיום","🎮"],["chall","אתגר קצר","🏆"],["calm","הרגעה וסגירה","🧘"]];
+
+const FINALS=[
+  /* ---------- משחקי סיום ---------- */
+  {id:"f-free", em:"🎈", name:"משחק חופשי מודרך", kind:"game", min:10, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   why:"הזמן שהתלמידים הכי מחכים לו. ״חופשי מודרך״ פירושו שיש גבולות ותפקידים — לא כאוס.",
+   steps:["מסמנים 2–3 אזורים: כדורגל, כדורסל, ומשחק ללא כדור.",
+          "כל תלמיד בוחר אזור — ומותר להחליף פעם אחת בלבד.",
+          "המורה עובר בין האזורים, שופט רק כשמבקשים ממנו.",
+          "3 דקות לפני הסוף: שריקה אחת — מחזירים ציוד ומתאספים."],
+   safe:"מגדירים גבולות ברורים לכל אזור כדי שכדור מאזור אחד לא ייכנס לאזור שני.",
+   vars:["אזור רביעי שקט למי שלא רוצה משחק תחרותי.","מחליפים אזור באמצע — כולם מנסים שני דברים."]},
+  {id:"f-soccer", em:"⚽", name:"כדורגל מוקטן", kind:"game", min:12, grade:["mid","high"], place:["field","hall"], eq:["כדורים","וסטים","קונוסים"],
+   why:"מגרש קטן = הרבה יותר נגיעות בכדור לכל תלמיד, ופחות תלמידים שעומדים בחוץ.",
+   steps:["מחלקים ל-4 קבוצות; שני מגרשים קטנים במקביל, 5×5.",
+          "שערים קטנים מקונוסים, בלי שוער — מה שמעודד מסירות ולא בעיטות ארוכות.",
+          "משחקים 4 דקות, מחליפים יריב, וכל קבוצה משחקת פעמיים.",
+          "כלל שיוויון: שער נחשב כפול אם כל הקבוצה נגעה בכדור לפניו."],
+   safe:"אין החלקות. מרחק של 3 מ׳ בין המגרשים, ולא מול קיר או גדר.",
+   vars:["שתי נגיעות בלבד — מעלה מיד את קצב המסירה.","שוער מתחלף כל דקה."]},
+  {id:"f-basket", em:"🏀", name:"כדורסל 3×3", kind:"game", min:12, grade:["mid","high"], place:["field","hall"], eq:["כדורים","וסטים"],
+   why:"פורמט אולימפי אמיתי, וכל תלמיד נוגע בכדור פי כמה מאשר ב-5×5.",
+   steps:["חצי מגרש לכל משחק, 3 נגד 3, שאר הקבוצות ממתינות בתור קצר.",
+          "אחרי כל סל הכדור יוצא לקו ה-3 (״צ׳ק״) והמשחק ממשיך.",
+          "משחק ל-5 נקודות או 4 דקות — מה שקורה קודם.",
+          "המנצחת נשארת במגרש, המפסידה מתחלפת."],
+   safe:"אין חסימות בגוף. מוודאים שהסלים יציבים ואין ציוד מתחתם.",
+   vars:["כל תלמיד בקבוצה חייב לגעת לפני קליעה.","סל של בנות/מי שקלע פחות שווה 2."]},
+  {id:"f-volley", em:"🏐", name:"כדורעף מותאם (נוגה־בול)", kind:"game", min:12, grade:["mid","high"], place:["hall","field"], eq:["כדורים","רשת"],
+   why:"מותר לתפוס ולזרוק — כך גם מי שלא שולט במסירה משתתף באמת במשחק במקום לפחד מהכדור.",
+   steps:["קבוצות של 6, מגרש מוקטן, רשת נמוכה יחסית.",
+          "מותר לתפוס את הכדור ולזרוק לחבר — אבל חייבות 3 נגיעות לפני מעבר הרשת.",
+          "כל תלמיד שמקבל את הכדור חייב למסור, לא לזרוק ישר מעבר לרשת.",
+          "בהדרגה מוסיפים כלל: הנגיעה השלישית חייבת להיות מסירה אמיתית."],
+   safe:"מוודאים שעמודי הרשת מיוצבים והשטח מסביב פנוי.",
+   vars:["מעבר למשחק רגיל בסבב האחרון.","סיבוב חובה של השחקנים אחרי כל נקודה."]},
+  {id:"f-hand", em:"🤾", name:"כדוריד מוקטן", kind:"game", min:12, grade:["mid","high"], place:["hall","field"], eq:["כדורים","וסטים"],
+   why:"קצב גבוה, הרבה מסירות ושערים — משחק שמסיים שיעור באנרגיה טובה.",
+   steps:["4×4 בחצי אולם, שוער מתחלף כל 2 דקות.",
+          "אסור לכדרר — רק מסירות. זה מייצר תנועה בלי כדור.",
+          "3 צעדים מקסימום עם הכדור.",
+          "אסור לחדור לרווח של 4 מ׳ סביב השער."],
+   safe:"אין מגע גוף בזורק באוויר. הכדור רך או מותאם לגיל.",
+   vars:["שער נחשב רק אחרי 5 מסירות.","זריקה ביד הלא־דומיננטית שווה כפול."]},
+  {id:"f-dodge", em:"🎯", name:"מחניים / שבויים", kind:"game", min:12, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   why:"המשחק שכל כיתה מבקשת. עם שני כללים קטנים הוא הופך ממשחק הדרה למשחק שכולם בו כל הזמן.",
+   steps:["שתי קבוצות, כל אחת בחצי מגרש, ו״שבויים״ מאחורי קו הקצה של היריב.",
+          "פגיעה מתחת למותניים בלבד; מי שנפגע עובר לשבי מאחורי קו היריב וממשיך לשחק משם.",
+          "שבוי שפוגע — חוזר לקבוצה שלו. כך אף אחד לא באמת יוצא מהמשחק.",
+          "הקבוצה שכל שחקניה בשבי — הפסידה בסיבוב. 3 סיבובים."],
+   safe:"כדורי ספוג או כדורים רכים בלבד. אסורה זריקה לראש — פגיעה בראש מוציאה את הזורק לסיבוב.",
+   vars:["2–3 כדורים במקביל להעלאת קצב.","״מגן״ אחד בכל קבוצה שיכול לחסום בידיים."]},
+  {id:"f-ult", em:"🥏", name:"אולטימטיבי פריזבי", kind:"game", min:12, grade:["mid","high"], place:["field"], eq:["פריזבי","וסטים"],
+   why:"משחק בלי מגע, בלי שופט (התלמידים שופטים את עצמם) — ומצוין לכיתות מעורבות.",
+   steps:["5×5 בשטח מסומן, אזורי הבקעה בשני הקצוות.",
+          "מי שמחזיק את הפריזבי לא רץ; מוסרים לחבר בתנועה.",
+          "פריזבי שנפל או נחסם — עובר לקבוצה השנייה במקום.",
+          "קליטה באזור ההבקעה = נקודה. משחקים ל-5."],
+   safe:"אין מגע גוף כלל — זה חוק היסוד של הענף. חוסמים במיקום, לא בידיים.",
+   vars:["מגבלת 5 שניות להחזקה.","כל הקבוצה חייבת לגעת לפני הבקעה."]},
+  {id:"f-kick", em:"🦵", name:"בייסבול רגל (קיקבול)", kind:"game", min:12, grade:["mid"], place:["field"], eq:["כדורים","קונוסים"],
+   why:"כללי בייסבול פשוטים עם בעיטה במקום חבטה — כל תלמיד מצליח לפחות פעם אחת.",
+   steps:["4 בסיסים מקונוסים, קבוצה בועטת וקבוצה מגינה.",
+          "הכדור מתגלגל לבועט; הוא בועט ורץ בין הבסיסים.",
+          "המגינים מוציאים בנגיעה בכדור בבסיס לפני שהרץ הגיע.",
+          "3 יציאות ומחליפים. 2 מחזורים לכל קבוצה."],
+   safe:"אין השלכת כדור על הרץ. הבסיסים שטוחים ולא קונוסים גבוהים שאפשר למעוד עליהם.",
+   vars:["כל שחקן חייב לבעוט לפני שהקבוצה חוזרת לבועט הראשון.","בסיס נוסף להארכת הריצה."]},
+  {id:"f-cap", em:"🚩", name:"תופסת דגלים", kind:"game", min:12, grade:["mid","high"], place:["field"], eq:["וסטים","קונוסים"],
+   why:"יש תפקיד לכל רמת כושר — רצים, שומרים, ומסיחי דעת. אף אחד לא מיותר.",
+   steps:["שתי קבוצות, כל אחת עם חצי מגרש ודגל בקצה השטח שלה.",
+          "המטרה: לקחת את דגל היריב ולהחזיר לשטח הבית בלי להיתפס.",
+          "מי שנתפס בשטח היריב קופא עד ששחרר אותו חבר בנגיעה.",
+          "3 סיבובים; בין הסיבובים הקבוצות מתכננות טקטיקה 60 שניות."],
+   safe:"תפיסה בנגיעה בלבד — בלי משיכה או דחיפה. שטח נקי מציוד.",
+   vars:["שני דגלים לכל קבוצה.","״שומר״ אחד קבוע שלא יוצא מהשטח."]},
+  {id:"f-cross", em:"🔀", name:"טורניר בזק — 3 דקות", kind:"game", min:12, grade:["mid","high"], place:["field","hall"], eq:["כדורים","וסטים"],
+   why:"מבנה שמכניס תחרותיות בריאה בלי שקבוצה אחת שולטת בכל השיעור.",
+   steps:["4 קבוצות, 2 מגרשים; כל משחק 3 דקות בלבד.",
+          "אחרי כל משחק כל הקבוצות זזות — כולם משחקים נגד כולם.",
+          "טבלה על הלוח: ניצחון 3, תיקו 1.",
+          "המשחק האחרון הוא בין שתי המובילות."],
+   safe:"מרחק בין המגרשים, וכללי משחק זהים בשניהם כדי שלא יהיו ויכוחים.",
+   vars:["ענף שונה בכל סבב.","נקודת בונוס לקבוצה עם הכי מעט עבירות."]},
+  {id:"f-tagend", em:"🏃", name:"תופסת סיום", kind:"game", min:8, grade:["mid"], place:["field","hall"], eq:["וסטים"],
+   why:"כשנשארו 8 דקות ואין זמן לארגן משחק אמיתי — תופסת תמיד עובדת.",
+   steps:["3 תופסים עם וסט; מי שנתפס קופא עד ששחרר אותו חבר.",
+          "מחליפים תופסים כל 90 שניות.",
+          "בסבב האחרון: התופסים חייבים להחזיק ידיים בזוגות.",
+          "מסיימים ב-2 דקות מתיחות במעגל."],
+   safe:"שטח מסומן ונקי, ואין ריצה לכיוון קירות או גדרות.",
+   vars:["תופסת בלונים / זנבות.","שחרור דורש תרגיל משותף."]},
+  {id:"f-relayend", em:"🏁", name:"מרוץ שליחים מסכם", kind:"game", min:10, grade:["mid","high"], place:["field","hall"], eq:["קונוסים","כדורים"],
+   why:"מסיים בעצימות גבוהה ובצעקות עידוד — והכיתה יוצאת עם תחושת קבוצה.",
+   steps:["4 קבוצות שוות, מסלול של 20 מ׳ הלוך־חזור.",
+          "סבב 1 ריצה · סבב 2 כדרור כדור · סבב 3 בזוגות מחוברים בידיים · סבב 4 הקבוצה בוחרת.",
+          "בין סבבים 60 שניות מנוחה ותכנון סדר הרצים.",
+          "טבלת נקודות מצטברת בסוף."],
+   safe:"מרחב עצירה של 3 מ׳ אחרי קו הסיום, ואין קונוסים על קו הריצה עצמו.",
+   vars:["שליחים עם משימת דיוק באמצע (קליעה, מסירה למטרה).","הרצים יוצאים לפי סדר הפוך בכל סבב."]},
+
+  /* ---------- אתגרים קצרים ---------- */
+  {id:"f-record", em:"🏆", name:"אתגר שיא כיתתי", kind:"chall", min:8, grade:["mid","high"], place:["field","hall","gym"], eq:[],
+   why:"מחבר ישירות ללוח «אלופי בית הספר» — התלמידים מצלמים, מעלים, והשיא נשאר על הלוח.",
+   steps:["בוחרים אתגר אחד: פלאנק ארוך ביותר, הכי הרבה סקוואטים בדקה, קפיצה לרוחק מהמקום.",
+          "כל תלמיד מבצע פעם אחת בזוגות — אחד מבצע, השני סופר ומצלם.",
+          "רושמים את התוצאה הטובה בכיתה על הלוח.",
+          "מי שרוצה — מעלה סרטון ללוח השיאים דרך האפליקציה."],
+   safe:"אתגר מקסימלי רק אחרי חימום מלא, ולא בסוף שיעור עצים במיוחד.",
+   vars:["שיא קבוצתי מצטבר במקום אישי.","אותו אתגר חוזר פעם בחודש לראות שיפור."]},
+  {id:"f-tabend", em:"⏱", name:"פיניש — טאבטה אחת", kind:"chall", min:6, grade:["mid","high"], place:["field","hall","class"], eq:[],
+   why:"4 דקות שמסיימות את השיעור בעצימות מלאה, בלי ציוד ובלי ארגון.",
+   steps:["8 סבבים של 20 שניות עבודה ו-10 מנוחה.",
+          "תרגיל אחד לכולם — הכיתה בוחרת מתוך שלוש אפשרויות.",
+          "המורה סופר בקול את הסבבים.",
+          "בסיום: דקה של הליכה ונשימות עמוקות."],
+   safe:"מי שמרגיש סחרחורת עוצר מיד ועובר להליכה — הכלל נאמר לפני ההתחלה.",
+   vars:["תרגיל מתחלף בכל 2 סבבים.","זוגות: אחד עובד, השני סופר, מחליפים בחצי."]},
+  {id:"f-shootout", em:"🥅", name:"דו־קרב דיוק", kind:"chall", min:8, grade:["mid","high"], place:["field","hall"], eq:["כדורים"],
+   why:"סיום קצר ומרגש שלא דורש כושר — גם תלמיד שלא רץ טוב יכול לנצח בו.",
+   steps:["שתי קבוצות בטורים מול מטרה (שער, סל, אזור מסומן).",
+          "כל תלמיד מבצע ניסיון אחד; פגיעה = נקודה לקבוצה.",
+          "סבב שני מרחק גדול יותר, סבב שלישי ביד/רגל החלשה.",
+          "מסכמים נקודות ומחיאות כפיים לשתי הקבוצות."],
+   safe:"רק תלמיד אחד יורה בכל רגע, והשאר מאחורי קו הבטיחות.",
+   vars:["ניסיון אחרון שווה כפול.","כל הקבוצה חייבת לקלוע לפחות פעם אחת כדי לזכות בבונוס."]},
+  {id:"f-obst", em:"🚧", name:"מסלול מכשולים על זמן", kind:"chall", min:10, grade:["mid","high"], place:["field","hall"], eq:["קונוסים","חישוקים","מזרנים"],
+   why:"מסכם את כל המיומנויות של השיעור במסלול אחד, ומאפשר מדידה אישית להשוואה בשיעור הבא.",
+   steps:["בונים מסלול של 6 תחנות: זיגזג, זחילה, קפיצות בחישוקים, מסירה למטרה, ריצה לאחור, ספרינט לסיום.",
+          "כל תלמיד עובר פעם אחת להיכרות, בקצב איטי.",
+          "מעבר שני על זמן — בן זוג מודד.",
+          "רושמים את הזמן; בשיעור הבא מנסים לשפר."],
+   safe:"בודקים את המסלול לפני ההרצה, ובמיוחד את נקודות הנחיתה והזחילה.",
+   vars:["מדידה בפוטו־פיניש של האפליקציה.","מסלול קבוצתי — הזמן נעצר כשהאחרון סיים."]},
+
+  /* ---------- הרגעה וסגירה ---------- */
+  {id:"f-stretch", em:"🧘", name:"מתיחות והרפיה", kind:"calm", min:7, grade:["mid","high"], place:["field","hall","class","gym"], eq:["מזרנים"],
+   why:"החלק שהכי קל לוותר עליו — והוא זה שמלמד את התלמידים איך לטפל בגוף שלהם אחרי מאמץ.",
+   steps:["מעגל, ישיבה או עמידה — מתיחה סטטית 20–30 שניות לכל קבוצת שרירים שעבדה.",
+          "הסדר: שוקיים · האמסטרינג · ארבע ראשי · ירך פנימית · גב · כתפיים.",
+          "בכל מתיחה 3 נשימות עמוקות — שאיפה 3 שניות, נשיפה 5.",
+          "התלמידים מרגישים היכן הכי מתוח — וזה מה שהם יזכרו לשיעור הבא."],
+   safe:"מתיחה עד תחושת מתיחה קלה בלבד, אף פעם לא עד כאב, ובלי קפיצות.",
+   vars:["תלמיד מוביל את המתיחות בכל שיעור בתורנות.","מוזיקה שקטה ברקע."]},
+  {id:"f-circle", em:"💬", name:"מעגל משוב", kind:"calm", min:6, grade:["mid","high"], place:["field","hall","class"], eq:[],
+   why:"שתי דקות שמחזירות את הכיתה לרוגע, ונותנות למורה מידע אמיתי על מה עבד.",
+   steps:["מעגל בישיבה, מתיחות קלות תוך כדי.",
+          "כל תלמיד במילה אחת: איך היה השיעור.",
+          "המורה מציין בשם הישג אחד בולט של תלמיד שלא רגיל לקבל מחמאה.",
+          "שאלה לסיום: מה תיקח מהשיעור הזה לשיעור הבא."],
+   safe:"אף תלמיד לא חייב לדבר — ״פאס״ היא תשובה לגיטימית.",
+   vars:["אצבע 1–5 במקום מילה, למי שלא נוח לדבר.","סבב תודות: כל אחד מודה לתלמיד אחד."]},
+  {id:"f-goal", em:"🎯", name:"יעד אישי לשיעור הבא", kind:"calm", min:6, grade:["mid","high"], place:["field","hall","class"], eq:[],
+   why:"מחבר בין שיעור לשיעור — ומייצר תחושת התקדמות במקום שרשרת שיעורים מנותקים.",
+   steps:["מתיחות במעגל תוך כדי שיחה.",
+          "כל תלמיד מנסח יעד אחד מדיד לשיעור הבא (״להוסיף 5 שניות בפלאנק״).",
+          "רושמים את היעדים ברשימת הכיתה או בטלפון של המורה.",
+          "בשיעור הבא פותחים ב-2 דקות של בדיקת יעדים."],
+   safe:"היעד תמיד אישי ולעולם לא מושווה בקול לתלמיד אחר.",
+   vars:["יעד קבוצתי במקום אישי.","יעד לחודש במקום לשיעור."]},
+  {id:"f-breath", em:"🌬", name:"נשימות והורדת דופק", kind:"calm", min:5, grade:["mid","high"], place:["field","hall","class"], eq:["מזרנים"],
+   why:"מלמד ויסות עצמי — כלי שהתלמידים לוקחים איתם גם למבחן ולמצבי לחץ מחוץ למגרש.",
+   steps:["שכיבה על הגב או ישיבה נוחה, עיניים עצומות אם נוח.",
+          "נשימה 4-4-6: שאיפה 4 שניות, החזקה 4, נשיפה 6. חוזרים 8 פעמים.",
+          "מדידת דופק ידנית 15 שניות ×4, ורושמים.",
+          "השוואה: מה היה הדופק בסוף החלק העיקרי ומה עכשיו."],
+   safe:"מי שמרגיש סחרחורת חוזר לנשימה רגילה ומתיישב.",
+   vars:["חיבור לשיעור על מערכת הלב ממאגר הידע.","מדידה בשעון חכם למי שיש."]},
+  {id:"f-yoga", em:"🕉", name:"רצף יוגה קצר", kind:"calm", min:8, grade:["mid","high"], place:["hall","class"], eq:["מזרנים"],
+   why:"סיום שקט שמשפר ניידות — ומתאים במיוחד אחרי שיעור כוח או אחרי מבחן כושר.",
+   steps:["רצף: הר → כלב מביט מטה → לאנג׳ נמוך → ילד → חתול־פרה → פיתול בשכיבה.",
+          "5 נשימות בכל תנוחה, מעבר איטי בין התנוחות.",
+          "סבב שני לצד השני.",
+          "סיום בשכיבה של 60 שניות בשקט מוחלט."],
+   safe:"אין מטרה להגיע ״עמוק״ — כל תלמיד בטווח שלו, בלי השוואה.",
+   vars:["תלמיד מוביל את הרצף.","גרסה בעמידה למי שלא נוח לו על הרצפה."]},
+  {id:"f-roll", em:"🎳", name:"שחרור ועיסוי עצמי", kind:"calm", min:7, grade:["high"], place:["hall","gym"], eq:["מזרנים"],
+   why:"אחרי שיעור כוח או ריצה ארוכה — שחרור מכוון לשרירים שעבדו, עם כדור טניס או גליל.",
+   steps:["בוחרים 3 אזורים שעבדו היום (ארבע ראשי, שוק, גב עליון).",
+          "30–45 שניות לכל אזור, לחץ בינוני — לא כאב.",
+          "עוצרים 10 שניות בנקודה הרגישה ונושמים לתוכה.",
+          "מסיימים במתיחה סטטית קצרה לאותו אזור."],
+   safe:"לא מגלגלים על מפרקים, על הגב התחתון ועל הצוואר.",
+   vars:["כדור טניס במקום גליל.","בזוגות — אחד מנחה את השני."]},
+];
+
+/* ============================================================
+   4. הבונה עצמו
+   ============================================================ */
+window.LBUILD=(function(){
+  let inited=false;
+  const BLOCK_FMT={circuit:1,amrap:1,emom:1};   /* פורמטים שרצים כבלוק אחד ולא תרגיל־תרגיל */
+  const LVL_NAME={1:"קל",2:"בינוני",3:"מתקדם"};
+  const PLACE_NAME={field:"מגרש חוץ",hall:"אולם",class:"כיתה",gym:"חדר כושר"};
+
+  const DEF={step:1,grade:"mid",dur:45,cls:"",size:30,place:"field",
+    wuType:"general",wuId:"w-ramp",wuMin:10,
+    cat:"str",level:2,count:4,fmt:"stations",picks:[],mainMin:0,
+    finKind:"game",finId:"f-free",finMin:10,note:""};
+  let st=Object.assign({},DEF);
+
+  const saveSt=()=>H().LS.set("lb.state",st);
+  const loadSt=()=>{ st=Object.assign({},DEF,H().LS.get("lb.state",{})); if(!Array.isArray(st.picks))st.picks=[]; };
+
+  /* ---------- עזרי סינון ---------- */
+  const wuPool=()=>({general:WU_GENERAL,specific:WU_SPECIFIC,game:WU_GAMES}[st.wuType]||WU_GENERAL);
+  function wuList(){
+    return wuPool().filter(w=>
+      (!w.grade||w.grade.includes(st.grade)) &&
+      (!w.place||w.place.includes(st.place)));
+  }
+  function drillList(){
+    return DRILLS.filter(d=>d.cat===st.cat&&d.lvl.includes(st.level));
+  }
+  function finList(){
+    return FINALS.filter(f=>f.kind===st.finKind&&
+      (!f.grade||f.grade.includes(st.grade))&&
+      (!f.place||f.place.includes(st.place)));
+  }
+  const wuById=id=>[...WU_GENERAL,...WU_SPECIFIC,...WU_GAMES].find(w=>w.id===id);
+  const drillById=id=>DRILLS.find(d=>d.id===id);
+  const finById=id=>FINALS.find(f=>f.id===id);
+  const fmtById=id=>MAIN_FORMATS.find(f=>f.id===id)||MAIN_FORMATS[0];
+
+  /* זמן החלק העיקרי = מה שנשאר אחרי חימום וסיום */
+  function mainMin(){ return Math.max(5, st.dur-(+st.wuMin||0)-(+st.finMin||0)); }
+
+  /* ============================================================
+     רינדור השלבים
+     ============================================================ */
+  const STEPS=[["1","פרטי שיעור","📝"],["2","חימום","🔥"],["3","חלק עיקרי","💪"],["4","חלק סופי","🎮"],["5","סיכום","✅"]];
+
+  function renderSteps(){
+    const {$, $$}=H();
+    $("#bw-steps").innerHTML=STEPS.map(([n,nm,em])=>
+      `<button class="bw-step${+n===st.step?" on":""}${+n<st.step?" done":""}" data-bs="${n}">
+        <span class="e">${+n<st.step?"✓":em}</span><span class="t">${nm}</span></button>`).join("");
+    $$("#bw-steps [data-bs]").forEach(b=>b.addEventListener("click",()=>{st.step=+b.dataset.bs;render();}));
+  }
+
+  function stepMeta(){
+    const {esc}=H();
+    return `<div class="bw-grid">
+      <div class="field"><label>שכבה</label>
+        <div class="seg" id="bw-grade">
+          <button data-g="mid" class="${st.grade==="mid"?"on":""}">חטיבה ז׳–ט׳</button>
+          <button data-g="high" class="${st.grade==="high"?"on":""}">תיכון י׳–י״ב</button>
+        </div></div>
+      <div class="field"><label>אורך השיעור (דק׳)</label>
+        <input type="number" id="bw-dur" value="${st.dur}" min="20" max="120" step="5"></div>
+      <div class="field"><label>כיתה</label>
+        <input type="text" id="bw-cls" value="${esc(st.cls)}" placeholder="ט׳2"></div>
+      <div class="field"><label>מס׳ תלמידים</label>
+        <input type="number" id="bw-size" value="${st.size}" min="4" max="60"></div>
+      <div class="field"><label>מקום</label>
+        <select id="bw-place">${Object.entries(PLACE_NAME).map(([k,v])=>
+          `<option value="${k}"${st.place===k?" selected":""}>${v}</option>`).join("")}</select></div>
+    </div>
+    <div class="hint" style="margin-top:10px">השכבה והמקום מסננים את כל האפשרויות בשלבים הבאים — כך שלא תוצע לך תופסת שדה כששיעור מתקיים בכיתה.</div>`;
+  }
+
+  function stepWarm(){
+    const {esc}=H();
+    const list=wuList();
+    return `<div class="seg bw-seg" id="bw-wuType">
+        <button data-t="general" class="${st.wuType==="general"?"on":""}">🔥 כללי</button>
+        <button data-t="specific" class="${st.wuType==="specific"?"on":""}">🎯 ספציפי לענף</button>
+        <button data-t="game" class="${st.wuType==="game"?"on":""}">🎲 משחק חימום</button>
+      </div>
+      <div class="hint" style="margin:9px 0 12px">${
+        st.wuType==="general"?"חימום שלא תלוי בענף — מבוסס על מודל RAMP: העלאת דופק, אקטיבציה, ניידות, והכנה לעצימות.":
+        st.wuType==="specific"?"חימום שמכין בדיוק לענף של השיעור — התלמידים מגיעים לחלק העיקרי עם מגע ראשון בכדור.":
+        "משחק שמעלה דופק בלי שאף אחד מרגיש שהוא ״מתחמם״. עובד מצוין בכיתות שקשה להתניע."}</div>
+      <div class="bw-cards">${list.map(w=>`
+        <div class="bw-card${st.wuId===w.id?" on":""}" data-wu="${w.id}">
+          <div class="hd"><span class="em">${w.em}</span><b>${esc(w.name)}</b></div>
+          ${w.sport?`<span class="pill">${esc(w.sport)}</span>`:""}
+          <div class="sb">${esc(w.why)}</div>
+          <div class="mt"><span class="pill">⏱ ${w.min} דק׳</span>${
+            (w.eq||[]).map(e=>`<span class="pill">${esc(e)}</span>`).join("")||'<span class="pill">בלי ציוד</span>'}</div>
+        </div>`).join("")||'<div class="empty-state"><div class="big">🤔</div>אין חימום שמתאים לשכבה ולמקום שבחרת — נסה לשנות מקום בשלב 1.</div>'}</div>
+      <div class="field" style="margin-top:12px;max-width:230px"><label>אורך החימום · <b>${st.wuMin}</b> דק׳</label>
+        <input type="range" id="bw-wuMin" min="5" max="20" value="${st.wuMin}"></div>`;
+  }
+
+  function stepMain(){
+    const {esc}=H();
+    const list=drillList(), F=fmtById(st.fmt), mm=mainMin();
+    return `<div class="bw-chips" id="bw-cats">${MAIN_CATS.map(([id,nm,em])=>{
+        const n=DRILLS.filter(d=>d.cat===id&&d.lvl.includes(st.level)).length;
+        return `<button data-cat="${id}" class="${st.cat===id?"on":""}">${em} ${nm} <span class="cnt">${n}</span></button>`;
+      }).join("")}</div>
+      <div class="bw-grid" style="margin-top:12px">
+        <div class="field"><label>רמת התרגילים</label>
+          <div class="seg" id="bw-level">${[1,2,3].map(l=>
+            `<button data-l="${l}" class="${st.level===l?"on":""}">${LVL_NAME[l]}</button>`).join("")}</div></div>
+        <div class="field"><label>כמה תרגילים · <b>${st.count}</b></label>
+          <input type="range" id="bw-count" min="2" max="8" value="${st.count}"></div>
+        <div class="field grow"><label>מבנה העבודה</label>
+          <select id="bw-fmt">${MAIN_FORMATS.map(f=>
+            `<option value="${f.id}"${st.fmt===f.id?" selected":""}>${f.em} ${f.name}</option>`).join("")}</select></div>
+      </div>
+      <div class="bw-note">${esc(F.d)}<br><b>${esc(F.fmt(Math.max(1,st.picks.length||st.count),mm))}</b></div>
+      <div class="row" style="margin:11px 0 6px;justify-content:space-between">
+        <div class="hint">נבחרו <b>${st.picks.length}</b> מתוך ${st.count} · ${mm} דק׳ לחלק העיקרי</div>
+        <div class="row" style="gap:7px">
+          <button class="btn sm" id="bw-auto">🎲 בחר לי</button>
+          <button class="btn sm ghost" id="bw-clear">נקה בחירה</button>
+        </div>
+      </div>
+      ${st.picks.length?`<div class="bw-picked">${st.picks.map((id,i)=>{
+        const d=drillById(id); if(!d)return "";
+        return `<button class="bw-tag" data-un="${id}" title="הסר">${i+1}. ${d.em} ${esc(d.name)} <span>✕</span></button>`;
+      }).join("")}</div>
+      <div class="hint" style="margin:5px 0 9px">אפשר לערבב קטגוריות — תרגילים שנבחרו בקטגוריה אחרת נשארים ברשימה גם כשמחליפים לשונית.</div>`:""}
+      <div class="bw-cards">${list.map(d=>{
+        const i=st.picks.indexOf(d.id);
+        return `<div class="bw-card numbered${i>=0?" on":""}" data-dr="${d.id}">
+          ${i>=0?`<span class="num">${i+1}</span>`:""}
+          <div class="hd"><span class="em">${d.em}</span><b>${esc(d.name)}</b></div>
+          <div class="sb">${esc(d.cue)}</div>
+          <div class="mt"><span class="pill acc">${esc(d.dose[st.level]||"")}</span>
+            <span class="pill">${esc(d.mus)}</span>
+            ${(d.eq||[]).map(e=>`<span class="pill">${esc(e)}</span>`).join("")||'<span class="pill">בלי ציוד</span>'}</div>
+        </div>`;}).join("")||'<div class="empty-state"><div class="big">🔍</div>אין תרגילים בקטגוריה הזו ברמה שבחרת — נסה רמה אחרת.</div>'}</div>`;
+  }
+
+  function stepFinal(){
+    const {esc}=H();
+    const list=finList();
+    return `<div class="seg bw-seg" id="bw-finKind">${FINAL_KINDS.map(([id,nm,em])=>
+        `<button data-k="${id}" class="${st.finKind===id?"on":""}">${em} ${nm}</button>`).join("")}</div>
+      <div class="hint" style="margin:9px 0 12px">${
+        st.finKind==="game"?"המשחק שהתלמידים מחכים לו כל השיעור. הגדרת הכללים מראש היא ההבדל בין משחק לכאוס.":
+        st.finKind==="chall"?"אתגר קצר ומדיד — מסיים בעצימות ומתחבר ישירות ללוח «אלופי בית הספר».":
+        "החלק שהכי קל לוותר עליו, והוא זה שמלמד את התלמידים לטפל בגוף שלהם אחרי מאמץ."}</div>
+      <div class="bw-cards">${list.map(f=>`
+        <div class="bw-card${st.finId===f.id?" on":""}" data-fin="${f.id}">
+          <div class="hd"><span class="em">${f.em}</span><b>${esc(f.name)}</b></div>
+          <div class="sb">${esc(f.why)}</div>
+          <div class="mt"><span class="pill">⏱ ${f.min} דק׳</span>${
+            (f.eq||[]).map(e=>`<span class="pill">${esc(e)}</span>`).join("")||'<span class="pill">בלי ציוד</span>'}</div>
+        </div>`).join("")||'<div class="empty-state"><div class="big">🤔</div>אין חלק סופי שמתאים לשכבה ולמקום — נסה לשנות מקום בשלב 1.</div>'}</div>
+      <div class="field" style="margin-top:12px;max-width:230px"><label>אורך החלק הסופי · <b>${st.finMin}</b> דק׳</label>
+        <input type="range" id="bw-finMin" min="5" max="25" value="${st.finMin}"></div>`;
+  }
+
+  function stepSum(){
+    const {esc}=H();
+    const W=wuById(st.wuId), F=finById(st.finId), mm=mainMin();
+    const picks=st.picks.map(drillById).filter(Boolean);
+    const pct=n=>Math.round(n/st.dur*100);
+    const missing=[];
+    if(!W)missing.push("חימום");
+    if(!picks.length)missing.push("תרגילים לחלק העיקרי");
+    if(!F)missing.push("חלק סופי");
+    return `<div class="bw-bar">
+        <div class="seg-w" style="width:${pct(st.wuMin)}%">חימום ${st.wuMin}׳</div>
+        <div class="seg-m" style="width:${pct(mm)}%">עיקרי ${mm}׳</div>
+        <div class="seg-f" style="width:${pct(st.finMin)}%">סופי ${st.finMin}׳</div>
+      </div>
+      <div class="hint" style="margin:8px 0 14px">סה״כ ${st.dur} דק׳ · ${st.grade==="mid"?"חטיבה ז׳–ט׳":"תיכון י׳–י״ב"}${
+        st.cls?" · כיתה "+esc(st.cls):""} · ${st.size} תלמידים · ${PLACE_NAME[st.place]}</div>
+
+      <div class="bw-sum"><h4>🔥 חימום</h4>
+        <p>${W?W.em+" "+esc(W.name)+" — "+st.wuMin+" דק׳":"<i>לא נבחר</i>"}</p></div>
+      <div class="bw-sum"><h4>💪 חלק עיקרי — ${esc(fmtById(st.fmt).name)}</h4>
+        <p>${picks.length?picks.map(d=>d.em+" "+esc(d.name)).join(" · "):"<i>לא נבחרו תרגילים</i>"}</p>
+        <div class="hint">רמה: ${LVL_NAME[st.level]} · ${mm} דק׳</div></div>
+      <div class="bw-sum"><h4>🎮 חלק סופי</h4>
+        <p>${F?F.em+" "+esc(F.name)+" — "+st.finMin+" דק׳":"<i>לא נבחר</i>"}</p></div>
+
+      <div class="field" style="margin-top:12px"><label>הערה אישית למערך (רשות)</label>
+        <textarea id="bw-note" rows="2" placeholder="למשל: לשים לב שדנה חוזרת מפציעה — תפקיד שיפוט בחלק הסופי">${esc(st.note)}</textarea></div>
+
+      ${missing.length?`<div class="bw-warn">חסר עדיין: ${missing.join(" · ")}</div>`:""}
+      <button class="btn acc big" id="bw-build" style="margin-top:13px"${missing.length?" disabled":""}>✅ בנה את המערך</button>
+      <div class="row" style="margin-top:10px;gap:8px">
+        <button class="btn sm" id="bw-tplSave">⭐ שמור כתבנית</button>
+        <button class="btn sm ghost" id="bw-reset">↺ התחל מחדש</button>
+      </div>
+      <div id="bw-tplList" style="margin-top:10px"></div>`;
+  }
+
+  function render(){
+    const {$, $$}=H();
+    const box=$("#bw-body"); if(!box)return;
+    renderSteps();
+    box.innerHTML=[stepMeta,stepWarm,stepMain,stepFinal,stepSum][st.step-1]();
+    $("#bw-prev").disabled=st.step===1;
+    $("#bw-next").style.display=st.step===5?"none":"";
+    wireStep();
+    saveSt();
+  }
+
+  /* ============================================================
+     חיווט לפי שלב
+     ============================================================ */
+  function wireStep(){
+    const {$, $$}=H();
+    const on=(sel,ev,fn)=>{const e=$(sel);if(e)e.addEventListener(ev,fn);};
+
+    /* שלב 1 */
+    $$("#bw-grade button").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;fixSelections();render();}));
+    on("#bw-dur","change",e=>{st.dur=Math.max(20,+e.target.value||45);balance();render();});
+    on("#bw-cls","input",e=>{st.cls=e.target.value;saveSt();});
+    on("#bw-size","change",e=>{st.size=+e.target.value||30;saveSt();});
+    on("#bw-place","change",e=>{st.place=e.target.value;fixSelections();render();});
+
+    /* שלב 2 */
+    $$("#bw-wuType button").forEach(b=>b.addEventListener("click",()=>{
+      st.wuType=b.dataset.t; const l=wuList(); st.wuId=l.length?l[0].id:null;
+      if(st.wuId)st.wuMin=wuById(st.wuId).min; balance(); render();}));
+    $$("#bw-body [data-wu]").forEach(c=>c.addEventListener("click",()=>{
+      st.wuId=c.dataset.wu; st.wuMin=wuById(st.wuId).min; balance(); render();}));
+    on("#bw-wuMin","input",e=>{st.wuMin=+e.target.value;balance();render();});
+
+    /* שלב 3 */
+    $$("#bw-cats [data-cat]").forEach(b=>b.addEventListener("click",()=>{st.cat=b.dataset.cat;render();}));
+    $$("#bw-level button").forEach(b=>b.addEventListener("click",()=>{
+      st.level=+b.dataset.l; st.picks=st.picks.filter(id=>{const d=drillById(id);return d&&d.lvl.includes(st.level);}); render();}));
+    on("#bw-count","input",e=>{st.count=+e.target.value; st.picks=st.picks.slice(0,st.count); render();});
+    on("#bw-fmt","change",e=>{st.fmt=e.target.value;render();});
+    on("#bw-auto","click",()=>{
+      const pool=drillList().filter(d=>!st.picks.includes(d.id));
+      while(st.picks.length<st.count&&pool.length)
+        st.picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0].id);
+      render(); H().toast("🎲 נבחרו תרגילים — אפשר להחליף כל אחד מהם");});
+    on("#bw-clear","click",()=>{st.picks=[];render();});
+    $$("#bw-body [data-un]").forEach(b=>b.addEventListener("click",e=>{
+      e.stopPropagation();
+      st.picks=st.picks.filter(id=>id!==b.dataset.un); render();}));
+    $$("#bw-body [data-dr]").forEach(c=>c.addEventListener("click",()=>{
+      const id=c.dataset.dr, i=st.picks.indexOf(id);
+      if(i>=0)st.picks.splice(i,1);
+      else if(st.picks.length>=st.count)H().toast("הגעת ל-"+st.count+" תרגילים — הסר אחד או הגדל את הכמות");
+      else st.picks.push(id);
+      render();}));
+
+    /* שלב 4 */
+    $$("#bw-finKind button").forEach(b=>b.addEventListener("click",()=>{
+      st.finKind=b.dataset.k; const l=finList(); st.finId=l.length?l[0].id:null;
+      if(st.finId)st.finMin=finById(st.finId).min; balance(); render();}));
+    $$("#bw-body [data-fin]").forEach(c=>c.addEventListener("click",()=>{
+      st.finId=c.dataset.fin; st.finMin=finById(st.finId).min; balance(); render();}));
+    on("#bw-finMin","input",e=>{st.finMin=+e.target.value;balance();render();});
+
+    /* שלב 5 */
+    on("#bw-note","input",e=>{st.note=e.target.value;saveSt();});
+    on("#bw-build","click",build);
+    on("#bw-reset","click",()=>{if(confirm("להתחיל מחדש? כל הבחירות יימחקו."))
+      {st=Object.assign({},DEF);render();}});
+    on("#bw-tplSave","click",saveTpl);
+    if(st.step===5)renderTpl();
+  }
+
+  /* אם שינו שכבה/מקום — מנקים בחירות שכבר לא חוקיות */
+  function fixSelections(){
+    if(st.wuId&&!wuList().some(w=>w.id===st.wuId)){const l=wuList();st.wuId=l.length?l[0].id:null;}
+    if(st.finId&&!finList().some(f=>f.id===st.finId)){const l=finList();st.finId=l.length?l[0].id:null;}
+    balance();
+  }
+  /* שומר שהחלק העיקרי לא נמחק לגמרי מהתקציב */
+  function balance(){
+    const min=Math.max(8,Math.round(st.dur*0.3));
+    while(st.dur-st.wuMin-st.finMin<min){
+      if(st.finMin>6)st.finMin--; else if(st.wuMin>6)st.wuMin--; else break;
+    }
+    saveSt();
+  }
+
+  /* ============================================================
+     תבניות שמורות
+     ============================================================ */
+  function saveTpl(){
+    const nm=prompt("שם לתבנית (למשל: ״כוח ט׳ באולם״)","");
+    if(!nm)return;
+    const t=H().LS.get("lb.tpl",[]);
+    t.unshift({id:Date.now(),name:nm,st:JSON.parse(JSON.stringify(st))});
+    H().LS.set("lb.tpl",t.slice(0,30));
+    renderTpl(); H().toast("⭐ התבנית נשמרה — אפשר לטעון אותה בשיעור הבא");
+  }
+  function renderTpl(){
+    const {$, $$, esc}=H();
+    const box=$("#bw-tplList"); if(!box)return;
+    const t=H().LS.get("lb.tpl",[]);
+    if(!t.length){box.innerHTML='<div class="hint">אין עדיין תבניות. שמירת תבנית שומרת את כל הבחירות — ובשיעור הבא בונים מערך דומה בשתי לחיצות.</div>';return;}
+    box.innerHTML='<div class="hint" style="margin-bottom:6px">תבניות שמורות</div>'+t.map(x=>
+      `<div class="arc-item"><div class="grow"><div class="ttl">⭐ ${esc(x.name)}</div>
+        <div class="sb">${x.st.grade==="mid"?"חטיבה":"תיכון"} · ${x.st.dur} דק׳ · ${PLACE_NAME[x.st.place]||""} · ${(x.st.picks||[]).length} תרגילים</div></div>
+        <button class="btn sm" data-tl="${x.id}">📂 טען</button>
+        <button class="btn sm stop" data-td="${x.id}">✕</button></div>`).join("");
+    $$("#bw-tplList [data-tl]").forEach(b=>b.addEventListener("click",()=>{
+      const x=H().LS.get("lb.tpl",[]).find(y=>y.id==b.dataset.tl); if(!x)return;
+      st=Object.assign({},DEF,x.st); st.step=5; render(); H().toast("התבנית נטענה");}));
+    $$("#bw-tplList [data-td]").forEach(b=>b.addEventListener("click",()=>{
+      H().LS.set("lb.tpl",H().LS.get("lb.tpl",[]).filter(y=>y.id!=b.dataset.td)); renderTpl();}));
+  }
+
+  /* ============================================================
+     בניית המערך עצמו — פלט זהה במבנה למחולל המהיר
+     ============================================================ */
+  const CAT_INFO={
+    str:{em:"💪",g:"כושר גופני",title:"כוח במשקל גוף",std:[1,2,4],
+      goals:["ביצוע נכון של תבניות תנועה בסיסיות — סקוואט, דחיפה, לאנג׳","פיתוח כוח שרירי בלי ציוד וללא עומס חיצוני","בחירת רמת התקדמות אישית מתוך מדרג ההתאמות"],
+      assess:["האם הטכניקה נשמרת גם בחזרות האחרונות, או שהיא נשברת מעייפות","האם התלמיד בוחר את רמת ההתקדמות שמתאימה לו ולא לחבר שלידו","האם הוא יודע להסביר איזה שריר עובד בכל תרגיל"],
+      hw:"שני סבבים של התרגילים שנבחרו בבית — פעמיים השבוע, בימים לא רצופים.",
+      safe:"טכניקה לפני כמות: תרגיל שמתבצע לא נכון נעצר ומודגם מחדש, גם על חשבון מספר החזרות."},
+    strEq:{em:"🏋️",g:"כושר גופני",title:"כוח עם ציוד",std:[1,2,4],
+      goals:["עבודה בטוחה ונכונה עם משקולות וגומיות התנגדות","הבנת הקשר בין משקל, חזרות וטכניקה","בניית שגרת אימון אישית שאפשר לחזור עליה"],
+      assess:["האם המשקל שנבחר מאפשר לשמור טכניקה בכל החזרות","האם התלמיד מחזיר ציוד למקום ועובד בבטיחות עם בן זוג","האם הוא מתעד את המשקלים והחזרות שביצע"],
+      hw:"רישום של המשקלים והחזרות מהשיעור, ותכנון העלייה לשיעור הבא.",
+      safe:"אין עבודה עם משקל חופשי בלי מבטח או בלי אישור המורה. הציוד מוחזר למקומו מיד בתום התרגיל."},
+    core:{em:"🧱",g:"כושר גופני",title:"ליבה ויציבות",std:[1,2],
+      goals:["הפעלת שרירי הליבה לייצוב עמוד השדרה","שמירה על יציבה נכונה גם תחת עייפות","הבנת תפקיד הליבה במניעת כאבי גב"],
+      assess:["האם הגב התחתון נשאר ניטרלי לאורך התרגיל","האם התלמיד נושם ברציפות ולא עוצר אוויר","האם הוא מזהה בעצמו מתי הטכניקה נשברה ועוצר"],
+      hw:"מעגל ליבה קצר של 5 דקות, שלוש פעמים בשבוע.",
+      safe:"כאב בגב התחתון הוא סימן עצירה מיידי — עוברים לגרסה הקלה של התרגיל."},
+    cardio:{em:"🫁",g:"כושר גופני",title:"סבולת לב־ריאה",std:[1,2,4],
+      goals:["שיפור סבולת לב־ריאה","ניהול קצב לאורך מאמץ מתמשך","זיהוי מאמץ אישי בסולם 1–10"],
+      assess:["האם התלמיד מסוגל לשמור קצב אחיד לאורך הבלוק ולא נשרף בהתחלה","האם הוא מדרג את המאמץ שלו באופן עקבי","האם הוא ממשיך לזוז במנוחה האקטיבית ולא נעצר לגמרי"],
+      hw:"20 דקות פעילות אירובית רציפה בקצב שיחה, פעמיים השבוע.",
+      safe:"שתייה זמינה לאורך כל השיעור. תלמיד שמרגיש סחרחורת או קוצר נשימה חריג עוצר מיד ומדווח."},
+    agil:{em:"⚡",g:"כושר גופני",title:"זריזות, מהירות וכוח מתפרץ",std:[1,2],
+      goals:["שיפור מהירות תגובה ושינויי כיוון","נחיתה בטוחה ומבוקרת אחרי קפיצה","הבנה שמהירות מתאמנים כשרעננים ולא בעייפות"],
+      assess:["האם הנחיתות שקטות והברכיים לא קורסות פנימה","האם התלמיד יוצא באמת במלוא המהירות או חוסך","האם הוא מנצל את המנוחה המלאה בין החזרות"],
+      hw:"תרגול 10 האצות קצרות של 20 מ׳ עם מנוחה מלאה, פעם בשבוע.",
+      safe:"עבודת מהירות ופליאומטריקה רק אחרי חימום מלא, ורק על משטח יבש ונקי. מרחב עצירה של 5 מ׳ אחרי כל האצה."},
+    ball:{em:"🏐",g:"משחקי כדור",title:"מיומנויות כדור",std:[1,2,3],
+      goals:["שיפור מיומנות הכדור הבסיסית של הענף","קבלת החלטות מהירה תחת לחץ יריב","שיתוף פעולה ומשחק קבוצתי הוגן"],
+      assess:["האם התלמיד מרים את הראש בין נגיעה לנגיעה ורואה את המגרש","האם הוא מחפש מסירה ולא רק פעולה אישית","האם הוא מקבל החלטות שיפוט של חבריו בלי ויכוח"],
+      hw:"15 דקות תרגול מיומנות אישית — כדרור, מסירה או קליעה — פעמיים השבוע.",
+      safe:"שטח פנוי מציוד ומרחק בטוח מקירות ומעמודים. הכדור מותאם בגודלו ובקושיו לגיל."},
+    mob:{em:"🧘",g:"בריאות ואורח חיים",title:"ניידות וגמישות",std:[1,2,4],
+      goals:["שיפור טווחי תנועה במפרקים העיקריים","הבחנה בין מתיחה דינמית לפני מאמץ לסטטית אחריו","פיתוח הרגל אישי של טיפול בגוף אחרי מאמץ"],
+      assess:["האם התלמיד נושם לתוך המתיחה ולא עוצר אוויר","האם הוא נשאר בטווח שלו בלי להשוות לתלמיד אחר","האם הוא מזהה איזה אזור בגוף שלו הכי מוגבל"],
+      hw:"רצף ניידות של 6 דקות לפני השינה, שלוש פעמים בשבוע.",
+      safe:"מתיחה עד תחושת מתיחה קלה בלבד — לעולם לא עד כאב, ובלי קפיצות בתוך המתיחה."},
+    coop:{em:"🤝",g:"מיומנויות חברתיות",title:"אתגר קבוצתי ושיתוף פעולה",std:[3,4],
+      goals:["עבודת צוות לפתרון משימה משותפת","הקשבה, חלוקת תפקידים וקבלת החלטות בקבוצה","הכלה של רמות כושר שונות בתוך אותה קבוצה"],
+      assess:["האם כל חברי הקבוצה השתתפו בפועל, או ששניים עשו את הכול","האם הקבוצה תכננה לפני שפעלה","איך הקבוצה הגיבה לכישלון בניסיון הראשון"],
+      hw:"לזהות מצב אחד השבוע שבו עבדת בצוות מחוץ לשיעור, ולתאר מה עבד ומה לא.",
+      safe:"אתגר קבוצתי לא הופך לתחרות עם דחיפות — הכללים נאמרים מראש ומי שמפר אותם מוציא את הקבוצה לסיבוב."}
+  };
+
+  function build(){
+    const W=wuById(st.wuId), F=finById(st.finId);
+    const picks=st.picks.map(drillById).filter(Boolean);
+    if(!W||!F||!picks.length){H().toast("חסרות בחירות — בדוק את הסיכום");return;}
+
+    /* התרגילים יכולים להגיע מכמה קטגוריות — הכותרת והמטרות נגזרות ממה שנבחר בפועל */
+    const cats=[...new Set(picks.map(d=>d.cat))];
+    const info=CAT_INFO[cats[0]]||CAT_INFO[st.cat]||CAT_INFO.str;
+    const merged={
+      title:cats.length>1?cats.map(c=>(CAT_INFO[c]||info).title).join(" + "):info.title,
+      goals:[...new Set([].concat(...cats.map(c=>(CAT_INFO[c]||info).goals)))].slice(0,5),
+      assess:[...new Set([].concat(...cats.map(c=>(CAT_INFO[c]||info).assess)))].slice(0,5),
+      std:[...new Set([].concat(...cats.map(c=>(CAT_INFO[c]||info).std)))].sort(),
+      safe:[...new Set(cats.map(c=>(CAT_INFO[c]||info).safe))].join(" "),
+      hw:info.hw
+    };
+    const FT=fmtById(st.fmt), mm=mainMin();
+
+    /* --- שלב החימום --- */
+    const phases=[{n:"חימום: "+W.name, min:st.wuMin, k:"warm", sub:
+      st.wuType==="general"?"חימום כללי":st.wuType==="specific"?"חימום ספציפי · "+(W.sport||""):"משחק חימום",
+      d:W.steps.slice()}];
+
+    /* --- החלק העיקרי --- */
+    if(BLOCK_FMT[st.fmt]){
+      phases.push({n:"חלק עיקרי: "+FT.name, min:mm, k:"main", sub:LVL_NAME[st.level],
+        d:[FT.fmt(picks.length,mm)+" — "+FT.d,
+           ...picks.map(d=>`${d.name} (${d.dose[st.level]||""}) — ${d.cue}`),
+           "התאמה למטה: "+picks[0].easy,
+           "התאמה למעלה: "+picks[picks.length-1].hard]});
+    }else{
+      const per=Math.floor(mm/picks.length);
+      picks.forEach((d,i)=>phases.push({
+        n:d.name, min:i===picks.length-1?mm-per*(picks.length-1):per, k:"main",
+        sub:LVL_NAME[st.level]+" · "+(d.dose[st.level]||""),
+        d:[FT.fmt(picks.length,mm),
+           "ביצוע: "+(d.dose[st.level]||"")+" · "+d.mus,
+           "דגש הוראה: "+d.cue,
+           "מתקשה: "+d.easy,
+           "מתקדם: "+d.hard]}));
+    }
+
+    /* --- החלק הסופי --- */
+    phases.push({n:(F.kind==="calm"?"סיום: ":"חלק סופי: ")+F.name, min:st.finMin,
+      k:F.kind==="calm"?"cool":"game", sub:(FINAL_KINDS.find(k=>k[0]===F.kind)||[])[1],
+      d:F.steps.concat(F.vars?["וריאציות: "+F.vars.join(" · ")]:[])});
+
+    /* --- ציוד מצטבר --- */
+    const eq=[...new Set([].concat(W.eq||[],F.eq||[],...picks.map(d=>d.eq||[])))];
+
+    const plan={
+      grade:st.grade, topic:"custom-"+st.cat, title:merged.title+" — מערך בהרכבה אישית",
+      em:info.em, group:info.g+" · בונה ידני",
+      cls:st.cls, size:st.size, place:st.place, date:today(),
+      goals:merged.goals, eq:eq.length?eq:["בלי ציוד"], std:merged.std, phases,
+      assess:merged.assess,
+      diff:{low:picks.map(d=>d.name+": "+d.easy).join(" · "),
+            high:picks.map(d=>d.name+": "+d.hard).join(" · "),
+            ex:"תפקיד פעיל: שופט, מודד זמנים, רשם תוצאות או מצלם ללוח השיאים."},
+      safe:merged.safe+(F.safe?" בחלק הסופי: "+F.safe:""),
+      cur:null, hw:merged.hw, note:st.note||"",
+      measure:false,
+      mainVariants:picks.map(d=>d.name), mainSubs:[merged.title]
+    };
+
+    if(window.LESSON&&window.LESSON.usePlan){
+      window.LESSON.usePlan(plan);
+      H().toast("✅ המערך שלך מוכן — אפשר להפעיל, לשמור או להדפיס");
+    }else{
+      H().toast("שגיאה בטעינת מודול המערכים");
+    }
+  }
+
+  /* ============================================================
+     אתחול
+     ============================================================ */
+  const SKELETON=`
+    <div class="card">
+      <h2><span class="dot"></span> בונה ידני — אתה מרכיב את המערך</h2>
+      <div class="hint">חמישה שלבים: פרטי השיעור, חימום, חלק עיקרי, חלק סופי וסיכום.
+        בכל שלב אתה בוחר בדיוק מה נכנס — ובסוף מתקבל בדיוק אותו מערך מלא שהמחולל המהיר מפיק,
+        עם הפעלה חיה, הדפסה ושמירה לספרייה.</div>
+      <div class="bw-stepbar" id="bw-steps"></div>
+      <div id="bw-body"></div>
+      <div class="row bw-nav">
+        <button class="btn ghost" id="bw-prev">→ הקודם</button>
+        <button class="btn acc grow" id="bw-next">הבא ←</button>
+      </div>
+    </div>`;
+
+  function init(){
+    if(inited)return; inited=true;
+    const {$, $$}=H();
+    const wrap=$("#ls-manWrap"); if(!wrap)return;
+    loadSt();
+    wrap.innerHTML=SKELETON;
+    $("#bw-prev").addEventListener("click",()=>{if(st.step>1){st.step--;render();window.scrollTo({top:0,behavior:"smooth"});}});
+    $("#bw-next").addEventListener("click",()=>{if(st.step<5){st.step++;render();window.scrollTo({top:0,behavior:"smooth"});}});
+    $$("#ls-modeTabs [data-lm]").forEach(b=>b.addEventListener("click",()=>{
+      $$("#ls-modeTabs [data-lm]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+      const man=b.dataset.lm==="manual";
+      $("#ls-fastWrap").style.display=man?"none":"";
+      $("#ls-manWrap").style.display=man?"":"none";
+      H().LS.set("ls.mode",b.dataset.lm);
+    }));
+    render();
+    /* מחזירים את המורה למצב שבו היה בפעם הקודמת */
+    const m=H().LS.get("ls.mode","fast");
+    if(m==="manual"){const b=$('#ls-modeTabs [data-lm="manual"]'); if(b)b.click();}
+  }
+
+  return {init, drills:()=>DRILLS, warmups:()=>({general:WU_GENERAL,specific:WU_SPECIFIC,game:WU_GAMES}), finals:()=>FINALS};
 })();
 })();
 
