@@ -741,16 +741,51 @@
     </div>
   </div>
 
+  <div class="card" id="gr-bagCard">
+    <details class="pf-help" style="margin:0">
+      <summary>🎓 מחשבון ציון בגרות לכיתה י״ב (ציון פנימי, שתי יח״ל)</summary>
+      <div style="padding:0 13px 13px">
+        <div class="hint">לפי קובץ העזר הרשמי: ‎30%‎ הציון השנתי של י״א, ‎70%‎ ממוצע הסמסטרים/שלישים של י״ב,
+          ובונוס של עד ‎10%‎ על פעילות גופנית נוספת או תרומה לתרבות הספורטיבית של בית הספר.</div>
+        <div class="row" style="margin-top:11px">
+          <div class="field" style="width:120px"><label>ציון י״א</label><input type="number" id="bag-y11" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>ציון י״ב</label><input type="number" id="bag-y12" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>בונוס (נק׳)</label><input type="number" id="bag-bonus" min="0" max="10" value="0"></div>
+        </div>
+        <div class="pf-prec" id="bag-out"></div>
+      </div>
+    </details>
+  </div>
+
   <div class="modal" id="gr-weightsModal"><div class="box">
     <h3>⚖️ מבנה הציון<button class="x" data-close="gr-weightsModal">✕</button></h3>
-    <div class="hint">המשקלים צריכים להסתכם ל-100. אחוז השתתפות ורצינות משמש כברירת מחדל וניתן לשינוי לפי מדיניות בית הספר.</div>
-    <div class="row" style="margin-top:11px;flex-wrap:wrap;gap:10px">
-      <div class="field" style="width:150px"><label>השתתפות ורצינות %</label><input type="number" id="gr-wPart" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>יכולת — מדד הכושר %</label><input type="number" id="gr-wExams" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>שיפור והתמדה %</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>עבודת צוות ושת״פ %</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
-      <div class="field" style="width:170px"><label>תקרת בונוס (נק׳)</label><input type="number" id="gr-wBonusMax" min="0" max="20"></div>
+    <div class="hint">המשקלים צריכים להסתכם ל-100. אפשר לשנות גם את שמות הקטגוריות —
+      קטגוריה שתיתן לה משקל <b>0</b> פשוט לא תוצג בטבלה.</div>
+
+    <div class="field" style="margin-top:11px"><label>מבנים מוכנים</label>
+      <div class="row" id="gr-presets" style="gap:7px">
+        <button class="btn sm" data-pr="mine">המבנה שלי</button>
+        <button class="btn sm" data-pr="mankal">חוזר מנכ״ל תשס״ז/3(א)</button>
+      </div>
+      <div class="hint" style="margin-top:6px">«חוזר מנכ״ל» הוא המבנה הרשמי מקובץ העזר:
+        ‎40%‎ השתתפות ויחס חיובי · ‎20%‎ התנהגות חברתית · ‎20%‎ הישגים במקצועות ·
+        ‎10%‎ כושר גופני · ‎10%‎ ידע והבנה · בונוס עד ‎10%‎.</div>
     </div>
+
+    <div class="gr-wgrid">
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lPart"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wPart" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה (עמודות מבחן)</label><input type="text" id="gr-lExams"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wExams" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lImprove"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lTeam"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lKnow"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wKnow" min="0" max="100"></div>
+    </div>
+    <div class="field" style="width:190px;margin-top:10px"><label>תקרת בונוס (נק׳)</label>
+      <input type="number" id="gr-wBonusMax" min="0" max="20"></div>
     <div class="hint" id="gr-wSum" style="margin-top:9px"></div>
     <button class="btn acc big" id="gr-wSave" style="margin-top:12px">שמור מבנה ציון</button>
   </div></div>

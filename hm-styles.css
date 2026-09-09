@@ -988,3 +988,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-sexseg button{padding:6px 11px;font-size:12.5px;border:none;background:transparent;color:var(--muted);
   border-radius:8px;cursor:pointer;font-family:'Heebo';font-weight:700}
 .ft-sexseg button.on{background:var(--acc);color:var(--onAcc)}
+
+/* מבנה הציון — רשת שם־קטגוריה + משקל */
+.gr-wgrid{display:grid;grid-template-columns:1fr 96px;gap:9px 10px;margin-top:12px;align-items:end}
+@media(max-width:520px){.gr-wgrid{grid-template-columns:1fr 78px}}
