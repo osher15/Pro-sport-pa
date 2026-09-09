@@ -21,6 +21,7 @@
 <script src="hm-plans.js"></script>
 <script src="hm-lesson.js"></script>
 <script src="hm-build.js"></script>
+<script src="hm-tests.js"></script>
 <script src="hm-new.js"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -920,6 +921,52 @@
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-ft">
+  <!-- ----- בחירת כיתה ומבחן ----- -->
+  <div id="ft-pick">
+    <div class="card">
+      <h2><span class="dot"></span> מבחני כושר</h2>
+      <div class="hint">בחר שכבה ומספר כיתה, ואז מבחן. כל מבחן נפתח במסך הפעלה משלו —
+        עם שעון עצר או מונה חזרות, ורשימת התלמידים של אותה כיתה.</div>
+
+      <div class="field" style="margin-top:13px"><label>שכבה</label>
+        <div class="ft-seg" id="ft-grades"></div></div>
+      <div class="field" style="margin-top:11px"><label>מספר כיתה</label>
+        <div class="ft-seg" id="ft-nums"></div></div>
+
+      <div class="ft-cls">
+        <div class="big" id="ft-clsName">ז׳1</div>
+        <div class="sb" id="ft-clsInfo"></div>
+      </div>
+    </div>
+    <div id="ft-tests"></div>
+  </div>
+
+  <!-- ----- מסך המבחן ----- -->
+  <div id="ft-run" style="display:none">
+    <div class="card" id="ft-runHead"></div>
+    <div id="ft-tool"></div>
+    <div class="card">
+      <div id="ft-bar"></div>
+      <div id="ft-list" style="margin-top:11px"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="ft-rosModal"><div class="box">
+    <h3 id="ft-rosTitle">👥 רשימת כיתה<button class="x" data-close="ft-rosModal">✕</button></h3>
+    <div class="row" style="gap:8px">
+      <button class="btn sm acc" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
+      <span class="hint grow" id="ft-rosCount"></span>
+    </div>
+    <div id="ft-rosList" style="margin-top:11px;max-height:280px;overflow:auto"></div>
+    <div class="field" style="margin-top:11px"><label>הדבקת רשימה — שם אחד בכל שורה</label>
+      <textarea id="ft-rosBulk" rows="4" placeholder="דנה כהן&#10;יוסי לוי&#10;מאיה בר"></textarea></div>
+    <div class="row" style="margin-top:10px;gap:8px">
+      <button class="btn sm" id="ft-rosPaste">+ הוסף מהרשימה</button>
+      <button class="btn acc grow" id="ft-rosDone">סיום</button>
+    </div>
+  </div></div>
+</section>
 <section class="view" id="view-tools">
   <div class="pf-tabs" id="tl-tabs">
     <button data-tt="teams" class="on">👥 קבוצות</button>
@@ -1090,6 +1137,7 @@
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
     <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
+    <button class="more-item" data-go="ft" data-close="moreModal"><span class="ic">🏅</span>מבחני כושר<span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>

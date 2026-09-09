@@ -910,3 +910,66 @@ body[data-theme="day"] .pf-prec.mid,body[data-theme="sun"] .pf-prec.mid{border-i
 body[data-theme="day"] .pf-prec.bad .v b:first-child,
 body[data-theme="sun"] .pf-prec.bad .v b:first-child{color:#b3122a}
 body[data-theme="day"] .pf-prec.bad,body[data-theme="sun"] .pf-prec.bad{border-inline-start-color:#b3122a}
+   מבחני כושר (hm-tests.js)
+   ============================================================ */
+body[data-mod="ft"]{--acc:#f59e0b;--accDim:rgba(245,158,11,.18)}
+body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
+
+.ft-seg{display:flex;flex-wrap:wrap;gap:6px}
+.ft-seg button{min-width:52px;flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--muted);
+  border-radius:11px;padding:11px 8px;font-family:'Heebo';font-weight:700;font-size:16px;cursor:pointer;transition:.14s}
+.ft-seg button:hover{border-color:var(--acc)}
+.ft-seg button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;box-shadow:0 3px 14px var(--accDim)}
+
+.ft-cls{margin-top:14px;text-align:center;background:var(--panel2);border:1px solid var(--line);
+  border-radius:14px;padding:13px}
+.ft-cls .big{font-family:'Inter','Heebo',sans-serif;font-size:34px;font-weight:700;color:var(--acc);line-height:1.1}
+.ft-cls .sb{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+.ft-grp{margin-bottom:15px}
+.ft-grph{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 2px 8px}
+.ft-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.ft-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:14px;padding:12px 13px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:8px}
+.ft-card:hover{border-color:var(--acc);box-shadow:0 8px 22px var(--accDim);transform:translateY(-1px)}
+.ft-card .hd{display:flex;align-items:center;gap:9px;font-size:15px}
+.ft-card .hd .em{font-size:21px;flex:none}
+.ft-card .mt{display:flex;flex-wrap:wrap;gap:5px}
+
+.ft-rh{display:flex;align-items:center;gap:11px}
+.ft-rh b{font-family:'Inter','Heebo',sans-serif;font-size:17px}
+.ft-rh .sb{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+.ft-clock{background:linear-gradient(180deg,var(--accDim),var(--panel));border:1px solid var(--acc);
+  border-radius:18px;padding:16px 14px;margin-bottom:14px}
+.ft-clock .tm{font-family:'Share Tech Mono';font-size:clamp(46px,15vw,86px);line-height:1;text-align:center;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+
+.ft-row{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:9px 12px;margin-bottom:7px;transition:.14s}
+.ft-row.done{border-color:color-mix(in srgb,var(--acc) 55%,var(--line));background:linear-gradient(90deg,var(--accDim),var(--panel2))}
+.ft-row .nm{flex:1;min-width:0;font-size:14.5px;font-weight:600}
+.ft-row .nm .pv{display:block;font-size:11px;color:var(--faint);font-weight:400}
+.ft-row .vl{font-family:'Share Tech Mono';font-size:17px;min-width:74px;text-align:center;
+  font-variant-numeric:tabular-nums;color:var(--acc)}
+.ft-row .vl .dl{display:block;font-family:'Heebo';font-size:10.5px}
+.ft-row .vl .dl.up{color:var(--green)}
+.ft-row .vl .dl.down{color:var(--stop)}
+
+.ft-step{display:flex;align-items:center;gap:2px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:2px}
+.ft-step button{width:40px;height:44px;border:none;background:transparent;color:var(--ink);font-size:23px;
+  font-weight:700;cursor:pointer;border-radius:9px;line-height:1}
+/* «+» היא הפעולה שחוזרת עשרות פעמים במבחן — היא מקבלת שטח מגע גדול יותר */
+.ft-step button.plus{width:58px;background:var(--accDim);color:var(--acc);font-size:26px}
+.ft-step button.plus:active{background:var(--acc);color:var(--onAcc)}
+.ft-step button:active{background:var(--accDim)}
+.ft-step b{min-width:40px;text-align:center;font-family:'Share Tech Mono';font-size:19px;font-variant-numeric:tabular-nums}
+.ft-num{width:96px;background:var(--inset);border:1px solid var(--line);border-radius:10px;color:var(--ink);
+  font-family:'Share Tech Mono';font-size:17px;padding:9px 10px;text-align:center}
+
+@media(max-width:520px){
+  .ft-cards{grid-template-columns:1fr}
+  .ft-seg button{min-width:44px;font-size:15px;padding:10px 6px}
+  .ft-row{flex-wrap:wrap}
+  .ft-row .nm{flex-basis:100%}
+}
