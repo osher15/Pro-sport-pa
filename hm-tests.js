@@ -727,6 +727,9 @@ window.FT=(function(){
               <td class="mono" style="font-weight:800;color:var(--acc)">${r.idx!=null?r.idx.toFixed(1):"—"}</td></tr>`;
           }).join("")}</tbody></table></div>
           ${anyRel&&mode==="norm"?'<div class="hint" style="margin-top:7px"><b>~</b> = חושב יחסית לשכבה כי אין טבלת נורמה למבחן/שכבה האלה.</div>':""}
+          ${mode==="norm"&&rst.some(x=>x.sex==="girls")&&!Object.values(N.table).some(t=>t.girls)
+            ?`<div class="hint" style="margin-top:7px">בכיתה יש בנות, ובטבלה הטעונה יש רק בנים —
+              הבנות מנוקדות יחסית לשכבה עד שתוזן טבלה נפרדת עבורן.</div>`:""}
           ${rows.some(r=>r.partial)?`<div class="bw-warn" style="margin-top:9px">יש תלמידים עם תוצאות שעדיין בלי מדד.
             בניקוד יחסי דרושות לפחות ‎3‎ תוצאות באותו מבחן, באותה שכבה ובאותו מין — אחרת האחוזון הוא רעש ולא מדידה.
             הוסף תוצאות, סמן מין לתלמידים ב«👥 רשימה», או עבור לטבלת נורמה.</div>`:""}
@@ -866,15 +869,14 @@ window.FT=(function(){
       }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
     };
     $("#ft-nClear").onclick=()=>{ if(confirm("למחוק את כל טבלת הנורמה?")){setNorms(NORM_EMPTY);H().modal("ft-normsModal",false);renderIndex();} };
+    /* בנים בלבד. לבנות נדרשת טבלה אחרת לגמרי, ולטעון לשתיהן את אותם
+       המספרים היה מנקד בנות מול סטנדרט גברי — טעות שמגיעה לציון. */
     $("#ft-nPreset").onclick=()=>{
-      const sex=$("#ft-nPresetSex").value;
-      const add=buildSchoolNorms(sex);
+      const add=buildSchoolNorms("boys");
       const cur=$("#ft-nText").value.trim();
       $("#ft-nText").value=cur?cur+"\n"+add:add;
-      if(!$("#ft-nSource").value.trim())$("#ft-nSource").value="טבלת בית הספר — בסיס י״ב";
-      H().toast(sex==="girls"
-        ? "⚠ נטענו "+add.split("\n").length+" שורות לבנות — עם אותם ערכים של הבסיס. ערוך אותן לפני שמירה"
-        : "נטענו "+add.split("\n").length+" שורות לבנים — עבור עליהן ולחץ שמור");
+      if(!$("#ft-nSource").value.trim())$("#ft-nSource").value="טבלת בית הספר — בסיס י״ב (בנים)";
+      H().toast("נטענו "+add.split("\n").length+" שורות לבנים — עבור עליהן ולחץ שמור");
     };
   }
   function statNorms(N){
