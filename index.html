@@ -1015,12 +1015,31 @@
       r1000|boys|ט|210=100,240=90,270=80,300=70,330=60<br>
       push|girls|ט|30=100,22=90,16=80,11=70,7=60
     </div>
-    <div class="row" style="margin-top:11px;gap:8px;align-items:end">
-      <button class="btn sm acc" id="ft-nPreset">📋 טען את טבלת בית הספר — בנים</button>
-      <div class="hint grow">הבסיס הוא הטבלה שלך לכיתה י״ב, והדרישה מתרככת ב-‎2.5%‎ לכל שכבה מתחתיה
-        (ז׳ יוצא ‎12.5%‎ מתחת לי״ב). אפשר לערוך כל שורה לפני השמירה.
-        <b>בנים בלבד</b> — לבנות נדרשת טבלה נפרדת, ועד שתוזן הן מנוקדות יחסית לשכבה.</div>
+    <div class="bw-note" style="margin-top:12px">
+      <b>בסיס י״ב</b> — נקודת המוצא שממנה נגזרות כל השכבות. שורה לכל מבדק:
+      <span style="direction:ltr;display:inline-block">מזהה־מבחן|ערך=ניקוד,ערך=ניקוד…</span><br>
+      הבסיס נשמר בנפרד לבנים ולבנות, כך שכל מורה מזין את הטבלה של הקבוצה שהוא מלמד.
     </div>
+    <div class="row" style="margin-top:10px;gap:9px;align-items:end">
+      <div class="field" style="width:170px"><label>הבסיס של</label>
+        <div class="seg" id="ft-bSexSeg">
+          <button data-bs="boys" class="on">בנים</button>
+          <button data-bs="girls">בנות</button>
+        </div></div>
+      <div class="field" style="width:150px"><label>הקלה לכל שכבה (%)</label>
+        <input type="number" id="ft-bPct" min="0" max="10" step="0.5"></div>
+      <div class="hint grow">ז׳ יוצא חמש מדרגות מתחת לי״ב. הכיוון נגזר מסוג המבחן —
+        בקפיצה ובחזרות הערך יורד, בזמני ריצה הוא עולה.</div>
+    </div>
+    <div class="field" style="margin-top:9px">
+      <textarea id="ft-bText" rows="6" style="direction:ltr;text-align:left;font-family:'Share Tech Mono';font-size:12.5px"
+        placeholder="ljump|270=100,250=95,240=90,220=85,210=80,190=75,180=70,160=65"></textarea></div>
+    <div class="row" style="margin-top:8px;gap:8px;align-items:center">
+      <button class="btn sm" id="ft-bSave">💾 שמור בסיס</button>
+      <button class="btn sm acc" id="ft-nPreset">📋 צור טבלה מלאה לכל השכבות</button>
+      <span class="hint grow" id="ft-bStat"></span>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
     <div class="row" style="margin-top:11px">
       <div class="field grow"><label>מקור הטבלה</label>
         <input type="text" id="ft-nSource" placeholder="למשל: חוזר מפמ״ר חינוך גופני, אות הכושר"></div>

@@ -835,19 +835,65 @@ window.FT=(function(){
     return out;
   }
   const SCHOOL_STEP={"יב":0,"יא":1,"י":2,"ט":3,"ח":4,"ז":5};
-  const SCHOOL_PCT=0.025;
+  const SCHOOL_PCT_DEF=2.5;
 
+  /* ---------- הבסיס כנתון, לא כקוד ----------
+     טבלת י״ב היא נקודת המוצא שממנה נגזרות כל השכבות. היא נשמרת
+     במכשיר בנפרד לבנים ולבנות, כך שמורה שמלמד בנות יכול להזין את
+     הטבלה שלו בלי שאף מספר גברי ידלוף אליה. הבנים מגיעים מלאים
+     כברירת מחדל; הבנות מתחילות ריקות בכוונה. */
+  const baseAll=()=>{
+    const saved=LS().get("ft.schoolBase",null);
+    if(saved&&saved.boys)return saved;
+    const boys={}; Object.keys(SCHOOL_BASE).forEach(t=>boys[t]=SCHOOL_BASE[t].pts.map(x=>x.slice()));
+    return {boys,girls:{}};
+  };
+  const baseSet=b=>LS().set("ft.schoolBase",b);
+  const stepPct=()=>{ const v=+LS().get("ft.schoolPct",SCHOOL_PCT_DEF); return v>0?v:SCHOOL_PCT_DEF; };
+  const setStepPct=v=>LS().set("ft.schoolPct",v);
+
+  /* טקסט הבסיס: שורה למבחן — «מזהה|ערך=ניקוד,ערך=ניקוד…» */
+  function baseToText(sex){
+    const b=baseAll()[sex]||{};
+    return Object.keys(b).map(t=>t+"|"+b[t].map(p=>p[0]+"="+p[1]).join(",")).join("\n");
+  }
+  function textToBase(txt){
+    const out={};
+    txt.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith("#")).forEach(line=>{
+      const p=line.split("|").map(x=>x.trim());
+      if(p.length!==2)throw new Error(line);
+      const [tid,pairs]=p;
+      if(!testById(tid))throw new Error("מבחן לא מוכר: "+tid);
+      const pts=pairs.split(",").map(x=>{
+        const [v,sc]=x.split("=").map(y=>+y.trim());
+        if(!(v>=0)||!(sc>=0))throw new Error(line);
+        return [v,sc];
+      });
+      if(pts.length<2)throw new Error("צריך לפחות שתי נקודות ציון: "+line);
+      out[tid]=pts;
+    });
+    return out;
+  }
+
+  /* עיגול ומדרגת מונוטוניות לפי יחידת המדידה של המבחן; מבחן שאין לו
+     הגדרה מפורשת מקבל ברירת מחדל סבירה לפי היחידה שלו. */
+  function roundSpec(tid){
+    if(SCHOOL_BASE[tid])return SCHOOL_BASE[tid];
+    const T=testById(tid), u=T&&T.unit;
+    if(u==="ס״מ")return {step:5,round:v=>Math.round(v/5)*5};
+    if(u==="שנ׳")return {step:0.1,round:v=>Math.round(v*10)/10};
+    return {step:1,round:v=>Math.max(1,Math.round(v))};
+  }
   function buildSchoolNorms(sex){
-    const lines=[];
-    Object.keys(SCHOOL_BASE).forEach(tid=>{
+    const base=baseAll()[sex]||{}, pct=stepPct()/100, lines=[];
+    Object.keys(base).forEach(tid=>{
       const T=testById(tid); if(!T)return;
-      const base=SCHOOL_BASE[tid];
+      const spec=roundSpec(tid), pts=base[tid];
       Object.keys(SCHOOL_STEP).forEach(g=>{
         const k=SCHOOL_STEP[g];
-        const f=T.dir==="low" ? 1+k*SCHOOL_PCT : 1-k*SCHOOL_PCT;
-        const raw=enforceMono(base.pts.map(([v])=>base.round(v*f)),T.dir,base.step);
-        const pairs=base.pts.map(([,pt],i)=>raw[i]+"="+pt).join(",");
-        lines.push(tid+"|"+sex+"|"+g+"|"+pairs);
+        const f=T.dir==="low" ? 1+k*pct : 1-k*pct;
+        const raw=enforceMono(pts.map(([v])=>spec.round(v*f)),T.dir,spec.step);
+        lines.push(tid+"|"+sex+"|"+g+"|"+pts.map(([,pt],i)=>raw[i]+"="+pt).join(","));
       });
     });
     return lines.join("\n");
@@ -869,15 +915,34 @@ window.FT=(function(){
       }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
     };
     $("#ft-nClear").onclick=()=>{ if(confirm("למחוק את כל טבלת הנורמה?")){setNorms(NORM_EMPTY);H().modal("ft-normsModal",false);renderIndex();} };
-    /* בנים בלבד. לבנות נדרשת טבלה אחרת לגמרי, ולטעון לשתיהן את אותם
-       המספרים היה מנקד בנות מול סטנדרט גברי — טעות שמגיעה לציון. */
-    $("#ft-nPreset").onclick=()=>{
-      const add=buildSchoolNorms("boys");
-      const cur=$("#ft-nText").value.trim();
-      $("#ft-nText").value=cur?cur+"\n"+add:add;
-      if(!$("#ft-nSource").value.trim())$("#ft-nSource").value="טבלת בית הספר — בסיס י״ב (בנים)";
-      H().toast("נטענו "+add.split("\n").length+" שורות לבנים — עבור עליהן ולחץ שמור");
+    /* --- עורך הבסיס --- */
+    let baseSex="boys";
+    const paintBase=()=>{
+      $$("#ft-bSexSeg button").forEach(b=>b.classList.toggle("on",b.dataset.bs===baseSex));
+      $("#ft-bText").value=baseToText(baseSex);
+      const n=Object.keys(baseAll()[baseSex]||{}).length;
+      $("#ft-bStat").textContent=n?n+" מבדקים בבסיס של "+(baseSex==="boys"?"בנים":"בנות")
+        :"אין עדיין בסיס ל"+(baseSex==="boys"?"בנים":"בנות")+" — הזן שורה לכל מבדק והשמר.";
     };
+    $$("#ft-bSexSeg button").forEach(b=>b.addEventListener("click",()=>{ baseSex=b.dataset.bs; paintBase(); }));
+    $("#ft-bPct").value=stepPct();
+    $("#ft-bSave").onclick=()=>{
+      try{
+        const all=baseAll(); all[baseSex]=textToBase($("#ft-bText").value);
+        baseSet(all); setStepPct(Math.max(0,+$("#ft-bPct").value||SCHOOL_PCT_DEF));
+        paintBase(); H().toast("✓ הבסיס של "+(baseSex==="boys"?"בנים":"בנות")+" נשמר");
+      }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
+    };
+    $("#ft-nPreset").onclick=()=>{
+      setStepPct(Math.max(0,+$("#ft-bPct").value||SCHOOL_PCT_DEF));
+      const parts=["boys","girls"].map(sx=>buildSchoolNorms(sx)).filter(Boolean);
+      if(!parts.length){H().toast("אין עדיין בסיס — מלא אותו למעלה ושמור");return;}
+      const add=parts.join("\n"), cur=$("#ft-nText").value.trim();
+      $("#ft-nText").value=cur?cur+"\n"+add:add;
+      if(!$("#ft-nSource").value.trim())$("#ft-nSource").value="טבלת בית הספר — בסיס י״ב";
+      H().toast("נוצרו "+add.split("\n").length+" שורות מהבסיס — עבור עליהן ולחץ «שמור טבלה»");
+    };
+    paintBase();
   }
   function statNorms(N){
     const t=N.table, tests=Object.keys(t);
