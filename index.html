@@ -995,6 +995,25 @@
     </div>
   </div>
 
+  <div class="modal" id="ft-impModal"><div class="box" style="max-width:640px">
+    <h3>📄 ייבוא רשימות מקובץ בית ספרי<button class="x" data-close="ft-impModal">✕</button></h3>
+    <div class="hint">מייבא את <b>כל הכיתות בבת אחת</b> מקובץ ייצוא של משו״ב או מכל טבלה אחרת
+      (CSV / TSV / הדבקה מאקסל). האפליקציה מזהה לבד את עמודות השם, הכיתה והמין — ואפשר לתקן ידנית.</div>
+    <div class="bw-note" style="margin-top:9px">🔒 הקובץ נקרא ומפוענח <b>בדפדפן שלך בלבד</b> ונשמר במכשיר.
+      אף שורה לא נשלחת לשום שרת — לא שלי, לא של גוגל, לא של אף אחד.</div>
+    <div class="row" style="margin-top:11px;gap:8px;align-items:center">
+      <label class="btn sm acc" style="cursor:pointer">בחר קובץ
+        <input type="file" id="ft-impFile" accept=".csv,.tsv,.txt,text/csv" style="display:none"></label>
+      <span class="hint grow">או להדביק את הטבלה ישירות מאקסל לתיבה שלמטה</span>
+    </div>
+    <div class="field" style="margin-top:9px">
+      <textarea id="ft-impPaste" rows="4" placeholder="שם משפחה	שם פרטי	כיתה	מין&#10;כהן	דנה	ט3	נ"></textarea></div>
+    <div id="ft-impBody" style="margin-top:11px"></div>
+    <label class="check" style="margin-top:11px"><input type="checkbox" id="ft-impStu" checked>
+      להוסיף גם ל«התלמידים שלי» (לציונים ולמעקב)</label>
+    <button class="btn acc big" id="ft-impGo" style="margin-top:12px" disabled>✓ ייבא לכיתות</button>
+  </div></div>
+
   <div class="modal" id="ft-pickModal"><div class="box">
     <h3>🎯 מבחנים שנכנסים למדד<button class="x" data-close="ft-pickModal">✕</button></h3>
     <div class="hint">סמן את סוללת המבחנים שמרכיבה את מדד היכולת. בלי סימון — כל מבחן שיש לו תוצאה נכנס לממוצע.</div>
@@ -1058,7 +1077,8 @@
   <div class="modal" id="ft-rosModal"><div class="box">
     <h3 id="ft-rosTitle">👥 רשימת כיתה<button class="x" data-close="ft-rosModal">✕</button></h3>
     <div class="row" style="gap:8px">
-      <button class="btn sm acc" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
+      <button class="btn sm acc" id="ft-rosFile">📄 ייבוא מקובץ בית ספרי</button>
+      <button class="btn sm" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
       <span class="hint grow" id="ft-rosCount"></span>
     </div>
     <div id="ft-rosList" style="margin-top:11px;max-height:280px;overflow:auto"></div>

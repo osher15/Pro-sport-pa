@@ -1991,6 +1991,25 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
     </div>
   </div>
 
+  <div class="modal" id="ft-impModal"><div class="box" style="max-width:640px">
+    <h3>📄 ייבוא רשימות מקובץ בית ספרי<button class="x" data-close="ft-impModal">✕</button></h3>
+    <div class="hint">מייבא את <b>כל הכיתות בבת אחת</b> מקובץ ייצוא של משו״ב או מכל טבלה אחרת
+      (CSV / TSV / הדבקה מאקסל). האפליקציה מזהה לבד את עמודות השם, הכיתה והמין — ואפשר לתקן ידנית.</div>
+    <div class="bw-note" style="margin-top:9px">🔒 הקובץ נקרא ומפוענח <b>בדפדפן שלך בלבד</b> ונשמר במכשיר.
+      אף שורה לא נשלחת לשום שרת — לא שלי, לא של גוגל, לא של אף אחד.</div>
+    <div class="row" style="margin-top:11px;gap:8px;align-items:center">
+      <label class="btn sm acc" style="cursor:pointer">בחר קובץ
+        <input type="file" id="ft-impFile" accept=".csv,.tsv,.txt,text/csv" style="display:none"></label>
+      <span class="hint grow">או להדביק את הטבלה ישירות מאקסל לתיבה שלמטה</span>
+    </div>
+    <div class="field" style="margin-top:9px">
+      <textarea id="ft-impPaste" rows="4" placeholder="שם משפחה	שם פרטי	כיתה	מין&#10;כהן	דנה	ט3	נ"></textarea></div>
+    <div id="ft-impBody" style="margin-top:11px"></div>
+    <label class="check" style="margin-top:11px"><input type="checkbox" id="ft-impStu" checked>
+      להוסיף גם ל«התלמידים שלי» (לציונים ולמעקב)</label>
+    <button class="btn acc big" id="ft-impGo" style="margin-top:12px" disabled>✓ ייבא לכיתות</button>
+  </div></div>
+
   <div class="modal" id="ft-pickModal"><div class="box">
     <h3>🎯 מבחנים שנכנסים למדד<button class="x" data-close="ft-pickModal">✕</button></h3>
     <div class="hint">סמן את סוללת המבחנים שמרכיבה את מדד היכולת. בלי סימון — כל מבחן שיש לו תוצאה נכנס לממוצע.</div>
@@ -2054,7 +2073,8 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   <div class="modal" id="ft-rosModal"><div class="box">
     <h3 id="ft-rosTitle">👥 רשימת כיתה<button class="x" data-close="ft-rosModal">✕</button></h3>
     <div class="row" style="gap:8px">
-      <button class="btn sm acc" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
+      <button class="btn sm acc" id="ft-rosFile">📄 ייבוא מקובץ בית ספרי</button>
+      <button class="btn sm" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
       <span class="hint grow" id="ft-rosCount"></span>
     </div>
     <div id="ft-rosList" style="margin-top:11px;max-height:280px;overflow:auto"></div>
@@ -9294,6 +9314,7 @@ window.FT=(function(){
     $("#ft-rosTitle").textContent="👥 רשימת כיתה "+c;
     renderRosterList();
     H().modal("ft-rosModal");
+    $("#ft-rosFile").onclick=()=>{ H().modal("ft-rosModal",false); openImport(); };
     $("#ft-rosImport").onclick=()=>{
       const n=importFromStu(c);
       if(n)H().toast("יובאו "+n+" תלמידים מ«התלמידים שלי»");
@@ -9334,6 +9355,198 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     6ב. ייבוא רשימות מקובץ בית ספרי (משו״ב וכל CSV אחר)
+     ------------------------------------------------------------
+     הכול קורה בדפדפן: הקובץ נקרא מקומית, מפוענח מקומית, ונשמר
+     ב-localStorage של המכשיר. שום שורה לא נשלחת לשום מקום.
+
+     הזיהוי גמיש בכוונה — ייצוא של משו״ב משתנה בין בתי ספר ובין
+     גרסאות, ולכן במקום לצפות לכותרות קבועות אנחנו מזהים לפי
+     מילות מפתח, ותמיד מציגים תצוגה מקדימה לפני שמייבאים.
+     ============================================================ */
+  const IMP={rows:[],head:[],map:{name:-1,first:-1,last:-1,cls:-1,grade:-1,par:-1,sex:-1}};
+
+  /* מפצל שורת CSV אחת תוך כיבוד מרכאות */
+  function splitLine(line,d){
+    const out=[]; let cur="",q=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;} else q=!q; }
+      else if(ch===d&&!q){ out.push(cur); cur=""; }
+      else cur+=ch;
+    }
+    out.push(cur);
+    return out.map(x=>x.trim().replace(/^"|"$/g,""));
+  }
+  function parseTable(text){
+    const t=text.replace(/^\uFEFF/,"").replace(/\r\n?/g,"\n").trim();
+    if(!t)return {head:[],rows:[]};
+    const first=t.split("\n")[0];
+    /* בוחרים את המפריד שמייצר הכי הרבה עמודות בשורה הראשונה */
+    const d=[["\t",splitLine(first,"\t").length],[",",splitLine(first,",").length],[";",splitLine(first,";").length]]
+      .sort((a,b)=>b[1]-a[1])[0][0];
+    const all=t.split("\n").filter(l=>l.trim()).map(l=>splitLine(l,d));
+    return {head:all[0]||[],rows:all.slice(1)};
+  }
+
+  const HDR={
+    name :["שם מלא","שם התלמיד","שם תלמיד","שם התלמיד/ה","שם"],
+    first:["שם פרטי","פרטי"],
+    last :["שם משפחה","משפחה"],
+    cls  :["כיתה","הכיתה","כיתת אם"],
+    grade:["שכבה","שכבת גיל"],
+    par  :["מקבילה","מספר כיתה","כיתה מספר"],
+    sex  :["מין","מגדר","בן/בת"]
+  };
+  function detect(head){
+    const m={name:-1,first:-1,last:-1,cls:-1,grade:-1,par:-1,sex:-1};
+    const norm=h=>String(h||"").replace(/["'׳״]/g,"").trim();
+    Object.keys(HDR).forEach(k=>{
+      head.forEach((h,i)=>{
+        if(m[k]>=0)return;
+        const v=norm(h);
+        if(HDR[k].some(w=>v===w))m[k]=i;
+      });
+      if(m[k]<0)head.forEach((h,i)=>{
+        if(m[k]>=0)return;
+        const v=norm(h);
+        if(HDR[k].some(w=>v.includes(w)))m[k]=i;
+      });
+    });
+    /* «שם» לבדו לא יילקח אם יש פיצול לפרטי+משפחה */
+    if(m.first>=0&&m.last>=0)m.name=-1;
+    return m;
+  }
+  const SEX_M=["ז","זכר","בן","ב","m","male","boy"];
+  const SEX_F=["נ","נקבה","בת","g","f","female","girl"];
+  function readSex(v){
+    const t=String(v||"").trim().toLowerCase();
+    if(!t)return null;
+    if(SEX_M.includes(t))return "boys";
+    if(SEX_F.includes(t))return "girls";
+    return null;
+  }
+  /* «י2» · «י׳2» · «י-2» · שכבה+מקבילה נפרדות → מפתח כיתה אחיד */
+  function readCls(row,m){
+    if(m.cls>=0&&row[m.cls])return String(row[m.cls]).trim();
+    if(m.grade>=0&&row[m.grade]){
+      const g=String(row[m.grade]).trim(), p=m.par>=0?String(row[m.par]||"").trim():"";
+      return p?g+p:g;
+    }
+    return "";
+  }
+  /* מפרק «ט׳3» לשכבה ומספר, כדי שהייבוא ייפול לאותן כיתות שהמודול מכיר */
+  function parseCls(raw){
+    const t=String(raw||"").replace(/["'׳״\s\-־]/g,"");
+    const mm=t.match(/^(יב|יא|י|ט|ח|ז)(\d{1,2})$/);
+    if(!mm)return null;
+    return {grade:mm[1],num:+mm[2]};
+  }
+
+  function impBuild(){
+    const rows=[];
+    IMP.rows.forEach(r=>{
+      const m=IMP.map;
+      let nm = m.name>=0 ? String(r[m.name]||"").trim() : "";
+      if(!nm&&(m.first>=0||m.last>=0))
+        nm=[m.last>=0?r[m.last]:"",m.first>=0?r[m.first]:""].map(x=>String(x||"").trim()).filter(Boolean).join(" ");
+      nm=nm.replace(/\s+/g," ").trim();
+      if(!nm)return;
+      const rawCls=readCls(r,m), pc=parseCls(rawCls);
+      rows.push({name:nm,rawCls,cls:pc?clsName(pc.grade,pc.num):rawCls,ok:!!pc,
+        sex:m.sex>=0?readSex(r[m.sex]):null});
+    });
+    return rows;
+  }
+
+  function renderImp(){
+    const {$, $$, esc}=H();
+    const box=$("#ft-impBody"); if(!box)return;
+    if(!IMP.head.length){ box.innerHTML='<div class="hint">בחר קובץ או הדבק טבלה למעלה.</div>'; return; }
+    const built=impBuild();
+    const good=built.filter(x=>x.ok);
+    const byCls={}; good.forEach(x=>{ byCls[x.cls]=(byCls[x.cls]||0)+1; });
+    const bad=built.filter(x=>!x.ok);
+    const sel=(k,lbl)=>`<div class="field" style="width:150px"><label>${lbl}</label>
+      <select data-map="${k}"><option value="-1">—</option>${IMP.head.map((h,i)=>
+        `<option value="${i}"${IMP.map[k]===i?" selected":""}>${esc(h||("עמודה "+(i+1)))}</option>`).join("")}</select></div>`;
+    box.innerHTML=`
+      <div class="row" style="flex-wrap:wrap;gap:9px">
+        ${sel("name","שם מלא")}${sel("first","שם פרטי")}${sel("last","שם משפחה")}
+        ${sel("cls","כיתה")}${sel("grade","שכבה")}${sel("par","מקבילה")}${sel("sex","מין")}
+      </div>
+      <div class="hint" style="margin-top:8px">אם הקובץ מפצל לשם פרטי ומשפחה — בחר את שניהם ואשאיר את «שם מלא» על —.</div>
+      <div class="ft-idxsum" style="margin-top:11px">
+        <div><span class="k">תלמידים</span><span class="v">${good.length}</span></div>
+        <div><span class="k">כיתות</span><span class="v">${Object.keys(byCls).length}</span></div>
+        <div><span class="k">עם מין</span><span class="v">${good.filter(x=>x.sex).length}</span></div>
+      </div>
+      ${Object.keys(byCls).length?`<div class="row" style="gap:5px;flex-wrap:wrap;margin-top:10px">${
+        Object.keys(byCls).sort().map(c=>`<span class="pill acc">${esc(c)} · ${byCls[c]}</span>`).join("")}</div>`:""}
+      ${bad.length?`<div class="bw-warn" style="margin-top:10px">${bad.length} שורות בלי כיתה מזוהה — הן לא ייובאו.
+        דוגמה: «${esc(bad[0].name)}» עם כיתה «${esc(bad[0].rawCls||"ריק")}». המודול מכיר ז׳–י״ב עם מספר, למשל «ט3».</div>`:""}
+      ${good.length?`<div class="tblwrap" style="margin-top:10px;max-height:200px;overflow:auto"><table class="tbl">
+        <thead><tr><th>שם</th><th>כיתה</th><th>מין</th></tr></thead>
+        <tbody>${good.slice(0,8).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.cls)}</td>
+          <td>${x.sex==="boys"?"בן":x.sex==="girls"?"בת":"—"}</td></tr>`).join("")}</tbody></table></div>
+        ${good.length>8?`<div class="hint" style="margin-top:5px">מוצגות 8 שורות ראשונות מתוך ${good.length}.</div>`:""}`:""}`;
+    $$("#ft-impBody [data-map]").forEach(se=>se.addEventListener("change",()=>{
+      IMP.map[se.dataset.map]=+se.value; renderImp();
+    }));
+    $("#ft-impGo").disabled=!good.length;
+  }
+
+  function impApply(){
+    const built=impBuild().filter(x=>x.ok);
+    if(!built.length){H().toast("אין שורות לייבוא");return;}
+    const alsoStu=H().$("#ft-impStu").checked;
+    const all=rosters(); let added=0,updated=0;
+    built.forEach(x=>{
+      const k=clsKey(x.cls);
+      const list=Array.isArray(all[k])?all[k]:(all[k]=[]);
+      const ex=list.find(y=>y.name===x.name);
+      if(ex){ if(x.sex&&ex.sex!==x.sex){ex.sex=x.sex;updated++;} }
+      else { list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),name:x.name,sex:x.sex||null}); added++; }
+    });
+    setRosters(all);
+    let stuAdded=0;
+    if(alsoStu){
+      const stu=LS().get("stu.list",[]);
+      built.forEach(x=>{
+        let s=stu.find(y=>y.name===x.name);
+        if(!s){ stu.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,6),name:x.name,cls:x.cls,
+          sex:x.sex||"boys",age:14,h:null,w:null,tests:[]}); stuAdded++; }
+        else { if(!s.cls)s.cls=x.cls; if(x.sex)s.sex=x.sex; }
+      });
+      LS().set("stu.list",stu);
+    }
+    H().modal("ft-impModal",false);
+    H().toast(`✓ ${added} תלמידים חדשים · ${updated} עודכן מין`+(alsoStu?` · ${stuAdded} נוספו ל«התלמידים שלי»`:""));
+    renderTab();
+  }
+
+  function openImport(){
+    const {$}=H();
+    IMP.rows=[]; IMP.head=[]; IMP.map={name:-1,first:-1,last:-1,cls:-1,grade:-1,par:-1,sex:-1};
+    $("#ft-impPaste").value=""; $("#ft-impFile").value="";
+    renderImp();
+    H().modal("ft-impModal");
+    const load=text=>{
+      const t=parseTable(text);
+      IMP.head=t.head; IMP.rows=t.rows; IMP.map=detect(t.head);
+      renderImp();
+    };
+    $("#ft-impFile").onchange=async e=>{
+      const f=e.target.files[0]; if(!f)return;
+      load(await f.text());
+    };
+    $("#ft-impPaste").oninput=()=>load($("#ft-impPaste").value);
+    $("#ft-impGo").onclick=impApply;
+  }
+
+  /* ============================================================
+     7. ייצוא
+     ============================================================ */  /* ============================================================
      7. ייצוא
      ============================================================ */
   function exportCsv(){
