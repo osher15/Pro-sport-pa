@@ -67,6 +67,8 @@ const TESTS=[
    hint:"5 הקפות. לתיכון בעיקר — ודא שתייה זמינה לפני ואחרי."},
   {id:"shut", em:"🔀", name:"ריצת שאטל 10×5 מ׳", cat:"run", kind:"clock", dir:"low", unit:"שנ׳",
    hint:"שני קווים במרחק 5 מ׳, 10 מעברים. כף רגל חייבת לחצות את הקו בכל מעבר."},
+  {id:"shut4x10", em:"↔️", name:"ריצת שאטל 4×10 מ׳", cat:"run", kind:"clock", dir:"low", unit:"שנ׳",
+   hint:"שני קווים במרחק 10 מ׳, ארבעה מעברים. נגיעה ביד בקו בכל היפוך — לא ״כמעט״."},
 
   /* ---------- סבולת ---------- */
   {id:"cooper",em:"🫁", name:"מבחן קופר — 12 דקות", cat:"endur", kind:"value", dir:"high", unit:"מ׳", dur:720,
@@ -799,7 +801,56 @@ window.FT=(function(){
     };
   }
 
-  /* ---------- טבלת הנורמה ---------- */
+  /* ============================================================
+     טבלת בית הספר — בסיס י״ב וגזירה לשכבות
+     ------------------------------------------------------------
+     הבסיס הוא הטבלה של המורה לכיתה י״ב (בנים). לכל שכבה מתחת
+     לי״ב הדרישה מתרככת ב-2.5% למדרגה — כלומר בכיוון שמקל על
+     התלמיד: במבחני ״גבוה=טוב״ הערך יורד, ובמבחני זמן הוא עולה.
+     ז׳ יוצא ‎12.5%‎ מתחת לי״ב.
+
+     כל ערך מעוגל לפי מה שהגיוני למדוד בשטח — קפיצה ל-5 ס״מ,
+     ריצת 2000 ל-5 שניות, שאטל לעשירית, וחזרות למספר שלם.
+     ============================================================ */
+  const SCHOOL_BASE={
+    ljump:   {step:5,   round:v=>Math.round(v/5)*5,        pts:[[270,100],[250,95],[240,90],[220,85],[210,80],[190,75],[180,70],[160,65]]},
+    situp:   {step:1,   round:v=>Math.round(v),            pts:[[78,100],[73,95],[68,90],[63,85],[58,80],[53,75],[48,70],[43,65]]},
+    shut4x10:{step:0.1, round:v=>Math.round(v*10)/10,      pts:[[8.90,100],[9.30,95],[9.70,90],[10.10,85],[10.50,80],[10.90,75],[11.30,70],[12.00,65]]},
+    r2000:   {step:5,   round:v=>Math.round(v/5)*5,        pts:[[450,100],[465,95],[480,90],[500,85],[520,80],[550,75],[580,70],[610,65],[660,60]]},
+    pull:    {step:1,   round:v=>Math.max(1,Math.round(v)),pts:[[15,100],[13,95],[11,90],[8,85],[6,80],[5,75],[4,70],[3,65]]},
+    hang:    {step:1,   round:v=>Math.round(v),            pts:[[50,80],[20,60]]}
+  };
+  /* העיגול יכול להדביק שני ערכים סמוכים (למשל 4=75,4=70 במתח בכיתה ז׳).
+     ערך כפול עם שני ניקודים שונים הופך את האינטרפולציה לשרירותית, ולכן
+     כופים כאן ירידה/עלייה ממש — צעד אחד לפחות בין נקודות ציון סמוכות. */
+  function enforceMono(vals,dir,step){
+    const out=vals.slice();
+    for(let i=1;i<out.length;i++){
+      if(dir==="low"){ if(out[i]<=out[i-1])out[i]=+(out[i-1]+step).toFixed(4); }
+      else{ if(out[i]>=out[i-1])out[i]=+Math.max(step,out[i-1]-step).toFixed(4); }
+    }
+    return out;
+  }
+  const SCHOOL_STEP={"יב":0,"יא":1,"י":2,"ט":3,"ח":4,"ז":5};
+  const SCHOOL_PCT=0.025;
+
+  function buildSchoolNorms(sex){
+    const lines=[];
+    Object.keys(SCHOOL_BASE).forEach(tid=>{
+      const T=testById(tid); if(!T)return;
+      const base=SCHOOL_BASE[tid];
+      Object.keys(SCHOOL_STEP).forEach(g=>{
+        const k=SCHOOL_STEP[g];
+        const f=T.dir==="low" ? 1+k*SCHOOL_PCT : 1-k*SCHOOL_PCT;
+        const raw=enforceMono(base.pts.map(([v])=>base.round(v*f)),T.dir,base.step);
+        const pairs=base.pts.map(([,pt],i)=>raw[i]+"="+pt).join(",");
+        lines.push(tid+"|"+sex+"|"+g+"|"+pairs);
+      });
+    });
+    return lines.join("\n");
+  }
+
+  /* ---------- טבלת הנורמה ---------- */  /* ---------- טבלת הנורמה ---------- */
   function openNorms(){
     const {$, esc}=H(), N=norms();
     $("#ft-nSource").value=N.source||"";
@@ -815,6 +866,16 @@ window.FT=(function(){
       }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
     };
     $("#ft-nClear").onclick=()=>{ if(confirm("למחוק את כל טבלת הנורמה?")){setNorms(NORM_EMPTY);H().modal("ft-normsModal",false);renderIndex();} };
+    $("#ft-nPreset").onclick=()=>{
+      const sex=$("#ft-nPresetSex").value;
+      const add=buildSchoolNorms(sex);
+      const cur=$("#ft-nText").value.trim();
+      $("#ft-nText").value=cur?cur+"\n"+add:add;
+      if(!$("#ft-nSource").value.trim())$("#ft-nSource").value="טבלת בית הספר — בסיס י״ב";
+      H().toast(sex==="girls"
+        ? "⚠ נטענו "+add.split("\n").length+" שורות לבנות — עם אותם ערכים של הבסיס. ערוך אותן לפני שמירה"
+        : "נטענו "+add.split("\n").length+" שורות לבנים — עבור עליהן ולחץ שמור");
+    };
   }
   function statNorms(N){
     const t=N.table, tests=Object.keys(t);
