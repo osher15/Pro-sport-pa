@@ -147,7 +147,30 @@ window.STU=(function(){
      מבנה: 4 קטגוריות במשקלים (ברירת מחדל 70/10/10/10), עם עמודות מבחן
      דינמיות בתוך קטגוריית «מבחנים ומבדקים» (ממוצע של מה שהוזן בפועל).
      ציון סופי = סכום (ציון גולמי × משקל / 100) על כל קטגוריה שמולאה. */
-  const DEF_WEIGHTS={part:70,exams:10,improve:10,team:10};
+  /* ברירת המחדל תואמת את מבנה הציון בפועל: 70 הגעה והשתתפות, 8 יכולת
+     (מדד הכושר), ו-22 שיפור/התמדה/שיתוף פעולה. בנוסף — בונוס נקודות
+     לתלמיד שמתאמן בחוג מקצועי אחר הצהריים, שמתווסף מעל ה-100.
+     קטגוריית «ידע והבנה» קיימת אך במשקל 0 — היא נדרשת למבנה של חוזר
+     המנכ״ל, ובמשקל 0 היא פשוט לא מוצגת ולא משפיעה. */
+  const DEF_WEIGHTS={part:70,exams:8,improve:11,team:11,know:0,bonusMax:10};
+  const DEF_LABELS={part:"הגעה והשתתפות",exams:"יכולת — מדד הכושר",
+    improve:"שיפור והתמדה",team:"עבודת צוות ושת״פ",know:"ידע והבנה"};
+
+  /* שני מבני ציון מוכנים. «חוזר מנכ״ל» מועתק מקובץ העזר הרשמי
+     (חוזר מנכ״ל תשס״ז/3(א)) — 60% השתתפות פעילה (40 יחס חיובי + 20
+     התנהגות חברתית), 20% הישגים במקצועות, 10% כושר גופני, 10% ידע
+     והבנה, ובונוס של עד 10% על פעילות גופנית נוספת.
+     «כושר גופני» ממופה לקטגוריית עמודות המבחן — לשם נכתב «מדד כושר»
+     מלשונית המדד, וזה בדיוק המקום שהחוזר מייעד לו. */
+  const PRESETS=[
+    {id:"mine", name:"המבנה שלי", w:{part:70,exams:8,improve:11,team:11,know:0,bonusMax:10},
+     l:Object.assign({},DEF_LABELS)},
+    {id:"mankal", name:"חוזר מנכ״ל תשס״ז/3(א)", w:{part:40,team:20,improve:20,exams:10,know:10,bonusMax:10},
+     l:{part:"השתתפות ויחס חיובי למקצוע",team:"התנהגות חברתית בשיעורים",
+        improve:"הישגים במקצועות אישיים וקבוצתיים",exams:"כושר גופני",know:"ידע והבנה"}}
+  ];
+  const loadLabels=()=>Object.assign({},DEF_LABELS,H().LS.get("grades.labels",{}));
+  const saveLabels=l=>H().LS.set("grades.labels",l);
   const loadWeights=()=>Object.assign({},DEF_WEIGHTS,H().LS.get("grades.weights",{}));
   const saveWeights=w=>H().LS.set("grades.weights",w);
   const loadPeriods=()=>{ const p=H().LS.get("grades.periods",null); return (Array.isArray(p)&&p.length)?p:["רבעון 1"]; };
@@ -161,32 +184,80 @@ window.STU=(function(){
     const g=(s.grades&&s.grades[period])||{};
     const examVals=examCols.map(c=>g.exams&&g.exams[c]).filter(v=>v!=null&&v!=="").map(Number);
     const examsAvg=examVals.length?examVals.reduce((a,b)=>a+b,0)/examVals.length:null;
-    const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team]];
+    const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team],["know",g.know]];
     let total=0,any=false;
     cats.forEach(([k,v])=>{ if(v!=null&&v!==""){ total+=(+v)*weights[k]/100; any=true; } });
-    return {total:any?Math.round(total*10)/10:null,examsAvg};
+    const cap=weights.bonusMax??DEF_WEIGHTS.bonusMax;
+    const bonus=g.bonus!=null&&g.bonus!==""?Math.max(0,Math.min(cap,+g.bonus)):0;
+    if(bonus)any=true;
+    return {total:any?Math.round(Math.min(100,total+bonus)*10)/10:null,examsAvg,bonus};
   }
   function renderWeightsHint(){
     const {$}=H(); const w=loadWeights();
-    $("#gr-formula").textContent=`ציון סופי = השתתפות ורצינות ${w.part}% + ממוצע מבחנים ${w.exams}% + שיפור והתמדה ${w.improve}% + עבודת צוות ${w.team}%`;
+    const L=loadLabels();
+    const parts=["part","exams","improve","team","know"].filter(k=>(w[k]||0)>0)
+      .map(k=>`${L[k]} ${w[k]}%`);
+    $("#gr-formula").textContent="ציון סופי = "+parts.join(" + ")
+      +` + בונוס עד ${w.bonusMax??10} נק׳ (מוגבל ל-100)`;
   }
   function updWSum(){
     const {$}=H();
-    const sum=(+$("#gr-wPart").value||0)+(+$("#gr-wExams").value||0)+(+$("#gr-wImprove").value||0)+(+$("#gr-wTeam").value||0);
+    const sum=(+$("#gr-wPart").value||0)+(+$("#gr-wExams").value||0)+(+$("#gr-wImprove").value||0)
+      +(+$("#gr-wTeam").value||0)+(+$("#gr-wKnow").value||0);
     $("#gr-wSum").innerHTML=`סה״כ: <b style="color:${sum===100?"var(--acc)":"#ff6b81"}">${sum}%</b>`+(sum===100?"":" — צריך להסתכם ל-100");
   }
   function openWeights(){
     const {$}=H(); const w=loadWeights();
-    $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve; $("#gr-wTeam").value=w.team;
+    const L=loadLabels();
+    $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve;
+    $("#gr-wTeam").value=w.team; $("#gr-wKnow").value=w.know||0;
+    $("#gr-wBonusMax").value=w.bonusMax??DEF_WEIGHTS.bonusMax;
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=H().$("#gr-l"+k[0].toUpperCase()+k.slice(1)); if(el)el.value=L[k];
+    });
+    H().$$("#gr-presets button").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.pr)));
     updWSum(); H().modal("gr-weightsModal");
   }
   function saveWeightsForm(){
     const {$}=H();
-    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,team:+$("#gr-wTeam").value||0};
-    const sum=w.part+w.exams+w.improve+w.team;
+    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,
+      team:+$("#gr-wTeam").value||0,know:+$("#gr-wKnow").value||0,
+      bonusMax:Math.max(0,+$("#gr-wBonusMax").value||0)};
+    const sum=w.part+w.exams+w.improve+w.team+w.know;
     if(sum!==100){H().toast("המשקלים חייבים להסתכם ל-100 (כרגע "+sum+")");return;}
-    saveWeights(w); H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
+    const L={};
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=$("#gr-l"+k[0].toUpperCase()+k.slice(1));
+      L[k]=(el&&el.value.trim())||DEF_LABELS[k];
+    });
+    saveWeights(w); saveLabels(L);
+    H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
   }
+  function bagCalc(){
+    const {$}=H(); const box=$("#bag-out"); if(!box)return;
+    const a=$("#bag-y11").value, b=$("#bag-y12").value;
+    if(a===""||b===""){ box.className="pf-prec"; box.innerHTML='<div class="d">הזן את ציון י״א ואת ציון י״ב.</div>'; return; }
+    const y11=Math.max(0,Math.min(100,+a)), y12=Math.max(0,Math.min(100,+b));
+    const bon=Math.max(0,Math.min(10,+$("#bag-bonus").value||0));
+    const base=y11*0.3+y12*0.7;
+    const tot=Math.min(100,base+bon);
+    box.className="pf-prec ok";
+    box.innerHTML=`<div class="v">ציון סופי כולל בונוס — <b>${tot.toFixed(1)}</b> · לתעודה <b>${Math.round(tot)}</b></div>
+      <div class="d">${y11} × ‎0.3‎ = ${(y11*0.3).toFixed(1)} · ${y12} × ‎0.7‎ = ${(y12*0.7).toFixed(1)} ·
+        משוקלל ${base.toFixed(1)}${bon?` · בונוס +${bon}`:""}${base+bon>100?" · נחתך ל-100":""}</div>`;
+  }
+
+  function applyPreset(id){
+    const {$}=H(), P=PRESETS.find(x=>x.id===id); if(!P)return;
+    $("#gr-wPart").value=P.w.part; $("#gr-wExams").value=P.w.exams; $("#gr-wImprove").value=P.w.improve;
+    $("#gr-wTeam").value=P.w.team; $("#gr-wKnow").value=P.w.know||0;
+    $("#gr-wBonusMax").value=P.w.bonusMax;
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=$("#gr-l"+k[0].toUpperCase()+k.slice(1)); if(el)el.value=P.l[k];
+    });
+    updWSum(); H().toast("נטען מבנה «"+P.name+"» — לחץ שמור כדי להחיל");
+  }
+
   function renderGrades(){
     const {$, $$, esc}=H();
     const list=load();
@@ -201,20 +272,30 @@ window.STU=(function(){
     const view=list.filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     $("#gr-empty").style.display=view.length?"none":"block";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
-    const head=`<thead><tr><th>שם</th><th>כיתה</th><th>השתתפות ורצינות<br>(${weights.part}%)</th>${
+    const L=loadLabels();
+    /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */
+    const show=k=>(weights[k]||0)>0;
+    const head=`<thead><tr><th>שם</th><th>כיתה</th>${show("part")?`<th>${esc(L.part)}<br>(${weights.part}%)</th>`:""}${
       examCols.map((c,i)=>`<th>${esc(c)} <button class="x" data-examdel="${i}" title="הסר עמודה">✕</button></th>`).join("")
-    }<th>ממוצע מבחנים<br>(${weights.exams}%)</th><th>שיפור והתמדה<br>(${weights.improve}%)</th><th>עבודת צוות<br>(${weights.team}%)</th><th>ציון סופי</th></tr></thead>`;
+    }${show("exams")?`<th>${esc(L.exams)}<br>(${weights.exams}%)</th>`:""}${
+      show("improve")?`<th>${esc(L.improve)}<br>(${weights.improve}%)</th>`:""}${
+      show("team")?`<th>${esc(L.team)}<br>(${weights.team}%)</th>`:""}${
+      show("know")?`<th>${esc(L.know)}<br>(${weights.know}%)</th>`:""
+    }<th>בונוס<br>(עד ${weights.bonusMax??10})</th><th>ציון סופי</th></tr></thead>`;
     const body=view.map(s=>{
       const g=gradeOf(s,grPeriod);
       const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
+      const num=(f,cap)=>`<td><input class="gr-in" type="number" min="0" max="${cap||100}" data-f="${f}" value="${g[f]??""}"></td>`;
       return `<tr data-sid="${s.id}">
         <td><b>${esc(s.name)}</b></td>
         <td style="color:var(--muted)">${esc(s.cls||"")}</td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="part" value="${g.part??""}"></td>
+        ${show("part")?num("part"):""}
         ${examCols.map(c=>`<td><input class="gr-in" type="number" min="0" max="100" data-exam="${esc(c)}" value="${(g.exams&&g.exams[c])??""}"></td>`).join("")}
-        <td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="improve" value="${g.improve??""}"></td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="team" value="${g.team??""}"></td>
+        ${show("exams")?`<td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>`:""}
+        ${show("improve")?num("improve"):""}
+        ${show("team")?num("team"):""}
+        ${show("know")?num("know"):""}
+        ${num("bonus",weights.bonusMax??10)}
         <td class="mono" style="font-weight:800;color:var(--acc)">${total!=null?total.toFixed(1):"—"}</td>
       </tr>`;
     }).join("");
@@ -224,12 +305,17 @@ window.STU=(function(){
     function updateRowTotals(tr,s){
       const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
       const cells=tr.querySelectorAll("td");
-      cells[3+examCols.length].textContent=examsAvg!=null?examsAvg.toFixed(1):"—";
+      /* תא ממוצע המבחנים הוא ה-.mono הראשון, והציון הסופי הוא האחרון —
+         איתור לפי מיקום קבוע נשבר כשקטגוריה במשקל 0 מוסתרת. */
+      const monos=tr.querySelectorAll("td.mono");
+      if(monos.length>1)monos[0].textContent=examsAvg!=null?examsAvg.toFixed(1):"—";
       cells[cells.length-1].textContent=total!=null?total.toFixed(1):"—";
     }
     $$("#gr-table [data-f]").forEach(inp=>inp.addEventListener("change",()=>{
       const tr=inp.closest("tr"), s=list.find(x=>x.id===tr.dataset.sid); if(!s)return;
-      const g=gradeOf(s,grPeriod); const v=inp.value===""?null:Math.max(0,Math.min(100,+inp.value));
+      const g=gradeOf(s,grPeriod);
+      const cap=inp.dataset.f==="bonus"?(weights.bonusMax??10):100;
+      const v=inp.value===""?null:Math.max(0,Math.min(cap,+inp.value));
       if(v!=null)inp.value=v;
       g[inp.dataset.f]=v; save(list); updateRowTotals(tr,s);
     }));
@@ -528,6 +614,11 @@ window.STU=(function(){
     $("#gr-weightsBtn").addEventListener("click",openWeights);
     ["#gr-wPart","#gr-wExams","#gr-wImprove","#gr-wTeam"].forEach(id=>$(id).addEventListener("input",updWSum));
     $("#gr-wSave").addEventListener("click",saveWeightsForm);
+    /* מחשבון ציון הבגרות של י״ב — 0.3 ציון י״א + 0.7 ציון י״ב + בונוס */
+    ["bag-y11","bag-y12","bag-bonus"].forEach(id=>{
+      const el=$("#"+id); if(el)el.addEventListener("input",bagCalc);
+    });
+    bagCalc();
     $("#gr-period").addEventListener("change",e=>{grPeriod=e.target.value;renderGrades();});
     $("#gr-periodAdd").addEventListener("click",addPeriod);
     $("#gr-periodDel").addEventListener("click",delPeriod);

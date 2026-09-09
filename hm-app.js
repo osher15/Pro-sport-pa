@@ -116,9 +116,9 @@ function applyRole(){
 }
 
 /* ---------- router ---------- */
-const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1};
+const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1,ft:1};
 /* מודולים שנגישים דרך כפתור «עוד» ולא ישירות בסרגל — כדי שהכפתור יודגש כשנמצאים באחד מהם */
-const MORE_MODS=["stu","know","tools","nut"];
+const MORE_MODS=["stu","know","tools","nut","ft"];
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -127,7 +127,7 @@ function go(mod){
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
-  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init}[mod]; if(f)f(); }
+  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
@@ -1055,6 +1055,37 @@ const PF=(function(){
     if(t==="history")renderHistory();
     if(t==="live"&&mode==="sim"&&!race.on)drawSimIdle();
   }
+  /* ---------- מחשבון מיקום המצלמה ----------
+     פס הזיהוי הוא BANDW מתוך PW פיקסלים — כלומר אחוז קבוע משדה הראייה.
+     במטרים הוא גדל ליניארית עם המרחק, ולכן גם אי־הוודאות בזמן.
+     זום מקטין את שדה הראייה בפועל (drawFrame עושה pctx.scale) ולכן משפר דיוק. */
+  const BAND_FRAC=BANDW/PW;
+  function precCalc(){
+    const box=$("#pf-precCalc"); if(!box)return;
+    const D=Math.max(0.5,+$("#pf-camDist").value||6);
+    const v=Math.max(0.5,+$("#pf-camSpeed").value||7);
+    const fov=Math.min(150,Math.max(20,+$("#pf-camFov").value||65));
+    const z=Math.max(1,cam.zoom||1);
+    const W=2*D*Math.tan(fov*Math.PI/360)/z;      /* רוחב התמונה בשטח, במטרים */
+    const band=BAND_FRAC*W;                        /* רוחב פס הזיהוי, במטרים */
+    const err=band/v*1000;                         /* אי־ודאות, במילישניות */
+    /* עד איזה מרחק אפשר להתרחק ועדיין לעמוד ביעד של ±30 מ״ש */
+    const dMax=0.030*v*z/(BAND_FRAC*2*Math.tan(fov*Math.PI/360));
+    const lvl=err<=25?0:err<=50?1:err<=90?2:3;
+    const V=[["ok","מצוין","מתאים גם לגמר צמוד ולשיא בית ספרי."],
+             ["ok","טוב","מתאים לכל מקצה כיתתי רגיל."],
+             ["mid","סביר","בסדר לשיעור, אבל לא לשתי תוצאות שנבדלות בעשירית."],
+             ["bad","רחוק מדי","התקרב, או הגדל זום — כל זום ×2 שווה להתקרבות לחצי המרחק."]][lvl];
+    box.className="pf-prec "+V[0];
+    box.innerHTML=`<div class="v"><b>${V[1]}</b> · אי־ודאות ≈ <b>±${err.toFixed(0)} מ״ש</b></div>
+      <div class="d">פס הזיהוי מכסה ≈ <b>${(band*100).toFixed(0)} ס״מ</b> בשטח${z>1?` · זום ×${z.toFixed(1)} פעיל`:""}.
+        ${V[2]}</div>
+      <div class="d">${err<=30
+        ? `יש לך מרווח: אפשר להתרחק עד <b>${dMax.toFixed(1)} מ׳</b> ועדיין להישאר מתחת ל‑±‎30‎ מ״ש.`
+        : `כדי לרדת מתחת ל‑±‎30‎ מ״ש במהירות הזו — התקרב ל‑<b>${dMax.toFixed(1)} מ׳</b>.`}
+        כל מטר מרחק שווה כ‑<b>${(BAND_FRAC*2*Math.tan(fov*Math.PI/360)/v*1000/z).toFixed(0)} מ״ש</b>.</div>`;
+  }
+
   function init(){
     if(!META.date)META.date=new Date().toISOString().slice(0,10);
     buildLanes(false);
@@ -1073,6 +1104,12 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    $("#pf-camDist").value=LS.get("pf.camDist",6);
+    $("#pf-camSpeed").value=LS.get("pf.camSpeed","7");
+    $("#pf-camFov").value=LS.get("pf.camFov",65);
+    ["pf-camDist","pf-camSpeed","pf-camFov"].forEach(id=>$("#"+id).addEventListener("input",()=>{
+      LS.set("pf."+id.slice(3),$("#"+id).value); precCalc(); }));
+    precCalc();
     /* קיזוז מרחק אקדח–מיקרופון */
     $("#pf-gunDist").value=LS.get("pf.gunDist",0);
     $("#pf-gunDist").addEventListener("change",e=>{
@@ -1095,8 +1132,8 @@ const PF=(function(){
       persistNames(); renderChips(); renderBoard(); refreshLaneSel();
       toast("נטענו "+lanes.length+" מתחרים");
     });
-    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; });
-    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
+    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
+    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
     function fsToggle(){ const st=$("#pf-stage"); st.classList.toggle("fs");
       try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}

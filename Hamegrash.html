@@ -882,6 +882,141 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
 .bw-tag span{color:var(--acc);font-weight:800}
 .bw-tag:hover{background:var(--panel2)}
 
+/* ============================================================
+   פוטו־פיניש — כרטיס מיקום המצלמה ודיוק
+   ============================================================ */
+.pf-prec{border:1px solid var(--line);border-inline-start:4px solid var(--faint);border-radius:12px;
+  padding:11px 13px;margin-top:12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px}
+.pf-prec .v{font-size:15px}
+.pf-prec .v b{font-family:'Inter','Heebo',sans-serif}
+.pf-prec .d{font-size:12.5px;color:var(--muted);line-height:1.6}
+.pf-prec .d b{color:var(--ink)}
+.pf-prec.ok{border-inline-start-color:var(--green)}
+.pf-prec.ok .v b:first-child{color:var(--green)}
+.pf-prec.mid{border-inline-start-color:var(--warn)}
+.pf-prec.mid .v b:first-child{color:var(--warn)}
+.pf-prec.bad{border-inline-start-color:var(--stop)}
+.pf-prec.bad .v b:first-child{color:var(--stop)}
+
+.pf-help{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden}
+.pf-help summary{cursor:pointer;padding:11px 13px;font-size:13.5px;font-weight:700;color:var(--acc);
+  list-style:none;display:flex;align-items:center;gap:8px}
+.pf-help summary::-webkit-details-marker{display:none}
+.pf-help summary::before{content:"▾";transition:.18s;font-size:12px}
+.pf-help[open] summary::before{transform:rotate(180deg)}
+.pf-help summary:hover{background:var(--accDim)}
+.pf-help ol{margin:0;padding:0 26px 12px 13px;font-size:13px;line-height:1.7;color:var(--muted)}
+.pf-help ol li{margin-bottom:8px}
+.pf-help ol li b{color:var(--ink)}
+.pf-help>.hint{padding:0 13px 12px}
+
+/* צבעי החיווי בכרטיס המיקום — גרסאות כהות יותר לערכות הבהירות,
+   כי צהוב וירוק בהירים על רקע לבן כמעט לא נקראים בשמש. */
+body[data-theme="day"] .pf-prec.ok .v b:first-child,
+body[data-theme="sun"] .pf-prec.ok .v b:first-child{color:#0f7a48}
+body[data-theme="day"] .pf-prec.ok,body[data-theme="sun"] .pf-prec.ok{border-inline-start-color:#0f7a48}
+body[data-theme="day"] .pf-prec.mid .v b:first-child,
+body[data-theme="sun"] .pf-prec.mid .v b:first-child{color:#9a6200}
+body[data-theme="day"] .pf-prec.mid,body[data-theme="sun"] .pf-prec.mid{border-inline-start-color:#9a6200}
+body[data-theme="day"] .pf-prec.bad .v b:first-child,
+body[data-theme="sun"] .pf-prec.bad .v b:first-child{color:#b3122a}
+body[data-theme="day"] .pf-prec.bad,body[data-theme="sun"] .pf-prec.bad{border-inline-start-color:#b3122a}
+/* ============================================================
+   מבחני כושר (hm-tests.js)
+   ============================================================ */
+body[data-mod="ft"]{--acc:#f59e0b;--accDim:rgba(245,158,11,.18)}
+body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
+
+.ft-seg{display:flex;flex-wrap:wrap;gap:6px}
+.ft-seg button{min-width:52px;flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--muted);
+  border-radius:11px;padding:11px 8px;font-family:'Heebo';font-weight:700;font-size:16px;cursor:pointer;transition:.14s}
+.ft-seg button:hover{border-color:var(--acc)}
+.ft-seg button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;box-shadow:0 3px 14px var(--accDim)}
+
+.ft-cls{margin-top:14px;text-align:center;background:var(--panel2);border:1px solid var(--line);
+  border-radius:14px;padding:13px}
+.ft-cls .big{font-family:'Inter','Heebo',sans-serif;font-size:34px;font-weight:700;color:var(--acc);line-height:1.1}
+.ft-cls .sb{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+.ft-grp{margin-bottom:15px}
+.ft-grph{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 2px 8px}
+.ft-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.ft-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:14px;padding:12px 13px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:8px}
+.ft-card:hover{border-color:var(--acc);box-shadow:0 8px 22px var(--accDim);transform:translateY(-1px)}
+.ft-card .hd{display:flex;align-items:center;gap:9px;font-size:15px}
+.ft-card .hd .em{font-size:21px;flex:none}
+.ft-card .mt{display:flex;flex-wrap:wrap;gap:5px}
+
+.ft-rh{display:flex;align-items:center;gap:11px}
+.ft-rh b{font-family:'Inter','Heebo',sans-serif;font-size:17px}
+.ft-rh .sb{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+.ft-clock{background:linear-gradient(180deg,var(--accDim),var(--panel));border:1px solid var(--acc);
+  border-radius:18px;padding:16px 14px;margin-bottom:14px}
+.ft-clock .tm{font-family:'Share Tech Mono';font-size:clamp(46px,15vw,86px);line-height:1;text-align:center;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+
+.ft-row{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:9px 12px;margin-bottom:7px;transition:.14s}
+.ft-row.done{border-color:color-mix(in srgb,var(--acc) 55%,var(--line));background:linear-gradient(90deg,var(--accDim),var(--panel2))}
+.ft-row .nm{flex:1;min-width:0;font-size:14.5px;font-weight:600}
+.ft-row .nm .pv{display:block;font-size:11px;color:var(--faint);font-weight:400}
+.ft-row .vl{font-family:'Share Tech Mono';font-size:17px;min-width:74px;text-align:center;
+  font-variant-numeric:tabular-nums;color:var(--acc)}
+.ft-row .vl .dl{display:block;font-family:'Heebo';font-size:10.5px}
+.ft-row .vl .dl.up{color:var(--green)}
+.ft-row .vl .dl.down{color:var(--stop)}
+
+.ft-step{display:flex;align-items:center;gap:2px;background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:2px}
+.ft-step button{width:40px;height:44px;border:none;background:transparent;color:var(--ink);font-size:23px;
+  font-weight:700;cursor:pointer;border-radius:9px;line-height:1}
+/* «+» היא הפעולה שחוזרת עשרות פעמים במבחן — היא מקבלת שטח מגע גדול יותר */
+.ft-step button.plus{width:58px;background:var(--accDim);color:var(--acc);font-size:26px}
+.ft-step button.plus:active{background:var(--acc);color:var(--onAcc)}
+.ft-step button:active{background:var(--accDim)}
+.ft-step b{min-width:40px;text-align:center;font-family:'Share Tech Mono';font-size:19px;font-variant-numeric:tabular-nums}
+.ft-num{width:96px;background:var(--inset);border:1px solid var(--line);border-radius:10px;color:var(--ink);
+  font-family:'Share Tech Mono';font-size:17px;padding:9px 10px;text-align:center}
+
+@media(max-width:520px){
+  .ft-cards{grid-template-columns:1fr}
+  .ft-seg button{min-width:44px;font-size:15px;padding:10px 6px}
+  .ft-row{flex-wrap:wrap}
+  .ft-row .nm{flex-basis:100%}
+}
+
+/* מדד הכושר */
+.ft-idxsum{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
+.ft-idxsum>div{flex:1;min-width:96px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;text-align:center}
+.ft-idxsum .k{display:block;font-size:11.5px;color:var(--muted)}
+.ft-idxsum .v{display:block;font-family:'Share Tech Mono';font-size:22px;color:var(--acc);
+  font-variant-numeric:tabular-nums;margin-top:2px}
+.tbl .sx{display:block;font-size:10.5px;color:var(--faint);font-weight:400}
+.tbl .sx.none{color:var(--warn)}
+.ft-sexseg{padding:2px;gap:2px}
+.ft-sexseg button{padding:6px 11px;font-size:12.5px;border:none;background:transparent;color:var(--muted);
+  border-radius:8px;cursor:pointer;font-family:'Heebo';font-weight:700}
+.ft-sexseg button.on{background:var(--acc);color:var(--onAcc)}
+
+/* מבנה הציון — רשת שם־קטגוריה + משקל */
+.gr-wgrid{display:grid;grid-template-columns:1fr 96px;gap:9px 10px;margin-top:12px;align-items:end}
+@media(max-width:520px){.gr-wgrid{grid-template-columns:1fr 78px}}
+
+/* אות החינוך הגופני — טופס ההערכה המסכמת */
+.ft-ottbl th{font-size:11px;white-space:nowrap}
+.ft-ottbl td{padding:6px 5px}
+.ot-three{white-space:nowrap}
+.ot-three button{width:26px;height:30px;margin:0 1px;border:1px solid var(--line);background:var(--inset);
+  color:var(--faint);border-radius:7px;font-family:'Share Tech Mono';font-size:13px;cursor:pointer;transition:.13s}
+.ot-three button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;font-weight:700}
+.ot-flag{width:38px;height:30px;border:1px solid var(--line);background:var(--inset);color:var(--faint);
+  border-radius:7px;font-size:14px;cursor:pointer;transition:.13s}
+.ot-flag.on{background:var(--green);color:var(--onAcc);border-color:transparent;font-weight:800}
+.ot-pct{width:58px;background:var(--inset);border:1px solid var(--line);border-radius:7px;color:var(--ink);
+  font-family:'Share Tech Mono';font-size:14px;padding:6px 4px;text-align:center}
+
 </style>
 </head>
 <body>
@@ -1064,6 +1199,57 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
       <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+    </div>
+
+    <!-- ----- מיקום המצלמה ודיוק ----- -->
+    <div class="card" id="pf-placeCard">
+      <h2><span class="dot"></span> 📐 איפה להעמיד את המצלמה</h2>
+      <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
+        ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:172px"><label>מרחק המצלמה מהמסלול (מ׳)</label>
+          <input type="number" id="pf-camDist" value="6" min="1" max="60" step="0.5"></div>
+        <div class="field" style="width:198px"><label>מהירות אופיינית</label>
+          <select id="pf-camSpeed">
+            <option value="3">הליכה / בדיקת כיול — ‎3‎ מ׳/שנ׳</option>
+            <option value="5">ריצת סבולת — ‎5‎ מ׳/שנ׳</option>
+            <option value="7" selected>ספרינט בית ספר — ‎7‎ מ׳/שנ׳</option>
+            <option value="9">ספרינט מהיר — ‎9‎ מ׳/שנ׳</option>
+          </select></div>
+        <div class="field" style="width:148px"><label>שדה ראייה אופקי (°)</label>
+          <input type="number" id="pf-camFov" value="65" min="30" max="120" step="1"></div>
+      </div>
+      <div class="pf-prec" id="pf-precCalc"></div>
+
+      <details class="pf-help">
+        <summary>מה באמת שובר את הדיוק — יותר מהמרחק</summary>
+        <ol>
+          <li><b>חלון עיוור של ‎450‎ מ״ש.</b> אחרי זיהוי אוטומטי, הבא לא יכול לירות במשך כחצי שנייה.
+            <b>שני רצים שמסיימים בהפרש קטן מ‑‎0.45‎ שנייה יירשמו כאחד.</b> במקצה צמוד — אל תסמוך על האוטומט:
+            הקש ידנית על שם המסלול ברגע החצייה, או קרא את הזמנים מ«תמונת סיום» בסוף.</li>
+          <li><b>המצלמה חייבת להיות דוממת לחלוטין.</b> המנוע בונה מודל רקע ומזהה כל שינוי כתנועה.
+            טלפון ביד = כל התמונה ״זזה״ = זיהויים שגויים. חצובה, גדר או משטח יציב — לא יד.</li>
+          <li><b>הזיהוי לא יודע מי חצה.</b> הוא מקצה את הזמן <b>למסלול הבא ברשימה שאין לו זמן</b>.
+            לכן סדר את הרצים מהמהיר לאיטי לפני הזינוק, או תקן בטבלה אחרי.</li>
+          <li><b>ניגודיות.</b> הרץ חייב להיבדל מהרקע שמאחורי הקו. חולצה כהה מול גדר כהה — עלול לפספס.
+            אם זה קורה, העלה «רגישות זיהוי».</li>
+        </ol>
+      </details>
+
+      <details class="pf-help">
+        <summary>איך אני יודע שזה עובד — שלוש בדיקות</summary>
+        <ol>
+          <li><b>לפני הזינוק:</b> שורת הסטטוס על התמונה חייבת להראות «🟢 מצלמה פעילה · זיהוי חמוש».
+            אם היא תקועה על «מכייל רקע…» — המצלמה זזה או שהתאורה משתנה.</li>
+          <li><b>אחרי המקצה:</b> במסך «🎞 תמונת סיום» מופיעה שורת <b>קצב דגימה בפועל ורזולוציית זמן ‎±X‎ מ״ש</b>.
+            זו מדידה אמיתית מהטלפון שלך באותו מקצה — לא הבטחה.</li>
+          <li><b>הכי מדויק:</b> ב«תמונת סיום» אפשר <b>ללחוץ על הרץ עצמו</b>, והזמן מחושב באינטרפולציה בין העמודות.
+            מדויק יותר מהטריגר האוטומטי, ופותר גם את חלון ה‑450 מ״ש. זו דרך העבודה המומלצת לגמר צמוד.</li>
+        </ol>
+        <div class="hint" style="margin-top:6px"><b>בדיקת שפיות של דקה:</b> העמד את הטלפון, בקש מתלמיד לעבור את הקו בהליכה,
+          וודא שהצפצוף נשמע בדיוק כשהוא על הקו. אם זה יורה מוקדם — הקו האדום במסך לא יושב על קו הסיום האמיתי;
+          תקן עם «מיקום קו הסיום».</div>
+      </details>
     </div>
 
     <div class="card">
@@ -1551,15 +1737,51 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
     </div>
   </div>
 
+  <div class="card" id="gr-bagCard">
+    <details class="pf-help" style="margin:0">
+      <summary>🎓 מחשבון ציון בגרות לכיתה י״ב (ציון פנימי, שתי יח״ל)</summary>
+      <div style="padding:0 13px 13px">
+        <div class="hint">לפי קובץ העזר הרשמי: ‎30%‎ הציון השנתי של י״א, ‎70%‎ ממוצע הסמסטרים/שלישים של י״ב,
+          ובונוס של עד ‎10%‎ על פעילות גופנית נוספת או תרומה לתרבות הספורטיבית של בית הספר.</div>
+        <div class="row" style="margin-top:11px">
+          <div class="field" style="width:120px"><label>ציון י״א</label><input type="number" id="bag-y11" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>ציון י״ב</label><input type="number" id="bag-y12" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>בונוס (נק׳)</label><input type="number" id="bag-bonus" min="0" max="10" value="0"></div>
+        </div>
+        <div class="pf-prec" id="bag-out"></div>
+      </div>
+    </details>
+  </div>
+
   <div class="modal" id="gr-weightsModal"><div class="box">
     <h3>⚖️ מבנה הציון<button class="x" data-close="gr-weightsModal">✕</button></h3>
-    <div class="hint">המשקלים צריכים להסתכם ל-100. אחוז השתתפות ורצינות משמש כברירת מחדל וניתן לשינוי לפי מדיניות בית הספר.</div>
-    <div class="row" style="margin-top:11px;flex-wrap:wrap;gap:10px">
-      <div class="field" style="width:150px"><label>השתתפות ורצינות %</label><input type="number" id="gr-wPart" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>מבחנים ומבדקים %</label><input type="number" id="gr-wExams" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>שיפור והתמדה %</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>עבודת צוות ושת״פ %</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+    <div class="hint">המשקלים צריכים להסתכם ל-100. אפשר לשנות גם את שמות הקטגוריות —
+      קטגוריה שתיתן לה משקל <b>0</b> פשוט לא תוצג בטבלה.</div>
+
+    <div class="field" style="margin-top:11px"><label>מבנים מוכנים</label>
+      <div class="row" id="gr-presets" style="gap:7px">
+        <button class="btn sm" data-pr="mine">המבנה שלי</button>
+        <button class="btn sm" data-pr="mankal">חוזר מנכ״ל תשס״ז/3(א)</button>
+      </div>
+      <div class="hint" style="margin-top:6px">«חוזר מנכ״ל» הוא המבנה הרשמי מקובץ העזר:
+        ‎40%‎ השתתפות ויחס חיובי · ‎20%‎ התנהגות חברתית · ‎20%‎ הישגים במקצועות ·
+        ‎10%‎ כושר גופני · ‎10%‎ ידע והבנה · בונוס עד ‎10%‎.</div>
     </div>
+
+    <div class="gr-wgrid">
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lPart"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wPart" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה (עמודות מבחן)</label><input type="text" id="gr-lExams"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wExams" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lImprove"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lTeam"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lKnow"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wKnow" min="0" max="100"></div>
+    </div>
+    <div class="field" style="width:190px;margin-top:10px"><label>תקרת בונוס (נק׳)</label>
+      <input type="number" id="gr-wBonusMax" min="0" max="20"></div>
     <div class="hint" id="gr-wSum" style="margin-top:9px"></div>
     <button class="btn acc big" id="gr-wSave" style="margin-top:12px">שמור מבנה ציון</button>
   </div></div>
@@ -1731,6 +1953,94 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-ft">
+  <div class="pf-tabs" id="ft-tabs">
+    <button data-ft="tests" class="on">🏅 מבחנים</button>
+    <button data-ft="idx">📊 מדד הכושר</button>
+    <button data-ft="ot">🏅 אות החינוך הגופני</button>
+  </div>
+  <div id="ft-idx" style="display:none"></div>
+  <div id="ft-ot" style="display:none"></div>
+  <!-- ----- בחירת כיתה ומבחן ----- -->
+  <div id="ft-pick">
+    <div class="card">
+      <h2><span class="dot"></span> מבחני כושר</h2>
+      <div class="hint">בחר שכבה ומספר כיתה, ואז מבחן. כל מבחן נפתח במסך הפעלה משלו —
+        עם שעון עצר או מונה חזרות, ורשימת התלמידים של אותה כיתה.</div>
+
+      <div class="field" style="margin-top:13px"><label>שכבה</label>
+        <div class="ft-seg" id="ft-grades"></div></div>
+      <div class="field" style="margin-top:11px"><label>מספר כיתה</label>
+        <div class="ft-seg" id="ft-nums"></div></div>
+
+      <div class="ft-cls">
+        <div class="big" id="ft-clsName">ז׳1</div>
+        <div class="sb" id="ft-clsInfo"></div>
+      </div>
+    </div>
+    <div id="ft-tests"></div>
+  </div>
+
+  <!-- ----- מסך המבחן ----- -->
+  <div id="ft-run" style="display:none">
+    <div class="card" id="ft-runHead"></div>
+    <div id="ft-tool"></div>
+    <div class="card">
+      <div id="ft-bar"></div>
+      <div id="ft-list" style="margin-top:11px"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="ft-pickModal"><div class="box">
+    <h3>🎯 מבחנים שנכנסים למדד<button class="x" data-close="ft-pickModal">✕</button></h3>
+    <div class="hint">סמן את סוללת המבחנים שמרכיבה את מדד היכולת. בלי סימון — כל מבחן שיש לו תוצאה נכנס לממוצע.</div>
+    <div id="ft-pickBody" style="margin-top:11px;max-height:340px;overflow:auto"></div>
+    <div class="row" style="margin-top:11px;gap:8px">
+      <button class="btn sm ghost" id="ft-pickAll">נקה הכל</button>
+      <button class="btn acc grow" id="ft-pickSave">שמור</button>
+    </div>
+  </div></div>
+
+  <div class="modal" id="ft-normsModal"><div class="box" style="max-width:620px">
+    <h3>📐 טבלת הנורמה<button class="x" data-close="ft-normsModal">✕</button></h3>
+    <div class="hint">הטבלה היא נתון שלך, לא של האפליקציה — כך היא נשארת נכונה גם כשהנורמות מתעדכנות.
+      כל שורה: <b>מזהה־מבחן | boys או girls | שכבה | ערך=ניקוד, ערך=ניקוד…</b><br>
+      בין שתי נקודות ציון מבוצעת אינטרפולציה ליניארית, וכיוון המבחן נגזר מהערכים עצמם —
+      אז זמני ריצה (נמוך=טוב) ומספר חזרות (גבוה=טוב) נכתבים באותה צורה.</div>
+    <div class="bw-note" style="direction:ltr;text-align:left;font-family:'Share Tech Mono';font-size:12px">
+      r1000|boys|ט|210=100,240=90,270=80,300=70,330=60<br>
+      push|girls|ט|30=100,22=90,16=80,11=70,7=60
+    </div>
+    <div class="row" style="margin-top:11px">
+      <div class="field grow"><label>מקור הטבלה</label>
+        <input type="text" id="ft-nSource" placeholder="למשל: חוזר מפמ״ר חינוך גופני, אות הכושר"></div>
+      <div class="field" style="width:150px"><label>גרסה / שנה</label>
+        <input type="text" id="ft-nVersion" placeholder="תשפ״ו"></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>הטבלה — שורה לכל מבחן × מין × שכבה</label>
+      <textarea id="ft-nText" rows="9" style="direction:ltr;text-align:left;font-family:'Share Tech Mono';font-size:12.5px"></textarea></div>
+    <div class="hint" id="ft-nStat" style="margin-top:6px"></div>
+    <div class="row" style="margin-top:11px;gap:8px">
+      <button class="btn sm stop" id="ft-nClear">מחק טבלה</button>
+      <button class="btn acc grow" id="ft-nSave">שמור טבלה</button>
+    </div>
+  </div></div>
+
+  <div class="modal" id="ft-rosModal"><div class="box">
+    <h3 id="ft-rosTitle">👥 רשימת כיתה<button class="x" data-close="ft-rosModal">✕</button></h3>
+    <div class="row" style="gap:8px">
+      <button class="btn sm acc" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
+      <span class="hint grow" id="ft-rosCount"></span>
+    </div>
+    <div id="ft-rosList" style="margin-top:11px;max-height:280px;overflow:auto"></div>
+    <div class="field" style="margin-top:11px"><label>הדבקת רשימה — שם אחד בכל שורה</label>
+      <textarea id="ft-rosBulk" rows="4" placeholder="דנה כהן&#10;יוסי לוי&#10;מאיה בר"></textarea></div>
+    <div class="row" style="margin-top:10px;gap:8px">
+      <button class="btn sm" id="ft-rosPaste">+ הוסף מהרשימה</button>
+      <button class="btn acc grow" id="ft-rosDone">סיום</button>
+    </div>
+  </div></div>
+</section>
 <section class="view" id="view-tools">
   <div class="pf-tabs" id="tl-tabs">
     <button data-tt="teams" class="on">👥 קבוצות</button>
@@ -1901,6 +2211,7 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
     <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
+    <button class="more-item" data-go="ft" data-close="moreModal"><span class="ic">🏅</span>מבחני כושר<span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
@@ -2098,9 +2409,9 @@ function applyRole(){
 }
 
 /* ---------- router ---------- */
-const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1};
+const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1,ft:1};
 /* מודולים שנגישים דרך כפתור «עוד» ולא ישירות בסרגל — כדי שהכפתור יודגש כשנמצאים באחד מהם */
-const MORE_MODS=["stu","know","tools","nut"];
+const MORE_MODS=["stu","know","tools","nut","ft"];
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -2109,7 +2420,7 @@ function go(mod){
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
-  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init}[mod]; if(f)f(); }
+  if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
@@ -3037,6 +3348,37 @@ const PF=(function(){
     if(t==="history")renderHistory();
     if(t==="live"&&mode==="sim"&&!race.on)drawSimIdle();
   }
+  /* ---------- מחשבון מיקום המצלמה ----------
+     פס הזיהוי הוא BANDW מתוך PW פיקסלים — כלומר אחוז קבוע משדה הראייה.
+     במטרים הוא גדל ליניארית עם המרחק, ולכן גם אי־הוודאות בזמן.
+     זום מקטין את שדה הראייה בפועל (drawFrame עושה pctx.scale) ולכן משפר דיוק. */
+  const BAND_FRAC=BANDW/PW;
+  function precCalc(){
+    const box=$("#pf-precCalc"); if(!box)return;
+    const D=Math.max(0.5,+$("#pf-camDist").value||6);
+    const v=Math.max(0.5,+$("#pf-camSpeed").value||7);
+    const fov=Math.min(150,Math.max(20,+$("#pf-camFov").value||65));
+    const z=Math.max(1,cam.zoom||1);
+    const W=2*D*Math.tan(fov*Math.PI/360)/z;      /* רוחב התמונה בשטח, במטרים */
+    const band=BAND_FRAC*W;                        /* רוחב פס הזיהוי, במטרים */
+    const err=band/v*1000;                         /* אי־ודאות, במילישניות */
+    /* עד איזה מרחק אפשר להתרחק ועדיין לעמוד ביעד של ±30 מ״ש */
+    const dMax=0.030*v*z/(BAND_FRAC*2*Math.tan(fov*Math.PI/360));
+    const lvl=err<=25?0:err<=50?1:err<=90?2:3;
+    const V=[["ok","מצוין","מתאים גם לגמר צמוד ולשיא בית ספרי."],
+             ["ok","טוב","מתאים לכל מקצה כיתתי רגיל."],
+             ["mid","סביר","בסדר לשיעור, אבל לא לשתי תוצאות שנבדלות בעשירית."],
+             ["bad","רחוק מדי","התקרב, או הגדל זום — כל זום ×2 שווה להתקרבות לחצי המרחק."]][lvl];
+    box.className="pf-prec "+V[0];
+    box.innerHTML=`<div class="v"><b>${V[1]}</b> · אי־ודאות ≈ <b>±${err.toFixed(0)} מ״ש</b></div>
+      <div class="d">פס הזיהוי מכסה ≈ <b>${(band*100).toFixed(0)} ס״מ</b> בשטח${z>1?` · זום ×${z.toFixed(1)} פעיל`:""}.
+        ${V[2]}</div>
+      <div class="d">${err<=30
+        ? `יש לך מרווח: אפשר להתרחק עד <b>${dMax.toFixed(1)} מ׳</b> ועדיין להישאר מתחת ל‑±‎30‎ מ״ש.`
+        : `כדי לרדת מתחת ל‑±‎30‎ מ״ש במהירות הזו — התקרב ל‑<b>${dMax.toFixed(1)} מ׳</b>.`}
+        כל מטר מרחק שווה כ‑<b>${(BAND_FRAC*2*Math.tan(fov*Math.PI/360)/v*1000/z).toFixed(0)} מ״ש</b>.</div>`;
+  }
+
   function init(){
     if(!META.date)META.date=new Date().toISOString().slice(0,10);
     buildLanes(false);
@@ -3055,6 +3397,12 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    $("#pf-camDist").value=LS.get("pf.camDist",6);
+    $("#pf-camSpeed").value=LS.get("pf.camSpeed","7");
+    $("#pf-camFov").value=LS.get("pf.camFov",65);
+    ["pf-camDist","pf-camSpeed","pf-camFov"].forEach(id=>$("#"+id).addEventListener("input",()=>{
+      LS.set("pf."+id.slice(3),$("#"+id).value); precCalc(); }));
+    precCalc();
     /* קיזוז מרחק אקדח–מיקרופון */
     $("#pf-gunDist").value=LS.get("pf.gunDist",0);
     $("#pf-gunDist").addEventListener("change",e=>{
@@ -3077,8 +3425,8 @@ const PF=(function(){
       persistNames(); renderChips(); renderBoard(); refreshLaneSel();
       toast("נטענו "+lanes.length+" מתחרים");
     });
-    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; });
-    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
+    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
+    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
     function fsToggle(){ const st=$("#pf-stage"); st.classList.toggle("fs");
       try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}
@@ -8311,6 +8659,1035 @@ window.LBUILD=(function(){
 
 ;
 "use strict";
+/* ============================================================
+   המגרש PRO — מבחני כושר
+   ------------------------------------------------------------
+   מודול תפעולי לזמן שיעור: בוחרים שכבה (ז׳–י״ב) ומספר כיתה (1–10),
+   בוחרים מבחן אחד מתוך הקטלוג, ומקבלים מסך הפעלה אחד עם רשימת
+   התלמידים והכלי המתאים למבחן — שעון עצר או מונה חזרות.
+
+   שני מצבי הפעלה בלבד, וזה מכוון:
+   · שעון — שעון אחד רץ לכל הכיתה, והמורה מקיש על שם התלמיד ברגע
+     שהוא סיים. מתאים גם לריצות (מי שמסיים ראשון) וגם להחזקות
+     (פלאנק לכל הכיתה, מקישים על מי שנופל). אין צורך לדעת מראש סדר.
+   · מספר — סטפר גדול בשורה של כל תלמיד, לחזרות ולמדידות.
+
+   הנתונים נשמרים במכשיר בלבד, כמו כל שאר האפליקציה. מדובר בנתונים
+   על קטינים — הם לא נשלחים לשום מקום, והייצוא הוא פעולה יזומה של
+   המורה בלבד.
+   ============================================================ */
+(function(){
+const H=()=>window.HM;
+const today=()=>new Date().toISOString().slice(0,10);
+
+/* ============================================================
+   1. שכבות וכיתות
+   ============================================================ */
+const GRADES=[["ז","ז׳"],["ח","ח׳"],["ט","ט׳"],["י","י׳"],["יא","י״א"],["יב","י״ב"]];
+const NUMS=[1,2,3,4,5,6,7,8,9,10];
+const clsName=(g,n)=>((GRADES.find(x=>x[0]===g)||[,g])[1])+n;
+/* השוואת שם כיתה סלחנית — המורה מקליד «ט2», «ט׳2», «ט' 2» וכולם אותו דבר */
+const clsKey=s=>String(s||"").replace(/["'׳״\s\-־]/g,"").trim();
+
+/* ============================================================
+   2. קטלוג המבחנים
+   ------------------------------------------------------------
+   kind : clock  — שעון אחד לכיתה, מקישים על תלמיד ברגע הסיום
+          count  — סטפר חזרות בשורה של כל תלמיד
+          value  — הזנת מספר (מדידה בסרט/מד)
+   dir  : low    — נמוך יותר = טוב יותר (זמני ריצה)
+          high   — גבוה יותר = טוב יותר
+   dur  : אם קיים — חלון זמן קצוב בשניות, עם ספירה לאחור וצפירה בסוף
+   ============================================================ */
+const TCATS=[
+  ["run",   "ריצות ומהירות",   "🏃"],
+  ["endur", "סבולת",           "🫁"],
+  ["reps",  "כוח — חזרות",     "💪"],
+  ["hold",  "כוח — החזקה",     "⏱"],
+  ["jump",  "קפיצה וזריקה",    "🦘"],
+  ["flex",  "גמישות",          "🧘"]
+];
+
+const TESTS=[
+  /* ---------- ריצות ---------- */
+  {id:"r60",  em:"⚡", name:"60 מטר",   cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"זינוק גבוה או נמוך. מדידה עד חציית הקו בחזה. לדיוק גבוה — השתמש במודול «פוטו־פיניש».",
+   link:"photo"},
+  {id:"r100", em:"⚡", name:"100 מטר",  cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"מנוחה מלאה בין ניסיונות — מהירות מתאמנים כשרעננים.", link:"photo"},
+  {id:"r300", em:"🏃", name:"300 מטר",  cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"מבחן סבולת אנאירובית. הסבר לתלמידים לצאת מבוקר — רובם יוצאים מהר מדי."},
+  {id:"r600", em:"🏃", name:"600 מטר",  cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"המרחק הנפוץ בחטיבה. הקפה וחצי במסלול 400."},
+  {id:"r1000",em:"🏃", name:"1000 מטר", cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"שתיים וחצי הקפות. חלק את הכיתה לשתי קבוצות — אחת רצה, השנייה סופרת הקפות."},
+  {id:"r1500",em:"🏃", name:"1500 מטר", cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"כמעט 4 הקפות. שווה למנות סופר הקפות לכל רץ."},
+  {id:"r2000",em:"🏃", name:"2000 מטר", cat:"run", kind:"clock", dir:"low",  unit:"שנ׳",
+   hint:"5 הקפות. לתיכון בעיקר — ודא שתייה זמינה לפני ואחרי."},
+  {id:"shut", em:"🔀", name:"ריצת שאטל 10×5 מ׳", cat:"run", kind:"clock", dir:"low", unit:"שנ׳",
+   hint:"שני קווים במרחק 5 מ׳, 10 מעברים. כף רגל חייבת לחצות את הקו בכל מעבר."},
+
+  /* ---------- סבולת ---------- */
+  {id:"cooper",em:"🫁", name:"מבחן קופר — 12 דקות", cat:"endur", kind:"value", dir:"high", unit:"מ׳", dur:720,
+   hint:"12 דקות ריצה רציפה, רושמים את המרחק. הפעל את הספירה לאחור, ובסוף הזן לכל תלמיד את המרחק."},
+  {id:"beep", em:"🎵", name:"ביפ טסט (Léger)", cat:"endur", kind:"link", dir:"high", unit:"מ׳",
+   hint:"למבחן הביפ יש מודול ייעודי עם ביפים על שעון, VO₂max ונורמות FITNESSGRAM.", link:"beep"},
+  {id:"walk", em:"🚶", name:"הליכת מייל (Rockport)", cat:"endur", kind:"clock", dir:"low", unit:"שנ׳",
+   hint:"1609 מ׳ בהליכה מהירה ככל האפשר — אלטרנטיבה לתלמיד שלא יכול לרוץ."},
+
+  /* ---------- כוח: חזרות ---------- */
+  {id:"push", em:"🙌", name:"שכיבות סמיכה",       cat:"reps", kind:"count", dir:"high", unit:"חזרות",
+   hint:"עד כשל או עד שהטכניקה נשברת. גוף קו ישר, חזה כמעט נוגע. אפשר לספור בזוגות."},
+  {id:"situp",em:"🔄", name:"כפיפות בטן — 60 שנ׳", cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
+   hint:"דקה על השעון. ברכיים כפופות, ידיים מוצלבות על החזה, בן זוג מחזיק רגליים."},
+  {id:"pull", em:"🧗", name:"מתח",                cat:"reps", kind:"count", dir:"high", unit:"חזרות",
+   hint:"אחיזה עליונה ברוחב כתפיים. הסנטר עובר את המוט, ירידה ליישור מלא."},
+  {id:"sq60", em:"🦵", name:"סקוואט — 60 שנ׳",    cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
+   hint:"ירידה עד 90° בברכיים. חזרה שלא הגיעה לעומק לא נספרת."},
+  {id:"jr60", em:"🪢", name:"קפיצות בחבל — 60 שנ׳",cat:"reps", kind:"count", dir:"high", unit:"קפיצות", dur:60,
+   hint:"סופרים קפיצות רצופות. הפסקה מותרת, הספירה ממשיכה."},
+  {id:"burp", em:"🔥", name:"ברפי — 60 שנ׳",      cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
+   hint:"חזה לרצפה וקפיצה עם מחיאת כף מעל הראש. עצים — שמור לסוף השיעור."},
+
+  /* ---------- כוח: החזקה ---------- */
+  {id:"plank",em:"🪵", name:"פלאנק — החזקה",      cat:"hold", kind:"clock", dir:"high", unit:"שנ׳",
+   hint:"כל הכיתה מתחילה יחד. מקישים על תלמיד ברגע שהאגן צונח או שהוא יורד."},
+  {id:"wall", em:"🧱", name:"כיסא קיר — החזקה",   cat:"hold", kind:"clock", dir:"high", unit:"שנ׳",
+   hint:"ירכיים מקבילות לרצפה, ידיים לא על הברכיים. מקישים על מי שקם."},
+  {id:"hang", em:"💪", name:"תלייה כפופה במתח",   cat:"hold", kind:"clock", dir:"high", unit:"שנ׳",
+   hint:"הסנטר מעל המוט. עוצרים ברגע שהסנטר יורד מתחת למוט."},
+
+  /* ---------- קפיצה וזריקה ---------- */
+  {id:"ljump",em:"🦘", name:"קפיצה לרוחק מהמקום", cat:"jump", kind:"value", dir:"high", unit:"ס״מ",
+   hint:"שתי רגליים יחד, מודדים לעקב האחורי. שני ניסיונות, רושמים את הטוב."},
+  {id:"vjump",em:"⬆️", name:"קפיצה לגובה מהמקום", cat:"jump", kind:"value", dir:"high", unit:"ס״מ",
+   hint:"מדידת הפרש בין הושטה בעמידה להושטה בקפיצה, על קיר מסומן."},
+  {id:"mball",em:"🎯", name:"זריקת כדור כוח",     cat:"jump", kind:"value", dir:"high", unit:"מ׳",
+   hint:"זריקה משתי ידיים מהחזה בישיבה או בעמידה — קבע תנוחה אחידה לכל הכיתה."},
+
+  /* ---------- גמישות ---------- */
+  {id:"sitr", em:"🧘", name:"הושטה בישיבה",       cat:"flex", kind:"value", dir:"high", unit:"ס״מ",
+   hint:"ישיבה, רגליים ישרות, הושטה איטית קדימה והחזקה של שתי שניות. בלי קפיצות."},
+  {id:"shrch",em:"🤸", name:"הושטת כתפיים מאחור", cat:"flex", kind:"value", dir:"high", unit:"ס״מ",
+   hint:"יד אחת מלמעלה ואחת מלמטה מאחורי הגב, מודדים את המרחק בין קצות האצבעות (0 = נגיעה)."}
+];
+const testById=id=>TESTS.find(t=>t.id===id);
+const catName=id=>(TCATS.find(c=>c[0]===id)||[,"—"])[1];
+
+/* ============================================================
+   2ב. מדד הכושר הגופני — שכבת הניקוד
+   ------------------------------------------------------------
+   ממירה תוצאה גולמית (שניות / חזרות / ס״מ) לציון 0–100, ומרכיבה
+   מהן מדד אחד לתלמיד. שתי שיטות:
+
+   norm — טבלת נורמה. המבנה: לכל מבחן × מין × שכבה רשימת נקודות
+          ציון [ערך, נקודות], ובין שתי נקודות סמוכות מבצעים
+          אינטרפולציה ליניארית. עובד גם למבחנים שבהם נמוך=טוב
+          (זמני ריצה) וגם להפך, כי הכיוון נגזר מהערכים עצמם.
+          הטבלה ריקה כברירת מחדל — היא נתון של המורה, לא של הקוד.
+
+   rel  — יחסי לשכבה. אחוזון מול כל שאר התוצאות שנרשמו באותו מבחן,
+          באותה שכבה ובאותו מין. לא דורש שום טבלה חיצונית, ומשתפר
+          ככל שנצברות תוצאות.
+
+   ברירת המחדל היא rel, ומעבר ל-norm קורה רק כשקיימת טבלה למבחן
+   ולשכבה — אחרת נופלים חזרה ל-rel ומסמנים את זה בממשק.
+   ============================================================ */
+const NORM_EMPTY={version:"",source:"",table:{}};
+
+/* אינטרפולציה ליניארית בין נקודות הציון של טבלת הנורמה */
+function scoreFromPoints(pts,val){
+  if(!Array.isArray(pts)||pts.length<2||!(val>=0))return null;
+  const P=pts.slice().sort((a,b)=>a[0]-b[0]);
+  if(val<=P[0][0])return clamp100(P[0][1]);
+  if(val>=P[P.length-1][0])return clamp100(P[P.length-1][1]);
+  for(let i=0;i<P.length-1;i++){
+    const [x1,y1]=P[i],[x2,y2]=P[i+1];
+    if(val>=x1&&val<=x2){
+      if(x2===x1)return clamp100(y2);
+      return clamp100(y1+(y2-y1)*(val-x1)/(x2-x1));
+    }
+  }
+  return null;
+}
+const clamp100=v=>Math.max(0,Math.min(100,Math.round(v*10)/10));
+
+/* אחוזון: איזה חלק מהקבוצה התלמיד עקף. dir קובע מה נחשב «טוב יותר». */
+function percentile(vals,val,dir){
+  if(!vals.length)return null;
+  const worse=vals.filter(v=>dir==="low"?v>val:v<val).length;
+  const same =vals.filter(v=>v===val).length;
+  return clamp100((worse+same/2)/vals.length*100);
+}
+
+/* ============================================================
+   3. המודול
+   ============================================================ */
+window.FT=(function(){
+  let inited=false;
+  let st={grade:"ז",num:1,test:null,sort:"todo",tab:"tests"};
+  let clk={on:false,t0:0,raf:0,paused:0};      /* השעון המשותף לכיתה */
+  let cd ={on:false,end:0,raf:0};              /* ספירה לאחור למבחנים קצובים */
+
+  const LS=()=>H().LS;
+  const cls=()=>clsName(st.grade,st.num);
+
+  /* ---------- אחסון ---------- */
+  const allRes =()=>LS().get("ft.results",[]);
+  const setRes =r=>LS().set("ft.results",r);
+  const rosters=()=>LS().get("ft.roster",{});
+  const setRosters=r=>LS().set("ft.roster",r);
+
+  /* רשימת הכיתה: מה שהמודול מכיר, ואם ריק — מייבא מ«התלמידים שלי» */
+  function roster(c){
+    const all=rosters(), k=clsKey(c);
+    if(Array.isArray(all[k]))return all[k];
+    return [];
+  }
+  function setRoster(c,list){ const all=rosters(); all[clsKey(c)]=list; setRosters(all); }
+
+  function importFromStu(c){
+    const stu=LS().get("stu.list",[]);
+    const k=clsKey(c);
+    const hits=stu.filter(s=>clsKey(s.cls)===k);
+    if(!hits.length)return 0;
+    const cur=roster(c), have=new Set(cur.map(x=>x.name));
+    let n=0;
+    hits.forEach(s=>{ if(have.has(s.name))return;
+      cur.push({id:s.id,name:s.name,sex:s.sex||null}); have.add(s.name); n++; });
+    setRoster(c,cur); return n;
+  }
+
+  /* ---------- תוצאות ---------- */
+  const resultsFor=(c,testId)=>allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId);
+  function todayResult(c,testId,name){
+    return resultsFor(c,testId).find(r=>r.name===name&&r.d===today())||null;
+  }
+  /* התוצאה הקודמת של אותו תלמיד באותו מבחן — לשם השוואה אישית */
+  function prevResult(c,testId,name){
+    const rs=resultsFor(c,testId).filter(r=>r.name===name&&r.d!==today())
+      .sort((a,b)=>b.d.localeCompare(a.d));
+    return rs[0]||null;
+  }
+  function saveVal(c,testId,stud,val){
+    const T=testById(testId); if(!T||!(val>0))return;
+    const rs=allRes();
+    const i=rs.findIndex(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.name===stud.name&&r.d===today());
+    const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,5),
+      ts:Date.now(),d:today(),cls:c,test:testId,name:stud.name,sid:stud.id||null,
+      gradeKey:st.grade,sex:stud.sex||null,
+      val:+(+val).toFixed(2),unit:T.unit};
+    if(i>=0)rs[i]=rec; else rs.push(rec);
+    setRes(rs);
+  }
+  function clearVal(c,testId,name){
+    setRes(allRes().filter(r=>!(clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.name===name&&r.d===today())));
+  }
+
+  /* ---------- תצוגת ערכים ---------- */
+  function fmtVal(T,v){
+    if(v==null)return "—";
+    if(T.unit==="שנ׳")return v>=60?H().fmtMSc(v):v.toFixed(2);
+    return String(Math.round(v*100)/100);
+  }
+  const better=(T,a,b)=>T.dir==="low"?a<b:a>b;   /* האם a טוב מ-b */
+
+  /* ============================================================
+     3ב. מדד הכושר — נתונים וחישוב
+     ============================================================ */
+  const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
+  const setNorms=n=>LS().set("ft.norms",n);
+  const scoreMode=()=>LS().get("ft.scoreMode","rel");
+  const setScoreMode=m=>LS().set("ft.scoreMode",m);
+  /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
+  const idxTests   =()=>LS().get("ft.idxTests",[]);
+  const setIdxTests=a=>LS().set("ft.idxTests",a);
+
+  const sexOf=stud=>stud&&stud.sex==="girls"?"girls":stud&&stud.sex==="boys"?"boys":null;
+
+  /* ניקוד לפי טבלת נורמה — מחזיר null אם אין טבלה למבחן/מין/שכבה */
+  function normScore(testId,sex,grade,val){
+    const T=norms().table[testId]; if(!T||!sex)return null;
+    const byGrade=T[sex]; if(!byGrade)return null;
+    return scoreFromPoints(byGrade[grade],val);
+  }
+  /* ניקוד יחסי — מול כל התוצאות באותו מבחן, באותה שכבה, ובאותו מין אם ידוע */
+  function relScore(testId,sex,grade,val){
+    const T=testById(testId); if(!T)return null;
+    const gk=String(grade);
+    const peers=allRes().filter(r=>r.test===testId&&r.gradeKey===gk&&(!sex||!r.sex||r.sex===sex));
+    const vals=peers.map(r=>r.val).filter(v=>v>0);
+    if(vals.length<3)return null;                 /* מתחת ל-3 תוצאות אחוזון הוא רעש */
+    return percentile(vals,val,T.dir);
+  }
+  /* הציון הסופי לתוצאה בודדת + מאיפה הוא הגיע */
+  function scoreOne(testId,stud,grade,val){
+    const sex=sexOf(stud);
+    if(scoreMode()==="norm"){
+      const n=normScore(testId,sex,grade,val);
+      if(n!=null)return {v:n,src:"norm"};
+    }
+    const r=relScore(testId,sex,grade,val);
+    if(r!=null)return {v:r,src:"rel"};
+    return {v:null,src:null};
+  }
+  /* המדד המשוקלל של תלמיד: ממוצע הציונים על המבחנים שנבחרו */
+  function indexFor(c,stud,grade){
+    const want=idxTests();
+    const mine=allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.name===stud.name);
+    /* התוצאה האחרונה בכל מבחן */
+    const byTest={};
+    mine.forEach(r=>{ if(!byTest[r.test]||r.d>byTest[r.test].d)byTest[r.test]=r; });
+    const rows=Object.values(byTest)
+      .filter(r=>!want.length||want.includes(r.test))
+      .map(r=>{ const sc=scoreOne(r.test,stud,grade,r.val); return {test:r.test,val:r.val,d:r.d,sc:sc.v,src:sc.src}; })
+      .filter(x=>x.sc!=null);
+    if(!rows.length)return {idx:null,rows:[],partial:Object.keys(byTest).length>0};
+    const idx=rows.reduce((a,b)=>a+b.sc,0)/rows.length;
+    return {idx:Math.round(idx*10)/10,rows,partial:false};
+  }
+
+  /* ============================================================
+     4. מסך הבחירה
+     ============================================================ */
+  function renderPicker(){
+    const {$, $$, esc}=H();
+    const c=cls(), rst=roster(c);
+    $("#ft-run").style.display="none";
+    $("#ft-idx").style.display="none";
+    $("#ft-ot").style.display="none";
+    $("#ft-pick").style.display="";
+
+    $("#ft-grades").innerHTML=GRADES.map(([g,lbl])=>
+      `<button data-g="${g}" class="${st.grade===g?"on":""}">${lbl}</button>`).join("");
+    $("#ft-nums").innerHTML=NUMS.map(n=>
+      `<button data-n="${n}" class="${st.num===n?"on":""}">${n}</button>`).join("");
+    $("#ft-clsName").textContent=c;
+    $("#ft-clsInfo").textContent=rst.length
+      ? rst.length+" תלמידים ברשימה"
+      : "אין עדיין רשימה לכיתה הזו — אפשר לייבא, להדביק או להוסיף ידנית";
+
+    const rs=allRes().filter(r=>clsKey(r.cls)===clsKey(c));
+    $("#ft-tests").innerHTML=TCATS.map(([cid,cnm,cem])=>{
+      const items=TESTS.filter(t=>t.cat===cid);
+      if(!items.length)return "";
+      return `<div class="ft-grp"><div class="ft-grph">${cem} ${cnm}</div>
+        <div class="ft-cards">${items.map(t=>{
+          const mine=rs.filter(r=>r.test===t.id);
+          const todayN=mine.filter(r=>r.d===today()).length;
+          return `<div class="ft-card" data-t="${t.id}">
+            <div class="hd"><span class="em">${t.em}</span><b>${esc(t.name)}</b></div>
+            <div class="mt"><span class="pill">${esc(t.unit)}</span>
+              <span class="pill">${t.kind==="clock"?"⏱ שעון":t.kind==="count"?"➕ מונה":t.kind==="link"?"↗ מודול ייעודי":"✎ הזנה"}</span>
+              ${t.dur?`<span class="pill">${t.dur>=60?Math.round(t.dur/60)+" דק׳":t.dur+" שנ׳"}</span>`:""}
+              ${todayN?`<span class="pill acc">${todayN} היום</span>`:mine.length?`<span class="pill">${mine.length} בהיסטוריה</span>`:""}</div>
+          </div>`;}).join("")}</div></div>`;
+    }).join("");
+
+    $$("#ft-grades [data-g]").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;persist();renderPicker();}));
+    $$("#ft-nums [data-n]").forEach(b=>b.addEventListener("click",()=>{st.num=+b.dataset.n;persist();renderPicker();}));
+    $$("#ft-tests [data-t]").forEach(b=>b.addEventListener("click",()=>openTest(b.dataset.t)));
+  }
+
+  function persist(){ LS().set("ft.last",{grade:st.grade,num:st.num,sort:st.sort}); }
+
+  /* ============================================================
+     5. מסך המבחן
+     ============================================================ */
+  function openTest(id){
+    const T=testById(id); if(!T)return;
+    if(T.kind==="link"){
+      H().toast("למבחן הזה יש מודול ייעודי — מעביר אותך אליו");
+      H().go(T.link); return;
+    }
+    st.test=id; stopClock(true); stopCd();
+    H().$("#ft-pick").style.display="none";
+    H().$("#ft-idx").style.display="none";
+    H().$("#ft-ot").style.display="none";
+    H().$("#ft-run").style.display="";
+    renderRun();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function backToPicker(){ stopClock(true); stopCd(); st.test=null; renderPicker(); }
+
+  function renderRun(){
+    const {$, $$, esc}=H();
+    const T=testById(st.test); if(!T)return;
+    const c=cls();
+    let rst=roster(c).slice();
+
+    /* מיון: «מי שעוד לא נמדד» קודם — זה מה שצריך באמצע שיעור */
+    const valOf=n=>{const r=todayResult(c,T.id,n);return r?r.val:null;};
+    if(st.sort==="todo")      rst.sort((a,b)=>(valOf(a.name)==null?0:1)-(valOf(b.name)==null?0:1));
+    else if(st.sort==="name") rst.sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    else if(st.sort==="res")  rst.sort((a,b)=>{
+      const x=valOf(a.name),y=valOf(b.name);
+      if(x==null&&y==null)return 0; if(x==null)return 1; if(y==null)return -1;
+      return T.dir==="low"?x-y:y-x; });
+
+    const done=rst.filter(s=>valOf(s.name)!=null);
+    const vals=done.map(s=>valOf(s.name));
+    const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+    const best=vals.length?(T.dir==="low"?Math.min(...vals):Math.max(...vals)):null;
+
+    $("#ft-runHead").innerHTML=`
+      <div class="ft-rh">
+        <button class="btn sm ghost" id="ft-back">→ חזרה</button>
+        <div class="grow"><b>${T.em} ${esc(T.name)}</b>
+          <div class="sb">כיתה ${esc(c)} · ${done.length}/${rst.length} נמדדו${
+            avg!=null?` · ממוצע ${fmtVal(T,avg)} ${esc(T.unit)}`:""}${
+            best!=null?` · הטוב ${fmtVal(T,best)}`:""}</div></div>
+      </div>
+      <div class="hint" style="margin-top:8px">${esc(T.hint)}</div>`;
+
+    /* --- הכלי: שעון או ספירה לאחור --- */
+    $("#ft-tool").innerHTML=
+      T.kind==="clock"
+      ? `<div class="ft-clock" id="ft-clockBox">
+           <div class="tm" id="ft-clockTm">0:00.00</div>
+           <div class="row" style="gap:9px;justify-content:center;margin-top:10px">
+             <button class="btn acc big" id="ft-clkGo" style="width:auto;flex:1">▶ הפעל</button>
+             <button class="btn stop" id="ft-clkStop" disabled>⏹ עצור</button>
+             <button class="btn ghost" id="ft-clkReset">↺</button>
+           </div>
+           <div class="hint" style="margin-top:8px;text-align:center">
+             ${T.dir==="low"?"הקש על שם התלמיד ברגע שהוא חוצה את הקו":"הקש על שם התלמיד ברגע שהוא מפסיק"} — הזמן נרשם אוטומטית.</div>
+         </div>`
+      : T.dur
+      ? `<div class="ft-clock" id="ft-cdBox">
+           <div class="tm" id="ft-cdTm">${T.dur>=60?Math.floor(T.dur/60)+":"+String(T.dur%60).padStart(2,"0"):"0:"+String(T.dur).padStart(2,"0")}</div>
+           <div class="row" style="gap:9px;justify-content:center;margin-top:10px">
+             <button class="btn acc big" id="ft-cdGo" style="width:auto;flex:1">▶ הפעל ${T.dur>=60?Math.round(T.dur/60)+" דקות":T.dur+" שניות"}</button>
+             <button class="btn stop" id="ft-cdStop" disabled>⏹</button>
+           </div>
+           <div class="hint" style="margin-top:8px;text-align:center">צפירה בסיום. ספור עם הכפתורים בשורה של כל תלמיד.</div>
+         </div>`
+      : "";
+
+    /* --- שורת כלים --- */
+    $("#ft-bar").innerHTML=`
+      <div class="row" style="gap:7px;flex-wrap:wrap">
+        <div class="seg" id="ft-sortSeg">
+          <button data-s="todo" class="${st.sort==="todo"?"on":""}">שלא נמדדו</button>
+          <button data-s="name" class="${st.sort==="name"?"on":""}">שם</button>
+          <button data-s="res"  class="${st.sort==="res"?"on":""}">תוצאה</button>
+        </div>
+        <div class="grow"></div>
+        <button class="btn sm" id="ft-addOne">+ תלמיד</button>
+        <button class="btn sm ghost" id="ft-rosterBtn">👥 רשימה</button>
+        <button class="btn sm ghost" id="ft-csv">⬇ CSV</button>
+      </div>`;
+
+    /* --- רשימת התלמידים --- */
+    $("#ft-list").innerHTML=rst.length?rst.map(s=>{
+      const r=todayResult(c,T.id,s.name), pv=prevResult(c,T.id,s.name);
+      let delta="";
+      if(r&&pv){
+        const imp=better(T,r.val,pv.val);
+        const d=Math.abs(r.val-pv.val);
+        delta=`<span class="dl ${imp?"up":"down"}">${imp?"▲":"▼"} ${fmtVal(T,d)}</span>`;
+      }
+      return `<div class="ft-row${r?" done":""}" data-n="${esc(s.name)}">
+        <div class="nm">${esc(s.name)}${pv?`<span class="pv">קודם: ${fmtVal(T,pv.val)}</span>`:""}</div>
+        <div class="vl">${r?fmtVal(T,r.val):"—"}${delta}</div>
+        ${T.kind==="clock"
+          ? `<button class="btn sm ${r?"ghost":"acc"}" data-cap="${esc(s.name)}">${r?"↺ שוב":"⏱ קלוט"}</button>`
+          : T.kind==="count"
+          ? `<div class="ft-step">
+               <button class="plus" data-inc="${esc(s.name)}">+</button>
+               <b>${r?Math.round(r.val):0}</b>
+               <button data-dec="${esc(s.name)}">−</button>
+             </div>`
+          : `<input class="ft-num" type="number" inputmode="decimal" step="0.1" min="0"
+               data-val="${esc(s.name)}" value="${r?r.val:""}" placeholder="${esc(T.unit)}">`}
+        ${r?`<button class="btn sm stop" data-del="${esc(s.name)}">✕</button>`:""}
+      </div>`;}).join("")
+      : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.<br>
+         לחץ «👥 רשימה» כדי לייבא מ«התלמידים שלי», להדביק רשימה, או להוסיף ידנית.</div>`;
+
+    wireRun();
+  }
+
+  /* ---------- עדכון שורה במקום, בלי לרנדר מחדש ----------
+     באמצע מקצה אסור שהרשימה תזוז מתחת לאצבע — מיון מחדש קורה
+     רק כשהמורה בוחר אותו במפורש. */
+  function refreshRow(name){
+    const {$, esc}=H(), T=testById(st.test), c=cls();
+    const row=document.querySelector('#ft-list .ft-row[data-n="'+CSS.escape(name)+'"]');
+    if(!row)return;
+    const r=todayResult(c,T.id,name), pv=prevResult(c,T.id,name);
+    let delta="";
+    if(r&&pv){ const imp=better(T,r.val,pv.val);
+      delta=`<span class="dl ${imp?"up":"down"}">${imp?"▲":"▼"} ${fmtVal(T,Math.abs(r.val-pv.val))}</span>`; }
+    row.classList.toggle("done",!!r);
+    row.querySelector(".vl").innerHTML=(r?fmtVal(T,r.val):"—")+delta;
+    const stepB=row.querySelector(".ft-step b"); if(stepB)stepB.textContent=r?Math.round(r.val):0;
+    const cap=row.querySelector("[data-cap]");
+    if(cap){ cap.textContent=r?"↺ שוב":"⏱ קלוט"; cap.className="btn sm "+(r?"ghost":"acc"); }
+    let del=row.querySelector("[data-del]");
+    if(r&&!del){
+      del=document.createElement("button");
+      del.className="btn sm stop"; del.setAttribute("data-del",name); del.textContent="✕";
+      del.addEventListener("click",()=>{ clearVal(c,T.id,name); refreshRow(name); refreshHead(); });
+      row.appendChild(del);
+    }else if(!r&&del)del.remove();
+    refreshHead();
+  }
+  function refreshHead(){
+    const {$}=H(), T=testById(st.test), c=cls();
+    const rst=roster(c);
+    const vals=rst.map(s=>{const r=todayResult(c,T.id,s.name);return r?r.val:null;}).filter(v=>v!=null);
+    const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+    const best=vals.length?(T.dir==="low"?Math.min(...vals):Math.max(...vals)):null;
+    const sb=$("#ft-runHead").querySelector(".sb");
+    if(sb)sb.textContent=`כיתה ${c} · ${vals.length}/${rst.length} נמדדו`
+      +(avg!=null?` · ממוצע ${fmtVal(T,avg)} ${T.unit}`:"")
+      +(best!=null?` · הטוב ${fmtVal(T,best)}`:"");
+  }
+
+  /* ---------- השעון המשותף ---------- */
+  const elapsed=()=>clk.on?(performance.now()-clk.t0)/1000:clk.paused;
+  function tick(){
+    if(!clk.on)return;
+    const e=elapsed(), m=Math.floor(e/60), s=e-m*60;
+    const el=H().$("#ft-clockTm");
+    if(el)el.textContent=m+":"+(s<10?"0":"")+s.toFixed(2);
+    clk.raf=requestAnimationFrame(tick);
+  }
+  function startClock(){
+    if(clk.on)return;
+    H().ac(); H().keepAwake(true); H().horn();
+    clk={on:true,t0:performance.now()-clk.paused*1000,raf:0,paused:0};
+    const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
+    if(g)g.disabled=true; if(s)s.disabled=false;
+    tick();
+  }
+  function stopClock(silent){
+    if(clk.on){ clk.paused=elapsed(); clk.on=false; cancelAnimationFrame(clk.raf); }
+    H().keepAwake(false);
+    const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
+    if(g)g.disabled=false; if(s)s.disabled=true;
+    if(!silent)H().toast("השעון נעצר — התוצאות שנקלטו נשמרו");
+  }
+  function resetClock(){
+    stopClock(true); clk.paused=0;
+    const el=H().$("#ft-clockTm"); if(el)el.textContent="0:00.00";
+  }
+
+  /* ---------- ספירה לאחור למבחנים קצובים ---------- */
+  function cdTick(){
+    if(!cd.on)return;
+    const left=Math.max(0,(cd.end-performance.now())/1000);
+    const el=H().$("#ft-cdTm");
+    if(el)el.textContent=Math.floor(left/60)+":"+String(Math.floor(left%60)).padStart(2,"0");
+    if(left<=0){ cd.on=false; H().horn(); H().confetti(); H().say("זמן"); H().keepAwake(false);
+      const g=H().$("#ft-cdGo"), s=H().$("#ft-cdStop");
+      if(g)g.disabled=false; if(s)s.disabled=true;
+      H().toast("⏱ הזמן נגמר — סיים לרשום את הספירות"); return; }
+    if(left<=3.05&&left>2.95)H().beep(880,0.1);
+    if(left<=2.05&&left>1.95)H().beep(880,0.1);
+    if(left<=1.05&&left>0.95)H().beep(880,0.1);
+    cd.raf=requestAnimationFrame(cdTick);
+  }
+  function startCd(sec){
+    if(cd.on)return;
+    H().ac(); H().keepAwake(true); H().horn();
+    cd={on:true,end:performance.now()+sec*1000,raf:0};
+    const g=H().$("#ft-cdGo"), s=H().$("#ft-cdStop");
+    if(g)g.disabled=true; if(s)s.disabled=false;
+    cdTick();
+  }
+  function stopCd(){
+    if(cd.on){ cd.on=false; cancelAnimationFrame(cd.raf); H().keepAwake(false); }
+    const g=H().$("#ft-cdGo"), s=H().$("#ft-cdStop");
+    if(g)g.disabled=false; if(s)s.disabled=true;
+  }
+
+  /* ---------- חיווט מסך המבחן ---------- */
+  function wireRun(){
+    const {$, $$}=H(), T=testById(st.test), c=cls();
+    const on=(sel,ev,fn)=>{const e=$(sel);if(e)e.addEventListener(ev,fn);};
+    on("#ft-back","click",backToPicker);
+    $$("#ft-sortSeg button").forEach(b=>b.addEventListener("click",()=>{st.sort=b.dataset.s;persist();renderRun();}));
+    on("#ft-addOne","click",addOne);
+    on("#ft-rosterBtn","click",openRoster);
+    on("#ft-csv","click",exportCsv);
+
+    on("#ft-clkGo","click",startClock);
+    on("#ft-clkStop","click",()=>stopClock(false));
+    on("#ft-clkReset","click",()=>{ if(clk.paused===0||confirm("לאפס את השעון? התוצאות שנרשמו נשמרות."))resetClock(); });
+    on("#ft-cdGo","click",()=>startCd(T.dur));
+    on("#ft-cdStop","click",stopCd);
+
+    /* קליטת זמן — הפעולה המרכזית בזמן מקצה */
+    $$("#ft-list [data-cap]").forEach(b=>b.addEventListener("click",()=>{
+      if(!clk.on&&clk.paused===0){H().toast("הפעל קודם את השעון");return;}
+      const nm=b.dataset.cap, s=roster(c).find(x=>x.name===nm)||{name:nm};
+      saveVal(c,T.id,s,elapsed());
+      H().beep(1100,0.09); refreshRow(nm);
+    }));
+    /* מונה חזרות */
+    $$("#ft-list [data-inc]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc,1)));
+    $$("#ft-list [data-dec]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.dec,-1)));
+    /* הזנת מדידה */
+    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("change",()=>{
+      const nm=inp.dataset.val, v=+inp.value;
+      const s=roster(c).find(x=>x.name===nm)||{name:nm};
+      if(v>0)saveVal(c,T.id,s,v); else clearVal(c,T.id,nm);
+      refreshRow(nm);
+    }));
+    $$("#ft-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
+      clearVal(c,T.id,b.dataset.del); refreshRow(b.dataset.del);
+      const inp=document.querySelector('#ft-list [data-val="'+CSS.escape(b.dataset.del)+'"]');
+      if(inp)inp.value="";
+    }));
+  }
+  function bump(name,d){
+    const T=testById(st.test), c=cls();
+    const cur=todayResult(c,T.id,name), s=roster(c).find(x=>x.name===name)||{name};
+    const v=Math.max(0,(cur?cur.val:0)+d);
+    if(v>0)saveVal(c,T.id,s,v); else clearVal(c,T.id,name);
+    H().beep(d>0?920:520,0.05); refreshRow(name);
+  }
+
+  /* ============================================================
+     6. ניהול רשימת הכיתה
+     ============================================================ */
+  function addOne(){
+    const nm=prompt("שם התלמיד:","");
+    if(!nm||!nm.trim())return;
+    const c=cls(), list=roster(c);
+    if(list.some(x=>x.name===nm.trim())){H().toast("השם כבר ברשימה");return;}
+    list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5),name:nm.trim()});
+    setRoster(c,list); renderRun(); H().toast("נוסף לכיתה "+c);
+  }
+  function openRoster(){
+    const {$, esc}=H(), c=cls();
+    $("#ft-rosTitle").textContent="👥 רשימת כיתה "+c;
+    renderRosterList();
+    H().modal("ft-rosModal");
+    $("#ft-rosImport").onclick=()=>{
+      const n=importFromStu(c);
+      if(n)H().toast("יובאו "+n+" תלמידים מ«התלמידים שלי»");
+      else H().toast("לא נמצאו תלמידים עם הכיתה «"+c+"» ב«התלמידים שלי»");
+      renderRosterList();
+    };
+    $("#ft-rosPaste").onclick=()=>{
+      const txt=$("#ft-rosBulk").value;
+      const lines=txt.split(/\r?\n/).map(l=>l.split(",")[0].trim()).filter(Boolean);
+      if(!lines.length){H().toast("הדבק שמות, שורה לכל תלמיד");return;}
+      const list=roster(c), have=new Set(list.map(x=>x.name)); let n=0;
+      lines.forEach(nm=>{ if(have.has(nm)||/^(שם|name)$/i.test(nm))return;
+        list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5)+n,name:nm}); have.add(nm); n++; });
+      setRoster(c,list); $("#ft-rosBulk").value=""; renderRosterList(); H().toast("נוספו "+n+" תלמידים");
+    };
+    $("#ft-rosDone").onclick=()=>{ H().modal("ft-rosModal",false); renderTab(); };
+  }
+  function renderRosterList(){
+    const {$, $$, esc}=H(), c=cls(), list=roster(c);
+    $("#ft-rosList").innerHTML=list.length?list.map((s,i)=>
+      `<div class="arc-item"><div class="grow"><div class="ttl">${i+1}. ${esc(s.name)}</div></div>
+       <div class="seg ft-sexseg">
+         <button data-sx="boys"  data-n="${esc(s.name)}" class="${s.sex==="boys"?"on":""}">בן</button>
+         <button data-sx="girls" data-n="${esc(s.name)}" class="${s.sex==="girls"?"on":""}">בת</button>
+       </div>
+       <button class="btn sm stop" data-rd="${esc(s.name)}">✕</button></div>`).join("")
+      : '<div class="hint">הרשימה ריקה. ייבא מ«התלמידים שלי», או הדבק שמות למטה.</div>';
+    $("#ft-rosCount").textContent=list.length?list.length+" תלמידים":"";
+    $$("#ft-rosList [data-rd]").forEach(b=>b.addEventListener("click",()=>{
+      setRoster(c,roster(c).filter(x=>x.name!==b.dataset.rd)); renderRosterList();
+    }));
+    /* המין דרוש לניקוד — נורמות כושר נפרדות לבנים ולבנות */
+    $$("#ft-rosList [data-sx]").forEach(b=>b.addEventListener("click",()=>{
+      const l=roster(c), s2=l.find(x=>x.name===b.dataset.n); if(!s2)return;
+      s2.sex=s2.sex===b.dataset.sx?null:b.dataset.sx;
+      setRoster(c,l); renderRosterList();
+    }));
+  }
+
+  /* ============================================================
+     7. ייצוא
+     ============================================================ */
+  function exportCsv(){
+    const T=testById(st.test), c=cls();
+    const rs=resultsFor(c,T.id).sort((a,b)=>a.d.localeCompare(b.d)||a.name.localeCompare(b.name,"he"));
+    if(!rs.length){H().toast("אין עדיין תוצאות במבחן הזה");return;}
+    const rows=[["תאריך","כיתה","שם","מבחן","תוצאה","יחידה"]];
+    rs.forEach(r=>rows.push([r.d,r.cls,r.name,T.name,r.val,r.unit]));
+    H().dlCSV("מבחן-"+T.name+"-"+c+"-"+today()+".csv",rows);
+  }
+
+  /* ============================================================
+     7ב. מסך המדד
+     ============================================================ */
+  function renderIndex(){
+    const {$, $$, esc}=H();
+    const c=cls(), rst=roster(c), N=norms();
+    const mode=scoreMode(), want=idxTests();
+    const hasTable=Object.keys(N.table).length>0;
+
+    const rows=rst.map(s=>({s,...indexFor(c,s,st.grade)}));
+    const scored=rows.filter(r=>r.idx!=null);
+    const avg=scored.length?scored.reduce((a,b)=>a+b.idx,0)/scored.length:null;
+    /* אילו מבחנים בפועל מוצגים כעמודות */
+    const usedTests=[...new Set([].concat(...rows.map(r=>r.rows.map(x=>x.test))))];
+    const anyRel=rows.some(r=>r.rows.some(x=>x.src==="rel"));
+
+    $("#ft-idx").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> מדד הכושר הגופני — כיתה ${esc(c)}</h2>
+        <div class="hint">ציון 0–100 ליכולת בלבד. זה לא ציון התעודה — זה הרכיב שאתה משקלל
+          לתוכו את ההגעה, ההשתתפות, השיפור והבונוסים.</div>
+
+        <div class="row" style="margin-top:12px">
+          <div class="field" style="width:230px"><label>שיטת ניקוד</label>
+            <div class="seg" id="ft-modeSeg">
+              <button data-m="rel"  class="${mode==="rel"?"on":""}">יחסי לשכבה</button>
+              <button data-m="norm" class="${mode==="norm"?"on":""}">טבלת נורמה</button>
+            </div></div>
+          <div class="grow"></div>
+          <button class="btn sm" id="ft-normsBtn">📐 טבלת הנורמה</button>
+          <button class="btn sm" id="ft-idxPick">🎯 מבחנים במדד${want.length?" ("+want.length+")":""}</button>
+        </div>
+
+        ${mode==="norm"&&!hasTable
+          ? `<div class="bw-warn">בחרת «טבלת נורמה» אבל עדיין לא נטענה טבלה — הניקוד מחושב בינתיים יחסית לשכבה.
+              פתח «📐 טבלת הנורמה» כדי להזין אותה.</div>`
+          : mode==="rel"
+          ? `<div class="hint" style="margin-top:10px">ניקוד יחסי: כל תוצאה מדורגת מול שאר התוצאות באותו מבחן,
+              באותה שכבה ובאותו מין. נדרשות לפחות ‎3‎ תוצאות במבחן כדי שהאחוזון לא יהיה רעש.</div>`
+          : `<div class="hint" style="margin-top:10px">טבלת נורמה טעונה${N.source?` · מקור: ${esc(N.source)}`:""}${N.version?` · גרסה: ${esc(N.version)}`:""}.
+              מבחן או שכבה שאין להם טבלה מנוקדים יחסית לשכבה ומסומנים ב-<b>~</b>.</div>`}
+
+        ${scored.length?`<div class="ft-idxsum">
+          <div><span class="k">נוקדו</span><span class="v">${scored.length}/${rst.length}</span></div>
+          <div><span class="k">ממוצע הכיתה</span><span class="v">${avg.toFixed(1)}</span></div>
+          <div><span class="k">הגבוה</span><span class="v">${Math.max(...scored.map(r=>r.idx)).toFixed(1)}</span></div>
+        </div>`:""}
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2 style="margin:0"><span class="dot"></span> ציוני יכולת</h2>
+          <div class="row" style="gap:7px">
+            <button class="btn sm acc" id="ft-toGrades">✓ שלח לציונים</button>
+            <button class="btn sm ghost" id="ft-idxCsv">⬇ CSV</button>
+          </div>
+        </div>
+        ${rst.length?`<div class="tblwrap" style="margin-top:11px"><table class="tbl">
+          <thead><tr><th>שם</th>${usedTests.map(t=>`<th>${esc(testById(t).em+" "+testById(t).name)}</th>`).join("")}<th>מדד</th></tr></thead>
+          <tbody>${rows.map(r=>{
+            const by={}; r.rows.forEach(x=>by[x.test]=x);
+            return `<tr><td><b>${esc(r.s.name)}</b>${r.s.sex?`<span class="sx">${r.s.sex==="girls"?"בת":"בן"}</span>`:`<span class="sx none">מין לא ידוע</span>`}</td>
+              ${usedTests.map(t=>{const x=by[t];
+                return `<td class="mono">${x?x.sc.toFixed(0)+(x.src==="rel"&&mode==="norm"?"<b>~</b>":""):"—"}</td>`;}).join("")}
+              <td class="mono" style="font-weight:800;color:var(--acc)">${r.idx!=null?r.idx.toFixed(1):"—"}</td></tr>`;
+          }).join("")}</tbody></table></div>
+          ${anyRel&&mode==="norm"?'<div class="hint" style="margin-top:7px"><b>~</b> = חושב יחסית לשכבה כי אין טבלת נורמה למבחן/שכבה האלה.</div>':""}
+          ${rows.some(r=>r.partial)?`<div class="bw-warn" style="margin-top:9px">יש תלמידים עם תוצאות שעדיין בלי מדד.
+            בניקוד יחסי דרושות לפחות ‎3‎ תוצאות באותו מבחן, באותה שכבה ובאותו מין — אחרת האחוזון הוא רעש ולא מדידה.
+            הוסף תוצאות, סמן מין לתלמידים ב«👥 רשימה», או עבור לטבלת נורמה.</div>`:""}
+          <div class="hint" style="margin-top:7px">«שלח לציונים» כותב את המדד לעמודת «מדד כושר» בלשונית הציונים,
+            בקטגוריית היכולת, לתקופת ההערכה הפעילה. התאמה לפי שם.</div>`
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+      </div>`;
+
+    $$("#ft-modeSeg button").forEach(b=>b.addEventListener("click",()=>{setScoreMode(b.dataset.m);renderIndex();}));
+    const on=(sel,fn)=>{const e=$(sel);if(e)e.addEventListener("click",fn);};
+    on("#ft-normsBtn",openNorms);
+    on("#ft-idxPick",openIdxPick);
+    on("#ft-toGrades",()=>sendToGrades(rows));
+    on("#ft-idxCsv",()=>idxCsv(rows,usedTests));
+  }
+
+  function idxCsv(rows,usedTests){
+    if(!rows.length){H().toast("אין נתונים");return;}
+    const head=["שם","מין",...usedTests.map(t=>testById(t).name),"מדד"];
+    const out=[head];
+    rows.forEach(r=>{
+      const by={}; r.rows.forEach(x=>by[x.test]=x);
+      out.push([r.s.name,r.s.sex==="girls"?"בת":r.s.sex==="boys"?"בן":"",
+        ...usedTests.map(t=>by[t]?by[t].sc.toFixed(0):""),r.idx!=null?r.idx.toFixed(1):""]);
+    });
+    H().dlCSV("מדד-כושר-"+cls()+"-"+today()+".csv",out);
+  }
+
+  /* כתיבת המדד לעמודת «מדד כושר» בלשונית הציונים */
+  const IDX_COL="מדד כושר";
+  function sendToGrades(rows){
+    const scored=rows.filter(r=>r.idx!=null);
+    if(!scored.length){H().toast("אין עדיין מדד לאף תלמיד בכיתה הזו");return;}
+    const periods=LS().get("grades.periods",["רבעון 1"]);
+    const period=periods[0];
+    if(!confirm(`לכתוב את המדד של ${scored.length} תלמידים לעמודת «${IDX_COL}» בתקופה «${period}»?`))return;
+    const cols=LS().get("grades.examCols",{});
+    const arr=cols[period]=cols[period]||[];
+    if(!arr.includes(IDX_COL)){arr.push(IDX_COL);LS().set("grades.examCols",cols);}
+    const list=LS().get("stu.list",[]);
+    let hit=0,miss=[];
+    scored.forEach(r=>{
+      const s=list.find(x=>x.name===r.s.name);
+      if(!s){miss.push(r.s.name);return;}
+      s.grades=s.grades||{}; s.grades[period]=s.grades[period]||{exams:{}};
+      s.grades[period].exams=s.grades[period].exams||{};
+      s.grades[period].exams[IDX_COL]=Math.round(r.idx);
+      hit++;
+    });
+    LS().set("stu.list",list);
+    H().toast(hit?`✓ נכתבו ${hit} ציוני יכולת ל«${period}»`+(miss.length?` · ${miss.length} לא נמצאו ב«התלמידים שלי»`:"")
+      :"אף תלמיד מהרשימה לא נמצא ב«התלמידים שלי» — הוסף אותם שם קודם");
+    if(window.STU&&window.STU.init)try{window.STU.init()}catch(e){}
+  }
+
+  /* ---------- בחירת המבחנים שנכנסים למדד ---------- */
+  function openIdxPick(){
+    const {$, $$, esc}=H();
+    const want=idxTests();
+    $("#ft-pickBody").innerHTML=TCATS.map(([cid,cnm,cem])=>{
+      const items=TESTS.filter(t=>t.cat===cid&&t.kind!=="link");
+      if(!items.length)return "";
+      return `<div class="ft-grp"><div class="ft-grph">${cem} ${cnm}</div>
+        ${items.map(t=>`<label class="check" style="padding:5px 0">
+          <input type="checkbox" value="${t.id}"${want.includes(t.id)?" checked":""}> ${t.em} ${esc(t.name)}</label>`).join("")}</div>`;
+    }).join("");
+    H().modal("ft-pickModal");
+    $("#ft-pickAll").onclick=()=>{ $$("#ft-pickBody input").forEach(i=>i.checked=false); };
+    $("#ft-pickSave").onclick=()=>{
+      setIdxTests($$("#ft-pickBody input:checked").map(i=>i.value));
+      H().modal("ft-pickModal",false); renderIndex();
+    };
+  }
+
+  /* ---------- טבלת הנורמה ---------- */
+  function openNorms(){
+    const {$, esc}=H(), N=norms();
+    $("#ft-nSource").value=N.source||"";
+    $("#ft-nVersion").value=N.version||"";
+    $("#ft-nText").value=normsToText(N);
+    $("#ft-nStat").textContent=statNorms(N);
+    H().modal("ft-normsModal");
+    $("#ft-nSave").onclick=()=>{
+      try{
+        const t=textToNorms($("#ft-nText").value);
+        setNorms({version:$("#ft-nVersion").value.trim(),source:$("#ft-nSource").value.trim(),table:t});
+        H().modal("ft-normsModal",false); H().toast("✓ טבלת הנורמה נשמרה"); renderIndex();
+      }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
+    };
+    $("#ft-nClear").onclick=()=>{ if(confirm("למחוק את כל טבלת הנורמה?")){setNorms(NORM_EMPTY);H().modal("ft-normsModal",false);renderIndex();} };
+  }
+  function statNorms(N){
+    const t=N.table, tests=Object.keys(t);
+    if(!tests.length)return "אין עדיין טבלה — הניקוד מחושב יחסית לשכבה.";
+    let n=0; tests.forEach(k=>["boys","girls"].forEach(sx=>{ if(t[k][sx])n+=Object.keys(t[k][sx]).length; }));
+    return tests.length+" מבחנים · "+n+" שילובי מין×שכבה";
+  }
+  function normsToText(N){
+    const out=[];
+    Object.keys(N.table).forEach(tid=>["boys","girls"].forEach(sx=>{
+      const g=N.table[tid][sx]; if(!g)return;
+      Object.keys(g).forEach(gr=>{
+        out.push(tid+"|"+sx+"|"+gr+"|"+(g[gr]||[]).map(p=>p[0]+"="+p[1]).join(","));
+      });
+    }));
+    return out.join("\n");
+  }
+  function textToNorms(txt){
+    const table={};
+    txt.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith("#")).forEach(line=>{
+      const p=line.split("|").map(x=>x.trim());
+      if(p.length!==4)throw new Error(line);
+      const [tid,sx,gr,pairs]=p;
+      if(!testById(tid))throw new Error("מבחן לא מוכר: "+tid);
+      if(sx!=="boys"&&sx!=="girls")throw new Error("מין חייב להיות boys או girls: "+line);
+      const pts=pairs.split(",").map(x=>{
+        const [v,s2]=x.split("=").map(y=>+y.trim());
+        if(!(v>=0)||!(s2>=0))throw new Error(line);
+        return [v,s2];
+      });
+      if(pts.length<2)throw new Error("צריך לפחות שתי נקודות ציון: "+line);
+      table[tid]=table[tid]||{}; table[tid][sx]=table[tid][sx]||{}; table[tid][sx][gr]=pts;
+    });
+    return table;
+  }
+
+  /* ============================================================
+     7ג. אות החינוך הגופני
+     ------------------------------------------------------------
+     מתוך «אות החינוך הגופני — סטנדרטים להערכת הישגי התלמידים»
+     (משרד החינוך, המזכירות הפדגוגית, תשס״ח/2007), פרק הכושר הגופני.
+
+     זו לא טבלת נורמה אלא צבירת נקודות: 40 נקודות אפשריות, וזכאות
+     לאות מותנית ב-32 לפחות, מהן 12 לפחות במבדק האירובי ובאימון
+     המחזורי. המסמך אומר במפורש על המבדק האירובי — «אין מקום למדוד
+     את ההספק כחלק מן ההערכה אלא לשם תיעוד ומעקב» — ולכן הרכיב הזה
+     הוא עמידה בתקן ולא ביצוע. השכבות הן י–י״ב בלבד.
+     ============================================================ */
+  const OT_MAX=40, OT_PASS=32, OT_CORE_MIN=12;
+  const OT_ITEMS=[
+    {id:"aer",  em:"🫁", name:"מבדק אירובי",            max:9, kind:"three",
+     d:"מאמץ אירובי רצוף 30 דק׳ (בכיתה י — 20–25 דק׳ בשני המועדים הראשונים), שלושה מועדים בשנה בהפרש 6 שבועות לפחות. 3 נק׳ לכל מועד שבו עמד בתקן."},
+    {id:"cir",  em:"🔄", name:"אימון מחזורי",           max:9, kind:"three",
+     d:"סבולת שרירית: 8–10 תחנות, שני סבבים, 2 דק׳ מנוחה ביניהם. כיתה י — 30/30 שנ׳; י״א–י״ב — 40/30 שנ׳. 3 נק׳ לכל מועד."},
+    {id:"theory",em:"📖", name:"מבחן עיוני",            max:5, kind:"pct",
+     d:"25–35 שאלות רב־ברירה או 7–10 פתוחות. 3 נק׳ ב-65% תשובות נכונות · 4 נק׳ ב-75% · 5 נק׳ ב-85% ומעלה."},
+    {id:"part", em:"✅", name:"השתתפות ב-85% מהשיעורים",max:4, kind:"flag", d:"4 נק׳ על השתתפות פעילה ב-85% מהשיעורים לפחות."},
+    {id:"club", em:"🏟", name:"פעילות קבועה מחוץ לשיעורים",max:5, kind:"flag", d:"5 נק׳ — אגודת ספורט, נבחרת בית ספר, להקת מחול, חוג ספורט וכדומה."},
+    {id:"event",em:"🎽", name:"פעילות חד־פעמית",        max:3, kind:"count",d:"נקודה אחת לכל אירוע — תחרות, צעדה, כנס מחול. עד 3 נקודות."},
+    {id:"diary",em:"📓", name:"יומן מעקב אישי",         max:5, kind:"flag", d:"5 נק׳ על הגשת יומן פעילות אישי (מטרות, תיעוד לפי תאריכים, הערכה מסכמת)."}
+  ];
+  const OT_CORE=["aer","cir"];
+
+  const otAll =()=>LS().get("ft.ot",{});
+  const otSet =o=>LS().set("ft.ot",o);
+  function otRec(c,name){
+    const all=otAll(), k=clsKey(c);
+    return (all[k]&&all[k][name])||{aer:[0,0,0],cir:[0,0,0],theory:null,part:0,club:0,event:0,diary:0};
+  }
+  function otSave(c,name,rec){
+    const all=otAll(), k=clsKey(c);
+    all[k]=all[k]||{}; all[k][name]=rec; otSet(all);
+  }
+  /* ניקוד המבחן העיוני לפי הספים שבמסמך */
+  function otTheory(pct){
+    if(pct==null||pct==="")return 0;
+    const v=+pct;
+    if(v>=85)return 5; if(v>=75)return 4; if(v>=65)return 3; return 0;
+  }
+  function otScore(rec){
+    const per={
+      aer:(rec.aer||[]).filter(Boolean).length*3,
+      cir:(rec.cir||[]).filter(Boolean).length*3,
+      theory:otTheory(rec.theory),
+      part:rec.part?4:0,
+      club:rec.club?5:0,
+      event:Math.min(3,+rec.event||0),
+      diary:rec.diary?5:0
+    };
+    const total=Object.values(per).reduce((a,b)=>a+b,0);
+    const core=per.aer+per.cir;
+    return {per,total,core,ok:total>=OT_PASS&&core>=OT_CORE_MIN};
+  }
+
+  const OT_GRADES=["י","יא","יב"];
+
+  function renderOt(){
+    const {$, $$, esc}=H();
+    const c=cls(), rst=roster(c);
+    const eligible=OT_GRADES.includes(st.grade);
+    const rows=rst.map(s=>({s,...otScore(otRec(c,s.name))}));
+    const got=rows.filter(r=>r.ok).length;
+
+    $("#ft-ot").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> אות החינוך הגופני — כיתה ${esc(c)}</h2>
+        <div class="hint">צבירת נקודות לפי «אות החינוך הגופני — סטנדרטים להערכת הישגי התלמידים»,
+          משרד החינוך, המזכירות הפדגוגית, תשס״ח/2007. <b>${OT_MAX}</b> נקודות אפשריות;
+          זכאות ל<b>אות</b> מ-<b>${OT_PASS}</b> נקודות ומעלה, מהן <b>${OT_CORE_MIN}</b> לפחות
+          במבדק האירובי ובאימון המחזורי.</div>
+        ${!eligible?`<div class="bw-warn">האות מיועד לשכבות <b>י–י״ב</b>. השכבה שנבחרה היא ${esc(clsName(st.grade,st.num).replace(String(st.num),""))} —
+          אפשר למלא, אבל זה חורג ממה שהמסמך מגדיר.</div>`:""}
+        ${rows.length?`<div class="ft-idxsum">
+          <div><span class="k">זכאים לאות</span><span class="v">${got}/${rows.length}</span></div>
+          <div><span class="k">ממוצע נקודות</span><span class="v">${(rows.reduce((a,b)=>a+b.total,0)/rows.length).toFixed(1)}</span></div>
+        </div>`:""}
+        <details class="pf-help" style="margin-top:11px">
+          <summary>מה נדרש בכל רכיב — מתוך המסמך</summary>
+          <ol>${OT_ITEMS.map(it=>`<li><b>${it.em} ${esc(it.name)} (עד ${it.max} נק׳)</b> — ${esc(it.d)}</li>`).join("")}</ol>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2 style="margin:0"><span class="dot"></span> טופס הערכה מסכמת</h2>
+          <button class="btn sm ghost" id="ft-otCsv">⬇ CSV</button>
+        </div>
+        ${rst.length?`<div class="tblwrap" style="margin-top:11px"><table class="tbl ft-ottbl">
+          <thead><tr><th>שם</th>
+            <th title="מבדק אירובי — 3 מועדים">🫁 אירובי</th>
+            <th title="אימון מחזורי — 3 מועדים">🔄 מחזורי</th>
+            <th title="מבחן עיוני — אחוז תשובות נכונות">📖 עיוני %</th>
+            <th title="השתתפות ב-85% מהשיעורים">✅</th>
+            <th title="פעילות קבועה מחוץ לשיעורים">🏟</th>
+            <th title="פעילות חד־פעמית — עד 3">🎽</th>
+            <th title="יומן מעקב אישי">📓</th>
+            <th>נק׳</th><th>אות</th></tr></thead>
+          <tbody>${rows.map(r=>{
+            const rec=otRec(c,r.s.name), n=esc(r.s.name);
+            const three=(f)=>`<td class="ot-three">${[0,1,2].map(i=>
+              `<button class="${(rec[f]||[])[i]?"on":""}" data-t3="${f}" data-i="${i}" data-n="${n}" title="מועד ${i+1}">${i+1}</button>`).join("")}</td>`;
+            const flag=(f)=>`<td><button class="ot-flag${rec[f]?" on":""}" data-flag="${f}" data-n="${n}">${rec[f]?"✓":"—"}</button></td>`;
+            return `<tr>
+              <td><b>${n}</b></td>
+              ${three("aer")}${three("cir")}
+              <td><input class="ot-pct" type="number" min="0" max="100" data-pct="${n}" value="${rec.theory??""}" placeholder="%"></td>
+              ${flag("part")}${flag("club")}
+              <td class="ot-three"><button data-ev="${n}" class="${rec.event?"on":""}">${rec.event||0}</button></td>
+              ${flag("diary")}
+              <td class="mono" style="font-weight:800">${r.total}</td>
+              <td>${r.ok?'<span class="pill acc">✓ זכאי</span>':`<span class="pill">${OT_PASS-r.total>0?"חסר "+(OT_PASS-r.total):"חסר ליבה"}</span>`}</td>
+            </tr>`;}).join("")}</tbody></table></div>
+          <div class="hint" style="margin-top:8px">מקישים על ספרות המועד כדי לסמן עמידה בתקן באותו מבדק ·
+            «🎽» מתקדם ב-1 בכל הקשה עד 3 · «חסר ליבה» = יש מספיק נקודות בסך הכול, אבל פחות מ-${OT_CORE_MIN}
+            במבדק האירובי ובאימון המחזורי יחד.</div>`
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+      </div>`;
+
+    const upd=(name,fn)=>{ const rec=otRec(c,name); fn(rec); otSave(c,name,rec); renderOt(); };
+    $$("#ft-ot [data-t3]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.n,r=>{
+      r[b.dataset.t3]=(r[b.dataset.t3]||[0,0,0]).slice();
+      r[b.dataset.t3][+b.dataset.i]=r[b.dataset.t3][+b.dataset.i]?0:1;
+    })));
+    $$("#ft-ot [data-flag]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.n,r=>{
+      r[b.dataset.flag]=r[b.dataset.flag]?0:1; })));
+    $$("#ft-ot [data-ev]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.ev,r=>{
+      r.event=((+r.event||0)+1)%4; })));
+    $$("#ft-ot [data-pct]").forEach(inp=>inp.addEventListener("change",()=>upd(inp.dataset.pct,r=>{
+      r.theory=inp.value===""?null:Math.max(0,Math.min(100,+inp.value)); })));
+    const cs=$("#ft-otCsv"); if(cs)cs.addEventListener("click",()=>otCsv(rows));
+  }
+
+  function otCsv(rows){
+    if(!rows.length){H().toast("אין נתונים");return;}
+    const out=[["שם","אירובי","מחזורי","עיוני","השתתפות","פעילות קבועה","חד־פעמית","יומן","סה״כ","זכאי לאות"]];
+    rows.forEach(r=>out.push([r.s.name,r.per.aer,r.per.cir,r.per.theory,r.per.part,r.per.club,r.per.event,r.per.diary,
+      r.total,r.ok?"כן":"לא"]));
+    H().dlCSV("אות-החינוך-הגופני-"+cls()+"-"+today()+".csv",out);
+  }
+
+  /* ============================================================
+     8. אתחול
+     ============================================================ */
+  /* מעבר בין «מבחנים» ל«מדד» — שתי הלשוניות חולקות את אותה בחירת כיתה */
+  function renderTab(){
+    const {$, $$}=H();
+    $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
+    const idx=st.tab==="idx", ot=st.tab==="ot";
+    $("#ft-idx").style.display=idx?"":"none";
+    $("#ft-ot").style.display=ot?"":"none";
+    if(idx||ot){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
+      if(idx)renderIndex(); else renderOt(); }
+    else if(st.test)renderRun();
+    else renderPicker();
+  }
+
+  function init(){
+    if(inited){ renderTab(); return; }
+    inited=true;
+    const last=LS().get("ft.last",{});
+    if(last.grade)st.grade=last.grade;
+    if(last.num)st.num=last.num;
+    if(last.sort)st.sort=last.sort;
+    H().$$("#ft-tabs button").forEach(b=>b.addEventListener("click",()=>{ st.tab=b.dataset.ft; renderTab(); }));
+    renderTab();
+  }
+
+  return {init, tests:()=>TESTS, results:()=>allRes()};
+})();
+})();
+
+;
+"use strict";
 /* מודולים חדשים: שיעור מלא (LESSON) · תלמידים (STU) · תזונה (NUT) · תוספות בית/נעילה */
 (function(){
 const HFZ={
@@ -8459,7 +9836,30 @@ window.STU=(function(){
      מבנה: 4 קטגוריות במשקלים (ברירת מחדל 70/10/10/10), עם עמודות מבחן
      דינמיות בתוך קטגוריית «מבחנים ומבדקים» (ממוצע של מה שהוזן בפועל).
      ציון סופי = סכום (ציון גולמי × משקל / 100) על כל קטגוריה שמולאה. */
-  const DEF_WEIGHTS={part:70,exams:10,improve:10,team:10};
+  /* ברירת המחדל תואמת את מבנה הציון בפועל: 70 הגעה והשתתפות, 8 יכולת
+     (מדד הכושר), ו-22 שיפור/התמדה/שיתוף פעולה. בנוסף — בונוס נקודות
+     לתלמיד שמתאמן בחוג מקצועי אחר הצהריים, שמתווסף מעל ה-100.
+     קטגוריית «ידע והבנה» קיימת אך במשקל 0 — היא נדרשת למבנה של חוזר
+     המנכ״ל, ובמשקל 0 היא פשוט לא מוצגת ולא משפיעה. */
+  const DEF_WEIGHTS={part:70,exams:8,improve:11,team:11,know:0,bonusMax:10};
+  const DEF_LABELS={part:"הגעה והשתתפות",exams:"יכולת — מדד הכושר",
+    improve:"שיפור והתמדה",team:"עבודת צוות ושת״פ",know:"ידע והבנה"};
+
+  /* שני מבני ציון מוכנים. «חוזר מנכ״ל» מועתק מקובץ העזר הרשמי
+     (חוזר מנכ״ל תשס״ז/3(א)) — 60% השתתפות פעילה (40 יחס חיובי + 20
+     התנהגות חברתית), 20% הישגים במקצועות, 10% כושר גופני, 10% ידע
+     והבנה, ובונוס של עד 10% על פעילות גופנית נוספת.
+     «כושר גופני» ממופה לקטגוריית עמודות המבחן — לשם נכתב «מדד כושר»
+     מלשונית המדד, וזה בדיוק המקום שהחוזר מייעד לו. */
+  const PRESETS=[
+    {id:"mine", name:"המבנה שלי", w:{part:70,exams:8,improve:11,team:11,know:0,bonusMax:10},
+     l:Object.assign({},DEF_LABELS)},
+    {id:"mankal", name:"חוזר מנכ״ל תשס״ז/3(א)", w:{part:40,team:20,improve:20,exams:10,know:10,bonusMax:10},
+     l:{part:"השתתפות ויחס חיובי למקצוע",team:"התנהגות חברתית בשיעורים",
+        improve:"הישגים במקצועות אישיים וקבוצתיים",exams:"כושר גופני",know:"ידע והבנה"}}
+  ];
+  const loadLabels=()=>Object.assign({},DEF_LABELS,H().LS.get("grades.labels",{}));
+  const saveLabels=l=>H().LS.set("grades.labels",l);
   const loadWeights=()=>Object.assign({},DEF_WEIGHTS,H().LS.get("grades.weights",{}));
   const saveWeights=w=>H().LS.set("grades.weights",w);
   const loadPeriods=()=>{ const p=H().LS.get("grades.periods",null); return (Array.isArray(p)&&p.length)?p:["רבעון 1"]; };
@@ -8473,32 +9873,80 @@ window.STU=(function(){
     const g=(s.grades&&s.grades[period])||{};
     const examVals=examCols.map(c=>g.exams&&g.exams[c]).filter(v=>v!=null&&v!=="").map(Number);
     const examsAvg=examVals.length?examVals.reduce((a,b)=>a+b,0)/examVals.length:null;
-    const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team]];
+    const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team],["know",g.know]];
     let total=0,any=false;
     cats.forEach(([k,v])=>{ if(v!=null&&v!==""){ total+=(+v)*weights[k]/100; any=true; } });
-    return {total:any?Math.round(total*10)/10:null,examsAvg};
+    const cap=weights.bonusMax??DEF_WEIGHTS.bonusMax;
+    const bonus=g.bonus!=null&&g.bonus!==""?Math.max(0,Math.min(cap,+g.bonus)):0;
+    if(bonus)any=true;
+    return {total:any?Math.round(Math.min(100,total+bonus)*10)/10:null,examsAvg,bonus};
   }
   function renderWeightsHint(){
     const {$}=H(); const w=loadWeights();
-    $("#gr-formula").textContent=`ציון סופי = השתתפות ורצינות ${w.part}% + ממוצע מבחנים ${w.exams}% + שיפור והתמדה ${w.improve}% + עבודת צוות ${w.team}%`;
+    const L=loadLabels();
+    const parts=["part","exams","improve","team","know"].filter(k=>(w[k]||0)>0)
+      .map(k=>`${L[k]} ${w[k]}%`);
+    $("#gr-formula").textContent="ציון סופי = "+parts.join(" + ")
+      +` + בונוס עד ${w.bonusMax??10} נק׳ (מוגבל ל-100)`;
   }
   function updWSum(){
     const {$}=H();
-    const sum=(+$("#gr-wPart").value||0)+(+$("#gr-wExams").value||0)+(+$("#gr-wImprove").value||0)+(+$("#gr-wTeam").value||0);
+    const sum=(+$("#gr-wPart").value||0)+(+$("#gr-wExams").value||0)+(+$("#gr-wImprove").value||0)
+      +(+$("#gr-wTeam").value||0)+(+$("#gr-wKnow").value||0);
     $("#gr-wSum").innerHTML=`סה״כ: <b style="color:${sum===100?"var(--acc)":"#ff6b81"}">${sum}%</b>`+(sum===100?"":" — צריך להסתכם ל-100");
   }
   function openWeights(){
     const {$}=H(); const w=loadWeights();
-    $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve; $("#gr-wTeam").value=w.team;
+    const L=loadLabels();
+    $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve;
+    $("#gr-wTeam").value=w.team; $("#gr-wKnow").value=w.know||0;
+    $("#gr-wBonusMax").value=w.bonusMax??DEF_WEIGHTS.bonusMax;
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=H().$("#gr-l"+k[0].toUpperCase()+k.slice(1)); if(el)el.value=L[k];
+    });
+    H().$$("#gr-presets button").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.pr)));
     updWSum(); H().modal("gr-weightsModal");
   }
   function saveWeightsForm(){
     const {$}=H();
-    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,team:+$("#gr-wTeam").value||0};
-    const sum=w.part+w.exams+w.improve+w.team;
+    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,
+      team:+$("#gr-wTeam").value||0,know:+$("#gr-wKnow").value||0,
+      bonusMax:Math.max(0,+$("#gr-wBonusMax").value||0)};
+    const sum=w.part+w.exams+w.improve+w.team+w.know;
     if(sum!==100){H().toast("המשקלים חייבים להסתכם ל-100 (כרגע "+sum+")");return;}
-    saveWeights(w); H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
+    const L={};
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=$("#gr-l"+k[0].toUpperCase()+k.slice(1));
+      L[k]=(el&&el.value.trim())||DEF_LABELS[k];
+    });
+    saveWeights(w); saveLabels(L);
+    H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
   }
+  function bagCalc(){
+    const {$}=H(); const box=$("#bag-out"); if(!box)return;
+    const a=$("#bag-y11").value, b=$("#bag-y12").value;
+    if(a===""||b===""){ box.className="pf-prec"; box.innerHTML='<div class="d">הזן את ציון י״א ואת ציון י״ב.</div>'; return; }
+    const y11=Math.max(0,Math.min(100,+a)), y12=Math.max(0,Math.min(100,+b));
+    const bon=Math.max(0,Math.min(10,+$("#bag-bonus").value||0));
+    const base=y11*0.3+y12*0.7;
+    const tot=Math.min(100,base+bon);
+    box.className="pf-prec ok";
+    box.innerHTML=`<div class="v">ציון סופי כולל בונוס — <b>${tot.toFixed(1)}</b> · לתעודה <b>${Math.round(tot)}</b></div>
+      <div class="d">${y11} × ‎0.3‎ = ${(y11*0.3).toFixed(1)} · ${y12} × ‎0.7‎ = ${(y12*0.7).toFixed(1)} ·
+        משוקלל ${base.toFixed(1)}${bon?` · בונוס +${bon}`:""}${base+bon>100?" · נחתך ל-100":""}</div>`;
+  }
+
+  function applyPreset(id){
+    const {$}=H(), P=PRESETS.find(x=>x.id===id); if(!P)return;
+    $("#gr-wPart").value=P.w.part; $("#gr-wExams").value=P.w.exams; $("#gr-wImprove").value=P.w.improve;
+    $("#gr-wTeam").value=P.w.team; $("#gr-wKnow").value=P.w.know||0;
+    $("#gr-wBonusMax").value=P.w.bonusMax;
+    ["part","exams","improve","team","know"].forEach(k=>{
+      const el=$("#gr-l"+k[0].toUpperCase()+k.slice(1)); if(el)el.value=P.l[k];
+    });
+    updWSum(); H().toast("נטען מבנה «"+P.name+"» — לחץ שמור כדי להחיל");
+  }
+
   function renderGrades(){
     const {$, $$, esc}=H();
     const list=load();
@@ -8513,20 +9961,30 @@ window.STU=(function(){
     const view=list.filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     $("#gr-empty").style.display=view.length?"none":"block";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
-    const head=`<thead><tr><th>שם</th><th>כיתה</th><th>השתתפות ורצינות<br>(${weights.part}%)</th>${
+    const L=loadLabels();
+    /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */
+    const show=k=>(weights[k]||0)>0;
+    const head=`<thead><tr><th>שם</th><th>כיתה</th>${show("part")?`<th>${esc(L.part)}<br>(${weights.part}%)</th>`:""}${
       examCols.map((c,i)=>`<th>${esc(c)} <button class="x" data-examdel="${i}" title="הסר עמודה">✕</button></th>`).join("")
-    }<th>ממוצע מבחנים<br>(${weights.exams}%)</th><th>שיפור והתמדה<br>(${weights.improve}%)</th><th>עבודת צוות<br>(${weights.team}%)</th><th>ציון סופי</th></tr></thead>`;
+    }${show("exams")?`<th>${esc(L.exams)}<br>(${weights.exams}%)</th>`:""}${
+      show("improve")?`<th>${esc(L.improve)}<br>(${weights.improve}%)</th>`:""}${
+      show("team")?`<th>${esc(L.team)}<br>(${weights.team}%)</th>`:""}${
+      show("know")?`<th>${esc(L.know)}<br>(${weights.know}%)</th>`:""
+    }<th>בונוס<br>(עד ${weights.bonusMax??10})</th><th>ציון סופי</th></tr></thead>`;
     const body=view.map(s=>{
       const g=gradeOf(s,grPeriod);
       const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
+      const num=(f,cap)=>`<td><input class="gr-in" type="number" min="0" max="${cap||100}" data-f="${f}" value="${g[f]??""}"></td>`;
       return `<tr data-sid="${s.id}">
         <td><b>${esc(s.name)}</b></td>
         <td style="color:var(--muted)">${esc(s.cls||"")}</td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="part" value="${g.part??""}"></td>
+        ${show("part")?num("part"):""}
         ${examCols.map(c=>`<td><input class="gr-in" type="number" min="0" max="100" data-exam="${esc(c)}" value="${(g.exams&&g.exams[c])??""}"></td>`).join("")}
-        <td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="improve" value="${g.improve??""}"></td>
-        <td><input class="gr-in" type="number" min="0" max="100" data-f="team" value="${g.team??""}"></td>
+        ${show("exams")?`<td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>`:""}
+        ${show("improve")?num("improve"):""}
+        ${show("team")?num("team"):""}
+        ${show("know")?num("know"):""}
+        ${num("bonus",weights.bonusMax??10)}
         <td class="mono" style="font-weight:800;color:var(--acc)">${total!=null?total.toFixed(1):"—"}</td>
       </tr>`;
     }).join("");
@@ -8536,12 +9994,17 @@ window.STU=(function(){
     function updateRowTotals(tr,s){
       const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
       const cells=tr.querySelectorAll("td");
-      cells[3+examCols.length].textContent=examsAvg!=null?examsAvg.toFixed(1):"—";
+      /* תא ממוצע המבחנים הוא ה-.mono הראשון, והציון הסופי הוא האחרון —
+         איתור לפי מיקום קבוע נשבר כשקטגוריה במשקל 0 מוסתרת. */
+      const monos=tr.querySelectorAll("td.mono");
+      if(monos.length>1)monos[0].textContent=examsAvg!=null?examsAvg.toFixed(1):"—";
       cells[cells.length-1].textContent=total!=null?total.toFixed(1):"—";
     }
     $$("#gr-table [data-f]").forEach(inp=>inp.addEventListener("change",()=>{
       const tr=inp.closest("tr"), s=list.find(x=>x.id===tr.dataset.sid); if(!s)return;
-      const g=gradeOf(s,grPeriod); const v=inp.value===""?null:Math.max(0,Math.min(100,+inp.value));
+      const g=gradeOf(s,grPeriod);
+      const cap=inp.dataset.f==="bonus"?(weights.bonusMax??10):100;
+      const v=inp.value===""?null:Math.max(0,Math.min(cap,+inp.value));
       if(v!=null)inp.value=v;
       g[inp.dataset.f]=v; save(list); updateRowTotals(tr,s);
     }));
@@ -8840,6 +10303,11 @@ window.STU=(function(){
     $("#gr-weightsBtn").addEventListener("click",openWeights);
     ["#gr-wPart","#gr-wExams","#gr-wImprove","#gr-wTeam"].forEach(id=>$(id).addEventListener("input",updWSum));
     $("#gr-wSave").addEventListener("click",saveWeightsForm);
+    /* מחשבון ציון הבגרות של י״ב — 0.3 ציון י״א + 0.7 ציון י״ב + בונוס */
+    ["bag-y11","bag-y12","bag-bonus"].forEach(id=>{
+      const el=$("#"+id); if(el)el.addEventListener("input",bagCalc);
+    });
+    bagCalc();
     $("#gr-period").addEventListener("change",e=>{grPeriod=e.target.value;renderGrades();});
     $("#gr-periodAdd").addEventListener("click",addPeriod);
     $("#gr-periodDel").addEventListener("click",delPeriod);

@@ -21,6 +21,7 @@
 <script src="hm-plans.js"></script>
 <script src="hm-lesson.js"></script>
 <script src="hm-build.js"></script>
+<script src="hm-tests.js"></script>
 <script src="hm-new.js"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -202,6 +203,57 @@
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
       <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+    </div>
+
+    <!-- ----- מיקום המצלמה ודיוק ----- -->
+    <div class="card" id="pf-placeCard">
+      <h2><span class="dot"></span> 📐 איפה להעמיד את המצלמה</h2>
+      <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
+        ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:172px"><label>מרחק המצלמה מהמסלול (מ׳)</label>
+          <input type="number" id="pf-camDist" value="6" min="1" max="60" step="0.5"></div>
+        <div class="field" style="width:198px"><label>מהירות אופיינית</label>
+          <select id="pf-camSpeed">
+            <option value="3">הליכה / בדיקת כיול — ‎3‎ מ׳/שנ׳</option>
+            <option value="5">ריצת סבולת — ‎5‎ מ׳/שנ׳</option>
+            <option value="7" selected>ספרינט בית ספר — ‎7‎ מ׳/שנ׳</option>
+            <option value="9">ספרינט מהיר — ‎9‎ מ׳/שנ׳</option>
+          </select></div>
+        <div class="field" style="width:148px"><label>שדה ראייה אופקי (°)</label>
+          <input type="number" id="pf-camFov" value="65" min="30" max="120" step="1"></div>
+      </div>
+      <div class="pf-prec" id="pf-precCalc"></div>
+
+      <details class="pf-help">
+        <summary>מה באמת שובר את הדיוק — יותר מהמרחק</summary>
+        <ol>
+          <li><b>חלון עיוור של ‎450‎ מ״ש.</b> אחרי זיהוי אוטומטי, הבא לא יכול לירות במשך כחצי שנייה.
+            <b>שני רצים שמסיימים בהפרש קטן מ‑‎0.45‎ שנייה יירשמו כאחד.</b> במקצה צמוד — אל תסמוך על האוטומט:
+            הקש ידנית על שם המסלול ברגע החצייה, או קרא את הזמנים מ«תמונת סיום» בסוף.</li>
+          <li><b>המצלמה חייבת להיות דוממת לחלוטין.</b> המנוע בונה מודל רקע ומזהה כל שינוי כתנועה.
+            טלפון ביד = כל התמונה ״זזה״ = זיהויים שגויים. חצובה, גדר או משטח יציב — לא יד.</li>
+          <li><b>הזיהוי לא יודע מי חצה.</b> הוא מקצה את הזמן <b>למסלול הבא ברשימה שאין לו זמן</b>.
+            לכן סדר את הרצים מהמהיר לאיטי לפני הזינוק, או תקן בטבלה אחרי.</li>
+          <li><b>ניגודיות.</b> הרץ חייב להיבדל מהרקע שמאחורי הקו. חולצה כהה מול גדר כהה — עלול לפספס.
+            אם זה קורה, העלה «רגישות זיהוי».</li>
+        </ol>
+      </details>
+
+      <details class="pf-help">
+        <summary>איך אני יודע שזה עובד — שלוש בדיקות</summary>
+        <ol>
+          <li><b>לפני הזינוק:</b> שורת הסטטוס על התמונה חייבת להראות «🟢 מצלמה פעילה · זיהוי חמוש».
+            אם היא תקועה על «מכייל רקע…» — המצלמה זזה או שהתאורה משתנה.</li>
+          <li><b>אחרי המקצה:</b> במסך «🎞 תמונת סיום» מופיעה שורת <b>קצב דגימה בפועל ורזולוציית זמן ‎±X‎ מ״ש</b>.
+            זו מדידה אמיתית מהטלפון שלך באותו מקצה — לא הבטחה.</li>
+          <li><b>הכי מדויק:</b> ב«תמונת סיום» אפשר <b>ללחוץ על הרץ עצמו</b>, והזמן מחושב באינטרפולציה בין העמודות.
+            מדויק יותר מהטריגר האוטומטי, ופותר גם את חלון ה‑450 מ״ש. זו דרך העבודה המומלצת לגמר צמוד.</li>
+        </ol>
+        <div class="hint" style="margin-top:6px"><b>בדיקת שפיות של דקה:</b> העמד את הטלפון, בקש מתלמיד לעבור את הקו בהליכה,
+          וודא שהצפצוף נשמע בדיוק כשהוא על הקו. אם זה יורה מוקדם — הקו האדום במסך לא יושב על קו הסיום האמיתי;
+          תקן עם «מיקום קו הסיום».</div>
+      </details>
     </div>
 
     <div class="card">
@@ -689,15 +741,51 @@
     </div>
   </div>
 
+  <div class="card" id="gr-bagCard">
+    <details class="pf-help" style="margin:0">
+      <summary>🎓 מחשבון ציון בגרות לכיתה י״ב (ציון פנימי, שתי יח״ל)</summary>
+      <div style="padding:0 13px 13px">
+        <div class="hint">לפי קובץ העזר הרשמי: ‎30%‎ הציון השנתי של י״א, ‎70%‎ ממוצע הסמסטרים/שלישים של י״ב,
+          ובונוס של עד ‎10%‎ על פעילות גופנית נוספת או תרומה לתרבות הספורטיבית של בית הספר.</div>
+        <div class="row" style="margin-top:11px">
+          <div class="field" style="width:120px"><label>ציון י״א</label><input type="number" id="bag-y11" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>ציון י״ב</label><input type="number" id="bag-y12" min="0" max="100"></div>
+          <div class="field" style="width:120px"><label>בונוס (נק׳)</label><input type="number" id="bag-bonus" min="0" max="10" value="0"></div>
+        </div>
+        <div class="pf-prec" id="bag-out"></div>
+      </div>
+    </details>
+  </div>
+
   <div class="modal" id="gr-weightsModal"><div class="box">
     <h3>⚖️ מבנה הציון<button class="x" data-close="gr-weightsModal">✕</button></h3>
-    <div class="hint">המשקלים צריכים להסתכם ל-100. אחוז השתתפות ורצינות משמש כברירת מחדל וניתן לשינוי לפי מדיניות בית הספר.</div>
-    <div class="row" style="margin-top:11px;flex-wrap:wrap;gap:10px">
-      <div class="field" style="width:150px"><label>השתתפות ורצינות %</label><input type="number" id="gr-wPart" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>מבחנים ומבדקים %</label><input type="number" id="gr-wExams" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>שיפור והתמדה %</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
-      <div class="field" style="width:150px"><label>עבודת צוות ושת״פ %</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+    <div class="hint">המשקלים צריכים להסתכם ל-100. אפשר לשנות גם את שמות הקטגוריות —
+      קטגוריה שתיתן לה משקל <b>0</b> פשוט לא תוצג בטבלה.</div>
+
+    <div class="field" style="margin-top:11px"><label>מבנים מוכנים</label>
+      <div class="row" id="gr-presets" style="gap:7px">
+        <button class="btn sm" data-pr="mine">המבנה שלי</button>
+        <button class="btn sm" data-pr="mankal">חוזר מנכ״ל תשס״ז/3(א)</button>
+      </div>
+      <div class="hint" style="margin-top:6px">«חוזר מנכ״ל» הוא המבנה הרשמי מקובץ העזר:
+        ‎40%‎ השתתפות ויחס חיובי · ‎20%‎ התנהגות חברתית · ‎20%‎ הישגים במקצועות ·
+        ‎10%‎ כושר גופני · ‎10%‎ ידע והבנה · בונוס עד ‎10%‎.</div>
     </div>
+
+    <div class="gr-wgrid">
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lPart"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wPart" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה (עמודות מבחן)</label><input type="text" id="gr-lExams"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wExams" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lImprove"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wImprove" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lTeam"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wTeam" min="0" max="100"></div>
+      <div class="field"><label>שם הקטגוריה</label><input type="text" id="gr-lKnow"></div>
+      <div class="field" style="width:96px"><label>%</label><input type="number" id="gr-wKnow" min="0" max="100"></div>
+    </div>
+    <div class="field" style="width:190px;margin-top:10px"><label>תקרת בונוס (נק׳)</label>
+      <input type="number" id="gr-wBonusMax" min="0" max="20"></div>
     <div class="hint" id="gr-wSum" style="margin-top:9px"></div>
     <button class="btn acc big" id="gr-wSave" style="margin-top:12px">שמור מבנה ציון</button>
   </div></div>
@@ -869,6 +957,94 @@
     <div class="empty-state" id="ls-libEmpty"><div class="big">📚</div>עוד לא שמרת מערכים.<br>בנה מערך ולחץ «שמור» — הוא יחכה כאן לשיעור הבא.</div>
   </div>
 </section>
+<section class="view" id="view-ft">
+  <div class="pf-tabs" id="ft-tabs">
+    <button data-ft="tests" class="on">🏅 מבחנים</button>
+    <button data-ft="idx">📊 מדד הכושר</button>
+    <button data-ft="ot">🏅 אות החינוך הגופני</button>
+  </div>
+  <div id="ft-idx" style="display:none"></div>
+  <div id="ft-ot" style="display:none"></div>
+  <!-- ----- בחירת כיתה ומבחן ----- -->
+  <div id="ft-pick">
+    <div class="card">
+      <h2><span class="dot"></span> מבחני כושר</h2>
+      <div class="hint">בחר שכבה ומספר כיתה, ואז מבחן. כל מבחן נפתח במסך הפעלה משלו —
+        עם שעון עצר או מונה חזרות, ורשימת התלמידים של אותה כיתה.</div>
+
+      <div class="field" style="margin-top:13px"><label>שכבה</label>
+        <div class="ft-seg" id="ft-grades"></div></div>
+      <div class="field" style="margin-top:11px"><label>מספר כיתה</label>
+        <div class="ft-seg" id="ft-nums"></div></div>
+
+      <div class="ft-cls">
+        <div class="big" id="ft-clsName">ז׳1</div>
+        <div class="sb" id="ft-clsInfo"></div>
+      </div>
+    </div>
+    <div id="ft-tests"></div>
+  </div>
+
+  <!-- ----- מסך המבחן ----- -->
+  <div id="ft-run" style="display:none">
+    <div class="card" id="ft-runHead"></div>
+    <div id="ft-tool"></div>
+    <div class="card">
+      <div id="ft-bar"></div>
+      <div id="ft-list" style="margin-top:11px"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="ft-pickModal"><div class="box">
+    <h3>🎯 מבחנים שנכנסים למדד<button class="x" data-close="ft-pickModal">✕</button></h3>
+    <div class="hint">סמן את סוללת המבחנים שמרכיבה את מדד היכולת. בלי סימון — כל מבחן שיש לו תוצאה נכנס לממוצע.</div>
+    <div id="ft-pickBody" style="margin-top:11px;max-height:340px;overflow:auto"></div>
+    <div class="row" style="margin-top:11px;gap:8px">
+      <button class="btn sm ghost" id="ft-pickAll">נקה הכל</button>
+      <button class="btn acc grow" id="ft-pickSave">שמור</button>
+    </div>
+  </div></div>
+
+  <div class="modal" id="ft-normsModal"><div class="box" style="max-width:620px">
+    <h3>📐 טבלת הנורמה<button class="x" data-close="ft-normsModal">✕</button></h3>
+    <div class="hint">הטבלה היא נתון שלך, לא של האפליקציה — כך היא נשארת נכונה גם כשהנורמות מתעדכנות.
+      כל שורה: <b>מזהה־מבחן | boys או girls | שכבה | ערך=ניקוד, ערך=ניקוד…</b><br>
+      בין שתי נקודות ציון מבוצעת אינטרפולציה ליניארית, וכיוון המבחן נגזר מהערכים עצמם —
+      אז זמני ריצה (נמוך=טוב) ומספר חזרות (גבוה=טוב) נכתבים באותה צורה.</div>
+    <div class="bw-note" style="direction:ltr;text-align:left;font-family:'Share Tech Mono';font-size:12px">
+      r1000|boys|ט|210=100,240=90,270=80,300=70,330=60<br>
+      push|girls|ט|30=100,22=90,16=80,11=70,7=60
+    </div>
+    <div class="row" style="margin-top:11px">
+      <div class="field grow"><label>מקור הטבלה</label>
+        <input type="text" id="ft-nSource" placeholder="למשל: חוזר מפמ״ר חינוך גופני, אות הכושר"></div>
+      <div class="field" style="width:150px"><label>גרסה / שנה</label>
+        <input type="text" id="ft-nVersion" placeholder="תשפ״ו"></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>הטבלה — שורה לכל מבחן × מין × שכבה</label>
+      <textarea id="ft-nText" rows="9" style="direction:ltr;text-align:left;font-family:'Share Tech Mono';font-size:12.5px"></textarea></div>
+    <div class="hint" id="ft-nStat" style="margin-top:6px"></div>
+    <div class="row" style="margin-top:11px;gap:8px">
+      <button class="btn sm stop" id="ft-nClear">מחק טבלה</button>
+      <button class="btn acc grow" id="ft-nSave">שמור טבלה</button>
+    </div>
+  </div></div>
+
+  <div class="modal" id="ft-rosModal"><div class="box">
+    <h3 id="ft-rosTitle">👥 רשימת כיתה<button class="x" data-close="ft-rosModal">✕</button></h3>
+    <div class="row" style="gap:8px">
+      <button class="btn sm acc" id="ft-rosImport">📥 ייבא מ«התלמידים שלי»</button>
+      <span class="hint grow" id="ft-rosCount"></span>
+    </div>
+    <div id="ft-rosList" style="margin-top:11px;max-height:280px;overflow:auto"></div>
+    <div class="field" style="margin-top:11px"><label>הדבקת רשימה — שם אחד בכל שורה</label>
+      <textarea id="ft-rosBulk" rows="4" placeholder="דנה כהן&#10;יוסי לוי&#10;מאיה בר"></textarea></div>
+    <div class="row" style="margin-top:10px;gap:8px">
+      <button class="btn sm" id="ft-rosPaste">+ הוסף מהרשימה</button>
+      <button class="btn acc grow" id="ft-rosDone">סיום</button>
+    </div>
+  </div></div>
+</section>
 <section class="view" id="view-tools">
   <div class="pf-tabs" id="tl-tabs">
     <button data-tt="teams" class="on">👥 קבוצות</button>
@@ -1039,6 +1215,7 @@
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
     <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
+    <button class="more-item" data-go="ft" data-close="moreModal"><span class="ic">🏅</span>מבחני כושר<span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
