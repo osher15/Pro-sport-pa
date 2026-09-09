@@ -116,11 +116,57 @@ const testById=id=>TESTS.find(t=>t.id===id);
 const catName=id=>(TCATS.find(c=>c[0]===id)||[,"—"])[1];
 
 /* ============================================================
+   2ב. מדד הכושר הגופני — שכבת הניקוד
+   ------------------------------------------------------------
+   ממירה תוצאה גולמית (שניות / חזרות / ס״מ) לציון 0–100, ומרכיבה
+   מהן מדד אחד לתלמיד. שתי שיטות:
+
+   norm — טבלת נורמה. המבנה: לכל מבחן × מין × שכבה רשימת נקודות
+          ציון [ערך, נקודות], ובין שתי נקודות סמוכות מבצעים
+          אינטרפולציה ליניארית. עובד גם למבחנים שבהם נמוך=טוב
+          (זמני ריצה) וגם להפך, כי הכיוון נגזר מהערכים עצמם.
+          הטבלה ריקה כברירת מחדל — היא נתון של המורה, לא של הקוד.
+
+   rel  — יחסי לשכבה. אחוזון מול כל שאר התוצאות שנרשמו באותו מבחן,
+          באותה שכבה ובאותו מין. לא דורש שום טבלה חיצונית, ומשתפר
+          ככל שנצברות תוצאות.
+
+   ברירת המחדל היא rel, ומעבר ל-norm קורה רק כשקיימת טבלה למבחן
+   ולשכבה — אחרת נופלים חזרה ל-rel ומסמנים את זה בממשק.
+   ============================================================ */
+const NORM_EMPTY={version:"",source:"",table:{}};
+
+/* אינטרפולציה ליניארית בין נקודות הציון של טבלת הנורמה */
+function scoreFromPoints(pts,val){
+  if(!Array.isArray(pts)||pts.length<2||!(val>=0))return null;
+  const P=pts.slice().sort((a,b)=>a[0]-b[0]);
+  if(val<=P[0][0])return clamp100(P[0][1]);
+  if(val>=P[P.length-1][0])return clamp100(P[P.length-1][1]);
+  for(let i=0;i<P.length-1;i++){
+    const [x1,y1]=P[i],[x2,y2]=P[i+1];
+    if(val>=x1&&val<=x2){
+      if(x2===x1)return clamp100(y2);
+      return clamp100(y1+(y2-y1)*(val-x1)/(x2-x1));
+    }
+  }
+  return null;
+}
+const clamp100=v=>Math.max(0,Math.min(100,Math.round(v*10)/10));
+
+/* אחוזון: איזה חלק מהקבוצה התלמיד עקף. dir קובע מה נחשב «טוב יותר». */
+function percentile(vals,val,dir){
+  if(!vals.length)return null;
+  const worse=vals.filter(v=>dir==="low"?v>val:v<val).length;
+  const same =vals.filter(v=>v===val).length;
+  return clamp100((worse+same/2)/vals.length*100);
+}
+
+/* ============================================================
    3. המודול
    ============================================================ */
 window.FT=(function(){
   let inited=false;
-  let st={grade:"ז",num:1,test:null,sort:"todo"};
+  let st={grade:"ז",num:1,test:null,sort:"todo",tab:"tests"};
   let clk={on:false,t0:0,raf:0,paused:0};      /* השעון המשותף לכיתה */
   let cd ={on:false,end:0,raf:0};              /* ספירה לאחור למבחנים קצובים */
 
@@ -148,7 +194,8 @@ window.FT=(function(){
     if(!hits.length)return 0;
     const cur=roster(c), have=new Set(cur.map(x=>x.name));
     let n=0;
-    hits.forEach(s=>{ if(have.has(s.name))return; cur.push({id:s.id,name:s.name}); have.add(s.name); n++; });
+    hits.forEach(s=>{ if(have.has(s.name))return;
+      cur.push({id:s.id,name:s.name,sex:s.sex||null}); have.add(s.name); n++; });
     setRoster(c,cur); return n;
   }
 
@@ -169,6 +216,7 @@ window.FT=(function(){
     const i=rs.findIndex(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.name===stud.name&&r.d===today());
     const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,5),
       ts:Date.now(),d:today(),cls:c,test:testId,name:stud.name,sid:stud.id||null,
+      gradeKey:st.grade,sex:stud.sex||null,
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
@@ -186,12 +234,68 @@ window.FT=(function(){
   const better=(T,a,b)=>T.dir==="low"?a<b:a>b;   /* האם a טוב מ-b */
 
   /* ============================================================
+     3ב. מדד הכושר — נתונים וחישוב
+     ============================================================ */
+  const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
+  const setNorms=n=>LS().set("ft.norms",n);
+  const scoreMode=()=>LS().get("ft.scoreMode","rel");
+  const setScoreMode=m=>LS().set("ft.scoreMode",m);
+  /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
+  const idxTests   =()=>LS().get("ft.idxTests",[]);
+  const setIdxTests=a=>LS().set("ft.idxTests",a);
+
+  const sexOf=stud=>stud&&stud.sex==="girls"?"girls":stud&&stud.sex==="boys"?"boys":null;
+
+  /* ניקוד לפי טבלת נורמה — מחזיר null אם אין טבלה למבחן/מין/שכבה */
+  function normScore(testId,sex,grade,val){
+    const T=norms().table[testId]; if(!T||!sex)return null;
+    const byGrade=T[sex]; if(!byGrade)return null;
+    return scoreFromPoints(byGrade[grade],val);
+  }
+  /* ניקוד יחסי — מול כל התוצאות באותו מבחן, באותה שכבה, ובאותו מין אם ידוע */
+  function relScore(testId,sex,grade,val){
+    const T=testById(testId); if(!T)return null;
+    const gk=String(grade);
+    const peers=allRes().filter(r=>r.test===testId&&r.gradeKey===gk&&(!sex||!r.sex||r.sex===sex));
+    const vals=peers.map(r=>r.val).filter(v=>v>0);
+    if(vals.length<3)return null;                 /* מתחת ל-3 תוצאות אחוזון הוא רעש */
+    return percentile(vals,val,T.dir);
+  }
+  /* הציון הסופי לתוצאה בודדת + מאיפה הוא הגיע */
+  function scoreOne(testId,stud,grade,val){
+    const sex=sexOf(stud);
+    if(scoreMode()==="norm"){
+      const n=normScore(testId,sex,grade,val);
+      if(n!=null)return {v:n,src:"norm"};
+    }
+    const r=relScore(testId,sex,grade,val);
+    if(r!=null)return {v:r,src:"rel"};
+    return {v:null,src:null};
+  }
+  /* המדד המשוקלל של תלמיד: ממוצע הציונים על המבחנים שנבחרו */
+  function indexFor(c,stud,grade){
+    const want=idxTests();
+    const mine=allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.name===stud.name);
+    /* התוצאה האחרונה בכל מבחן */
+    const byTest={};
+    mine.forEach(r=>{ if(!byTest[r.test]||r.d>byTest[r.test].d)byTest[r.test]=r; });
+    const rows=Object.values(byTest)
+      .filter(r=>!want.length||want.includes(r.test))
+      .map(r=>{ const sc=scoreOne(r.test,stud,grade,r.val); return {test:r.test,val:r.val,d:r.d,sc:sc.v,src:sc.src}; })
+      .filter(x=>x.sc!=null);
+    if(!rows.length)return {idx:null,rows:[],partial:Object.keys(byTest).length>0};
+    const idx=rows.reduce((a,b)=>a+b.sc,0)/rows.length;
+    return {idx:Math.round(idx*10)/10,rows,partial:false};
+  }
+
+  /* ============================================================
      4. מסך הבחירה
      ============================================================ */
   function renderPicker(){
     const {$, $$, esc}=H();
     const c=cls(), rst=roster(c);
     $("#ft-run").style.display="none";
+    $("#ft-idx").style.display="none";
     $("#ft-pick").style.display="";
 
     $("#ft-grades").innerHTML=GRADES.map(([g,lbl])=>
@@ -238,6 +342,7 @@ window.FT=(function(){
     }
     st.test=id; stopClock(true); stopCd();
     H().$("#ft-pick").style.display="none";
+    H().$("#ft-idx").style.display="none";
     H().$("#ft-run").style.display="";
     renderRun();
     window.scrollTo({top:0,behavior:"smooth"});
@@ -515,17 +620,27 @@ window.FT=(function(){
         list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5)+n,name:nm}); have.add(nm); n++; });
       setRoster(c,list); $("#ft-rosBulk").value=""; renderRosterList(); H().toast("נוספו "+n+" תלמידים");
     };
-    $("#ft-rosDone").onclick=()=>{ H().modal("ft-rosModal",false); if(st.test)renderRun(); else renderPicker(); };
+    $("#ft-rosDone").onclick=()=>{ H().modal("ft-rosModal",false); renderTab(); };
   }
   function renderRosterList(){
     const {$, $$, esc}=H(), c=cls(), list=roster(c);
     $("#ft-rosList").innerHTML=list.length?list.map((s,i)=>
       `<div class="arc-item"><div class="grow"><div class="ttl">${i+1}. ${esc(s.name)}</div></div>
+       <div class="seg ft-sexseg">
+         <button data-sx="boys"  data-n="${esc(s.name)}" class="${s.sex==="boys"?"on":""}">בן</button>
+         <button data-sx="girls" data-n="${esc(s.name)}" class="${s.sex==="girls"?"on":""}">בת</button>
+       </div>
        <button class="btn sm stop" data-rd="${esc(s.name)}">✕</button></div>`).join("")
       : '<div class="hint">הרשימה ריקה. ייבא מ«התלמידים שלי», או הדבק שמות למטה.</div>';
     $("#ft-rosCount").textContent=list.length?list.length+" תלמידים":"";
     $$("#ft-rosList [data-rd]").forEach(b=>b.addEventListener("click",()=>{
       setRoster(c,roster(c).filter(x=>x.name!==b.dataset.rd)); renderRosterList();
+    }));
+    /* המין דרוש לניקוד — נורמות כושר נפרדות לבנים ולבנות */
+    $$("#ft-rosList [data-sx]").forEach(b=>b.addEventListener("click",()=>{
+      const l=roster(c), s2=l.find(x=>x.name===b.dataset.n); if(!s2)return;
+      s2.sex=s2.sex===b.dataset.sx?null:b.dataset.sx;
+      setRoster(c,l); renderRosterList();
     }));
   }
 
@@ -542,16 +657,221 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     7ב. מסך המדד
+     ============================================================ */
+  function renderIndex(){
+    const {$, $$, esc}=H();
+    const c=cls(), rst=roster(c), N=norms();
+    const mode=scoreMode(), want=idxTests();
+    const hasTable=Object.keys(N.table).length>0;
+
+    const rows=rst.map(s=>({s,...indexFor(c,s,st.grade)}));
+    const scored=rows.filter(r=>r.idx!=null);
+    const avg=scored.length?scored.reduce((a,b)=>a+b.idx,0)/scored.length:null;
+    /* אילו מבחנים בפועל מוצגים כעמודות */
+    const usedTests=[...new Set([].concat(...rows.map(r=>r.rows.map(x=>x.test))))];
+    const anyRel=rows.some(r=>r.rows.some(x=>x.src==="rel"));
+
+    $("#ft-idx").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> מדד הכושר הגופני — כיתה ${esc(c)}</h2>
+        <div class="hint">ציון 0–100 ליכולת בלבד. זה לא ציון התעודה — זה הרכיב שאתה משקלל
+          לתוכו את ההגעה, ההשתתפות, השיפור והבונוסים.</div>
+
+        <div class="row" style="margin-top:12px">
+          <div class="field" style="width:230px"><label>שיטת ניקוד</label>
+            <div class="seg" id="ft-modeSeg">
+              <button data-m="rel"  class="${mode==="rel"?"on":""}">יחסי לשכבה</button>
+              <button data-m="norm" class="${mode==="norm"?"on":""}">טבלת נורמה</button>
+            </div></div>
+          <div class="grow"></div>
+          <button class="btn sm" id="ft-normsBtn">📐 טבלת הנורמה</button>
+          <button class="btn sm" id="ft-idxPick">🎯 מבחנים במדד${want.length?" ("+want.length+")":""}</button>
+        </div>
+
+        ${mode==="norm"&&!hasTable
+          ? `<div class="bw-warn">בחרת «טבלת נורמה» אבל עדיין לא נטענה טבלה — הניקוד מחושב בינתיים יחסית לשכבה.
+              פתח «📐 טבלת הנורמה» כדי להזין אותה.</div>`
+          : mode==="rel"
+          ? `<div class="hint" style="margin-top:10px">ניקוד יחסי: כל תוצאה מדורגת מול שאר התוצאות באותו מבחן,
+              באותה שכבה ובאותו מין. נדרשות לפחות ‎3‎ תוצאות במבחן כדי שהאחוזון לא יהיה רעש.</div>`
+          : `<div class="hint" style="margin-top:10px">טבלת נורמה טעונה${N.source?` · מקור: ${esc(N.source)}`:""}${N.version?` · גרסה: ${esc(N.version)}`:""}.
+              מבחן או שכבה שאין להם טבלה מנוקדים יחסית לשכבה ומסומנים ב-<b>~</b>.</div>`}
+
+        ${scored.length?`<div class="ft-idxsum">
+          <div><span class="k">נוקדו</span><span class="v">${scored.length}/${rst.length}</span></div>
+          <div><span class="k">ממוצע הכיתה</span><span class="v">${avg.toFixed(1)}</span></div>
+          <div><span class="k">הגבוה</span><span class="v">${Math.max(...scored.map(r=>r.idx)).toFixed(1)}</span></div>
+        </div>`:""}
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2 style="margin:0"><span class="dot"></span> ציוני יכולת</h2>
+          <div class="row" style="gap:7px">
+            <button class="btn sm acc" id="ft-toGrades">✓ שלח לציונים</button>
+            <button class="btn sm ghost" id="ft-idxCsv">⬇ CSV</button>
+          </div>
+        </div>
+        ${rst.length?`<div class="tblwrap" style="margin-top:11px"><table class="tbl">
+          <thead><tr><th>שם</th>${usedTests.map(t=>`<th>${esc(testById(t).em+" "+testById(t).name)}</th>`).join("")}<th>מדד</th></tr></thead>
+          <tbody>${rows.map(r=>{
+            const by={}; r.rows.forEach(x=>by[x.test]=x);
+            return `<tr><td><b>${esc(r.s.name)}</b>${r.s.sex?`<span class="sx">${r.s.sex==="girls"?"בת":"בן"}</span>`:`<span class="sx none">מין לא ידוע</span>`}</td>
+              ${usedTests.map(t=>{const x=by[t];
+                return `<td class="mono">${x?x.sc.toFixed(0)+(x.src==="rel"&&mode==="norm"?"<b>~</b>":""):"—"}</td>`;}).join("")}
+              <td class="mono" style="font-weight:800;color:var(--acc)">${r.idx!=null?r.idx.toFixed(1):"—"}</td></tr>`;
+          }).join("")}</tbody></table></div>
+          ${anyRel&&mode==="norm"?'<div class="hint" style="margin-top:7px"><b>~</b> = חושב יחסית לשכבה כי אין טבלת נורמה למבחן/שכבה האלה.</div>':""}
+          ${rows.some(r=>r.partial)?`<div class="bw-warn" style="margin-top:9px">יש תלמידים עם תוצאות שעדיין בלי מדד.
+            בניקוד יחסי דרושות לפחות ‎3‎ תוצאות באותו מבחן, באותה שכבה ובאותו מין — אחרת האחוזון הוא רעש ולא מדידה.
+            הוסף תוצאות, סמן מין לתלמידים ב«👥 רשימה», או עבור לטבלת נורמה.</div>`:""}
+          <div class="hint" style="margin-top:7px">«שלח לציונים» כותב את המדד לעמודת «מדד כושר» בלשונית הציונים,
+            בקטגוריית היכולת, לתקופת ההערכה הפעילה. התאמה לפי שם.</div>`
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+      </div>`;
+
+    $$("#ft-modeSeg button").forEach(b=>b.addEventListener("click",()=>{setScoreMode(b.dataset.m);renderIndex();}));
+    const on=(sel,fn)=>{const e=$(sel);if(e)e.addEventListener("click",fn);};
+    on("#ft-normsBtn",openNorms);
+    on("#ft-idxPick",openIdxPick);
+    on("#ft-toGrades",()=>sendToGrades(rows));
+    on("#ft-idxCsv",()=>idxCsv(rows,usedTests));
+  }
+
+  function idxCsv(rows,usedTests){
+    if(!rows.length){H().toast("אין נתונים");return;}
+    const head=["שם","מין",...usedTests.map(t=>testById(t).name),"מדד"];
+    const out=[head];
+    rows.forEach(r=>{
+      const by={}; r.rows.forEach(x=>by[x.test]=x);
+      out.push([r.s.name,r.s.sex==="girls"?"בת":r.s.sex==="boys"?"בן":"",
+        ...usedTests.map(t=>by[t]?by[t].sc.toFixed(0):""),r.idx!=null?r.idx.toFixed(1):""]);
+    });
+    H().dlCSV("מדד-כושר-"+cls()+"-"+today()+".csv",out);
+  }
+
+  /* כתיבת המדד לעמודת «מדד כושר» בלשונית הציונים */
+  const IDX_COL="מדד כושר";
+  function sendToGrades(rows){
+    const scored=rows.filter(r=>r.idx!=null);
+    if(!scored.length){H().toast("אין עדיין מדד לאף תלמיד בכיתה הזו");return;}
+    const periods=LS().get("grades.periods",["רבעון 1"]);
+    const period=periods[0];
+    if(!confirm(`לכתוב את המדד של ${scored.length} תלמידים לעמודת «${IDX_COL}» בתקופה «${period}»?`))return;
+    const cols=LS().get("grades.examCols",{});
+    const arr=cols[period]=cols[period]||[];
+    if(!arr.includes(IDX_COL)){arr.push(IDX_COL);LS().set("grades.examCols",cols);}
+    const list=LS().get("stu.list",[]);
+    let hit=0,miss=[];
+    scored.forEach(r=>{
+      const s=list.find(x=>x.name===r.s.name);
+      if(!s){miss.push(r.s.name);return;}
+      s.grades=s.grades||{}; s.grades[period]=s.grades[period]||{exams:{}};
+      s.grades[period].exams=s.grades[period].exams||{};
+      s.grades[period].exams[IDX_COL]=Math.round(r.idx);
+      hit++;
+    });
+    LS().set("stu.list",list);
+    H().toast(hit?`✓ נכתבו ${hit} ציוני יכולת ל«${period}»`+(miss.length?` · ${miss.length} לא נמצאו ב«התלמידים שלי»`:"")
+      :"אף תלמיד מהרשימה לא נמצא ב«התלמידים שלי» — הוסף אותם שם קודם");
+    if(window.STU&&window.STU.init)try{window.STU.init()}catch(e){}
+  }
+
+  /* ---------- בחירת המבחנים שנכנסים למדד ---------- */
+  function openIdxPick(){
+    const {$, $$, esc}=H();
+    const want=idxTests();
+    $("#ft-pickBody").innerHTML=TCATS.map(([cid,cnm,cem])=>{
+      const items=TESTS.filter(t=>t.cat===cid&&t.kind!=="link");
+      if(!items.length)return "";
+      return `<div class="ft-grp"><div class="ft-grph">${cem} ${cnm}</div>
+        ${items.map(t=>`<label class="check" style="padding:5px 0">
+          <input type="checkbox" value="${t.id}"${want.includes(t.id)?" checked":""}> ${t.em} ${esc(t.name)}</label>`).join("")}</div>`;
+    }).join("");
+    H().modal("ft-pickModal");
+    $("#ft-pickAll").onclick=()=>{ $$("#ft-pickBody input").forEach(i=>i.checked=false); };
+    $("#ft-pickSave").onclick=()=>{
+      setIdxTests($$("#ft-pickBody input:checked").map(i=>i.value));
+      H().modal("ft-pickModal",false); renderIndex();
+    };
+  }
+
+  /* ---------- טבלת הנורמה ---------- */
+  function openNorms(){
+    const {$, esc}=H(), N=norms();
+    $("#ft-nSource").value=N.source||"";
+    $("#ft-nVersion").value=N.version||"";
+    $("#ft-nText").value=normsToText(N);
+    $("#ft-nStat").textContent=statNorms(N);
+    H().modal("ft-normsModal");
+    $("#ft-nSave").onclick=()=>{
+      try{
+        const t=textToNorms($("#ft-nText").value);
+        setNorms({version:$("#ft-nVersion").value.trim(),source:$("#ft-nSource").value.trim(),table:t});
+        H().modal("ft-normsModal",false); H().toast("✓ טבלת הנורמה נשמרה"); renderIndex();
+      }catch(e){ H().toast("שורה לא תקינה: "+e.message); }
+    };
+    $("#ft-nClear").onclick=()=>{ if(confirm("למחוק את כל טבלת הנורמה?")){setNorms(NORM_EMPTY);H().modal("ft-normsModal",false);renderIndex();} };
+  }
+  function statNorms(N){
+    const t=N.table, tests=Object.keys(t);
+    if(!tests.length)return "אין עדיין טבלה — הניקוד מחושב יחסית לשכבה.";
+    let n=0; tests.forEach(k=>["boys","girls"].forEach(sx=>{ if(t[k][sx])n+=Object.keys(t[k][sx]).length; }));
+    return tests.length+" מבחנים · "+n+" שילובי מין×שכבה";
+  }
+  function normsToText(N){
+    const out=[];
+    Object.keys(N.table).forEach(tid=>["boys","girls"].forEach(sx=>{
+      const g=N.table[tid][sx]; if(!g)return;
+      Object.keys(g).forEach(gr=>{
+        out.push(tid+"|"+sx+"|"+gr+"|"+(g[gr]||[]).map(p=>p[0]+"="+p[1]).join(","));
+      });
+    }));
+    return out.join("\n");
+  }
+  function textToNorms(txt){
+    const table={};
+    txt.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith("#")).forEach(line=>{
+      const p=line.split("|").map(x=>x.trim());
+      if(p.length!==4)throw new Error(line);
+      const [tid,sx,gr,pairs]=p;
+      if(!testById(tid))throw new Error("מבחן לא מוכר: "+tid);
+      if(sx!=="boys"&&sx!=="girls")throw new Error("מין חייב להיות boys או girls: "+line);
+      const pts=pairs.split(",").map(x=>{
+        const [v,s2]=x.split("=").map(y=>+y.trim());
+        if(!(v>=0)||!(s2>=0))throw new Error(line);
+        return [v,s2];
+      });
+      if(pts.length<2)throw new Error("צריך לפחות שתי נקודות ציון: "+line);
+      table[tid]=table[tid]||{}; table[tid][sx]=table[tid][sx]||{}; table[tid][sx][gr]=pts;
+    });
+    return table;
+  }
+
+  /* ============================================================
      8. אתחול
      ============================================================ */
+  /* מעבר בין «מבחנים» ל«מדד» — שתי הלשוניות חולקות את אותה בחירת כיתה */
+  function renderTab(){
+    const {$, $$}=H();
+    $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
+    const idx=st.tab==="idx";
+    $("#ft-idx").style.display=idx?"":"none";
+    if(idx){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd(); renderIndex(); }
+    else if(st.test)renderRun();
+    else renderPicker();
+  }
+
   function init(){
-    if(inited){ st.test?renderRun():renderPicker(); return; }
+    if(inited){ renderTab(); return; }
     inited=true;
     const last=LS().get("ft.last",{});
     if(last.grade)st.grade=last.grade;
     if(last.num)st.num=last.num;
     if(last.sort)st.sort=last.sort;
-    renderPicker();
+    H().$$("#ft-tabs button").forEach(b=>b.addEventListener("click",()=>{ st.tab=b.dataset.ft; renderTab(); }));
+    renderTab();
   }
 
   return {init, tests:()=>TESTS, results:()=>allRes()};

@@ -147,7 +147,10 @@ window.STU=(function(){
      מבנה: 4 קטגוריות במשקלים (ברירת מחדל 70/10/10/10), עם עמודות מבחן
      דינמיות בתוך קטגוריית «מבחנים ומבדקים» (ממוצע של מה שהוזן בפועל).
      ציון סופי = סכום (ציון גולמי × משקל / 100) על כל קטגוריה שמולאה. */
-  const DEF_WEIGHTS={part:70,exams:10,improve:10,team:10};
+  /* ברירת המחדל תואמת את מבנה הציון בפועל: 70 הגעה והשתתפות, 8 יכולת
+     (מדד הכושר), ו-22 שיפור/התמדה/שיתוף פעולה. בנוסף — בונוס נקודות
+     לתלמיד שמתאמן בחוג מקצועי אחר הצהריים, שמתווסף מעל ה-100. */
+  const DEF_WEIGHTS={part:70,exams:8,improve:11,team:11,bonusMax:10};
   const loadWeights=()=>Object.assign({},DEF_WEIGHTS,H().LS.get("grades.weights",{}));
   const saveWeights=w=>H().LS.set("grades.weights",w);
   const loadPeriods=()=>{ const p=H().LS.get("grades.periods",null); return (Array.isArray(p)&&p.length)?p:["רבעון 1"]; };
@@ -164,11 +167,14 @@ window.STU=(function(){
     const cats=[["part",g.part],["exams",examsAvg],["improve",g.improve],["team",g.team]];
     let total=0,any=false;
     cats.forEach(([k,v])=>{ if(v!=null&&v!==""){ total+=(+v)*weights[k]/100; any=true; } });
-    return {total:any?Math.round(total*10)/10:null,examsAvg};
+    const cap=weights.bonusMax??DEF_WEIGHTS.bonusMax;
+    const bonus=g.bonus!=null&&g.bonus!==""?Math.max(0,Math.min(cap,+g.bonus)):0;
+    if(bonus)any=true;
+    return {total:any?Math.round(Math.min(100,total+bonus)*10)/10:null,examsAvg,bonus};
   }
   function renderWeightsHint(){
     const {$}=H(); const w=loadWeights();
-    $("#gr-formula").textContent=`ציון סופי = השתתפות ורצינות ${w.part}% + ממוצע מבחנים ${w.exams}% + שיפור והתמדה ${w.improve}% + עבודת צוות ${w.team}%`;
+    $("#gr-formula").textContent=`ציון סופי = הגעה והשתתפות ${w.part}% + יכולת (מדד הכושר) ${w.exams}% + שיפור והתמדה ${w.improve}% + עבודת צוות ${w.team}% + בונוס חוג עד ${w.bonusMax??10} נק׳ (מוגבל ל-100)`;
   }
   function updWSum(){
     const {$}=H();
@@ -178,11 +184,13 @@ window.STU=(function(){
   function openWeights(){
     const {$}=H(); const w=loadWeights();
     $("#gr-wPart").value=w.part; $("#gr-wExams").value=w.exams; $("#gr-wImprove").value=w.improve; $("#gr-wTeam").value=w.team;
+    $("#gr-wBonusMax").value=w.bonusMax??DEF_WEIGHTS.bonusMax;
     updWSum(); H().modal("gr-weightsModal");
   }
   function saveWeightsForm(){
     const {$}=H();
-    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,team:+$("#gr-wTeam").value||0};
+    const w={part:+$("#gr-wPart").value||0,exams:+$("#gr-wExams").value||0,improve:+$("#gr-wImprove").value||0,team:+$("#gr-wTeam").value||0,
+      bonusMax:Math.max(0,+$("#gr-wBonusMax").value||0)};
     const sum=w.part+w.exams+w.improve+w.team;
     if(sum!==100){H().toast("המשקלים חייבים להסתכם ל-100 (כרגע "+sum+")");return;}
     saveWeights(w); H().modal("gr-weightsModal",false); renderWeightsHint(); renderGrades(); H().toast("מבנה הציון נשמר ✓");
@@ -203,7 +211,7 @@ window.STU=(function(){
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const head=`<thead><tr><th>שם</th><th>כיתה</th><th>השתתפות ורצינות<br>(${weights.part}%)</th>${
       examCols.map((c,i)=>`<th>${esc(c)} <button class="x" data-examdel="${i}" title="הסר עמודה">✕</button></th>`).join("")
-    }<th>ממוצע מבחנים<br>(${weights.exams}%)</th><th>שיפור והתמדה<br>(${weights.improve}%)</th><th>עבודת צוות<br>(${weights.team}%)</th><th>ציון סופי</th></tr></thead>`;
+    }<th>יכולת — מדד הכושר<br>(${weights.exams}%)</th><th>שיפור והתמדה<br>(${weights.improve}%)</th><th>עבודת צוות<br>(${weights.team}%)</th><th>בונוס חוג<br>(עד ${weights.bonusMax??10})</th><th>ציון סופי</th></tr></thead>`;
     const body=view.map(s=>{
       const g=gradeOf(s,grPeriod);
       const {total,examsAvg}=computeFinal(s,grPeriod,weights,examCols);
@@ -215,6 +223,7 @@ window.STU=(function(){
         <td class="mono">${examsAvg!=null?examsAvg.toFixed(1):"—"}</td>
         <td><input class="gr-in" type="number" min="0" max="100" data-f="improve" value="${g.improve??""}"></td>
         <td><input class="gr-in" type="number" min="0" max="100" data-f="team" value="${g.team??""}"></td>
+        <td><input class="gr-in" type="number" min="0" max="${weights.bonusMax??10}" data-f="bonus" value="${g.bonus??""}"></td>
         <td class="mono" style="font-weight:800;color:var(--acc)">${total!=null?total.toFixed(1):"—"}</td>
       </tr>`;
     }).join("");
@@ -229,7 +238,9 @@ window.STU=(function(){
     }
     $$("#gr-table [data-f]").forEach(inp=>inp.addEventListener("change",()=>{
       const tr=inp.closest("tr"), s=list.find(x=>x.id===tr.dataset.sid); if(!s)return;
-      const g=gradeOf(s,grPeriod); const v=inp.value===""?null:Math.max(0,Math.min(100,+inp.value));
+      const g=gradeOf(s,grPeriod);
+      const cap=inp.dataset.f==="bonus"?(weights.bonusMax??10):100;
+      const v=inp.value===""?null:Math.max(0,Math.min(cap,+inp.value));
       if(v!=null)inp.value=v;
       g[inp.dataset.f]=v; save(list); updateRowTotals(tr,s);
     }));

@@ -13,6 +13,19 @@ if(!dc)throw new Error("לא נמצא <x-dc> ב-index.html");
 const body=dc[1].replace(/<helmet>[\s\S]*?<\/helmet>/,"").trim();
 
 const css=R("hm-styles.css");
+/* בדיקת שפיות ל-CSS: פעם אחת פתיחת הערה אבדה בפתרון קונפליקט מיזוג,
+   ובלי להפיל שום דבר היא בלעה בשקט את כלל ה-CSS שבא אחריה.
+   הבדיקה תופסת הערה לא מאוזנת לפני שהיא מגיעה לאפליקציה. */
+(function checkCss(){
+  const stripped=css.replace(/\/\*[\s\S]*?\*\//g,"");
+  const problems=[];
+  if(stripped.includes("*/"))problems.push("סוגר הערה */ בלי פותח /*");
+  if(stripped.includes("/*"))problems.push("פותח הערה /* בלי סוגר */");
+  let depth=0;
+  for(const ch of stripped){ if(ch==="{")depth++; else if(ch==="}")depth--; if(depth<0)break; }
+  if(depth!==0)problems.push("סוגריים מסולסלים לא מאוזנים (מאזן "+depth+")");
+  if(problems.length)throw new Error("hm-styles.css לא תקין: "+problems.join(" · "));
+})();
 /* חייב להישאר זהה לסדר תגי ה-script ב-index.html */
 const SCRIPTS=["hm-app.js","hm-qr.js","hm-howto.js","hm-know.js","hm-tools.js","hm-plans.js","hm-lesson.js","hm-build.js","hm-tests.js","hm-new.js"];
 /* בדיקת שפיות: כל סקריפט שמופיע ב-index.html חייב להיכלל גם כאן */

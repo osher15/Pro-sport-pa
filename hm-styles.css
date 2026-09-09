@@ -910,6 +910,7 @@ body[data-theme="day"] .pf-prec.mid,body[data-theme="sun"] .pf-prec.mid{border-i
 body[data-theme="day"] .pf-prec.bad .v b:first-child,
 body[data-theme="sun"] .pf-prec.bad .v b:first-child{color:#b3122a}
 body[data-theme="day"] .pf-prec.bad,body[data-theme="sun"] .pf-prec.bad{border-inline-start-color:#b3122a}
+/* ============================================================
    מבחני כושר (hm-tests.js)
    ============================================================ */
 body[data-mod="ft"]{--acc:#f59e0b;--accDim:rgba(245,158,11,.18)}
@@ -973,3 +974,17 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   .ft-row{flex-wrap:wrap}
   .ft-row .nm{flex-basis:100%}
 }
+
+/* מדד הכושר */
+.ft-idxsum{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}
+.ft-idxsum>div{flex:1;min-width:96px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;text-align:center}
+.ft-idxsum .k{display:block;font-size:11.5px;color:var(--muted)}
+.ft-idxsum .v{display:block;font-family:'Share Tech Mono';font-size:22px;color:var(--acc);
+  font-variant-numeric:tabular-nums;margin-top:2px}
+.tbl .sx{display:block;font-size:10.5px;color:var(--faint);font-weight:400}
+.tbl .sx.none{color:var(--warn)}
+.ft-sexseg{padding:2px;gap:2px}
+.ft-sexseg button{padding:6px 11px;font-size:12.5px;border:none;background:transparent;color:var(--muted);
+  border-radius:8px;cursor:pointer;font-family:'Heebo';font-weight:700}
+.ft-sexseg button.on{background:var(--acc);color:var(--onAcc)}
