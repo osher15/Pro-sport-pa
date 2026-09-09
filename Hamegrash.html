@@ -882,6 +882,46 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
 .bw-tag span{color:var(--acc);font-weight:800}
 .bw-tag:hover{background:var(--panel2)}
 
+/* ============================================================
+   פוטו־פיניש — כרטיס מיקום המצלמה ודיוק
+   ============================================================ */
+.pf-prec{border:1px solid var(--line);border-inline-start:4px solid var(--faint);border-radius:12px;
+  padding:11px 13px;margin-top:12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px}
+.pf-prec .v{font-size:15px}
+.pf-prec .v b{font-family:'Inter','Heebo',sans-serif}
+.pf-prec .d{font-size:12.5px;color:var(--muted);line-height:1.6}
+.pf-prec .d b{color:var(--ink)}
+.pf-prec.ok{border-inline-start-color:var(--green)}
+.pf-prec.ok .v b:first-child{color:var(--green)}
+.pf-prec.mid{border-inline-start-color:var(--warn)}
+.pf-prec.mid .v b:first-child{color:var(--warn)}
+.pf-prec.bad{border-inline-start-color:var(--stop)}
+.pf-prec.bad .v b:first-child{color:var(--stop)}
+
+.pf-help{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden}
+.pf-help summary{cursor:pointer;padding:11px 13px;font-size:13.5px;font-weight:700;color:var(--acc);
+  list-style:none;display:flex;align-items:center;gap:8px}
+.pf-help summary::-webkit-details-marker{display:none}
+.pf-help summary::before{content:"▾";transition:.18s;font-size:12px}
+.pf-help[open] summary::before{transform:rotate(180deg)}
+.pf-help summary:hover{background:var(--accDim)}
+.pf-help ol{margin:0;padding:0 26px 12px 13px;font-size:13px;line-height:1.7;color:var(--muted)}
+.pf-help ol li{margin-bottom:8px}
+.pf-help ol li b{color:var(--ink)}
+.pf-help>.hint{padding:0 13px 12px}
+
+/* צבעי החיווי בכרטיס המיקום — גרסאות כהות יותר לערכות הבהירות,
+   כי צהוב וירוק בהירים על רקע לבן כמעט לא נקראים בשמש. */
+body[data-theme="day"] .pf-prec.ok .v b:first-child,
+body[data-theme="sun"] .pf-prec.ok .v b:first-child{color:#0f7a48}
+body[data-theme="day"] .pf-prec.ok,body[data-theme="sun"] .pf-prec.ok{border-inline-start-color:#0f7a48}
+body[data-theme="day"] .pf-prec.mid .v b:first-child,
+body[data-theme="sun"] .pf-prec.mid .v b:first-child{color:#9a6200}
+body[data-theme="day"] .pf-prec.mid,body[data-theme="sun"] .pf-prec.mid{border-inline-start-color:#9a6200}
+body[data-theme="day"] .pf-prec.bad .v b:first-child,
+body[data-theme="sun"] .pf-prec.bad .v b:first-child{color:#b3122a}
+body[data-theme="day"] .pf-prec.bad,body[data-theme="sun"] .pf-prec.bad{border-inline-start-color:#b3122a}
+
 </style>
 </head>
 <body>
@@ -1064,6 +1104,57 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
       <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+    </div>
+
+    <!-- ----- מיקום המצלמה ודיוק ----- -->
+    <div class="card" id="pf-placeCard">
+      <h2><span class="dot"></span> 📐 איפה להעמיד את המצלמה</h2>
+      <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
+        ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      <div class="row" style="margin-top:11px">
+        <div class="field" style="width:172px"><label>מרחק המצלמה מהמסלול (מ׳)</label>
+          <input type="number" id="pf-camDist" value="6" min="1" max="60" step="0.5"></div>
+        <div class="field" style="width:198px"><label>מהירות אופיינית</label>
+          <select id="pf-camSpeed">
+            <option value="3">הליכה / בדיקת כיול — ‎3‎ מ׳/שנ׳</option>
+            <option value="5">ריצת סבולת — ‎5‎ מ׳/שנ׳</option>
+            <option value="7" selected>ספרינט בית ספר — ‎7‎ מ׳/שנ׳</option>
+            <option value="9">ספרינט מהיר — ‎9‎ מ׳/שנ׳</option>
+          </select></div>
+        <div class="field" style="width:148px"><label>שדה ראייה אופקי (°)</label>
+          <input type="number" id="pf-camFov" value="65" min="30" max="120" step="1"></div>
+      </div>
+      <div class="pf-prec" id="pf-precCalc"></div>
+
+      <details class="pf-help">
+        <summary>מה באמת שובר את הדיוק — יותר מהמרחק</summary>
+        <ol>
+          <li><b>חלון עיוור של ‎450‎ מ״ש.</b> אחרי זיהוי אוטומטי, הבא לא יכול לירות במשך כחצי שנייה.
+            <b>שני רצים שמסיימים בהפרש קטן מ‑‎0.45‎ שנייה יירשמו כאחד.</b> במקצה צמוד — אל תסמוך על האוטומט:
+            הקש ידנית על שם המסלול ברגע החצייה, או קרא את הזמנים מ«תמונת סיום» בסוף.</li>
+          <li><b>המצלמה חייבת להיות דוממת לחלוטין.</b> המנוע בונה מודל רקע ומזהה כל שינוי כתנועה.
+            טלפון ביד = כל התמונה ״זזה״ = זיהויים שגויים. חצובה, גדר או משטח יציב — לא יד.</li>
+          <li><b>הזיהוי לא יודע מי חצה.</b> הוא מקצה את הזמן <b>למסלול הבא ברשימה שאין לו זמן</b>.
+            לכן סדר את הרצים מהמהיר לאיטי לפני הזינוק, או תקן בטבלה אחרי.</li>
+          <li><b>ניגודיות.</b> הרץ חייב להיבדל מהרקע שמאחורי הקו. חולצה כהה מול גדר כהה — עלול לפספס.
+            אם זה קורה, העלה «רגישות זיהוי».</li>
+        </ol>
+      </details>
+
+      <details class="pf-help">
+        <summary>איך אני יודע שזה עובד — שלוש בדיקות</summary>
+        <ol>
+          <li><b>לפני הזינוק:</b> שורת הסטטוס על התמונה חייבת להראות «🟢 מצלמה פעילה · זיהוי חמוש».
+            אם היא תקועה על «מכייל רקע…» — המצלמה זזה או שהתאורה משתנה.</li>
+          <li><b>אחרי המקצה:</b> במסך «🎞 תמונת סיום» מופיעה שורת <b>קצב דגימה בפועל ורזולוציית זמן ‎±X‎ מ״ש</b>.
+            זו מדידה אמיתית מהטלפון שלך באותו מקצה — לא הבטחה.</li>
+          <li><b>הכי מדויק:</b> ב«תמונת סיום» אפשר <b>ללחוץ על הרץ עצמו</b>, והזמן מחושב באינטרפולציה בין העמודות.
+            מדויק יותר מהטריגר האוטומטי, ופותר גם את חלון ה‑450 מ״ש. זו דרך העבודה המומלצת לגמר צמוד.</li>
+        </ol>
+        <div class="hint" style="margin-top:6px"><b>בדיקת שפיות של דקה:</b> העמד את הטלפון, בקש מתלמיד לעבור את הקו בהליכה,
+          וודא שהצפצוף נשמע בדיוק כשהוא על הקו. אם זה יורה מוקדם — הקו האדום במסך לא יושב על קו הסיום האמיתי;
+          תקן עם «מיקום קו הסיום».</div>
+      </details>
     </div>
 
     <div class="card">
@@ -3037,6 +3128,37 @@ const PF=(function(){
     if(t==="history")renderHistory();
     if(t==="live"&&mode==="sim"&&!race.on)drawSimIdle();
   }
+  /* ---------- מחשבון מיקום המצלמה ----------
+     פס הזיהוי הוא BANDW מתוך PW פיקסלים — כלומר אחוז קבוע משדה הראייה.
+     במטרים הוא גדל ליניארית עם המרחק, ולכן גם אי־הוודאות בזמן.
+     זום מקטין את שדה הראייה בפועל (drawFrame עושה pctx.scale) ולכן משפר דיוק. */
+  const BAND_FRAC=BANDW/PW;
+  function precCalc(){
+    const box=$("#pf-precCalc"); if(!box)return;
+    const D=Math.max(0.5,+$("#pf-camDist").value||6);
+    const v=Math.max(0.5,+$("#pf-camSpeed").value||7);
+    const fov=Math.min(150,Math.max(20,+$("#pf-camFov").value||65));
+    const z=Math.max(1,cam.zoom||1);
+    const W=2*D*Math.tan(fov*Math.PI/360)/z;      /* רוחב התמונה בשטח, במטרים */
+    const band=BAND_FRAC*W;                        /* רוחב פס הזיהוי, במטרים */
+    const err=band/v*1000;                         /* אי־ודאות, במילישניות */
+    /* עד איזה מרחק אפשר להתרחק ועדיין לעמוד ביעד של ±30 מ״ש */
+    const dMax=0.030*v*z/(BAND_FRAC*2*Math.tan(fov*Math.PI/360));
+    const lvl=err<=25?0:err<=50?1:err<=90?2:3;
+    const V=[["ok","מצוין","מתאים גם לגמר צמוד ולשיא בית ספרי."],
+             ["ok","טוב","מתאים לכל מקצה כיתתי רגיל."],
+             ["mid","סביר","בסדר לשיעור, אבל לא לשתי תוצאות שנבדלות בעשירית."],
+             ["bad","רחוק מדי","התקרב, או הגדל זום — כל זום ×2 שווה להתקרבות לחצי המרחק."]][lvl];
+    box.className="pf-prec "+V[0];
+    box.innerHTML=`<div class="v"><b>${V[1]}</b> · אי־ודאות ≈ <b>±${err.toFixed(0)} מ״ש</b></div>
+      <div class="d">פס הזיהוי מכסה ≈ <b>${(band*100).toFixed(0)} ס״מ</b> בשטח${z>1?` · זום ×${z.toFixed(1)} פעיל`:""}.
+        ${V[2]}</div>
+      <div class="d">${err<=30
+        ? `יש לך מרווח: אפשר להתרחק עד <b>${dMax.toFixed(1)} מ׳</b> ועדיין להישאר מתחת ל‑±‎30‎ מ״ש.`
+        : `כדי לרדת מתחת ל‑±‎30‎ מ״ש במהירות הזו — התקרב ל‑<b>${dMax.toFixed(1)} מ׳</b>.`}
+        כל מטר מרחק שווה כ‑<b>${(BAND_FRAC*2*Math.tan(fov*Math.PI/360)/v*1000/z).toFixed(0)} מ״ש</b>.</div>`;
+  }
+
   function init(){
     if(!META.date)META.date=new Date().toISOString().slice(0,10);
     buildLanes(false);
@@ -3055,6 +3177,12 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    $("#pf-camDist").value=LS.get("pf.camDist",6);
+    $("#pf-camSpeed").value=LS.get("pf.camSpeed","7");
+    $("#pf-camFov").value=LS.get("pf.camFov",65);
+    ["pf-camDist","pf-camSpeed","pf-camFov"].forEach(id=>$("#"+id).addEventListener("input",()=>{
+      LS.set("pf."+id.slice(3),$("#"+id).value); precCalc(); }));
+    precCalc();
     /* קיזוז מרחק אקדח–מיקרופון */
     $("#pf-gunDist").value=LS.get("pf.gunDist",0);
     $("#pf-gunDist").addEventListener("change",e=>{
@@ -3077,8 +3205,8 @@ const PF=(function(){
       persistNames(); renderChips(); renderBoard(); refreshLaneSel();
       toast("נטענו "+lanes.length+" מתחרים");
     });
-    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; });
-    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; });
+    $("#pf-zoomIn").addEventListener("click",()=>{ cam.zoom=Math.min(3,+(cam.zoom+0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
+    $("#pf-zoomOut").addEventListener("click",()=>{ cam.zoom=Math.max(1,+(cam.zoom-0.25).toFixed(2)); applyCamCss(); bg=null; precCalc(); });
     $("#pf-flip").addEventListener("click",()=>{ cam.flip=!cam.flip; applyCamCss(); bg=null; });
     function fsToggle(){ const st=$("#pf-stage"); st.classList.toggle("fs");
       try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}

@@ -870,3 +870,43 @@ body[data-theme="day"] .thm[data-t="day"],body[data-theme="sun"] .thm[data-t="su
   color:var(--ink);border-radius:99px;padding:6px 12px;font-family:'Heebo';font-size:12.5px;font-weight:700;cursor:pointer}
 .bw-tag span{color:var(--acc);font-weight:800}
 .bw-tag:hover{background:var(--panel2)}
+
+/* ============================================================
+   פוטו־פיניש — כרטיס מיקום המצלמה ודיוק
+   ============================================================ */
+.pf-prec{border:1px solid var(--line);border-inline-start:4px solid var(--faint);border-radius:12px;
+  padding:11px 13px;margin-top:12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px}
+.pf-prec .v{font-size:15px}
+.pf-prec .v b{font-family:'Inter','Heebo',sans-serif}
+.pf-prec .d{font-size:12.5px;color:var(--muted);line-height:1.6}
+.pf-prec .d b{color:var(--ink)}
+.pf-prec.ok{border-inline-start-color:var(--green)}
+.pf-prec.ok .v b:first-child{color:var(--green)}
+.pf-prec.mid{border-inline-start-color:var(--warn)}
+.pf-prec.mid .v b:first-child{color:var(--warn)}
+.pf-prec.bad{border-inline-start-color:var(--stop)}
+.pf-prec.bad .v b:first-child{color:var(--stop)}
+
+.pf-help{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden}
+.pf-help summary{cursor:pointer;padding:11px 13px;font-size:13.5px;font-weight:700;color:var(--acc);
+  list-style:none;display:flex;align-items:center;gap:8px}
+.pf-help summary::-webkit-details-marker{display:none}
+.pf-help summary::before{content:"▾";transition:.18s;font-size:12px}
+.pf-help[open] summary::before{transform:rotate(180deg)}
+.pf-help summary:hover{background:var(--accDim)}
+.pf-help ol{margin:0;padding:0 26px 12px 13px;font-size:13px;line-height:1.7;color:var(--muted)}
+.pf-help ol li{margin-bottom:8px}
+.pf-help ol li b{color:var(--ink)}
+.pf-help>.hint{padding:0 13px 12px}
+
+/* צבעי החיווי בכרטיס המיקום — גרסאות כהות יותר לערכות הבהירות,
+   כי צהוב וירוק בהירים על רקע לבן כמעט לא נקראים בשמש. */
+body[data-theme="day"] .pf-prec.ok .v b:first-child,
+body[data-theme="sun"] .pf-prec.ok .v b:first-child{color:#0f7a48}
+body[data-theme="day"] .pf-prec.ok,body[data-theme="sun"] .pf-prec.ok{border-inline-start-color:#0f7a48}
+body[data-theme="day"] .pf-prec.mid .v b:first-child,
+body[data-theme="sun"] .pf-prec.mid .v b:first-child{color:#9a6200}
+body[data-theme="day"] .pf-prec.mid,body[data-theme="sun"] .pf-prec.mid{border-inline-start-color:#9a6200}
+body[data-theme="day"] .pf-prec.bad .v b:first-child,
+body[data-theme="sun"] .pf-prec.bad .v b:first-child{color:#b3122a}
+body[data-theme="day"] .pf-prec.bad,body[data-theme="sun"] .pf-prec.bad{border-inline-start-color:#b3122a}
