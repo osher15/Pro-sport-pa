@@ -661,6 +661,106 @@ window.FT=(function(){
      ============================================================ */
   const IMP={rows:[],head:[],map:{name:-1,first:-1,last:-1,cls:-1,grade:-1,par:-1,sex:-1}};
 
+  /* ---------- קריאת .xlsx בלי שום ספרייה ----------
+     קובץ אקסל הוא ארכיון ZIP עם XML בפנים. הדפדפן כבר יודע לפרוס
+     deflate דרך DecompressionStream, אז אפשר לקרוא את הגיליון ישירות
+     ולא לגרור ספרייה של מאות קילובייטים לאפליקציה שאמורה לעבוד
+     אופליין מקובץ יחיד. */
+  const XLSX_OK=typeof DecompressionStream!=="undefined";
+
+  async function inflateRaw(bytes){
+    const ds=new DecompressionStream("deflate-raw");
+    const stream=new Blob([bytes]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  /* פורס ZIP: קורא את ספריית הקבצים המרכזית ומחזיר {שם: בתים} */
+  async function unzip(buf){
+    const dv=new DataView(buf), u8=new Uint8Array(buf);
+    /* End of Central Directory — חותמת 0x06054b50 מסוף הקובץ אחורה */
+    let eocd=-1;
+    for(let i=u8.length-22;i>=0&&i>u8.length-66000;i--){
+      if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}
+    }
+    if(eocd<0)throw new Error("קובץ אקסל לא תקין");
+    const count=dv.getUint16(eocd+10,true);
+    let off=dv.getUint32(eocd+16,true);
+    const out={};
+    for(let i=0;i<count;i++){
+      if(dv.getUint32(off,true)!==0x02014b50)break;
+      const method=dv.getUint16(off+10,true);
+      const csize=dv.getUint32(off+20,true);
+      const nlen=dv.getUint16(off+28,true);
+      const elen=dv.getUint16(off+30,true);
+      const clen=dv.getUint16(off+32,true);
+      const lho=dv.getUint32(off+42,true);
+      const name=new TextDecoder().decode(u8.subarray(off+46,off+46+nlen));
+      /* מיקום הנתונים נגזר מכותרת הקובץ המקומית, לא מהמרכזית */
+      const lnlen=dv.getUint16(lho+26,true), lelen=dv.getUint16(lho+28,true);
+      const start=lho+30+lnlen+lelen;
+      const raw=u8.subarray(start,start+csize);
+      out[name]={method,raw};
+      off+=46+nlen+elen+clen;
+    }
+    return out;
+  }
+  async function readEntry(e){
+    if(!e)return "";
+    const bytes=e.method===0?e.raw:await inflateRaw(e.raw);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+  /* «C7» → 2 (אינדקס עמודה מבוסס-0) */
+  function colIdx(ref){
+    const m=String(ref||"").match(/^([A-Z]+)/); if(!m)return -1;
+    let n=0; for(const ch of m[1])n=n*26+(ch.charCodeAt(0)-64);
+    return n-1;
+  }
+  const unesc=t=>String(t).replace(/&lt;/g,"<").replace(/&gt;/g,">")
+    .replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,d)=>String.fromCharCode(+d))
+    .replace(/&amp;/g,"&");
+  const stripTags=x=>unesc(String(x).replace(/<[^>]*>/g,""));
+
+  async function parseXlsx(buf){
+    const z=await unzip(buf);
+    /* מחרוזות משותפות — שם כמעט כל הטקסט באקסל באמת יושב */
+    const shared=[];
+    const ssXml=await readEntry(z["xl/sharedStrings.xml"]);
+    if(ssXml){
+      const items=ssXml.match(/<si\b[\s\S]*?<\/si>/g)||[];
+      items.forEach(si=>{
+        const parts=si.match(/<t\b[^>]*>([\s\S]*?)<\/t>/g)||[];
+        shared.push(parts.map(t=>unesc(t.replace(/<[^>]*>/g,""))).join(""));
+      });
+    }
+    /* הגיליון הראשון */
+    const names=Object.keys(z).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n))
+      .sort((a,b)=>(+a.match(/(\d+)/)[1])-(+b.match(/(\d+)/)[1]));
+    if(!names.length)throw new Error("לא נמצא גיליון בקובץ");
+    const sheet=await readEntry(z[names[0]]);
+    const rows=[];
+    (sheet.match(/<row\b[\s\S]*?(\/>|<\/row>)/g)||[]).forEach(r=>{
+      const cells=r.match(/<c\b[\s\S]*?(\/>|<\/c>)/g)||[];
+      const arr=[];
+      cells.forEach(c=>{
+        const ref=(c.match(/\sr="([A-Z]+\d+)"/)||[])[1];
+        const t=(c.match(/\st="([^"]+)"/)||[])[1];
+        let v="";
+        if(t==="inlineStr"){ const is=c.match(/<is>([\s\S]*?)<\/is>/); v=is?stripTags(is[1]):""; }
+        else{
+          const vm=c.match(/<v>([\s\S]*?)<\/v>/);
+          const raw=vm?unesc(vm[1]):"";
+          v=(t==="s")?(shared[+raw]??""):raw;
+        }
+        const i=colIdx(ref);
+        if(i>=0)arr[i]=v; else arr.push(v);
+      });
+      for(let i=0;i<arr.length;i++)if(arr[i]===undefined)arr[i]="";
+      rows.push(arr.map(x=>String(x==null?"":x).trim()));
+    });
+    while(rows.length&&!rows[0].some(x=>x))rows.shift();   /* שורות ריקות בראש */
+    return pickHeader(rows);
+  }
+
+
   /* מפצל שורת CSV אחת תוך כיבוד מרכאות */
   function splitLine(line,d){
     const out=[]; let cur="",q=false;
@@ -681,7 +781,7 @@ window.FT=(function(){
     const d=[["\t",splitLine(first,"\t").length],[",",splitLine(first,",").length],[";",splitLine(first,";").length]]
       .sort((a,b)=>b[1]-a[1])[0][0];
     const all=t.split("\n").filter(l=>l.trim()).map(l=>splitLine(l,d));
-    return {head:all[0]||[],rows:all.slice(1)};
+    return pickHeader(all);
   }
 
   const HDR={
@@ -736,6 +836,20 @@ window.FT=(function(){
     const mm=t.match(/^(יב|יא|י|ט|ח|ז)(\d{1,2})$/);
     if(!mm)return null;
     return {grade:mm[1],num:+mm[2]};
+  }
+
+  /* ייצוא אמיתי מתחיל לא פעם בשורת כותרת של הדוח («חנ״ג בנים יב1»,
+     שם בית ספר, תאריך) לפני שורת העמודות. במקום להניח ששורה 0 היא
+     הכותרת, בודקים כמה שורות ראשונות ובוחרים את זו שממנה מזוהים הכי
+     הרבה שדות — ואם אף אחת לא מזוהה, נשארים על הראשונה. */
+  function pickHeader(all){
+    const score=h=>{ const m=detect(h); return Object.keys(m).filter(k=>m[k]>=0).length; };
+    let best=0,bs=score(all[0]||[]);
+    for(let i=1;i<Math.min(6,all.length);i++){
+      const sc=score(all[i]);
+      if(sc>bs){bs=sc;best=i;}
+    }
+    return {head:all[best]||[],rows:all.slice(best+1).filter(r=>r.some(x=>x))};
   }
 
   function impBuild(){
@@ -833,7 +947,19 @@ window.FT=(function(){
     };
     $("#ft-impFile").onchange=async e=>{
       const f=e.target.files[0]; if(!f)return;
-      load(await f.text());
+      const isX=/\.xlsx$/i.test(f.name);
+      try{
+        if(isX){
+          if(!XLSX_OK)throw new Error("הדפדפן הזה לא תומך בקריאת אקסל — שמור את הקובץ כ-CSV, או פתח באקסל והדבק לתיבה");
+          const t=await parseXlsx(await f.arrayBuffer());
+          IMP.head=t.head; IMP.rows=t.rows; IMP.map=detect(t.head);
+          renderImp();
+          H().toast("📊 נקרא "+f.name+" — "+t.rows.length+" שורות");
+        }else load(await f.text());
+      }catch(err){
+        H().toast("לא הצלחתי לקרוא את הקובץ: "+(err.message||err));
+      }
+      e.target.value="";
     };
     $("#ft-impPaste").oninput=()=>load($("#ft-impPaste").value);
     $("#ft-impGo").onclick=impApply;
