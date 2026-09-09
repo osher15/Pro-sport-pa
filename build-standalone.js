@@ -5,7 +5,21 @@
 const fs=require("fs"),path=require("path");
 const R=f=>fs.readFileSync(path.join(__dirname,f),"utf8");
 
-const html=R("index.html");
+const crypto=require("crypto");
+
+/* חותם גרסה על כל קובץ JS/CSS ב-index.html לפי תוכן הקובץ.
+   בלי זה הדפדפן מגיש גרסה ישנה מהמטמון אחרי כל פריסה, והמשתמש
+   רואה אפליקציה שלא התעדכנה בלי שום סימן לכך. */
+function stampVersions(){
+  const file=path.join(__dirname,"index.html");
+  let h=fs.readFileSync(file,"utf8");
+  const short=f=>crypto.createHash("sha1").update(R(f)).digest("hex").slice(0,8);
+  h=h.replace(/(href|src)="(hm-[\w-]+\.(?:js|css))(\?v=[0-9a-f]+)?"/g,
+    (_,attr,f)=>`${attr}="${f}?v=${short(f)}"`);
+  if(h!==fs.readFileSync(file,"utf8"))fs.writeFileSync(file,h);
+  return h;
+}
+const html=stampVersions();
 
 /* גוף האפליקציה = כל מה שבתוך <x-dc> חוץ מ־<helmet> */
 const dc=html.match(/<x-dc>([\s\S]*?)<\/x-dc>/);
@@ -29,7 +43,7 @@ const css=R("hm-styles.css");
 /* חייב להישאר זהה לסדר תגי ה-script ב-index.html */
 const SCRIPTS=["hm-app.js","hm-qr.js","hm-howto.js","hm-know.js","hm-tools.js","hm-plans.js","hm-lesson.js","hm-build.js","hm-tests.js","hm-new.js"];
 /* בדיקת שפיות: כל סקריפט שמופיע ב-index.html חייב להיכלל גם כאן */
-const inHtml=[...html.matchAll(/<script src="(hm-[\w-]+\.js)"><\/script>/g)].map(m=>m[1]);
+const inHtml=[...html.matchAll(/<script src="(hm-[\w-]+\.js)(?:\?v=[0-9a-f]+)?"><\/script>/g)].map(m=>m[1]);
 const missing=inHtml.filter(f=>!SCRIPTS.includes(f));
 if(missing.length)throw new Error("סקריפטים חסרים ברשימת הבנייה: "+missing.join(", "));
 const js=SCRIPTS.map(R).join("\n;\n");

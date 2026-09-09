@@ -37,12 +37,12 @@ jobs:
       - name: Verify standalone build is up to date
         run: |
           node build-standalone.js
-          if ! git diff --quiet -- Hamegrash.html; then
-            echo "::error::Hamegrash.html אינו מעודכן. הרץ: node build-standalone.js ובצע commit"
-            git diff --stat -- Hamegrash.html
+          if ! git diff --quiet -- Hamegrash.html index.html; then
+            echo "::error::הבנייה אינה מעודכנת. הרץ: node build-standalone.js ובצע commit"
+            git diff --stat -- Hamegrash.html index.html
             exit 1
           fi
-          echo "Hamegrash.html מסונכרן ✓"
+          echo "Hamegrash.html וחותמות הגרסה ב-index.html מסונכרנים ✓"
 
       # ללא הקובץ הזה GitHub מריץ Jekyll ומתעלם מקבצים שמתחילים בקו תחתון
       - name: Add .nojekyll

@@ -157,6 +157,16 @@ setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc
 
 /* ---------- ערכת רקע ומצב מגע ----------
    הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
+/* מזהה הבנייה — נגזר מחותמת הגרסה של הסקריפט הראשי. מאפשר לענות
+   על «איזו גרסה אני מריץ» בלי לנחש, כשמשהו נראה לא מעודכן. */
+function buildId(){
+  try{
+    const sc=[...document.scripts].map(s=>s.src).find(x=>/hm-tests\.js/.test(x))||"";
+    const m=sc.match(/[?&]v=([0-9a-f]+)/);
+    return m?m[1]:"local";
+  }catch(e){ return "—"; }
+}
+
 function applyTheme(){
   document.body.dataset.theme=SET.theme||"dark";
   if(SET.touch)document.body.dataset.touch="1"; else delete document.body.dataset.touch;
@@ -170,7 +180,8 @@ function wireSettings(){
 $$("#set-theme .thm").forEach(b=>b.addEventListener("click",()=>{
   SET.theme=b.dataset.t; saveSet(); applyTheme(); }));
 $("#set-touch").addEventListener("change",e=>{ SET.touch=e.target.checked; saveSet(); applyTheme(); });
-$("#btnSettings").addEventListener("click",()=>{ $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
+$("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi)bi.textContent="גרסה "+buildId();
+  $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
