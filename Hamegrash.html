@@ -1004,6 +1004,19 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .gr-wgrid{display:grid;grid-template-columns:1fr 96px;gap:9px 10px;margin-top:12px;align-items:end}
 @media(max-width:520px){.gr-wgrid{grid-template-columns:1fr 78px}}
 
+/* אות החינוך הגופני — טופס ההערכה המסכמת */
+.ft-ottbl th{font-size:11px;white-space:nowrap}
+.ft-ottbl td{padding:6px 5px}
+.ot-three{white-space:nowrap}
+.ot-three button{width:26px;height:30px;margin:0 1px;border:1px solid var(--line);background:var(--inset);
+  color:var(--faint);border-radius:7px;font-family:'Share Tech Mono';font-size:13px;cursor:pointer;transition:.13s}
+.ot-three button.on{background:var(--acc);color:var(--onAcc);border-color:transparent;font-weight:700}
+.ot-flag{width:38px;height:30px;border:1px solid var(--line);background:var(--inset);color:var(--faint);
+  border-radius:7px;font-size:14px;cursor:pointer;transition:.13s}
+.ot-flag.on{background:var(--green);color:var(--onAcc);border-color:transparent;font-weight:800}
+.ot-pct{width:58px;background:var(--inset);border:1px solid var(--line);border-radius:7px;color:var(--ink);
+  font-family:'Share Tech Mono';font-size:14px;padding:6px 4px;text-align:center}
+
 </style>
 </head>
 <body>
@@ -1944,8 +1957,10 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   <div class="pf-tabs" id="ft-tabs">
     <button data-ft="tests" class="on">🏅 מבחנים</button>
     <button data-ft="idx">📊 מדד הכושר</button>
+    <button data-ft="ot">🏅 אות החינוך הגופני</button>
   </div>
   <div id="ft-idx" style="display:none"></div>
+  <div id="ft-ot" style="display:none"></div>
   <!-- ----- בחירת כיתה ומבחן ----- -->
   <div id="ft-pick">
     <div class="card">
@@ -8941,6 +8956,7 @@ window.FT=(function(){
     const c=cls(), rst=roster(c);
     $("#ft-run").style.display="none";
     $("#ft-idx").style.display="none";
+    $("#ft-ot").style.display="none";
     $("#ft-pick").style.display="";
 
     $("#ft-grades").innerHTML=GRADES.map(([g,lbl])=>
@@ -8988,6 +9004,7 @@ window.FT=(function(){
     st.test=id; stopClock(true); stopCd();
     H().$("#ft-pick").style.display="none";
     H().$("#ft-idx").style.display="none";
+    H().$("#ft-ot").style.display="none";
     H().$("#ft-run").style.display="";
     renderRun();
     window.scrollTo({top:0,behavior:"smooth"});
@@ -9495,15 +9512,161 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     7ג. אות החינוך הגופני
+     ------------------------------------------------------------
+     מתוך «אות החינוך הגופני — סטנדרטים להערכת הישגי התלמידים»
+     (משרד החינוך, המזכירות הפדגוגית, תשס״ח/2007), פרק הכושר הגופני.
+
+     זו לא טבלת נורמה אלא צבירת נקודות: 40 נקודות אפשריות, וזכאות
+     לאות מותנית ב-32 לפחות, מהן 12 לפחות במבדק האירובי ובאימון
+     המחזורי. המסמך אומר במפורש על המבדק האירובי — «אין מקום למדוד
+     את ההספק כחלק מן ההערכה אלא לשם תיעוד ומעקב» — ולכן הרכיב הזה
+     הוא עמידה בתקן ולא ביצוע. השכבות הן י–י״ב בלבד.
+     ============================================================ */
+  const OT_MAX=40, OT_PASS=32, OT_CORE_MIN=12;
+  const OT_ITEMS=[
+    {id:"aer",  em:"🫁", name:"מבדק אירובי",            max:9, kind:"three",
+     d:"מאמץ אירובי רצוף 30 דק׳ (בכיתה י — 20–25 דק׳ בשני המועדים הראשונים), שלושה מועדים בשנה בהפרש 6 שבועות לפחות. 3 נק׳ לכל מועד שבו עמד בתקן."},
+    {id:"cir",  em:"🔄", name:"אימון מחזורי",           max:9, kind:"three",
+     d:"סבולת שרירית: 8–10 תחנות, שני סבבים, 2 דק׳ מנוחה ביניהם. כיתה י — 30/30 שנ׳; י״א–י״ב — 40/30 שנ׳. 3 נק׳ לכל מועד."},
+    {id:"theory",em:"📖", name:"מבחן עיוני",            max:5, kind:"pct",
+     d:"25–35 שאלות רב־ברירה או 7–10 פתוחות. 3 נק׳ ב-65% תשובות נכונות · 4 נק׳ ב-75% · 5 נק׳ ב-85% ומעלה."},
+    {id:"part", em:"✅", name:"השתתפות ב-85% מהשיעורים",max:4, kind:"flag", d:"4 נק׳ על השתתפות פעילה ב-85% מהשיעורים לפחות."},
+    {id:"club", em:"🏟", name:"פעילות קבועה מחוץ לשיעורים",max:5, kind:"flag", d:"5 נק׳ — אגודת ספורט, נבחרת בית ספר, להקת מחול, חוג ספורט וכדומה."},
+    {id:"event",em:"🎽", name:"פעילות חד־פעמית",        max:3, kind:"count",d:"נקודה אחת לכל אירוע — תחרות, צעדה, כנס מחול. עד 3 נקודות."},
+    {id:"diary",em:"📓", name:"יומן מעקב אישי",         max:5, kind:"flag", d:"5 נק׳ על הגשת יומן פעילות אישי (מטרות, תיעוד לפי תאריכים, הערכה מסכמת)."}
+  ];
+  const OT_CORE=["aer","cir"];
+
+  const otAll =()=>LS().get("ft.ot",{});
+  const otSet =o=>LS().set("ft.ot",o);
+  function otRec(c,name){
+    const all=otAll(), k=clsKey(c);
+    return (all[k]&&all[k][name])||{aer:[0,0,0],cir:[0,0,0],theory:null,part:0,club:0,event:0,diary:0};
+  }
+  function otSave(c,name,rec){
+    const all=otAll(), k=clsKey(c);
+    all[k]=all[k]||{}; all[k][name]=rec; otSet(all);
+  }
+  /* ניקוד המבחן העיוני לפי הספים שבמסמך */
+  function otTheory(pct){
+    if(pct==null||pct==="")return 0;
+    const v=+pct;
+    if(v>=85)return 5; if(v>=75)return 4; if(v>=65)return 3; return 0;
+  }
+  function otScore(rec){
+    const per={
+      aer:(rec.aer||[]).filter(Boolean).length*3,
+      cir:(rec.cir||[]).filter(Boolean).length*3,
+      theory:otTheory(rec.theory),
+      part:rec.part?4:0,
+      club:rec.club?5:0,
+      event:Math.min(3,+rec.event||0),
+      diary:rec.diary?5:0
+    };
+    const total=Object.values(per).reduce((a,b)=>a+b,0);
+    const core=per.aer+per.cir;
+    return {per,total,core,ok:total>=OT_PASS&&core>=OT_CORE_MIN};
+  }
+
+  const OT_GRADES=["י","יא","יב"];
+
+  function renderOt(){
+    const {$, $$, esc}=H();
+    const c=cls(), rst=roster(c);
+    const eligible=OT_GRADES.includes(st.grade);
+    const rows=rst.map(s=>({s,...otScore(otRec(c,s.name))}));
+    const got=rows.filter(r=>r.ok).length;
+
+    $("#ft-ot").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> אות החינוך הגופני — כיתה ${esc(c)}</h2>
+        <div class="hint">צבירת נקודות לפי «אות החינוך הגופני — סטנדרטים להערכת הישגי התלמידים»,
+          משרד החינוך, המזכירות הפדגוגית, תשס״ח/2007. <b>${OT_MAX}</b> נקודות אפשריות;
+          זכאות ל<b>אות</b> מ-<b>${OT_PASS}</b> נקודות ומעלה, מהן <b>${OT_CORE_MIN}</b> לפחות
+          במבדק האירובי ובאימון המחזורי.</div>
+        ${!eligible?`<div class="bw-warn">האות מיועד לשכבות <b>י–י״ב</b>. השכבה שנבחרה היא ${esc(clsName(st.grade,st.num).replace(String(st.num),""))} —
+          אפשר למלא, אבל זה חורג ממה שהמסמך מגדיר.</div>`:""}
+        ${rows.length?`<div class="ft-idxsum">
+          <div><span class="k">זכאים לאות</span><span class="v">${got}/${rows.length}</span></div>
+          <div><span class="k">ממוצע נקודות</span><span class="v">${(rows.reduce((a,b)=>a+b.total,0)/rows.length).toFixed(1)}</span></div>
+        </div>`:""}
+        <details class="pf-help" style="margin-top:11px">
+          <summary>מה נדרש בכל רכיב — מתוך המסמך</summary>
+          <ol>${OT_ITEMS.map(it=>`<li><b>${it.em} ${esc(it.name)} (עד ${it.max} נק׳)</b> — ${esc(it.d)}</li>`).join("")}</ol>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2 style="margin:0"><span class="dot"></span> טופס הערכה מסכמת</h2>
+          <button class="btn sm ghost" id="ft-otCsv">⬇ CSV</button>
+        </div>
+        ${rst.length?`<div class="tblwrap" style="margin-top:11px"><table class="tbl ft-ottbl">
+          <thead><tr><th>שם</th>
+            <th title="מבדק אירובי — 3 מועדים">🫁 אירובי</th>
+            <th title="אימון מחזורי — 3 מועדים">🔄 מחזורי</th>
+            <th title="מבחן עיוני — אחוז תשובות נכונות">📖 עיוני %</th>
+            <th title="השתתפות ב-85% מהשיעורים">✅</th>
+            <th title="פעילות קבועה מחוץ לשיעורים">🏟</th>
+            <th title="פעילות חד־פעמית — עד 3">🎽</th>
+            <th title="יומן מעקב אישי">📓</th>
+            <th>נק׳</th><th>אות</th></tr></thead>
+          <tbody>${rows.map(r=>{
+            const rec=otRec(c,r.s.name), n=esc(r.s.name);
+            const three=(f)=>`<td class="ot-three">${[0,1,2].map(i=>
+              `<button class="${(rec[f]||[])[i]?"on":""}" data-t3="${f}" data-i="${i}" data-n="${n}" title="מועד ${i+1}">${i+1}</button>`).join("")}</td>`;
+            const flag=(f)=>`<td><button class="ot-flag${rec[f]?" on":""}" data-flag="${f}" data-n="${n}">${rec[f]?"✓":"—"}</button></td>`;
+            return `<tr>
+              <td><b>${n}</b></td>
+              ${three("aer")}${three("cir")}
+              <td><input class="ot-pct" type="number" min="0" max="100" data-pct="${n}" value="${rec.theory??""}" placeholder="%"></td>
+              ${flag("part")}${flag("club")}
+              <td class="ot-three"><button data-ev="${n}" class="${rec.event?"on":""}">${rec.event||0}</button></td>
+              ${flag("diary")}
+              <td class="mono" style="font-weight:800">${r.total}</td>
+              <td>${r.ok?'<span class="pill acc">✓ זכאי</span>':`<span class="pill">${OT_PASS-r.total>0?"חסר "+(OT_PASS-r.total):"חסר ליבה"}</span>`}</td>
+            </tr>`;}).join("")}</tbody></table></div>
+          <div class="hint" style="margin-top:8px">מקישים על ספרות המועד כדי לסמן עמידה בתקן באותו מבדק ·
+            «🎽» מתקדם ב-1 בכל הקשה עד 3 · «חסר ליבה» = יש מספיק נקודות בסך הכול, אבל פחות מ-${OT_CORE_MIN}
+            במבדק האירובי ובאימון המחזורי יחד.</div>`
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+      </div>`;
+
+    const upd=(name,fn)=>{ const rec=otRec(c,name); fn(rec); otSave(c,name,rec); renderOt(); };
+    $$("#ft-ot [data-t3]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.n,r=>{
+      r[b.dataset.t3]=(r[b.dataset.t3]||[0,0,0]).slice();
+      r[b.dataset.t3][+b.dataset.i]=r[b.dataset.t3][+b.dataset.i]?0:1;
+    })));
+    $$("#ft-ot [data-flag]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.n,r=>{
+      r[b.dataset.flag]=r[b.dataset.flag]?0:1; })));
+    $$("#ft-ot [data-ev]").forEach(b=>b.addEventListener("click",()=>upd(b.dataset.ev,r=>{
+      r.event=((+r.event||0)+1)%4; })));
+    $$("#ft-ot [data-pct]").forEach(inp=>inp.addEventListener("change",()=>upd(inp.dataset.pct,r=>{
+      r.theory=inp.value===""?null:Math.max(0,Math.min(100,+inp.value)); })));
+    const cs=$("#ft-otCsv"); if(cs)cs.addEventListener("click",()=>otCsv(rows));
+  }
+
+  function otCsv(rows){
+    if(!rows.length){H().toast("אין נתונים");return;}
+    const out=[["שם","אירובי","מחזורי","עיוני","השתתפות","פעילות קבועה","חד־פעמית","יומן","סה״כ","זכאי לאות"]];
+    rows.forEach(r=>out.push([r.s.name,r.per.aer,r.per.cir,r.per.theory,r.per.part,r.per.club,r.per.event,r.per.diary,
+      r.total,r.ok?"כן":"לא"]));
+    H().dlCSV("אות-החינוך-הגופני-"+cls()+"-"+today()+".csv",out);
+  }
+
+  /* ============================================================
      8. אתחול
      ============================================================ */
   /* מעבר בין «מבחנים» ל«מדד» — שתי הלשוניות חולקות את אותה בחירת כיתה */
   function renderTab(){
     const {$, $$}=H();
     $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
-    const idx=st.tab==="idx";
+    const idx=st.tab==="idx", ot=st.tab==="ot";
     $("#ft-idx").style.display=idx?"":"none";
-    if(idx){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd(); renderIndex(); }
+    $("#ft-ot").style.display=ot?"":"none";
+    if(idx||ot){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
+      if(idx)renderIndex(); else renderOt(); }
     else if(st.test)renderRun();
     else renderPicker();
   }
