@@ -129,6 +129,11 @@ const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
   if(isStudent()&&!STUDENT_MODS[mod])mod="rec";
+  /* חלון שנפתח בתוך מודול אינו שייך למודול הבא. בלי זה, הדרכת
+     הפתיחה של הפוטו־פיניש נשארה פרושה מעל כל האפליקציה אחרי מעבר
+     למודול אחר, וחסמה כל הקשה. */
+  if(document.body.dataset.mod!==mod)
+    $$(".modal.on").forEach(m=>m.classList.remove("on"));
   document.body.dataset.mod=mod;
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
