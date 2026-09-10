@@ -1155,6 +1155,28 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .bt-lanes button.done{opacity:.5;border-color:var(--acc);cursor:default}
 .bt-lanes button small{display:block;font-family:'Heebo';font-size:10px;color:var(--acc);margin-top:2px}
 
+/* ===== טיימר מהיר במערך ===== */
+.ls-quick{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:13px;background:var(--inset)}
+.qt-clock{font-family:'Share Tech Mono';font-size:30px;color:var(--acc);font-variant-numeric:tabular-nums}
+.qt-clock.run{animation:qtp 1s ease-in-out infinite}
+@keyframes qtp{50%{opacity:.55}}
+.qt-presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.qt-presets button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;
+  padding:9px 13px;font-family:'Heebo';font-size:13px;cursor:pointer;min-height:var(--touch,38px)}
+.qt-presets button.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,var(--panel2))}
+.qt-presets button:active{transform:scale(.95)}
+
+/* ===== מעבר מהיר בין כיתות ===== */
+.stu-chips{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0 4px}
+.stu-chips:empty{display:none}
+.stu-chips button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:11px;
+  padding:8px 13px;font-family:'Heebo';font-size:13px;font-weight:600;cursor:pointer;transition:.12s;
+  min-height:var(--touch,36px);display:flex;align-items:center;gap:7px}
+.stu-chips button.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,var(--panel2))}
+.stu-chips button:active{transform:scale(.95)}
+.stu-chips button i{font-style:normal;font-family:'Share Tech Mono';font-size:11.5px;color:var(--muted)}
+.stu-chips button.on i{color:var(--acc)}
+
 </style>
 </head>
 <body>
@@ -1867,6 +1889,14 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
       <div class="stu-tools">
         <div class="field stu-search"><label>חיפוש</label><input type="text" id="stu-search" placeholder="שם תלמיד"></div>
         <div class="field" style="width:150px"><label>כיתה</label><select id="stu-classSel"></select></div>
+        <div class="field" style="width:160px"><label>מיון</label><select id="stu-sortSel">
+          <option value="name">לפי שם</option>
+          <option value="cls">לפי כיתה</option>
+          <option value="vo2">VO₂max — גבוה לנמוך</option>
+          <option value="vo2a">VO₂max — נמוך לגבוה</option>
+          <option value="trend">מגמת ירידה קודם</option>
+          <option value="tests">הכי מעט מדידות</option>
+        </select></div>
         <button class="btn sm acc" id="stu-add" style="margin-top:18px">+ הוסף תלמידים</button>
         <button class="btn sm" id="stu-fromBeep" style="margin-top:18px" title="ייבוא מלוח הביפ">⇩ מלוח הביפ</button>
         <button class="btn sm ghost" id="stu-csv" style="margin-top:18px">⬇ CSV כיתה</button>
@@ -1877,6 +1907,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
         <div class="qs"><div class="n" id="stu-below">0</div><div class="l">בסיכון בריאותי</div></div>
         <div class="qs"><div class="n" id="stu-fall">0</div><div class="l">במגמת ירידה</div></div>
       </div>
+      <div class="stu-chips" id="stu-chips"></div>
       <div class="stu-list" id="stu-list"></div>
       <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
     </div>
@@ -2091,6 +2122,23 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
     <div class="row" style="margin-top:12px">
       <button class="btn acc grow" id="ls-run">▶ הפעל שיעור</button>
       <button class="btn stop" id="ls-stop" disabled>⏹ עצור</button>
+    </div>
+    <div class="ls-quick" id="ls-quick">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <b>⏱ טיימר מהיר</b>
+        <span class="qt-clock" id="qt-clock">00:00</span>
+      </div>
+      <div class="hint">לתרגיל בודד באמצע השיעור — בלי לצאת מהמערך ובלי לעצור אותו.</div>
+      <div class="qt-presets" id="qt-presets">
+        <button data-s="30">30 שנ׳</button><button data-s="45">45 שנ׳</button>
+        <button data-s="60">דקה</button><button data-s="90">1:30</button>
+        <button data-s="120">2 דק׳</button><button data-s="180">3 דק׳</button>
+        <button data-s="300">5 דק׳</button>
+      </div>
+      <div class="row" style="margin-top:9px;gap:8px">
+        <button class="btn sm acc grow" id="qt-go">▶ הפעל</button>
+        <button class="btn sm ghost" id="qt-reset">↺ אפס</button>
+      </div>
     </div>
     <div class="ls-sec" id="ls-fbBox">
       <h4>📝 משוב מהיר על השיעור</h4>
@@ -8155,6 +8203,44 @@ window.LESSON=(function(){
     H().$("#ls-run").disabled=false; H().$("#ls-stop").disabled=true; }
 
   /* ---------- ספרייה ---------- */
+  /* ---------- טיימר מהיר ----------
+     שעון השיעור רץ על הפאזות של המערך. באמצע השיעור צריך לפעמים
+     ‎45‎ שניות לתרגיל בודד — ועד עכשיו זה חייב לצאת למודול הכושר,
+     כלומר לעזוב את המערך. הטיימר הזה רץ לצדו ולא נוגע בו. */
+  let qt={id:0,left:0,total:0,on:false};
+  function qtPaint(){
+    const {$}=H();
+    const el=$("#qt-clock"); if(!el)return;
+    const m=Math.floor(qt.left/60), sec=qt.left%60;
+    el.textContent=String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+    el.classList.toggle("run",qt.on);
+    const go=$("#qt-go"); if(go)go.innerHTML=qt.on?"⏸ השהה":"▶ הפעל";
+  }
+  function qtStop(){ if(qt.id)clearInterval(qt.id); qt.id=0; qt.on=false; qtPaint(); }
+  function qtTick(){
+    qt.left--;
+    if(qt.left<=3&&qt.left>0)H().beep(880,0.08,0.4);
+    if(qt.left<=0){ qtStop(); qt.left=0; H().horn(); H().say("זמן"); qtPaint(); return; }
+    qtPaint();
+  }
+  function wireQuickTimer(){
+    const {$, $$}=H();
+    if(!$("#qt-go"))return;
+    $$("#qt-presets button").forEach(b=>b.addEventListener("click",()=>{
+      H().ac();
+      $$("#qt-presets button").forEach(x=>x.classList.toggle("on",x===b));
+      qtStop(); qt.total=+b.dataset.s; qt.left=qt.total; qtPaint();
+    }));
+    $("#qt-go").addEventListener("click",()=>{
+      H().ac();
+      if(qt.on){ qtStop(); return; }
+      if(qt.left<=0){ H().toast("בחר משך קודם"); return; }
+      qt.on=true; qt.id=setInterval(qtTick,1000); qtPaint();
+    });
+    $("#qt-reset").addEventListener("click",()=>{ qtStop(); qt.left=qt.total; qtPaint(); });
+    qtPaint();
+  }
+
   function saveLib(){
     if(!plan)return;
     const lib=H().LS.get("ls.lib",[]);
@@ -8187,11 +8273,28 @@ window.LESSON=(function(){
         <div class="ttl">${e.plan.em||"📋"} ${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
         <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
         <button class="btn sm" data-load="${e.id}">📂</button>
+        <button class="btn sm ghost" data-dup="${e.id}" title="שכפל לעריכה">⧉</button>
         <button class="btn sm stop" data-del="${e.id}">✕</button></div>`;
     }).join("");
     $$("#ls-libList [data-load]").forEach(b=>b.addEventListener("click",()=>{
       const e=H().LS.get("ls.lib",[]).find(x=>x.id==b.dataset.load);
       if(e){plan=e.plan;renderPlan();H().toast("המערך נטען");window.scrollTo({top:0,behavior:"smooth"});}
+    }));
+    /* שכפול: מערך שעבד בכיתה אחת הוא נקודת פתיחה מצוינת לכיתה הבאה,
+       אבל עריכה ישירה שלו מוחקת את המקור. השכפול יוצר עותק חדש עם
+       תאריך היום ונטען מיד לעריכה, כך שהמקור נשאר כמו שהוא. */
+    $$("#ls-libList [data-dup]").forEach(b=>b.addEventListener("click",()=>{
+      const lib=H().LS.get("ls.lib",[]);
+      const e=lib.find(x=>String(x.id)===String(b.dataset.dup));
+      if(!e||!e.plan)return;
+      const copy=JSON.parse(JSON.stringify(e.plan));
+      copy.date=new Date().toISOString().slice(0,10);
+      copy.title=/\(עותק/.test(copy.title||"")?copy.title:(copy.title||"מערך")+" (עותק)";
+      lib.unshift({id:Date.now(),plan:copy});
+      H().LS.set("ls.lib",lib.slice(0,60));
+      plan=copy; renderPlan(); renderLib();
+      H().toast("⧉ שוכפל — המקור לא השתנה");
+      const card=H().$("#ls-planCard"); if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
     }));
     $$("#ls-libList [data-doc]").forEach(b=>b.addEventListener("click",()=>openDoc(b.dataset.doc)));
     $$("#ls-libList [data-del]").forEach(b=>b.addEventListener("click",()=>{
@@ -8324,6 +8427,7 @@ window.LESSON=(function(){
     $("#ls-run").addEventListener("click",runStart);
     $("#ls-stop").addEventListener("click",()=>{stop();H().$("#ls-phName").textContent="הופסק";});
     $("#ls-save").addEventListener("click",saveLib);
+    wireQuickTimer();
     $("#ls-print").addEventListener("click",print);
     $("#ls-fbGood").addEventListener("click",()=>saveFeedback(1));
     $("#ls-fbOk").addEventListener("click",()=>saveFeedback(0));
@@ -11543,7 +11647,7 @@ window.STU=(function(){
   let inited=false;
   const load=()=>H().LS.get("stu.list",[]);
   const save=l=>H().LS.set("stu.list",l);
-  let q="",clsF="";
+  let q="",clsF="",sortBy=H().LS.get("stu.sort","name");
   function latest(s){return s.tests.length?s.tests[s.tests.length-1]:null;}
   function trend(s){
     if(s.tests.length<2)return 0;
@@ -11567,7 +11671,33 @@ window.STU=(function(){
     $("#stu-avg").textContent=avg?avg.toFixed(1):"—";
     $("#stu-below").textContent=below;
     $("#stu-fall").textContent=falling;
-    view.sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    /* מעבר מהיר בין כיתות: הבורר הנפתח דורש שתי הקשות ומסתיר את
+       הכיתות האחרות. הצ׳יפים מראים את כולן עם מספר התלמידים, ומעבר
+       הוא הקשה אחת — וזה מה שקורה בפועל בין שיעור לשיעור. */
+    const chips=H().$("#stu-chips");
+    if(chips){
+      chips.innerHTML=classes.length>1
+        ? '<button data-c=""'+(clsF?"":' class="on"')+">כל הכיתות <i>"+list.length+"</i></button>"+
+          classes.map(c=>'<button data-c="'+esc(c)+'"'+(clsF===c?' class="on"':"")+">"+esc(c)+
+            " <i>"+list.filter(x=>x.cls===c).length+"</i></button>").join("")
+        : "";
+      H().$$("#stu-chips button").forEach(b=>b.addEventListener("click",()=>{
+        clsF=b.dataset.c; render(); }));
+    }
+    /* מיון: ברירת המחדל היא לפי שם, אבל בשיעור השאלה היא בדרך כלל
+       «מי בסיכון» או «למי חסרות מדידות» — ואלה מיונים ולא חיפושים. */
+    const V=s2=>{ const l=latest(s2); return l&&l.vo2>0?l.vo2:null; };
+    const SORTS={
+      name:(a,b)=>a.name.localeCompare(b.name,"he"),
+      cls:(a,b)=>(a.cls||"").localeCompare(b.cls||"","he")||a.name.localeCompare(b.name,"he"),
+      vo2:(a,b)=>(V(b)??-1)-(V(a)??-1),
+      vo2a:(a,b)=>(V(a)??Infinity)-(V(b)??Infinity),
+      trend:(a,b)=>trend(a)-trend(b)||a.name.localeCompare(b.name,"he"),
+      tests:(a,b)=>a.tests.length-b.tests.length||a.name.localeCompare(b.name,"he")
+    };
+    const sel=H().$("#stu-sortSel");
+    if(sel&&sel.value!==sortBy)sel.value=sortBy;
+    view.sort(SORTS[sortBy]||SORTS.name);
     $("#stu-empty").style.display=view.length?"none":"block";
     $("#stu-list").innerHTML=view.map(s=>{
       const lt=latest(s),tr=trend(s);
@@ -12091,6 +12221,9 @@ window.STU=(function(){
     const {$}=H();
     $("#stu-search").addEventListener("input",e=>{q=e.target.value.trim();render();});
     $("#stu-classSel").addEventListener("change",e=>{clsF=e.target.value;render();});
+    const ss=$("#stu-sortSel");
+    if(ss){ ss.value=sortBy;
+      ss.addEventListener("change",e=>{ sortBy=e.target.value; H().LS.set("stu.sort",sortBy); render(); }); }
     $("#stu-add").addEventListener("click",()=>H().modal("stu-addModal"));
     function addLines(text){
       const defCls=$("#stu-defaultCls").value.trim();

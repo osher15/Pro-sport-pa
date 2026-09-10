@@ -22,7 +22,7 @@ window.STU=(function(){
   let inited=false;
   const load=()=>H().LS.get("stu.list",[]);
   const save=l=>H().LS.set("stu.list",l);
-  let q="",clsF="";
+  let q="",clsF="",sortBy=H().LS.get("stu.sort","name");
   function latest(s){return s.tests.length?s.tests[s.tests.length-1]:null;}
   function trend(s){
     if(s.tests.length<2)return 0;
@@ -46,7 +46,33 @@ window.STU=(function(){
     $("#stu-avg").textContent=avg?avg.toFixed(1):"—";
     $("#stu-below").textContent=below;
     $("#stu-fall").textContent=falling;
-    view.sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    /* מעבר מהיר בין כיתות: הבורר הנפתח דורש שתי הקשות ומסתיר את
+       הכיתות האחרות. הצ׳יפים מראים את כולן עם מספר התלמידים, ומעבר
+       הוא הקשה אחת — וזה מה שקורה בפועל בין שיעור לשיעור. */
+    const chips=H().$("#stu-chips");
+    if(chips){
+      chips.innerHTML=classes.length>1
+        ? '<button data-c=""'+(clsF?"":' class="on"')+">כל הכיתות <i>"+list.length+"</i></button>"+
+          classes.map(c=>'<button data-c="'+esc(c)+'"'+(clsF===c?' class="on"':"")+">"+esc(c)+
+            " <i>"+list.filter(x=>x.cls===c).length+"</i></button>").join("")
+        : "";
+      H().$$("#stu-chips button").forEach(b=>b.addEventListener("click",()=>{
+        clsF=b.dataset.c; render(); }));
+    }
+    /* מיון: ברירת המחדל היא לפי שם, אבל בשיעור השאלה היא בדרך כלל
+       «מי בסיכון» או «למי חסרות מדידות» — ואלה מיונים ולא חיפושים. */
+    const V=s2=>{ const l=latest(s2); return l&&l.vo2>0?l.vo2:null; };
+    const SORTS={
+      name:(a,b)=>a.name.localeCompare(b.name,"he"),
+      cls:(a,b)=>(a.cls||"").localeCompare(b.cls||"","he")||a.name.localeCompare(b.name,"he"),
+      vo2:(a,b)=>(V(b)??-1)-(V(a)??-1),
+      vo2a:(a,b)=>(V(a)??Infinity)-(V(b)??Infinity),
+      trend:(a,b)=>trend(a)-trend(b)||a.name.localeCompare(b.name,"he"),
+      tests:(a,b)=>a.tests.length-b.tests.length||a.name.localeCompare(b.name,"he")
+    };
+    const sel=H().$("#stu-sortSel");
+    if(sel&&sel.value!==sortBy)sel.value=sortBy;
+    view.sort(SORTS[sortBy]||SORTS.name);
     $("#stu-empty").style.display=view.length?"none":"block";
     $("#stu-list").innerHTML=view.map(s=>{
       const lt=latest(s),tr=trend(s);
@@ -570,6 +596,9 @@ window.STU=(function(){
     const {$}=H();
     $("#stu-search").addEventListener("input",e=>{q=e.target.value.trim();render();});
     $("#stu-classSel").addEventListener("change",e=>{clsF=e.target.value;render();});
+    const ss=$("#stu-sortSel");
+    if(ss){ ss.value=sortBy;
+      ss.addEventListener("change",e=>{ sortBy=e.target.value; H().LS.set("stu.sort",sortBy); render(); }); }
     $("#stu-add").addEventListener("click",()=>H().modal("stu-addModal"));
     function addLines(text){
       const defCls=$("#stu-defaultCls").value.trim();

@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=fa3b2a35">
+<link rel="stylesheet" href="hm-styles.css?v=2e4f7ddf">
 <script src="hm-app.js?v=67de927e"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
@@ -21,10 +21,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="hm-tools.js?v=5d473e53"></script>
 <script src="hm-plans.js?v=ba067c4d"></script>
-<script src="hm-lesson.js?v=fa4422f0"></script>
+<script src="hm-lesson.js?v=45abc322"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=d1873503"></script>
-<script src="hm-new.js?v=ce6fbb0e"></script>
+<script src="hm-new.js?v=411754b0"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
@@ -735,6 +735,14 @@
       <div class="stu-tools">
         <div class="field stu-search"><label>חיפוש</label><input type="text" id="stu-search" placeholder="שם תלמיד"></div>
         <div class="field" style="width:150px"><label>כיתה</label><select id="stu-classSel"></select></div>
+        <div class="field" style="width:160px"><label>מיון</label><select id="stu-sortSel">
+          <option value="name">לפי שם</option>
+          <option value="cls">לפי כיתה</option>
+          <option value="vo2">VO₂max — גבוה לנמוך</option>
+          <option value="vo2a">VO₂max — נמוך לגבוה</option>
+          <option value="trend">מגמת ירידה קודם</option>
+          <option value="tests">הכי מעט מדידות</option>
+        </select></div>
         <button class="btn sm acc" id="stu-add" style="margin-top:18px">+ הוסף תלמידים</button>
         <button class="btn sm" id="stu-fromBeep" style="margin-top:18px" title="ייבוא מלוח הביפ">⇩ מלוח הביפ</button>
         <button class="btn sm ghost" id="stu-csv" style="margin-top:18px">⬇ CSV כיתה</button>
@@ -745,6 +753,7 @@
         <div class="qs"><div class="n" id="stu-below">0</div><div class="l">בסיכון בריאותי</div></div>
         <div class="qs"><div class="n" id="stu-fall">0</div><div class="l">במגמת ירידה</div></div>
       </div>
+      <div class="stu-chips" id="stu-chips"></div>
       <div class="stu-list" id="stu-list"></div>
       <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
     </div>
@@ -959,6 +968,23 @@
     <div class="row" style="margin-top:12px">
       <button class="btn acc grow" id="ls-run">▶ הפעל שיעור</button>
       <button class="btn stop" id="ls-stop" disabled>⏹ עצור</button>
+    </div>
+    <div class="ls-quick" id="ls-quick">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <b>⏱ טיימר מהיר</b>
+        <span class="qt-clock" id="qt-clock">00:00</span>
+      </div>
+      <div class="hint">לתרגיל בודד באמצע השיעור — בלי לצאת מהמערך ובלי לעצור אותו.</div>
+      <div class="qt-presets" id="qt-presets">
+        <button data-s="30">30 שנ׳</button><button data-s="45">45 שנ׳</button>
+        <button data-s="60">דקה</button><button data-s="90">1:30</button>
+        <button data-s="120">2 דק׳</button><button data-s="180">3 דק׳</button>
+        <button data-s="300">5 דק׳</button>
+      </div>
+      <div class="row" style="margin-top:9px;gap:8px">
+        <button class="btn sm acc grow" id="qt-go">▶ הפעל</button>
+        <button class="btn sm ghost" id="qt-reset">↺ אפס</button>
+      </div>
     </div>
     <div class="ls-sec" id="ls-fbBox">
       <h4>📝 משוב מהיר על השיעור</h4>

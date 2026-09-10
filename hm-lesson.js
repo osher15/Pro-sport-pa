@@ -557,6 +557,44 @@ window.LESSON=(function(){
     H().$("#ls-run").disabled=false; H().$("#ls-stop").disabled=true; }
 
   /* ---------- ספרייה ---------- */
+  /* ---------- טיימר מהיר ----------
+     שעון השיעור רץ על הפאזות של המערך. באמצע השיעור צריך לפעמים
+     ‎45‎ שניות לתרגיל בודד — ועד עכשיו זה חייב לצאת למודול הכושר,
+     כלומר לעזוב את המערך. הטיימר הזה רץ לצדו ולא נוגע בו. */
+  let qt={id:0,left:0,total:0,on:false};
+  function qtPaint(){
+    const {$}=H();
+    const el=$("#qt-clock"); if(!el)return;
+    const m=Math.floor(qt.left/60), sec=qt.left%60;
+    el.textContent=String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+    el.classList.toggle("run",qt.on);
+    const go=$("#qt-go"); if(go)go.innerHTML=qt.on?"⏸ השהה":"▶ הפעל";
+  }
+  function qtStop(){ if(qt.id)clearInterval(qt.id); qt.id=0; qt.on=false; qtPaint(); }
+  function qtTick(){
+    qt.left--;
+    if(qt.left<=3&&qt.left>0)H().beep(880,0.08,0.4);
+    if(qt.left<=0){ qtStop(); qt.left=0; H().horn(); H().say("זמן"); qtPaint(); return; }
+    qtPaint();
+  }
+  function wireQuickTimer(){
+    const {$, $$}=H();
+    if(!$("#qt-go"))return;
+    $$("#qt-presets button").forEach(b=>b.addEventListener("click",()=>{
+      H().ac();
+      $$("#qt-presets button").forEach(x=>x.classList.toggle("on",x===b));
+      qtStop(); qt.total=+b.dataset.s; qt.left=qt.total; qtPaint();
+    }));
+    $("#qt-go").addEventListener("click",()=>{
+      H().ac();
+      if(qt.on){ qtStop(); return; }
+      if(qt.left<=0){ H().toast("בחר משך קודם"); return; }
+      qt.on=true; qt.id=setInterval(qtTick,1000); qtPaint();
+    });
+    $("#qt-reset").addEventListener("click",()=>{ qtStop(); qt.left=qt.total; qtPaint(); });
+    qtPaint();
+  }
+
   function saveLib(){
     if(!plan)return;
     const lib=H().LS.get("ls.lib",[]);
@@ -589,11 +627,28 @@ window.LESSON=(function(){
         <div class="ttl">${e.plan.em||"📋"} ${esc(e.plan.title)}${e.plan.cls?" · "+esc(e.plan.cls):""}</div>
         <div class="sb">${e.plan.date} · ${e.plan.grade==="mid"?"חטיבה":"תיכון"} · ${e.plan.phases.reduce((a,p)=>a+p.min,0)} דק׳</div></div>
         <button class="btn sm" data-load="${e.id}">📂</button>
+        <button class="btn sm ghost" data-dup="${e.id}" title="שכפל לעריכה">⧉</button>
         <button class="btn sm stop" data-del="${e.id}">✕</button></div>`;
     }).join("");
     $$("#ls-libList [data-load]").forEach(b=>b.addEventListener("click",()=>{
       const e=H().LS.get("ls.lib",[]).find(x=>x.id==b.dataset.load);
       if(e){plan=e.plan;renderPlan();H().toast("המערך נטען");window.scrollTo({top:0,behavior:"smooth"});}
+    }));
+    /* שכפול: מערך שעבד בכיתה אחת הוא נקודת פתיחה מצוינת לכיתה הבאה,
+       אבל עריכה ישירה שלו מוחקת את המקור. השכפול יוצר עותק חדש עם
+       תאריך היום ונטען מיד לעריכה, כך שהמקור נשאר כמו שהוא. */
+    $$("#ls-libList [data-dup]").forEach(b=>b.addEventListener("click",()=>{
+      const lib=H().LS.get("ls.lib",[]);
+      const e=lib.find(x=>String(x.id)===String(b.dataset.dup));
+      if(!e||!e.plan)return;
+      const copy=JSON.parse(JSON.stringify(e.plan));
+      copy.date=new Date().toISOString().slice(0,10);
+      copy.title=/\(עותק/.test(copy.title||"")?copy.title:(copy.title||"מערך")+" (עותק)";
+      lib.unshift({id:Date.now(),plan:copy});
+      H().LS.set("ls.lib",lib.slice(0,60));
+      plan=copy; renderPlan(); renderLib();
+      H().toast("⧉ שוכפל — המקור לא השתנה");
+      const card=H().$("#ls-planCard"); if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
     }));
     $$("#ls-libList [data-doc]").forEach(b=>b.addEventListener("click",()=>openDoc(b.dataset.doc)));
     $$("#ls-libList [data-del]").forEach(b=>b.addEventListener("click",()=>{
@@ -726,6 +781,7 @@ window.LESSON=(function(){
     $("#ls-run").addEventListener("click",runStart);
     $("#ls-stop").addEventListener("click",()=>{stop();H().$("#ls-phName").textContent="הופסק";});
     $("#ls-save").addEventListener("click",saveLib);
+    wireQuickTimer();
     $("#ls-print").addEventListener("click",print);
     $("#ls-fbGood").addEventListener("click",()=>saveFeedback(1));
     $("#ls-fbOk").addEventListener("click",()=>saveFeedback(0));
