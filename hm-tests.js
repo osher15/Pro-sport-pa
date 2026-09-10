@@ -644,6 +644,7 @@ window.FT=(function(){
         ${scoreMode()==="norm"?"טבלת הנורמה":"ניקוד יחסי לשכבה"}${want.length?` · המדד מורכב מ-${want.length} מבחנים שנבחרו`:" · המדד מורכב מכל מבחן שיש לו תוצאה"}.
         «שיפור» הוא ההפרש בין יום המדידה הראשון לתוצאה הטובה.</div>`;
     H().modal("ft-cardModal");
+    $("#ft-cardPdf").onclick=()=>studentReport(name,c,rows,idx,scored,missing);
     $("#ft-cardCsv").onclick=()=>{
       const out=[["מבחן","הטוב","יחידה","ציון","ניסיונות","נמדד לאחרונה","ימי מדידה"]];
       rows.forEach(r=>out.push([r.T.name,r.bst.val,r.T.unit,r.sc.v!=null?r.sc.v.toFixed(0):"",
@@ -1312,6 +1313,7 @@ window.FT=(function(){
           <h2 style="margin:0"><span class="dot"></span> ציוני יכולת</h2>
           <div class="row" style="gap:7px">
             <button class="btn sm acc" id="ft-toGrades">✓ שלח לציונים</button>
+            <button class="btn sm" id="ft-idxPdf">🖨 דוח כיתה (PDF)</button>
             <button class="btn sm ghost" id="ft-idxCsv">⬇ CSV</button>
           </div>
         </div>
@@ -1342,6 +1344,144 @@ window.FT=(function(){
     on("#ft-idxPick",openIdxPick);
     on("#ft-toGrades",()=>sendToGrades(rows));
     on("#ft-idxCsv",()=>idxCsv(rows,usedTests));
+    on("#ft-idxPdf",()=>classReport(c,rows,usedTests,avg,scored));
+  }
+
+  /* ============================================================
+     דוחות להדפסה / PDF
+     ------------------------------------------------------------
+     מורה שמראה למנהל דוח מודפס הוא מורה שמצדיק את הכלי — ובלי דוח,
+     כל העבודה נשארת בתוך הטלפון שלו. הדוח נבנה כחלון הדפסה של
+     הדפדפן ולא כספריית PDF: «שמור כ-PDF» קיים בכל דפדפן ובכל מערכת
+     הפעלה, וזה חוסך 300KB של ספרייה שגם לא יודעת עברית כמו שצריך.
+
+     גיליון הסגנון להדפסה מוגדר בשחור על לבן במפורש — ערכת הצבעים
+     הכהה של האפליקציה מבזבזת טונר ולא נקראת על נייר. */
+  const RPT_CSS=`
+    @page{size:A4;margin:14mm}
+    *{box-sizing:border-box}
+    /* @page חל רק בהדפסה — בלי ריפוד למסך התצוגה המקדימה נצמדת לקצה
+       והכותרת נחתכת. בהדפסה עצמה הריפוד מתאפס וה-@page מנהל את השוליים. */
+    body{font-family:'Heebo','Arial Hebrew',Arial,sans-serif;color:#111;background:#fff;
+      margin:0 auto;max-width:210mm;padding:14mm;font-size:12px}
+    @media print{body{padding:0;max-width:none}}
+    .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #0a5c38;padding-bottom:9px;margin-bottom:14px}
+    .hd h1{margin:0;font-size:21px;color:#0a5c38}
+    .hd .sub{font-size:12px;color:#555;margin-top:3px}
+    .hd .rt{text-align:end;font-size:11px;color:#666;line-height:1.6}
+    .kpi{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .kpi div{border:1px solid #ccc;border-radius:8px;padding:8px 14px;min-width:104px}
+    .kpi b{display:block;font-size:20px;color:#0a5c38}
+    .kpi span{font-size:10.5px;color:#666}
+    table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:13px}
+    th{background:#eef4f0;border:1px solid #bbb;padding:6px 7px;font-size:10.5px;text-align:start;white-space:nowrap}
+    td{border:1px solid #ddd;padding:6px 7px}
+    tr:nth-child(even) td{background:#fafafa}
+    td.n{font-family:'Courier New',monospace;white-space:nowrap}
+    td.best{font-weight:700;color:#0a5c38}
+    h2{font-size:14px;margin:16px 0 7px;color:#0a5c38;border-inline-start:4px solid #0a5c38;padding-inline-start:8px}
+    .miss{border:1px solid #d9a400;background:#fff8e6;border-radius:8px;padding:9px 11px;font-size:11.5px}
+    .note{font-size:10.5px;color:#666;line-height:1.7;margin-top:12px;border-top:1px solid #ddd;padding-top:9px}
+    .sig{margin-top:26px;display:flex;gap:34px;font-size:11px;color:#444}
+    .sig div{flex:1;border-top:1px solid #999;padding-top:5px}
+    @media print{.noprint{display:none}}
+  `;
+  function rptOpen(title,inner){
+    const w=window.open("","_blank");
+    if(!w){ H().toast("הדפדפן חסם את חלון ההדפסה — אפשר לאשר חלונות קופצים ולנסות שוב"); return null; }
+    const school=(H().SET.school||"").trim();
+    w.document.write('<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="utf-8">'+
+      '<title>'+H().esc(title)+'</title>'+
+      '<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">'+
+      '<style>'+RPT_CSS+'</style></head><body>'+inner+
+      '<div class="note noprint" style="text-align:center;margin-top:18px">'+
+      'להדפסה או לשמירה כ-PDF: <b>Ctrl/⌘ + P</b> ← «יעד» ← «שמור כ-PDF».</div>'+
+      '<' + 'script>setTimeout(function(){window.print()},450)<' + '/script></body></html>');
+    w.document.close();
+    return w;
+  }
+  function rptHead(title,sub){
+    const school=(H().SET.school||"").trim();
+    return '<div class="hd"><div><h1>'+H().esc(title)+'</h1>'+
+      '<div class="sub">'+H().esc(sub)+'</div></div>'+
+      '<div class="rt">'+(school?H().esc(school)+'<br>':"")+
+      'הופק '+new Date().toLocaleDateString(H_LOC())+'<br>המגרש PRO</div></div>';
+  }
+
+  /* ---------- דוח תלמיד ---------- */
+  function studentReport(name,c,rows,idx,scored,missing){
+    const esc=H().esc;
+    const kpi='<div class="kpi">'+
+      '<div><b>'+rows.length+'</b><span>מבחנים שנמדדו</span></div>'+
+      '<div><b>'+(idx!=null?idx.toFixed(1):"—")+'</b><span>מדד הכושר'+(scored.length?" · מ-"+scored.length+" מבחנים":"")+'</span></div>'+
+      '<div><b>'+rows.reduce((a,r)=>a+r.list.length,0)+'</b><span>סה״כ מדידות</span></div>'+
+      '<div><b>'+missing.length+'</b><span>מבחנים חסרים</span></div></div>';
+    const table=rows.length?'<h2>תוצאות לפי מבחן</h2><table><thead><tr>'+
+      '<th>מבחן</th><th>התוצאה הטובה</th><th>ציון</th><th>ניסיונות</th><th>מדידה ראשונה</th><th>מדידה אחרונה</th><th>שיפור</th>'+
+      '</tr></thead><tbody>'+rows.map(r=>'<tr>'+
+        '<td>'+esc(r.T.name)+(r.T.cap?' <span style="color:#a70">(תקרה '+r.T.cap+')</span>':"")+'</td>'+
+        '<td class="n best">'+fmtVal(r.T,r.bst.val)+' '+esc(r.T.unit)+'</td>'+
+        '<td class="n">'+(r.sc.v!=null?r.sc.v.toFixed(0):"—")+'</td>'+
+        '<td class="n">'+r.list.length+'</td>'+
+        '<td class="n">'+r.dates[0]+'</td>'+
+        '<td class="n">'+r.dates[r.dates.length-1]+'</td>'+
+        '<td class="n">'+(r.imp!=null?"▲ "+fmtVal(r.T,r.imp)+" "+esc(r.T.unit):(r.dates.length>1?"—":"מדידה אחת")) +'</td>'+
+      '</tr>').join("")+'</tbody></table>'
+      :'<p>אין עדיין תוצאות לתלמיד הזה.</p>';
+    /* היסטוריית הניסיונות היא הראיה שהמורה מציג — «הוא נמדד חמש פעמים»
+       שווה יותר מציון בודד, גם מול מנהל וגם מול הורה. */
+    const hist=rows.filter(r=>r.list.length>1).map(r=>
+      '<tr><td>'+esc(r.T.name)+'</td><td class="n">'+
+      r.list.map(x=>x.d+" · "+fmtVal(r.T,x.val)).join(' &nbsp;|&nbsp; ')+'</td></tr>').join("");
+    const histBlock=hist?'<h2>היסטוריית מדידות</h2><table><thead><tr><th style="width:26%">מבחן</th><th>כל הניסיונות</th></tr></thead><tbody>'+hist+'</tbody></table>':"";
+    const missBlock=missing.length?'<h2>מה חסר</h2><div class="miss"><b>'+missing.length+
+      ' מבחנים שהכיתה עשתה ולתלמיד אין בהם תוצאה:</b><br>'+
+      missing.map(t=>esc(testById(t).name)).join(" · ")+'</div>':"";
+    rptOpen("דוח תלמיד — "+name,
+      rptHead("דוח כושר אישי",name+" · כיתה "+c)+kpi+table+histBlock+missBlock+
+      '<div class="note">הציון מחושב מהתוצאה הטובה ביותר בכל מבחן, לפי '+
+      (scoreMode()==="norm"?"טבלת הנורמה הבית־ספרית":"ניקוד יחסי לשכבה")+
+      '. «שיפור» הוא ההפרש בין יום המדידה הראשון לתוצאה הטובה ביותר. '+
+      'הדוח משקף יכולת גופנית בלבד ואינו הציון בתעודה.</div>'+
+      '<div class="sig"><div>חתימת המורה</div><div>תאריך</div></div>');
+  }
+
+  /* ---------- דוח כיתה ---------- */
+  function classReport(c,rows,usedTests,avg,scored){
+    if(!rows.length){ H().toast("אין נתונים לדוח"); return; }
+    const esc=H().esc;
+    const idxOf=r=>r.idx!=null?r.idx:null;
+    const sorted=rows.slice().sort((a,b)=>(idxOf(b)??-1)-(idxOf(a)??-1));
+    const done=rows.filter(r=>r.idx!=null).length;
+    const kpi='<div class="kpi">'+
+      '<div><b>'+rows.length+'</b><span>תלמידים</span></div>'+
+      '<div><b>'+(scored.length?avg.toFixed(1):"—")+'</b><span>ממוצע המדד</span></div>'+
+      '<div><b>'+done+'</b><span>עם מדד מלא</span></div>'+
+      '<div><b>'+usedTests.length+'</b><span>מבחנים במדד</span></div></div>';
+    const head='<tr><th style="width:4%">#</th><th>שם</th><th>מין</th>'+
+      usedTests.map(t=>'<th>'+esc(testById(t).name)+'</th>').join("")+'<th>מדד</th></tr>';
+    const body=sorted.map((r,i)=>{
+      const by={}; r.rows.forEach(x=>by[x.test]=x);
+      return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(r.s.name)+'</td>'+
+        '<td>'+(r.s.sex?(r.s.sex==="girls"?"בת":"בן"):"—")+'</td>'+
+        usedTests.map(t=>{const x=by[t];
+          return '<td class="n">'+(x?x.sc.toFixed(0):"—")+'</td>';}).join("")+
+        '<td class="n best">'+(r.idx!=null?r.idx.toFixed(1):"—")+'</td></tr>';
+    }).join("");
+    /* מי חסר — זו השאלה שמורה שואל בכל שיעור, ולכן היא בדוח ולא רק במסך */
+    const gaps=usedTests.map(t=>{
+      const miss=rows.filter(r=>!r.rows.some(x=>x.test===t));
+      return miss.length?'<tr><td>'+esc(testById(t).name)+'</td><td class="n">'+miss.length+'</td><td>'+
+        miss.map(r=>esc(r.s.name)).join(" · ")+'</td></tr>':"";
+    }).filter(Boolean).join("");
+    const gapBlock=gaps?'<h2>מי עוד לא נמדד</h2><table><thead><tr><th style="width:24%">מבחן</th><th style="width:8%">חסרים</th><th>תלמידים</th></tr></thead><tbody>'+gaps+'</tbody></table>':"";
+    rptOpen("דוח כיתה — "+c,
+      rptHead("דוח כושר כיתתי","כיתה "+c+" · "+(scoreMode()==="norm"?"ניקוד לפי טבלת נורמה":"ניקוד יחסי לשכבה"))+
+      kpi+'<h2>ציוני יכולת</h2><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+gapBlock+
+      '<div class="note">כל ציון מחושב מהתוצאה הטובה ביותר של התלמיד באותו מבחן. '+
+      'הדוח משקף יכולת גופנית בלבד — הציון בתעודה מורכב גם מהשתתפות, שיפור והתמדה, ואינו זהה למדד הזה. '+
+      'הנתונים נשמרים במכשיר המורה בלבד.</div>'+
+      '<div class="sig"><div>חתימת המורה</div><div>תאריך</div></div>');
   }
 
   function idxCsv(rows,usedTests){
