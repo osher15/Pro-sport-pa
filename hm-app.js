@@ -135,6 +135,10 @@ function go(mod){
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
+  updateBack(); wireTips();
+  /* המסך האחרון נשמר כדי שרענון או חזרה לאפליקציה יחזירו אותך לאן
+     שהיית — לא לדף הבית באמצע שיעור. */
+  if(!isStudent())LS.set("hx.lastMod",mod);
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
@@ -179,6 +183,73 @@ function applyTheme(){
   const mt=document.querySelector('meta[name="theme-color"]');
   if(mt)mt.setAttribute("content",{day:"#f4f6fa",sun:"#ffffff",turf:"#07130d",slate:"#101216"}[SET.theme]||"#0c0e1a");
   $$("#set-theme .thm").forEach(b=>b.classList.toggle("on",b.dataset.t===(SET.theme||"dark")));
+  const sb=$("#btnSun");
+  if(sb){ const on=SET.theme==="sun"||SET.theme==="day";
+    sb.classList.toggle("on",on);
+    sb.title=on?"חזרה לערכה הרגילה":"מצב שמש — ניגודיות גבוהה לאור יום"; }
+}
+
+/* ============================================================
+   ניווט: כפתור חזרה, זיכרון מסך אחרון, ומצב שמש בלחיצה
+   ------------------------------------------------------------
+   בשטח אין זמן לחפש בהגדרות. «מצב שמש» הוא כפתור בכותרת שמחליף
+   בין הערכה הרגילה לערכה בהירה בניגודיות גבוהה וחוזר — כך שמעבר
+   מהאולם למגרש שטוף שמש הוא הקשה אחת.
+   ============================================================ */
+function toggleSun(){
+  const on=SET.theme==="sun"||SET.theme==="day";
+  if(on){ SET.theme=LS.get("hx.themeBack","dark")||"dark"; }
+  else { LS.set("hx.themeBack",SET.theme||"dark"); SET.theme="sun"; }
+  saveSet(); applyTheme();
+  toast(SET.theme==="sun"?"☀ מצב שמש — ניגודיות גבוהה":"חזרה לערכה הרגילה");
+}
+/* היכן «חזרה» מוביל מכל מודול. הבית הוא היעד של רוב המסכים, אבל
+   מודולים שנפתחים מתוך «עוד» חוזרים לתפריט שממנו נכנסו, כי חזרה
+   לבית משם מרגישה כמו איבוד מקום. */
+const BACK_TO={games:"lesson",fit:"lesson"};
+function updateBack(){
+  const b=$("#btnBack"); if(!b)return;
+  const mod=document.body.dataset.mod||"home";
+  b.hidden = isStudent() || mod==="home";
+}
+function goBack(){
+  const mod=document.body.dataset.mod||"home";
+  /* אם המודול עצמו נמצא במסך פנימי — נותנים לו לטפל בחזרה קודם */
+  for(const fn of BACK_HOOKS){ try{ if(fn(mod))return; }catch(e){} }
+  if(MORE_MODS.includes(mod)){ go("home"); modal("moreModal",true); return; }
+  go(BACK_TO[mod]||"home");
+}
+/* מודול שיש בו מסך פנימי רושם כאן פונקציה. היא מקבלת את המודול
+   הפעיל, ומחזירה true אם היא טיפלה בחזרה בעצמה. */
+const BACK_HOOKS=[];
+function onBack(fn){ BACK_HOOKS.push(fn); }
+
+/* ---------- רמזים על כפתורים מורכבים ----------
+   data-tip על אלמנט → אייקון «?» לידו, והקשה עליו (או לחיצה ארוכה
+   על הכפתור עצמו) פותחת את ההסבר. בשטח עם כפויות אין ריחוף עכבר,
+   ולכן title לבדו לא מספיק. */
+function wireTips(root){
+  (root||document).querySelectorAll("[data-tip]").forEach(el=>{
+    if(el.dataset.tipReady)return; el.dataset.tipReady="1";
+    const q=document.createElement("span");
+    q.className="tip-q"; q.textContent="?"; q.setAttribute("role","button");
+    q.setAttribute("aria-label","הסבר");
+    q.addEventListener("click",ev=>{ ev.preventDefault(); ev.stopPropagation(); showTip(el.dataset.tip); });
+    el.insertAdjacentElement("afterend",q);
+    let t=null;
+    const cancel=()=>{ if(t){clearTimeout(t);t=null;} };
+    el.addEventListener("pointerdown",()=>{ cancel(); t=setTimeout(()=>{t=null;showTip(el.dataset.tip);},550); });
+    ["pointerup","pointerleave","pointercancel"].forEach(e=>el.addEventListener(e,cancel));
+  });
+}
+function showTip(txt){
+  const p=$("#tipPop"); if(!p||!txt)return;
+  $("#tipPopT").textContent=txt; p.hidden=false;
+}
+function wireTipPop(){
+  const p=$("#tipPop"); if(!p)return;
+  p.addEventListener("click",()=>{p.hidden=true;});
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape")p.hidden=true; });
 }
 
 /* ---------- settings ---------- */
@@ -2537,4 +2608,10 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
 window.HMBoot=function(){ applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
-  go(location.hash.slice(1)||"home"); homeStats(); };
+  wireTipPop();
+  const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
+  const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
+  /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */
+  const hash=location.hash.slice(1);
+  go(hash||(isStudent()?"rec":LS.get("hx.lastMod","home"))||"home");
+  homeStats(); };

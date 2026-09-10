@@ -1072,3 +1072,33 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   padding:6px 11px;font-size:12.5px}
 #bk-diff td:nth-child(2),#bk-diff td:nth-child(3){font-family:'Share Tech Mono';font-size:13px}
 #bk-diff tr.gone td{color:var(--warn)}
+
+/* ===== כפתור חזרה עקבי ===== */
+.backbtn{display:flex;align-items:center;gap:6px;background:var(--inset);border:1px solid var(--line);
+  color:var(--ink);border-radius:11px;padding:8px 12px;font-family:'Heebo';font-size:13.5px;font-weight:600;
+  cursor:pointer;min-height:var(--touch,40px);flex:none;transition:.12s}
+.backbtn[hidden]{display:none!important}
+.backbtn:active{transform:scale(.94)}
+.backbtn:hover{border-color:var(--acc);color:var(--acc)}
+@media(max-width:430px){.backbtn span{display:none}.backbtn{padding:8px 11px}}
+
+/* ===== מצב הדגמה ===== */
+#demoBar{position:sticky;top:0;z-index:120;display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 22%,var(--bg2));border-bottom:1px solid var(--warn);
+  color:var(--warn);padding:8px 14px;font-size:13px;font-weight:600}
+#demoBar[hidden]{display:none!important}
+.lock-about{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;
+  color:var(--muted);line-height:1.7;text-align:start}
+.lock-about b{color:var(--ink)}
+
+/* ===== רמזים על כפתורים ===== */
+.tip-q{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;flex:none;
+  border:1px solid var(--line);background:var(--inset);color:var(--muted);font-size:11px;font-weight:700;
+  cursor:help;margin-inline-start:5px;vertical-align:middle}
+.tip-q:hover{border-color:var(--acc);color:var(--acc)}
+#tipPop{position:fixed;inset:0;z-index:320;display:grid;place-items:center;padding:22px;
+  background:rgba(2,7,5,.6);backdrop-filter:blur(3px)}
+#tipPop[hidden]{display:none!important}
+#tipPop .tp{background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:16px 18px;
+  max-width:380px;font-size:14px;line-height:1.75;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.iconbtn.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel))}

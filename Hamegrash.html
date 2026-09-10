@@ -1084,17 +1084,50 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 #bk-diff td:nth-child(2),#bk-diff td:nth-child(3){font-family:'Share Tech Mono';font-size:13px}
 #bk-diff tr.gone td{color:var(--warn)}
 
+/* ===== כפתור חזרה עקבי ===== */
+.backbtn{display:flex;align-items:center;gap:6px;background:var(--inset);border:1px solid var(--line);
+  color:var(--ink);border-radius:11px;padding:8px 12px;font-family:'Heebo';font-size:13.5px;font-weight:600;
+  cursor:pointer;min-height:var(--touch,40px);flex:none;transition:.12s}
+.backbtn[hidden]{display:none!important}
+.backbtn:active{transform:scale(.94)}
+.backbtn:hover{border-color:var(--acc);color:var(--acc)}
+@media(max-width:430px){.backbtn span{display:none}.backbtn{padding:8px 11px}}
+
+/* ===== מצב הדגמה ===== */
+#demoBar{position:sticky;top:0;z-index:120;display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 22%,var(--bg2));border-bottom:1px solid var(--warn);
+  color:var(--warn);padding:8px 14px;font-size:13px;font-weight:600}
+#demoBar[hidden]{display:none!important}
+.lock-about{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;
+  color:var(--muted);line-height:1.7;text-align:start}
+.lock-about b{color:var(--ink)}
+
+/* ===== רמזים על כפתורים ===== */
+.tip-q{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;flex:none;
+  border:1px solid var(--line);background:var(--inset);color:var(--muted);font-size:11px;font-weight:700;
+  cursor:help;margin-inline-start:5px;vertical-align:middle}
+.tip-q:hover{border-color:var(--acc);color:var(--acc)}
+#tipPop{position:fixed;inset:0;z-index:320;display:grid;place-items:center;padding:22px;
+  background:rgba(2,7,5,.6);backdrop-filter:blur(3px)}
+#tipPop[hidden]{display:none!important}
+#tipPop .tp{background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:16px 18px;
+  max-width:380px;font-size:14px;line-height:1.75;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.iconbtn.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel))}
+
 </style>
 </head>
 <body>
 <div class="app" dir="rtl">
 <div class="topbar">
+  <button class="backbtn" id="btnBack" hidden>→<span>חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
-    <span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
+    <span class="clock" id="topClock">--:--</span>
+    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום">☀</button>
+    <button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
 </div>
 <section class="view" id="view-home">
   <div class="hero">
@@ -1141,7 +1174,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
         <div class="seg" id="bt-distSeg"><button data-d="15">15 מ׳</button><button data-d="20" class="on">20 מ׳</button></div>
       </div>
       <div class="field"><label>מהירות שלב 1 (קמ״ש)</label>
-        <div class="stepper"><button id="bt-spMinus">−</button><div class="val" id="bt-spVal">8.0</div><button id="bt-spPlus">+</button></div>
+        <div class="stepper" data-tip="מהירות ההתחלה בפרוטוקול התקני של Léger היא 8.0 קמ״ש למסלול 20 מ׳. שינוי שלה משנה את כל לוח הזמנים של הביפים, ולכן ערכי ה-VO₂max יוצגו כהערכה בלבד — הנורמות של FITNESSGRAM מבוססות על הפרוטוקול התקני."><button id="bt-spMinus">−</button><div class="val" id="bt-spVal">8.0</div><button id="bt-spPlus">+</button></div>
       </div>
       <button class="btn sm ghost" id="bt-spStd">↺ תקני (8.0)</button>
       <span class="pill acc" id="bt-protoPill">פרוטוקול תקני</span>
@@ -1262,7 +1295,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
       </div>
       <div class="row" style="margin-top:10px">
         <div class="field grow"><label>מיקום קו הסיום</label><input type="range" id="pf-lineRange" min="5" max="95" value="50"></div>
-        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45"></div>
+        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45" data-tip="כמה שינוי בתמונה נחשב «רץ עבר». נמוך מדי — צל, ענף או תלמיד ברקע נספרים כחצייה. גבוה מדי — רץ בחולצה בהירה על רקע בהיר לא נתפס. התחל ב-45, ואם יש חציות מדומות העלה בהדרגה."</div>
         <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
         <div class="field" style="width:104px"><label>זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
       </div>
@@ -1272,7 +1305,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
       </div>
       <div class="row" style="margin-top:9px">
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
-          <input type="number" id="pf-gunDist" value="0" min="0" step="1"></div>
+          <input type="number" id="pf-gunDist" value="0" min="0" step="1" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."</div>
         <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
@@ -2448,6 +2481,9 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div id="demoBar" hidden>🎬 <b>מצב הדגמה</b> — הנתונים כאן הם דוגמה
+  <button class="btn sm" id="demoClear">נקה נתוני הדגמה</button></div>
+<div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
 <div id="toast"><div class="t" id="toastT"></div></div>
 
 <div class="modal" id="stu-modal"><div class="box">
@@ -2474,6 +2510,12 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   <div class="lock-or"><span>או</span></div>
   <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
   <p class="lock-note">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
+  <button class="btn big ghost" id="lock-demo" style="margin-top:10px">🎬 מצב הדגמה — סיור בלי קוד</button>
+  <p class="lock-note">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
+  <div class="lock-about">
+    <b>מה זה?</b> ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור, שיאים וציונים.<br>
+    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת, אין חשבון, שום דבר לא נשלח לשום מקום.
+  </div>
 </div></div>
 <script>
 
@@ -2613,6 +2655,10 @@ function go(mod){
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
+  updateBack(); wireTips();
+  /* המסך האחרון נשמר כדי שרענון או חזרה לאפליקציה יחזירו אותך לאן
+     שהיית — לא לדף הבית באמצע שיעור. */
+  if(!isStudent())LS.set("hx.lastMod",mod);
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
@@ -2657,6 +2703,73 @@ function applyTheme(){
   const mt=document.querySelector('meta[name="theme-color"]');
   if(mt)mt.setAttribute("content",{day:"#f4f6fa",sun:"#ffffff",turf:"#07130d",slate:"#101216"}[SET.theme]||"#0c0e1a");
   $$("#set-theme .thm").forEach(b=>b.classList.toggle("on",b.dataset.t===(SET.theme||"dark")));
+  const sb=$("#btnSun");
+  if(sb){ const on=SET.theme==="sun"||SET.theme==="day";
+    sb.classList.toggle("on",on);
+    sb.title=on?"חזרה לערכה הרגילה":"מצב שמש — ניגודיות גבוהה לאור יום"; }
+}
+
+/* ============================================================
+   ניווט: כפתור חזרה, זיכרון מסך אחרון, ומצב שמש בלחיצה
+   ------------------------------------------------------------
+   בשטח אין זמן לחפש בהגדרות. «מצב שמש» הוא כפתור בכותרת שמחליף
+   בין הערכה הרגילה לערכה בהירה בניגודיות גבוהה וחוזר — כך שמעבר
+   מהאולם למגרש שטוף שמש הוא הקשה אחת.
+   ============================================================ */
+function toggleSun(){
+  const on=SET.theme==="sun"||SET.theme==="day";
+  if(on){ SET.theme=LS.get("hx.themeBack","dark")||"dark"; }
+  else { LS.set("hx.themeBack",SET.theme||"dark"); SET.theme="sun"; }
+  saveSet(); applyTheme();
+  toast(SET.theme==="sun"?"☀ מצב שמש — ניגודיות גבוהה":"חזרה לערכה הרגילה");
+}
+/* היכן «חזרה» מוביל מכל מודול. הבית הוא היעד של רוב המסכים, אבל
+   מודולים שנפתחים מתוך «עוד» חוזרים לתפריט שממנו נכנסו, כי חזרה
+   לבית משם מרגישה כמו איבוד מקום. */
+const BACK_TO={games:"lesson",fit:"lesson"};
+function updateBack(){
+  const b=$("#btnBack"); if(!b)return;
+  const mod=document.body.dataset.mod||"home";
+  b.hidden = isStudent() || mod==="home";
+}
+function goBack(){
+  const mod=document.body.dataset.mod||"home";
+  /* אם המודול עצמו נמצא במסך פנימי — נותנים לו לטפל בחזרה קודם */
+  for(const fn of BACK_HOOKS){ try{ if(fn(mod))return; }catch(e){} }
+  if(MORE_MODS.includes(mod)){ go("home"); modal("moreModal",true); return; }
+  go(BACK_TO[mod]||"home");
+}
+/* מודול שיש בו מסך פנימי רושם כאן פונקציה. היא מקבלת את המודול
+   הפעיל, ומחזירה true אם היא טיפלה בחזרה בעצמה. */
+const BACK_HOOKS=[];
+function onBack(fn){ BACK_HOOKS.push(fn); }
+
+/* ---------- רמזים על כפתורים מורכבים ----------
+   data-tip על אלמנט → אייקון «?» לידו, והקשה עליו (או לחיצה ארוכה
+   על הכפתור עצמו) פותחת את ההסבר. בשטח עם כפויות אין ריחוף עכבר,
+   ולכן title לבדו לא מספיק. */
+function wireTips(root){
+  (root||document).querySelectorAll("[data-tip]").forEach(el=>{
+    if(el.dataset.tipReady)return; el.dataset.tipReady="1";
+    const q=document.createElement("span");
+    q.className="tip-q"; q.textContent="?"; q.setAttribute("role","button");
+    q.setAttribute("aria-label","הסבר");
+    q.addEventListener("click",ev=>{ ev.preventDefault(); ev.stopPropagation(); showTip(el.dataset.tip); });
+    el.insertAdjacentElement("afterend",q);
+    let t=null;
+    const cancel=()=>{ if(t){clearTimeout(t);t=null;} };
+    el.addEventListener("pointerdown",()=>{ cancel(); t=setTimeout(()=>{t=null;showTip(el.dataset.tip);},550); });
+    ["pointerup","pointerleave","pointercancel"].forEach(e=>el.addEventListener(e,cancel));
+  });
+}
+function showTip(txt){
+  const p=$("#tipPop"); if(!p||!txt)return;
+  $("#tipPopT").textContent=txt; p.hidden=false;
+}
+function wireTipPop(){
+  const p=$("#tipPop"); if(!p)return;
+  p.addEventListener("click",()=>{p.hidden=true;});
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape")p.hidden=true; });
 }
 
 /* ---------- settings ---------- */
@@ -5015,7 +5128,13 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
 window.HMBoot=function(){ applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
-  go(location.hash.slice(1)||"home"); homeStats(); };
+  wireTipPop();
+  const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
+  const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
+  /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */
+  const hash=location.hash.slice(1);
+  go(hash||(isStudent()?"rec":LS.get("hx.lastMod","home"))||"home");
+  homeStats(); };
 
 ;
 "use strict";
@@ -11708,6 +11827,76 @@ window.HMBootNew=function(){
     $("#lockOv").classList.remove("on");
     H0.go("rec"); toast("מצב תלמיד — צפייה בשיאים ושליחת שיא חדש");
   });
+
+  /* ---------- מצב הדגמה ----------
+     מורה שמקבל את האפליקציה בפעם הראשונה לא יודע מה היא עושה, ומסך
+     ריק לא מסביר. ההדגמה זורעת כיתה אחת עם תוצאות אמיתיות למראה כדי
+     שאפשר יהיה להסתובב בכל המסכים ולראות אותם מלאים.
+
+     ההדגמה זורעת רק על מכשיר ריק. אם כבר יש נתונים אמיתיים — היא
+     מסרבת ומציעה גיבוי, כי כיתה מומצאת שמתערבבת בתלמידים אמיתיים
+     היא בדיוק סוג הנזק ששקט אי אפשר לגלות אחר כך. */
+  const DEMO_KEY="hx.demo";
+  const demoOn=()=>!!LS.get(DEMO_KEY,false);
+  function hasRealData(){
+    const n=k=>{ const v=LS.get(k,null);
+      return Array.isArray(v)?v.length:(v&&typeof v==="object"?Object.keys(v).length:0); };
+    return n("ft.results")+n("stu.list")+n("rec.list")+n("ft.roster")+n("bt.results")>0;
+  }
+  function seedDemo(){
+    const cls="ט׳3", key="ט3";
+    const kids=[["דן אבירם","boys"],["איתי כהן","boys"],["רון לוי","boys"],["עומר בר","boys"],
+                ["יהב שני","boys"],["ניר גל","boys"],["אלון מור","boys"],["גיא פרץ","boys"]];
+    LS.set("ft.roster",{[key]:kids.map((k,i)=>({id:"demo"+i,name:k[0],sex:k[1]}))});
+    LS.set("stu.list",kids.map((k,i)=>({id:"demo"+i,name:k[0],cls,sex:k[1]})));
+    LS.set("ft.last",{grade:"ט",num:3,sort:"todo"});
+    const day=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+    const res=[]; let id=0;
+    const put=(t,unit,vals,d)=>kids.forEach((k,i)=>{ if(vals[i]==null)return;
+      res.push({id:"dm"+(id++),ts:Date.now()-id*1000,d,cls,test:t,name:k[0],sid:"demo"+i,
+        gradeKey:"ט",sex:k[1],val:vals[i],unit}); });
+    /* שתי מדידות לאותם מבחנים בהפרש חודשיים — כך «שיפור», «ניסיונות»
+       ו«הטוב ביותר» מציגים משהו אמיתי ולא עמודה ריקה. */
+    put("r60","שנ׳",[9.1,8.6,9.4,8.2,10.1,9.7,8.9,9.9],day(64));
+    put("r60","שנ׳",[8.7,8.4,9.1,8.0,9.6,9.3,8.6,9.5],day(5));
+    put("push","חזרות",[22,31,18,38,12,16,26,14],day(64));
+    put("push","חזרות",[27,35,23,42,17,21,30,19],day(5));
+    put("situp","חזרות",[41,52,37,58,29,33,46,31],day(12));
+    put("ljump","ס״מ",[198,221,186,236,164,175,207,169],day(12));
+    put("beep","מ׳",[880,1140,760,1320,540,660,980,600],day(33));
+    LS.set("ft.results",res);
+    LS.set(DEMO_KEY,true);
+  }
+  function clearDemo(){
+    ["ft.results","ft.roster","ft.last","stu.list","bt.results","bt.heat","pf.names"]
+      .forEach(k=>{ try{ localStorage.removeItem("pehub."+k); }catch(e){} });
+    LS.set(DEMO_KEY,false);
+    try{ localStorage.removeItem("pehub."+DEMO_KEY); }catch(e){}
+  }
+  function paintDemoBar(){
+    const bar=$("#demoBar"); if(!bar)return;
+    bar.hidden=!(demoOn()&&H0.role()!=="student");
+  }
+  const demoBtn=$("#lock-demo");
+  if(demoBtn)demoBtn.addEventListener("click",()=>{
+    if(hasRealData()&&!demoOn()){
+      toast("יש כבר נתונים במכשיר — ההדגמה לא תרוץ מעליהם");
+      alert("במכשיר הזה כבר יש נתונים אמיתיים.\n\nמצב הדגמה זורע כיתה מומצאת, ולכן הוא פועל רק על מכשיר ריק — כדי שלא תתערבב עם תלמידים אמיתיים.\n\nכדי לראות הדגמה: גבה את הנתונים (הגדרות ← גיבוי), נקה, והפעל הדגמה. אחר כך שחזר.");
+      return;
+    }
+    if(!demoOn())seedDemo();
+    sessionStorage.setItem("pehub.unlocked","1");
+    H0.setRole("teacher");
+    $("#lockOv").classList.remove("on");
+    paintDemoBar(); H0.go("ft");
+    toast("🎬 מצב הדגמה — כיתה ט׳3 לדוגמה");
+  });
+  const dc=$("#demoClear");
+  if(dc)dc.addEventListener("click",()=>{
+    if(!confirm("למחוק את נתוני ההדגמה?\n\nהכיתה לדוגמה והתוצאות שלה יימחקו, והאפליקציה תחזור להיות ריקה ומוכנה לנתונים אמיתיים."))return;
+    clearDemo(); toast("נתוני ההדגמה נמחקו"); setTimeout(()=>location.reload(),600);
+  });
+  paintDemoBar();
 
   /* מעבר למצב תלמיד מתוך האפליקציה (מוסרים את המכשיר לכיתה) */
   const handBtn=$("#rec-handBtn");

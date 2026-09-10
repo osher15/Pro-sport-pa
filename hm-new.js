@@ -746,6 +746,76 @@ window.HMBootNew=function(){
     H0.go("rec"); toast("מצב תלמיד — צפייה בשיאים ושליחת שיא חדש");
   });
 
+  /* ---------- מצב הדגמה ----------
+     מורה שמקבל את האפליקציה בפעם הראשונה לא יודע מה היא עושה, ומסך
+     ריק לא מסביר. ההדגמה זורעת כיתה אחת עם תוצאות אמיתיות למראה כדי
+     שאפשר יהיה להסתובב בכל המסכים ולראות אותם מלאים.
+
+     ההדגמה זורעת רק על מכשיר ריק. אם כבר יש נתונים אמיתיים — היא
+     מסרבת ומציעה גיבוי, כי כיתה מומצאת שמתערבבת בתלמידים אמיתיים
+     היא בדיוק סוג הנזק ששקט אי אפשר לגלות אחר כך. */
+  const DEMO_KEY="hx.demo";
+  const demoOn=()=>!!LS.get(DEMO_KEY,false);
+  function hasRealData(){
+    const n=k=>{ const v=LS.get(k,null);
+      return Array.isArray(v)?v.length:(v&&typeof v==="object"?Object.keys(v).length:0); };
+    return n("ft.results")+n("stu.list")+n("rec.list")+n("ft.roster")+n("bt.results")>0;
+  }
+  function seedDemo(){
+    const cls="ט׳3", key="ט3";
+    const kids=[["דן אבירם","boys"],["איתי כהן","boys"],["רון לוי","boys"],["עומר בר","boys"],
+                ["יהב שני","boys"],["ניר גל","boys"],["אלון מור","boys"],["גיא פרץ","boys"]];
+    LS.set("ft.roster",{[key]:kids.map((k,i)=>({id:"demo"+i,name:k[0],sex:k[1]}))});
+    LS.set("stu.list",kids.map((k,i)=>({id:"demo"+i,name:k[0],cls,sex:k[1]})));
+    LS.set("ft.last",{grade:"ט",num:3,sort:"todo"});
+    const day=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+    const res=[]; let id=0;
+    const put=(t,unit,vals,d)=>kids.forEach((k,i)=>{ if(vals[i]==null)return;
+      res.push({id:"dm"+(id++),ts:Date.now()-id*1000,d,cls,test:t,name:k[0],sid:"demo"+i,
+        gradeKey:"ט",sex:k[1],val:vals[i],unit}); });
+    /* שתי מדידות לאותם מבחנים בהפרש חודשיים — כך «שיפור», «ניסיונות»
+       ו«הטוב ביותר» מציגים משהו אמיתי ולא עמודה ריקה. */
+    put("r60","שנ׳",[9.1,8.6,9.4,8.2,10.1,9.7,8.9,9.9],day(64));
+    put("r60","שנ׳",[8.7,8.4,9.1,8.0,9.6,9.3,8.6,9.5],day(5));
+    put("push","חזרות",[22,31,18,38,12,16,26,14],day(64));
+    put("push","חזרות",[27,35,23,42,17,21,30,19],day(5));
+    put("situp","חזרות",[41,52,37,58,29,33,46,31],day(12));
+    put("ljump","ס״מ",[198,221,186,236,164,175,207,169],day(12));
+    put("beep","מ׳",[880,1140,760,1320,540,660,980,600],day(33));
+    LS.set("ft.results",res);
+    LS.set(DEMO_KEY,true);
+  }
+  function clearDemo(){
+    ["ft.results","ft.roster","ft.last","stu.list","bt.results","bt.heat","pf.names"]
+      .forEach(k=>{ try{ localStorage.removeItem("pehub."+k); }catch(e){} });
+    LS.set(DEMO_KEY,false);
+    try{ localStorage.removeItem("pehub."+DEMO_KEY); }catch(e){}
+  }
+  function paintDemoBar(){
+    const bar=$("#demoBar"); if(!bar)return;
+    bar.hidden=!(demoOn()&&H0.role()!=="student");
+  }
+  const demoBtn=$("#lock-demo");
+  if(demoBtn)demoBtn.addEventListener("click",()=>{
+    if(hasRealData()&&!demoOn()){
+      toast("יש כבר נתונים במכשיר — ההדגמה לא תרוץ מעליהם");
+      alert("במכשיר הזה כבר יש נתונים אמיתיים.\n\nמצב הדגמה זורע כיתה מומצאת, ולכן הוא פועל רק על מכשיר ריק — כדי שלא תתערבב עם תלמידים אמיתיים.\n\nכדי לראות הדגמה: גבה את הנתונים (הגדרות ← גיבוי), נקה, והפעל הדגמה. אחר כך שחזר.");
+      return;
+    }
+    if(!demoOn())seedDemo();
+    sessionStorage.setItem("pehub.unlocked","1");
+    H0.setRole("teacher");
+    $("#lockOv").classList.remove("on");
+    paintDemoBar(); H0.go("ft");
+    toast("🎬 מצב הדגמה — כיתה ט׳3 לדוגמה");
+  });
+  const dc=$("#demoClear");
+  if(dc)dc.addEventListener("click",()=>{
+    if(!confirm("למחוק את נתוני ההדגמה?\n\nהכיתה לדוגמה והתוצאות שלה יימחקו, והאפליקציה תחזור להיות ריקה ומוכנה לנתונים אמיתיים."))return;
+    clearDemo(); toast("נתוני ההדגמה נמחקו"); setTimeout(()=>location.reload(),600);
+  });
+  paintDemoBar();
+
   /* מעבר למצב תלמיד מתוך האפליקציה (מוסרים את המכשיר לכיתה) */
   const handBtn=$("#rec-handBtn");
   if(handBtn)handBtn.addEventListener("click",()=>{

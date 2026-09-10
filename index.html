@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=6cf7da6d">
-<script src="hm-app.js?v=6d797d57"></script>
+<link rel="stylesheet" href="hm-styles.css?v=5ecd8fd7">
+<script src="hm-app.js?v=a4dace5b"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -22,16 +22,19 @@
 <script src="hm-lesson.js?v=fa4422f0"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=d1873503"></script>
-<script src="hm-new.js?v=e443f3c8"></script>
+<script src="hm-new.js?v=ce6fbb0e"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
+  <button class="backbtn" id="btnBack" hidden>→<span>חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
-    <span class="clock" id="topClock">--:--</span><button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
+    <span class="clock" id="topClock">--:--</span>
+    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום">☀</button>
+    <button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
 </div>
 <section class="view" id="view-home">
   <div class="hero">
@@ -78,7 +81,7 @@
         <div class="seg" id="bt-distSeg"><button data-d="15">15 מ׳</button><button data-d="20" class="on">20 מ׳</button></div>
       </div>
       <div class="field"><label>מהירות שלב 1 (קמ״ש)</label>
-        <div class="stepper"><button id="bt-spMinus">−</button><div class="val" id="bt-spVal">8.0</div><button id="bt-spPlus">+</button></div>
+        <div class="stepper" data-tip="מהירות ההתחלה בפרוטוקול התקני של Léger היא 8.0 קמ״ש למסלול 20 מ׳. שינוי שלה משנה את כל לוח הזמנים של הביפים, ולכן ערכי ה-VO₂max יוצגו כהערכה בלבד — הנורמות של FITNESSGRAM מבוססות על הפרוטוקול התקני."><button id="bt-spMinus">−</button><div class="val" id="bt-spVal">8.0</div><button id="bt-spPlus">+</button></div>
       </div>
       <button class="btn sm ghost" id="bt-spStd">↺ תקני (8.0)</button>
       <span class="pill acc" id="bt-protoPill">פרוטוקול תקני</span>
@@ -199,7 +202,7 @@
       </div>
       <div class="row" style="margin-top:10px">
         <div class="field grow"><label>מיקום קו הסיום</label><input type="range" id="pf-lineRange" min="5" max="95" value="50"></div>
-        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45"></div>
+        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45" data-tip="כמה שינוי בתמונה נחשב «רץ עבר». נמוך מדי — צל, ענף או תלמיד ברקע נספרים כחצייה. גבוה מדי — רץ בחולצה בהירה על רקע בהיר לא נתפס. התחל ב-45, ואם יש חציות מדומות העלה בהדרגה."</div>
         <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
         <div class="field" style="width:104px"><label>זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
       </div>
@@ -209,7 +212,7 @@
       </div>
       <div class="row" style="margin-top:9px">
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
-          <input type="number" id="pf-gunDist" value="0" min="0" step="1"></div>
+          <input type="number" id="pf-gunDist" value="0" min="0" step="1" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."</div>
         <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
@@ -1385,6 +1388,9 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div id="demoBar" hidden>🎬 <b>מצב הדגמה</b> — הנתונים כאן הם דוגמה
+  <button class="btn sm" id="demoClear">נקה נתוני הדגמה</button></div>
+<div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
 <div id="toast"><div class="t" id="toastT"></div></div>
 
 <div class="modal" id="stu-modal"><div class="box">
@@ -1411,6 +1417,12 @@
   <div class="lock-or"><span>או</span></div>
   <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
   <p class="lock-note">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
+  <button class="btn big ghost" id="lock-demo" style="margin-top:10px">🎬 מצב הדגמה — סיור בלי קוד</button>
+  <p class="lock-note">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
+  <div class="lock-about">
+    <b>מה זה?</b> ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור, שיאים וציונים.<br>
+    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת, אין חשבון, שום דבר לא נשלח לשום מקום.
+  </div>
 </div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
