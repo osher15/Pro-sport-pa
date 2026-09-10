@@ -85,6 +85,14 @@ const TESTS=[
    hint:"דקה על השעון. ברכיים כפופות, ידיים מוצלבות על החזה, בן זוג מחזיק רגליים."},
   {id:"pull", em:"🧗", name:"מתח",                cat:"reps", kind:"count", dir:"high", unit:"חזרות",
    hint:"אחיזה עליונה ברוחב כתפיים. הסנטר עובר את המוט, ירידה ליישור מלא."},
+  {id:"pbars",em:"🤸", name:"מקבילים",            cat:"reps", kind:"count", dir:"high", unit:"חזרות",
+   hint:"שכיבות שמיכה במקבילים: ירידה עד 90° במרפק, פשיטה מלאה למעלה. גוף יציב בלי נדנוד."},
+  {id:"gaks", em:"💪", name:"גקסונים",            cat:"reps", kind:"count", dir:"high", unit:"חזרות", cap:80,
+   hint:"החלופה למי שלא מצליח במקבילים. מינימום 20 חזרות לעבור. הציון המרבי הוא 80 — כי זו הגרסה הקלה יותר."},
+  {id:"invrow",em:"🪜", name:"מתח אוסטרלי (חתירה אופקית)", cat:"reps", kind:"count", dir:"high", unit:"חזרות", cap:85,
+   hint:"מוט נמוך, גוף ישר באלכסון, חזה נוגע במוט. החלופה למי שלא מצליח במתח — ציון מרבי 85."},
+  {id:"rope", em:"🪢", name:"טיפוס חבל",          cat:"reps", kind:"value", dir:"high", unit:"מ׳",
+   hint:"מודדים את הגובה שהתלמיד הגיע אליו. בלי רגליים — בהתאם לרמת הכיתה."},
   {id:"sq60", em:"🦵", name:"סקוואט — 60 שנ׳",    cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
    hint:"ירידה עד 90° בברכיים. חזרה שלא הגיעה לעומק לא נספרת."},
   {id:"jr60", em:"🪢", name:"קפיצות בחבל — 60 שנ׳",cat:"reps", kind:"count", dir:"high", unit:"קפיצות", dur:60,
@@ -173,6 +181,8 @@ window.FT=(function(){
   /* הקפות של המקצה הנוכחי: {שם: [זמן הקפה 1, 2, ...]}. חי בזיכרון בזמן
      המקצה; הזמן הסופי נשמר כרגיל, והפערים נשמרים איתו לצפייה מאוחרת. */
   let lapRun={};
+  /* שמות שסומנו ל«ניסיון חדש» — המדידה הבאה שלהם תיפתח כרשומה נפרדת */
+  let pendingNew={};
   let cd ={on:false,end:0,raf:0};              /* ספירה לאחור למבחנים קצובים */
 
   const LS=()=>H().LS;
@@ -206,29 +216,56 @@ window.FT=(function(){
 
   /* ---------- תוצאות ---------- */
   const resultsFor=(c,testId)=>allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId);
+  /* ---------- ניסיונות ----------
+     כל מדידה נשמרת כרשומה נפרדת, ולא דורסת את הקודמת. תלמיד יכול
+     לנסות שוב באותו שיעור וגם בשיעור אחר, וההיסטוריה נשמרת כדי
+     שאפשר יהיה לראות התקדמות. התוצאה שנחשבת היא תמיד הטובה ביותר. */
+  function attempts(c,testId,name){
+    return resultsFor(c,testId).filter(r=>r.name===name)
+      .sort((a,b)=>(a.d.localeCompare(b.d))||((a.ts||0)-(b.ts||0)));
+  }
+  function bestOf(T,list){
+    if(!list||!list.length)return null;
+    return list.reduce((a,b)=>better(T,b.val,a.val)?b:a);
+  }
+  /* הטובה ביותר אי פעם — זו שנכנסת לניקוד ולמדד */
+  function bestResult(c,testId,name){
+    return bestOf(testById(testId),attempts(c,testId,name));
+  }
+  /* הטובה של היום — מה שנמדד בשיעור הנוכחי */
   function todayResult(c,testId,name){
-    return resultsFor(c,testId).find(r=>r.name===name&&r.d===today())||null;
+    return bestOf(testById(testId),attempts(c,testId,name).filter(r=>r.d===today()));
   }
-  /* התוצאה הקודמת של אותו תלמיד באותו מבחן — לשם השוואה אישית */
+  /* הטובה מלפני היום — בסיס להשוואת התקדמות */
   function prevResult(c,testId,name){
-    const rs=resultsFor(c,testId).filter(r=>r.name===name&&r.d!==today())
-      .sort((a,b)=>b.d.localeCompare(a.d));
-    return rs[0]||null;
+    return bestOf(testById(testId),attempts(c,testId,name).filter(r=>r.d!==today()));
   }
-  function saveVal(c,testId,stud,val){
+  /* הרשומה שנערכת כרגע: האחרונה של היום. מונה חזרות והזנת מדידה
+     מעדכנים אותה במקום ליצור ניסיון חדש בכל הקשה. */
+  function openAttempt(c,testId,name){
+    const t=attempts(c,testId,name).filter(r=>r.d===today());
+    return t.length?t[t.length-1]:null;
+  }
+  function saveVal(c,testId,stud,val,fresh){
     const T=testById(testId); if(!T||!(val>0))return;
     const rs=allRes();
-    const i=rs.findIndex(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.name===stud.name&&r.d===today());
-    const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,5),
+    let i=-1;
+    if(!fresh){
+      const cur=openAttempt(c,testId,stud.name);
+      if(cur)i=rs.findIndex(r=>r.id===cur.id);
+    }
+    const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,6),
       ts:Date.now(),d:today(),cls:c,test:testId,name:stud.name,sid:stud.id||null,
       gradeKey:st.grade,sex:stud.sex||null,
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
   }
+  function delAttempt(id){ setRes(allRes().filter(r=>r.id!==id)); }
   function clearVal(c,testId,name){
     setRes(allRes().filter(r=>!(clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.name===name&&r.d===today())));
   }
+  /* «better» מוגדר למטה יחד עם fmtVal — כאן רק מפנים אליו */
 
   /* ---------- תצוגת ערכים ---------- */
   function fmtVal(T,v){
@@ -269,14 +306,17 @@ window.FT=(function(){
     return percentile(vals,val,T.dir);
   }
   /* הציון הסופי לתוצאה בודדת + מאיפה הוא הגיע */
+  /* מבחן חלופי נושא תקרת ציון: הוא מאפשר לעבור, אבל לא להגיע לציון
+     של המבחן המלא — אחרת אין שום תמריץ לנסות את הקשה. */
+  const capOf=tid=>{ const T=testById(tid); return T&&T.cap?T.cap:100; };
   function scoreOne(testId,stud,grade,val){
-    const sex=sexOf(stud);
+    const sex=sexOf(stud), cap=capOf(testId);
     if(scoreMode()==="norm"){
       const n=normScore(testId,sex,grade,val);
-      if(n!=null)return {v:n,src:"norm"};
+      if(n!=null)return {v:Math.min(cap,n),src:"norm",capped:cap<100};
     }
     const r=relScore(testId,sex,grade,val);
-    if(r!=null)return {v:r,src:"rel"};
+    if(r!=null)return {v:Math.min(cap,r),src:"rel",capped:cap<100};
     return {v:null,src:null};
   }
   /* המדד המשוקלל של תלמיד: ממוצע הציונים על המבחנים שנבחרו */
@@ -284,8 +324,10 @@ window.FT=(function(){
     const want=idxTests();
     const mine=allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.name===stud.name);
     /* התוצאה האחרונה בכל מבחן */
+    /* המדד מנקד את התוצאה הטובה ביותר בכל מבחן, לא את האחרונה */
     const byTest={};
-    mine.forEach(r=>{ if(!byTest[r.test]||r.d>byTest[r.test].d)byTest[r.test]=r; });
+    mine.forEach(r=>{ const T2=testById(r.test); if(!T2)return;
+      if(!byTest[r.test]||better(T2,r.val,byTest[r.test].val))byTest[r.test]=r; });
     const rows=Object.values(byTest)
       .filter(r=>!want.length||want.includes(r.test))
       .map(r=>{ const sc=scoreOne(r.test,stud,grade,r.val); return {test:r.test,val:r.val,d:r.d,sc:sc.v,src:sc.src}; })
@@ -348,7 +390,7 @@ window.FT=(function(){
       H().toast("למבחן הזה יש מודול ייעודי — מעביר אותך אליו");
       H().go(T.link); return;
     }
-    st.test=id; stopClock(true); stopCd(); lapRun={}; clk.paused=0;
+    st.test=id; stopClock(true); stopCd(); lapRun={}; pendingNew={}; clk.paused=0;
     H().$("#ft-pick").style.display="none";
     H().$("#ft-idx").style.display="none";
     H().$("#ft-ot").style.display="none";
@@ -438,16 +480,21 @@ window.FT=(function(){
 
     /* --- רשימת התלמידים --- */
     $("#ft-list").innerHTML=rst.length?rst.map(s=>{
+      const all=attempts(c,T.id,s.name);
       const r=todayResult(c,T.id,s.name), pv=prevResult(c,T.id,s.name);
+      const bst=bestOf(T,all);
+      const isPR=!!(r&&bst&&r.id===bst.id&&all.length>1);   /* השיא האישי נקבע היום */
       let delta="";
       if(r&&pv){
         const imp=better(T,r.val,pv.val);
-        const d=Math.abs(r.val-pv.val);
-        delta=`<span class="dl ${imp?"up":"down"}">${imp?"▲":"▼"} ${fmtVal(T,d)}</span>`;
+        delta=`<span class="dl ${imp?"up":"down"}">${imp?"▲":"▼"} ${fmtVal(T,Math.abs(r.val-pv.val))}</span>`;
       }
       return `<div class="ft-row${r?" done":""}" data-n="${esc(s.name)}">
-        <div class="nm">${esc(s.name)}${pv?`<span class="pv">קודם: ${fmtVal(T,pv.val)}</span>`:""}</div>
-        <div class="vl">${r?fmtVal(T,r.val):"—"}${delta}</div>
+        <div class="nm" data-card="${esc(s.name)}" title="כרטיס התלמיד">${esc(s.name)}${
+          all.length?`<span class="pv">${
+            bst?`⭐ הטוב: ${fmtVal(T,bst.val)}`:""}${all.length>1?` · ${all.length} ניסיונות`:""}</span>`:""}</div>
+        <div class="vl${isPR?" pr":""}" data-hist="${esc(s.name)}" title="היסטוריית ניסיונות">${
+          r?fmtVal(T,r.val):"—"}${delta}</div>
         ${T.kind==="clock"
           ? (()=>{ const need=T.dir==="low"?lapsFor(T.id):1, done=(lapRun[s.name]||[]).length;
               const lbl=r?"↺ שוב":(need>1?`⏱ ${done+1}/${need}`:"⏱ קלוט");
@@ -455,11 +502,14 @@ window.FT=(function(){
           : T.kind==="count"
           ? `<div class="ft-step">
                <button class="plus" data-inc="${esc(s.name)}">+</button>
-               <b>${r?Math.round(r.val):0}</b>
+               <b>${pendingNew[s.name]?0:Math.round((openAttempt(c,T.id,s.name)||{}).val||0)}</b>
                <button data-dec="${esc(s.name)}">−</button>
              </div>`
           : `<input class="ft-num" type="number" inputmode="decimal" step="0.1" min="0"
-               data-val="${esc(s.name)}" value="${r?r.val:""}" placeholder="${esc(T.unit)}">`}
+               data-val="${esc(s.name)}" value="${pendingNew[s.name]?"":((openAttempt(c,T.id,s.name)||{}).val??"")}" placeholder="${esc(T.unit)}">`}
+        ${T.kind!=="clock"&&openAttempt(c,T.id,s.name)&&!pendingNew[s.name]
+          ?`<button class="btn sm ghost" data-new="${esc(s.name)}" title="ניסיון נוסף">+ ניסיון</button>`:""}
+        ${pendingNew[s.name]?'<span class="pill acc">ניסיון חדש</span>':""}
         ${r?`<button class="btn sm stop" data-del="${esc(s.name)}">✕</button>`:""}
       </div>`;}).join("")
       : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.<br>
@@ -476,18 +526,46 @@ window.FT=(function(){
     const {$, esc}=H(), T=testById(st.test), c=cls();
     const row=document.querySelector('#ft-list .ft-row[data-n="'+CSS.escape(name)+'"]');
     if(!row)return;
-    const r=todayResult(c,T.id,name), pv=prevResult(c,T.id,name);
+    const all=attempts(c,T.id,name);
+    const r=todayResult(c,T.id,name), pv=prevResult(c,T.id,name), bst=bestOf(T,all);
+    const open=openAttempt(c,T.id,name);
     let delta="";
     if(r&&pv){ const imp=better(T,r.val,pv.val);
       delta=`<span class="dl ${imp?"up":"down"}">${imp?"▲":"▼"} ${fmtVal(T,Math.abs(r.val-pv.val))}</span>`; }
     row.classList.toggle("done",!!r);
-    row.querySelector(".vl").innerHTML=(r?fmtVal(T,r.val):"—")+delta;
-    const stepB=row.querySelector(".ft-step b"); if(stepB)stepB.textContent=r?Math.round(r.val):0;
+    const vl=row.querySelector(".vl");
+    vl.innerHTML=(r?fmtVal(T,r.val):"—")+delta;
+    vl.classList.toggle("pr",!!(r&&bst&&r.id===bst.id&&all.length>1));
+    const sub=row.querySelector(".nm .pv");
+    const subTxt=all.length?((bst?"⭐ הטוב: "+fmtVal(T,bst.val):"")+(all.length>1?" · "+all.length+" ניסיונות":"")):"";
+    if(sub)sub.textContent=subTxt;
+    else if(subTxt){ const sp=document.createElement("span"); sp.className="pv"; sp.textContent=subTxt;
+      row.querySelector(".nm").appendChild(sp); }
+    const stepB=row.querySelector(".ft-step b"); if(stepB)stepB.textContent=Math.round((open||{}).val||0);
     const cap=row.querySelector("[data-cap]");
     if(cap){
       const need=T.dir==="low"?lapsFor(T.id):1, done=(lapRun[name]||[]).length;
       cap.textContent=r?"↺ שוב":(need>1?`⏱ ${done+1}/${need}`:"⏱ קלוט");
       cap.className="btn sm "+(r?"ghost":"acc");
+    }
+    /* כפתור «+ ניסיון» מופיע רק כשיש ניסיון פתוח — refreshRow חייב
+       לנהל אותו, אחרת אחרי ההקשה הראשונה הוא פשוט לא מופיע. */
+    if(T.kind!=="clock"){
+      let nb=row.querySelector("[data-new]");
+      const want=!!open&&!pendingNew[name];
+      if(want&&!nb){
+        nb=document.createElement("button");
+        nb.className="btn sm ghost"; nb.setAttribute("data-new",name); nb.textContent="+ ניסיון";
+        nb.addEventListener("click",()=>{ pendingNew[name]=true; renderRun();
+          H().toast("ניסיון חדש ל"+name+" — הזן את התוצאה"); });
+        const anchor=row.querySelector("[data-del]");
+        row.insertBefore(nb,anchor||null);
+      }else if(!want&&nb)nb.remove();
+      /* התגית «ניסיון חדש» נעלמת ברגע שהניסיון נפתח בפועל */
+      if(!pendingNew[name]){
+        const pill=[...row.querySelectorAll(".pill")].find(x=>x.textContent.trim()==="ניסיון חדש");
+        if(pill)pill.remove();
+      }
     }
     let del=row.querySelector("[data-del]");
     if(r&&!del){
@@ -508,6 +586,109 @@ window.FT=(function(){
     if(sb)sb.textContent=`כיתה ${c} · ${vals.length}/${rst.length} נמדדו`
       +(avg!=null?` · ממוצע ${fmtVal(T,avg)} ${T.unit}`:"")
       +(best!=null?` · הטוב ${fmtVal(T,best)}`:"");
+  }
+
+  /* ---------- כרטיס תלמיד: כל המבחנים במקום אחד ----------
+     עונה על שתי שאלות בבת אחת — מה כבר נמדד ומה עדיין חסר. «חסר»
+     מוגדר כמבחן שהכיתה כבר עשתה ולתלמיד הזה אין בו תוצאה, ולא כ-30
+     המבחנים שבקטלוג, כי אחרת הרשימה חסרת משמעות. */
+  function openCard(name){
+    const {$, $$, esc}=H(), c=cls();
+    const stud=roster(c).find(x=>x.name===name)||{name};
+    const mine=allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.name===name);
+    /* מבחנים שנמדדו בכיתה בכלל */
+    const classTests=[...new Set(allRes().filter(r=>clsKey(r.cls)===clsKey(c)).map(r=>r.test))];
+    const want=idxTests();
+    const mineTests=[...new Set(mine.map(r=>r.test))];
+    const missing=[...new Set([].concat(classTests,want))].filter(t=>!mineTests.includes(t)&&testById(t));
+
+    const rows=mineTests.map(tid=>{
+      const T=testById(tid); if(!T)return null;
+      const list=attempts(c,tid,name), bst=bestOf(T,list);
+      const sc=scoreOne(tid,stud,st.grade,bst.val);
+      const dates=[...new Set(list.map(r=>r.d))].sort();
+      const first=bestOf(T,list.filter(r=>r.d===dates[0]));
+      const imp=dates.length>1?(better(T,bst.val,first.val)?Math.abs(bst.val-first.val):null):null;
+      return {T,bst,list,sc,dates,imp};
+    }).filter(Boolean).sort((a,b)=>a.T.cat.localeCompare(b.T.cat));
+
+    const scored=rows.filter(r=>r.sc.v!=null);
+    const idx=scored.length?scored.reduce((a,b)=>a+b.sc.v,0)/scored.length:null;
+
+    $("#ft-cardTitle").textContent="👤 "+name+" · כיתה "+c;
+    $("#ft-cardBody").innerHTML=`
+      <div class="ft-idxsum">
+        <div><span class="k">מבחנים שנמדדו</span><span class="v">${mineTests.length}</span></div>
+        <div><span class="k">מדד הכושר</span><span class="v">${idx!=null?idx.toFixed(1):"—"}</span>
+          <span class="k">${scored.length?"מ-"+scored.length+" מבחנים":"אין ציון"}</span></div>
+        <div><span class="k">חסרים</span><span class="v">${missing.length}</span></div>
+      </div>
+
+      ${rows.length?`<div class="tblwrap" style="margin-top:12px"><table class="tbl ft-card">
+        <thead><tr><th>מבחן</th><th>⭐ הטוב</th><th>ציון</th><th>ניסיונות</th><th>נמדד</th><th>שיפור</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr>
+          <td><b>${r.T.em} ${esc(r.T.name)}</b>${r.T.cap?`<span class="cap">תקרה ${r.T.cap}</span>`:""}</td>
+          <td class="mono gold">${fmtVal(r.T,r.bst.val)} <span class="u">${esc(r.T.unit)}</span></td>
+          <td class="mono">${r.sc.v!=null?r.sc.v.toFixed(0)+(r.sc.src==="rel"&&scoreMode()==="norm"?"<b>~</b>":""):"—"}</td>
+          <td class="mono">${r.list.length}</td>
+          <td class="mono dim">${r.dates[r.dates.length-1]}${r.dates.length>1?`<span class="u">${r.dates.length} ימים</span>`:""}</td>
+          <td class="mono">${r.imp!=null?`<span class="up">▲ ${fmtVal(r.T,r.imp)}</span>`:r.dates.length>1?"—":""}</td>
+        </tr>`).join("")}</tbody></table></div>`
+        :'<div class="empty-state"><div class="big">📋</div>אין עדיין תוצאות לתלמיד הזה.</div>'}
+
+      ${missing.length?`<div class="bw-warn" style="margin-top:12px">
+        <b>חסרים לו ${missing.length} מבחנים</b> שהכיתה כבר עשתה:<br>
+        ${missing.map(t=>`<span class="pill">${testById(t).em} ${esc(testById(t).name)}</span>`).join(" ")}</div>`:""}
+
+      <div class="hint" style="margin-top:11px">הציון מחושב מ<b>התוצאה הטובה ביותר</b> בכל מבחן, לפי
+        ${scoreMode()==="norm"?"טבלת הנורמה":"ניקוד יחסי לשכבה"}${want.length?` · המדד מורכב מ-${want.length} מבחנים שנבחרו`:" · המדד מורכב מכל מבחן שיש לו תוצאה"}.
+        «שיפור» הוא ההפרש בין יום המדידה הראשון לתוצאה הטובה.</div>`;
+    H().modal("ft-cardModal");
+    $("#ft-cardCsv").onclick=()=>{
+      const out=[["מבחן","הטוב","יחידה","ציון","ניסיונות","נמדד לאחרונה","ימי מדידה"]];
+      rows.forEach(r=>out.push([r.T.name,r.bst.val,r.T.unit,r.sc.v!=null?r.sc.v.toFixed(0):"",
+        r.list.length,r.dates[r.dates.length-1],r.dates.length]));
+      H().dlCSV("כרטיס-"+name+"-"+c+"-"+today()+".csv",out);
+    };
+  }
+
+  /* ---------- היסטוריית הניסיונות של תלמיד ---------- */
+  function openHist(name){
+    const {$, $$, esc}=H(), T=testById(st.test), c=cls();
+    const all=attempts(c,T.id,name), bst=bestOf(T,all);
+    $("#ft-histTitle").textContent=T.em+" "+T.name+" — "+name;
+    if(!all.length){ $("#ft-histBody").innerHTML='<div class="hint">אין עדיין ניסיונות.</div>'; H().modal("ft-histModal"); return; }
+    /* קיבוץ לפי תאריך, כדי לראות התקדמות בין שיעורים */
+    const byDate={}; all.forEach(r=>{ (byDate[r.d]=byDate[r.d]||[]).push(r); });
+    const dates=Object.keys(byDate).sort();
+    $("#ft-histBody").innerHTML=`
+      <div class="ft-idxsum" style="margin-bottom:11px">
+        <div><span class="k">ניסיונות</span><span class="v">${all.length}</span></div>
+        <div><span class="k">⭐ הטוב</span><span class="v">${fmtVal(T,bst.val)}</span></div>
+        <div><span class="k">ימי מדידה</span><span class="v">${dates.length}</span></div>
+      </div>
+      ${dates.map(d=>{
+        const day=byDate[d], dayBest=bestOf(T,day);
+        return `<div class="ft-histday"><div class="dh">${d}${
+          dates.length>1&&d===dates[dates.length-1]?" · אחרון":""}</div>
+          ${day.map((r,i)=>`<div class="hr${r.id===bst.id?" best":""}">
+            <span class="ix">${i+1}</span>
+            <b>${fmtVal(T,r.val)}</b> <span class="u">${esc(T.unit)}</span>
+            ${r.id===bst.id?'<span class="pill acc">⭐ הטוב ביותר</span>':""}
+            <button class="btn sm stop" data-rm="${r.id}">✕</button></div>`).join("")}
+          ${day.length>1?`<div class="hint">הטוב ביום: ${fmtVal(T,dayBest.val)}</div>`:""}
+        </div>`;}).join("")}
+      ${dates.length>1?(()=>{
+        const first=bestOf(T,byDate[dates[0]]), last=bestOf(T,byDate[dates[dates.length-1]]);
+        const imp=better(T,last.val,first.val);
+        return `<div class="pf-prec ${imp?"ok":"mid"}" style="margin-top:4px">
+          <div class="v">${imp?"שיפור":"ללא שיפור"} מאז ${dates[0]} — <b>${fmtVal(T,Math.abs(last.val-first.val))} ${esc(T.unit)}</b></div>
+          <div class="d">${fmtVal(T,first.val)} ← ${fmtVal(T,last.val)}</div></div>`;})():""}`;
+    H().modal("ft-histModal");
+    $$("#ft-histBody [data-rm]").forEach(b=>b.addEventListener("click",()=>{
+      if(!confirm("למחוק את הניסיון הזה?"))return;
+      delAttempt(b.dataset.rm); openHist(name); renderRun();
+    }));
   }
 
   /* ---------- טבלת ההקפות והפערים ----------
@@ -644,25 +825,36 @@ window.FT=(function(){
       if(need>1){
         if(arr.length>=need){ H().toast(nm+" כבר סיים — «↺ שוב» מאפס אותו"); return; }
         arr.push(t);
-        if(arr.length>=need){ saveVal(c,T.id,s,t); H().beep(1320,0.14); }
+        if(arr.length>=need){ saveVal(c,T.id,s,t,true); H().beep(1320,0.14); }
         else H().beep(880,0.07);
       }else{
         arr.length=0; arr.push(t);
-        saveVal(c,T.id,s,t); H().beep(1100,0.09);
+        saveVal(c,T.id,s,t,true); H().beep(1100,0.09);   /* כל קליטה היא ניסיון חדש */
       }
       refreshRow(nm); renderSplits();
     }));
     /* מונה חזרות */
+    $$("#ft-list [data-hist]").forEach(el=>el.addEventListener("click",()=>openHist(el.dataset.hist)));
+    $$("#ft-list [data-card]").forEach(el=>el.addEventListener("click",()=>openCard(el.dataset.card)));
+    $$("#ft-list [data-new]").forEach(b=>b.addEventListener("click",()=>{
+      /* לא יוצרים רשומה ריקה — רק מסמנים שהמדידה הבאה תיפתח כניסיון
+         חדש. כך מונה שנעצר על 0 לא משאיר רשומת רפאים. */
+      pendingNew[b.dataset.new]=true; renderRun();
+      H().toast("ניסיון חדש ל"+b.dataset.new+" — הזן את התוצאה");
+    }));
     $$("#ft-list [data-inc]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc,1)));
     $$("#ft-list [data-dec]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.dec,-1)));
     /* הזנת מדידה */
     $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("change",()=>{
       const nm=inp.dataset.val, v=+inp.value;
       const s=roster(c).find(x=>x.name===nm)||{name:nm};
-      if(v>0)saveVal(c,T.id,s,v); else clearVal(c,T.id,nm);
-      refreshRow(nm);
+      const fresh=!!pendingNew[nm];
+      if(v>0){ saveVal(c,T.id,s,v,fresh); delete pendingNew[nm]; }
+      else { const cur=openAttempt(c,T.id,nm); if(cur)delAttempt(cur.id); }
+      renderRun();
     }));
     $$("#ft-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
+      if(!confirm("למחוק את כל הניסיונות של "+b.dataset.del+" היום? ניסיונות מתאריכים קודמים נשמרים."))return;
       delete lapRun[b.dataset.del];
       clearVal(c,T.id,b.dataset.del); refreshRow(b.dataset.del); renderSplits();
       const inp=document.querySelector('#ft-list [data-val="'+CSS.escape(b.dataset.del)+'"]');
@@ -671,9 +863,12 @@ window.FT=(function(){
   }
   function bump(name,d){
     const T=testById(st.test), c=cls();
-    const cur=todayResult(c,T.id,name), s=roster(c).find(x=>x.name===name)||{name};
+    const fresh=!!pendingNew[name];
+    const cur=fresh?null:openAttempt(c,T.id,name);
+    const s=roster(c).find(x=>x.name===name)||{name};
     const v=Math.max(0,(cur?cur.val:0)+d);
-    if(v>0)saveVal(c,T.id,s,v); else clearVal(c,T.id,name);
+    if(v>0){ saveVal(c,T.id,s,v,fresh); delete pendingNew[name]; }
+    else if(cur)delAttempt(cur.id);
     H().beep(d>0?920:520,0.05); refreshRow(name);
   }
 
@@ -1224,7 +1419,13 @@ window.FT=(function(){
     shut4x10:{step:0.1, round:v=>Math.round(v*10)/10,      pts:[[8.90,100],[9.30,95],[9.70,90],[10.10,85],[10.50,80],[10.90,75],[11.30,70],[12.00,65]]},
     r2000:   {step:5,   round:v=>Math.round(v/5)*5,        pts:[[450,100],[465,95],[480,90],[500,85],[520,80],[550,75],[580,70],[610,65],[660,60]]},
     pull:    {step:1,   round:v=>Math.max(1,Math.round(v)),pts:[[15,100],[13,95],[11,90],[8,85],[6,80],[5,75],[4,70],[3,65]]},
-    hang:    {step:1,   round:v=>Math.round(v),            pts:[[50,80],[20,60]]}
+    hang:    {step:1,   round:v=>Math.round(v),            pts:[[50,80],[20,60]]},
+    /* מקבילים — 30 חזרות הוא «מצטיין» ומקבל 95; 100 שמור לחריגים */
+    pbars:   {step:1,   round:v=>Math.max(1,Math.round(v)),pts:[[34,100],[30,95],[26,90],[22,85],[18,80],[15,75],[12,70],[8,65]]},
+    /* גקסונים — החלופה: 20 חזרות עוברות, ו-30 נותנות את התקרה 80 */
+    gaks:    {step:1,   round:v=>Math.max(1,Math.round(v)),pts:[[30,80],[28,77],[26,74],[24,71],[22,68],[20,65]]},
+    /* מתח אוסטרלי — חלופה למתח, תקרה 85 */
+    invrow:  {step:1,   round:v=>Math.max(1,Math.round(v)),pts:[[30,85],[26,81],[22,77],[18,73],[14,69],[10,65]]}
   };
   /* העיגול יכול להדביק שני ערכים סמוכים (למשל 4=75,4=70 במתח בכיתה ז׳).
      ערך כפול עם שני ניקודים שונים הופך את האינטרפולציה לשרירותית, ולכן

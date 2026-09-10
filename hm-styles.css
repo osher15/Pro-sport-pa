@@ -1017,3 +1017,29 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-splt .lap{display:block;font-size:10.5px;color:var(--faint);font-family:'Heebo'}
 .ft-splt .dim{color:var(--faint)}
 .ft-splt .gap{color:var(--warn)}
+
+/* ניסיונות והיסטוריה */
+.ft-row .vl{cursor:pointer}
+.ft-row .vl.pr{color:var(--gold);text-shadow:0 0 12px rgba(251,191,36,.35)}
+.ft-histday{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ft-histday .dh{font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:6px}
+.ft-histday .hr{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px}
+.ft-histday .hr .ix{width:20px;height:20px;border-radius:50%;background:var(--inset);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11px;color:var(--faint);flex:none}
+.ft-histday .hr b{font-family:'Share Tech Mono';font-size:17px}
+.ft-histday .hr .u{color:var(--muted);font-size:11.5px}
+.ft-histday .hr .btn{margin-inline-start:auto}
+.ft-histday .hr.best b{color:var(--gold)}
+
+/* כרטיס תלמיד */
+.ft-row .nm[data-card]{cursor:pointer}
+.ft-row .nm[data-card]:hover{color:var(--acc)}
+.ft-card th{font-size:11px;white-space:nowrap}
+.ft-card td{padding:8px 6px;vertical-align:top}
+.ft-card .gold{color:var(--gold);font-weight:700}
+.ft-card .u{color:var(--faint);font-size:11px;font-family:'Heebo'}
+/* «2 ימים» חייב לרדת שורה, אחרת הוא נדבק לתאריך ונקרא «2026-09-102 ימים» */
+.ft-card td .u{display:block}
+.ft-card .dim{color:var(--muted)}
+.ft-card .up{color:var(--green)}
+.ft-card .cap{display:block;font-size:10.5px;color:var(--warn);font-weight:400}
