@@ -267,7 +267,7 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
-  wireBackup();
+  wireBackup(); wireAbout(); wirePurge();
 }
 
 /* ============================================================
@@ -366,6 +366,67 @@ function wireBackup(){
     r.readAsText(f);
   });
 }
+/* ---------- אודות ---------- */
+function wireAbout(){
+  const b=$("#set-about"); if(!b)return;
+  b.addEventListener("click",()=>{
+    const v="גרסה "+buildId();
+    const av=$("#ab-ver"); if(av)av.textContent=v;
+    const ab=$("#ab-build"); if(ab)ab.textContent=v+" · "+(navigator.onLine?"מחובר":"לא מחובר")+
+      " · "+(location.protocol==="file:"?"קובץ מקומי":"מותקן מהרשת");
+    modal("setModal",false); modal("aboutModal",true);
+  });
+}
+
+/* ---------- ניקוי מדידות ישנות ----------
+   שנה שעברה כבר לא רלוונטית למעקב אבל כן מאטה כל טבלה. הניקוי נוגע
+   רק במדידות עם תאריך — לא ברשימות הכיתה, לא בתלמידים ולא בנורמות,
+   כי אלה נכסים שמורה בונה פעם אחת. מוצג בדיוק מה יימחק לפני, ויש
+   גיבוי בלחיצה באותו חלון. */
+function wirePurge(){
+  const b=$("#set-purge"); if(!b)return;
+  const dated=()=>{ const r=LS.get("ft.results",[]); return Array.isArray(r)?r:[]; };
+  const count=iso=>{
+    const res=dated().filter(r=>r&&r.d&&r.d<iso);
+    const arc=(LS.get("pf.archive",[])||[]).filter(a=>a&&a.date&&a.date<iso);
+    return {res:res.length,resAll:dated().length,arc:arc.length,
+            names:[...new Set(res.map(r=>r.name))].length};
+  };
+  const paint=()=>{
+    const iso=$("#pg-date").value;
+    const go=$("#pg-go");
+    if(!iso){ $("#pg-preview").textContent="בחר תאריך כדי לראות מה יימחק."; go.disabled=true; return; }
+    const c=count(iso);
+    $("#pg-preview").innerHTML=c.res||c.arc
+      ? "יימחקו <b>"+c.res+"</b> מדידות מתוך "+c.resAll+" (של "+c.names+" תלמידים)"+
+        (c.arc?" ועוד <b>"+c.arc+"</b> מירוצים מהארכיון":"")+" — כל מה שלפני "+iso+"."
+      : "אין מדידות לפני "+iso+" — אין מה למחוק.";
+    go.disabled=!(c.res||c.arc);
+  };
+  b.addEventListener("click",()=>{ modal("setModal",false); $("#pg-date").value=""; paint(); modal("purgeModal",true); });
+  $("#pg-date").addEventListener("change",paint);
+  $$("#pg-quick button").forEach(q=>q.addEventListener("click",()=>{
+    const d=new Date(); d.setMonth(d.getMonth()-(+q.dataset.m));
+    $("#pg-date").value=d.toISOString().slice(0,10);
+    $$("#pg-quick button").forEach(x=>x.classList.toggle("on",x===q));
+    paint();
+  }));
+  $("#pg-backup").addEventListener("click",()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL")); });
+  $("#pg-go").addEventListener("click",()=>{
+    const iso=$("#pg-date").value; if(!iso)return;
+    const c=count(iso);
+    /* אישור כפול: הראשון מסביר, השני דורש לכתוב את המילה — מחיקה של
+       היסטוריית מדידות של תלמידים אמיתיים לא צריכה להיות הקשה אחת. */
+    if(!confirm("למחוק "+c.res+" מדידות ו-"+c.arc+" מירוצים שלפני "+iso+"?\n\nהפעולה אינה הפיכה."))return;
+    if(prompt('הקלד "מחק" לאישור סופי:')!=="מחק"){ toast("בוטל"); return; }
+    LS.set("ft.results",dated().filter(r=>!(r&&r.d&&r.d<iso)));
+    LS.set("pf.archive",(LS.get("pf.archive",[])||[]).filter(a=>!(a&&a.date&&a.date<iso)));
+    modal("purgeModal",false);
+    toast("נמחקו "+c.res+" מדידות · טוען מחדש");
+    setTimeout(()=>location.reload(),700);
+  });
+}
+
 function bkPreview(snap){
   const inFile=Object.keys(snap.data), here=bkKeys();
   const all=[...new Set(inFile.concat(here))].sort((a,b)=>{
@@ -400,21 +461,46 @@ function bkPreview(snap){
   modal("bk-modal",true);
 }
 
-/* ---------- PWA-ish manifest ---------- */
+/* ---------- PWA ----------
+   בפריסת ה-Pages יש manifest.webmanifest ו-sw.js אמיתיים בצד השרת.
+   הקובץ הבודד (Hamegrash.html) רץ מ-file:// שבו אין service worker
+   ואין קובץ manifest נפרד — ולכן שם נבנה manifest מינימלי בזיכרון,
+   רק כדי שאפשר יהיה «הוסף למסך הבית». */
 (function(){
-  try{
-    const cv=document.createElement("canvas"); cv.width=cv.height=192; const x=cv.getContext("2d");
-    x.fillStyle="#06100c"; x.fillRect(0,0,192,192);
-    x.fillStyle="#19d27a"; x.beginPath(); x.arc(96,96,70,0,7); x.fill();
-    x.font="86px serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText("🏟️",96,104);
-    const icon=cv.toDataURL("image/png");
-    const man={name:"המגרש PRO",short_name:"המגרש",display:"standalone",dir:"rtl",lang:"he",
-      start_url:location.href.split("#")[0],background_color:"#06100c",theme_color:"#06100c",
-      icons:[{src:icon,sizes:"192x192",type:"image/png"}]};
-    const l=document.createElement("link"); l.rel="manifest";
-    l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
-    document.head.appendChild(l);
-  }catch(e){}
+  const httpish=location.protocol==="https:"||location.protocol==="http:";
+  if(!document.querySelector('link[rel="manifest"]')){
+    try{
+      const cv=document.createElement("canvas"); cv.width=cv.height=192; const x=cv.getContext("2d");
+      x.fillStyle="#06100c"; x.fillRect(0,0,192,192);
+      x.fillStyle="#19d27a"; x.beginPath(); x.arc(96,96,70,0,7); x.fill();
+      x.font="86px serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText("🏟️",96,104);
+      const icon=cv.toDataURL("image/png");
+      const man={name:"המגרש PRO",short_name:"המגרש",display:"standalone",dir:"rtl",lang:"he",
+        start_url:location.href.split("#")[0],background_color:"#06100c",theme_color:"#06100c",
+        icons:[{src:icon,sizes:"192x192",type:"image/png"}]};
+      const l=document.createElement("link"); l.rel="manifest";
+      l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+      document.head.appendChild(l);
+    }catch(e){}
+  }
+  /* רישום ה-service worker רק מעל http(s). מ-file:// הדפדפן חוסם
+     אותו ממילא, והאפליקציה שם כבר עובדת אופליין כקובץ יחיד. */
+  if(httpish&&"serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("sw.js").then(reg=>{
+        /* גרסה חדשה שהותקנה ברקע — מודיעים ומרעננים בהסכמה, במקום
+           להחליף מתחת לרגליים באמצע מדידה. */
+        reg.addEventListener("updatefound",()=>{
+          const w=reg.installing; if(!w)return;
+          w.addEventListener("statechange",()=>{
+            if(w.state==="installed"&&navigator.serviceWorker.controller){
+              if(typeof toast==="function")toast("גרסה חדשה מוכנה — רענן כדי לעבור אליה");
+            }
+          });
+        });
+      }).catch(()=>{});
+    });
+  }
 })();
 
 

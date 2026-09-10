@@ -12,11 +12,13 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=5ecd8fd7">
-<script src="hm-app.js?v=a4dace5b"></script>
+<link rel="stylesheet" href="hm-styles.css?v=47c09a38">
+<script src="hm-app.js?v=10657476"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="hm-tools.js?v=5d473e53"></script>
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=fa4422f0"></script>
@@ -1300,6 +1302,53 @@
   </div>
 </div></div>
 
+<!-- ----- אודות ----- -->
+<div class="modal" id="aboutModal"><div class="box" style="max-width:540px">
+  <h3><span>ℹ אודות המגרש PRO</span><button class="x" data-close="aboutModal">✕</button></h3>
+  <div class="ab-hero"><div class="lg">🏟️</div>
+    <div><b>המגרש PRO</b><span id="ab-ver">גרסה —</span></div></div>
+  <p class="ab-p">ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור,
+    לוח שיאים, כלי כיתה וציונים — הכול במסך אחד, בשפה אחת, ובלי להוציא שום דבר החוצה.</p>
+  <div class="ab-sec"><b>🔒 פרטיות</b>
+    <p class="ab-p">הנתונים נשמרים ב-localStorage של המכשיר הזה בלבד. <b>אין שרת, אין חשבון, ואין שליחה
+      לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא מקריות. ייצוא CSV או גיבוי הם
+      תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש גיבוי.</p></div>
+  <div class="ab-sec"><b>📚 מקורות מקצועיים</b>
+    <p class="ab-p">פרוטוקול Léger (מבחן הביפ) · נורמות FITNESSGRAM® של Cooper Institute · «אות החינוך
+      הגופני — סטנדרטים להערכת הישגי התלמידים», משרד החינוך, המזכירות הפדגוגית · תוכנית הלימודים
+      בחינוך גופני. הנורמות הבית־ספריות הן נתון של המורה ונשמרות במכשיר.</p></div>
+  <div class="ab-sec"><b>🛠 נבנה עם</b>
+    <p class="ab-p">JavaScript, HTML ו-CSS בלבד — בלי ספריות חיצוניות ובלי שלב בנייה בדפדפן, כדי
+      שהאפליקציה תיפתח מהר ותעבוד בשטח בלי רשת. פותח בשיתוף עם Claude Code.</p></div>
+  <div class="ab-sec"><b>⚠️ אחריות</b>
+    <p class="ab-p">כלי עזר להוראה. מדידות מהמצלמה ומהשעון הן טובות ככל שתנאי השטח מאפשרים, ואינן
+      תחליף לציוד מדידה מוסמך לתחרות רשמית. ההחלטה החינוכית והציון הם שלך.</p></div>
+  <div class="hint" id="ab-build" style="margin-top:12px;text-align:center;font-family:'Share Tech Mono'"></div>
+</div></div>
+
+<!-- ----- ניקוי נתונים ישנים ----- -->
+<div class="modal" id="purgeModal"><div class="box" style="max-width:520px">
+  <h3><span>🧹 ניקוי נתונים ישנים</span><button class="x" data-close="purgeModal">✕</button></h3>
+  <div class="hint">מוחק <b>מדידות שנעשו לפני התאריך שתבחר</b>. רשימות הכיתה, התלמידים, הנורמות
+    וההגדרות לא נוגעים. שנה שעברה כבר לא רלוונטית למעקב, אבל היא כן מאטה את הטבלאות.</div>
+  <div class="row" style="margin-top:11px;gap:9px;align-items:end">
+    <div class="field" style="width:180px"><label>מחק מדידות מלפני</label>
+      <input type="date" id="pg-date"></div>
+    <div class="seg" id="pg-quick">
+      <button data-m="12">שנה</button><button data-m="24">שנתיים</button><button data-m="36">3 שנים</button>
+    </div>
+  </div>
+  <div class="bw-note" id="pg-preview" style="margin-top:12px">בחר תאריך כדי לראות מה יימחק.</div>
+  <div class="bw-warn" style="margin-top:10px">הפעולה אינה הפיכה. גבה קודם — הגדרות ← «⬇ גבה הכל לקובץ».</div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn sm" id="pg-backup">⬇ גבה קודם</button>
+  </div>
+  <div class="row" style="margin-top:9px">
+    <button class="btn stop grow" id="pg-go" disabled>🗑 מחק את מה שלמעלה</button>
+    <button class="btn ghost" data-close="purgeModal">ביטול</button>
+  </div>
+</div></div>
+
 <div class="modal" id="cp-pickModal"><div class="box" style="max-width:520px">
   <h3 id="cp-title"><span>טעינת כיתה</span><button class="x" data-close="cp-pickModal">✕</button></h3>
   <div class="hint" id="cp-note"></div>
@@ -1379,6 +1428,10 @@
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
   </div>
   <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
+  <div class="row" style="margin-top:11px;gap:8px">
+    <button class="btn sm ghost grow" id="set-about">ℹ אודות, גרסה וקרדיטים</button>
+    <button class="btn sm ghost grow" id="set-purge">🧹 נקה נתונים ישנים</button>
+  </div>
   <div class="hint" id="set-build" style="margin-top:9px;text-align:center;font-family:'Share Tech Mono'"></div>
 </div></div>
 

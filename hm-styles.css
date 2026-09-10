@@ -1102,3 +1102,14 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 #tipPop .tp{background:var(--panel);border:1px solid var(--acc);border-radius:14px;padding:16px 18px;
   max-width:380px;font-size:14px;line-height:1.75;box-shadow:0 18px 50px rgba(0,0,0,.55)}
 .iconbtn.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel))}
+
+/* ===== אודות ===== */
+.ab-hero{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);
+  border-radius:14px;background:var(--inset)}
+.ab-hero .lg{font-size:38px;line-height:1}
+.ab-hero b{display:block;font-size:18px;font-family:'Inter'}
+.ab-hero span{display:block;font-size:12px;color:var(--muted);font-family:'Share Tech Mono';margin-top:3px}
+.ab-p{margin:5px 0 0;font-size:13.5px;line-height:1.75;color:var(--muted)}
+.ab-p b{color:var(--ink)}
+.ab-sec{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
+.ab-sec>b{font-size:14px}

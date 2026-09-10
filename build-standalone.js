@@ -21,6 +21,27 @@ function stampVersions(){
 }
 const html=stampVersions();
 
+/* ---- חותמת גרסה ל-service worker ----
+   המטמון חייב שם ייחודי לכל פריסה, אחרת מכשיר שכבר התקין את
+   האפליקציה ימשיך להגיש לעצמו את הגרסה הישנה מהמטמון בלי שאיש
+   יידע. השם נגזר מתוכן הקבצים שנכנסים למטמון. */
+function stampSW(){
+  const swFile=path.join(__dirname,"sw.js");
+  if(!fs.existsSync(swFile))return;
+  const files=["index.html","hm-styles.css","manifest.webmanifest"].concat(
+    fs.readdirSync(__dirname).filter(f=>/^hm-[\w-]+\.js$/.test(f)).sort());
+  const cur=fs.readFileSync(swFile,"utf8");
+  /* גם שינוי בלוגיקת ה-service worker עצמו חייב להוליד גרסה חדשה,
+     אחרת מכשיר מותקן ממשיך להגיש מדלי מטמון ישן. שורת הגרסה עצמה
+     מנוטרלת מהחישוב כדי שלא ייווצר מרוץ בין הגיבוב לכתיבה. */
+  const swBody=cur.replace(/const CACHE_VERSION = "[^"]*";/,'const CACHE_VERSION = "";');
+  const hash=crypto.createHash("sha1")
+    .update(files.map(f=>R(f)).join("\n")+"\n"+swBody).digest("hex").slice(0,8);
+  const next=cur.replace(/const CACHE_VERSION = "[^"]*";/,'const CACHE_VERSION = "'+hash+'";');
+  if(next!==cur)fs.writeFileSync(swFile,next);
+}
+stampSW();
+
 /* גוף האפליקציה = כל מה שבתוך <x-dc> חוץ מ־<helmet> */
 const dc=html.match(/<x-dc>([\s\S]*?)<\/x-dc>/);
 if(!dc)throw new Error("לא נמצא <x-dc> ב-index.html");

@@ -1114,6 +1114,17 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   max-width:380px;font-size:14px;line-height:1.75;box-shadow:0 18px 50px rgba(0,0,0,.55)}
 .iconbtn.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel))}
 
+/* ===== אודות ===== */
+.ab-hero{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);
+  border-radius:14px;background:var(--inset)}
+.ab-hero .lg{font-size:38px;line-height:1}
+.ab-hero b{display:block;font-size:18px;font-family:'Inter'}
+.ab-hero span{display:block;font-size:12px;color:var(--muted);font-family:'Share Tech Mono';margin-top:3px}
+.ab-p{margin:5px 0 0;font-size:13.5px;line-height:1.75;color:var(--muted)}
+.ab-p b{color:var(--ink)}
+.ab-sec{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
+.ab-sec>b{font-size:14px}
+
 </style>
 </head>
 <body>
@@ -2393,6 +2404,53 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   </div>
 </div></div>
 
+<!-- ----- אודות ----- -->
+<div class="modal" id="aboutModal"><div class="box" style="max-width:540px">
+  <h3><span>ℹ אודות המגרש PRO</span><button class="x" data-close="aboutModal">✕</button></h3>
+  <div class="ab-hero"><div class="lg">🏟️</div>
+    <div><b>המגרש PRO</b><span id="ab-ver">גרסה —</span></div></div>
+  <p class="ab-p">ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור,
+    לוח שיאים, כלי כיתה וציונים — הכול במסך אחד, בשפה אחת, ובלי להוציא שום דבר החוצה.</p>
+  <div class="ab-sec"><b>🔒 פרטיות</b>
+    <p class="ab-p">הנתונים נשמרים ב-localStorage של המכשיר הזה בלבד. <b>אין שרת, אין חשבון, ואין שליחה
+      לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא מקריות. ייצוא CSV או גיבוי הם
+      תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש גיבוי.</p></div>
+  <div class="ab-sec"><b>📚 מקורות מקצועיים</b>
+    <p class="ab-p">פרוטוקול Léger (מבחן הביפ) · נורמות FITNESSGRAM® של Cooper Institute · «אות החינוך
+      הגופני — סטנדרטים להערכת הישגי התלמידים», משרד החינוך, המזכירות הפדגוגית · תוכנית הלימודים
+      בחינוך גופני. הנורמות הבית־ספריות הן נתון של המורה ונשמרות במכשיר.</p></div>
+  <div class="ab-sec"><b>🛠 נבנה עם</b>
+    <p class="ab-p">JavaScript, HTML ו-CSS בלבד — בלי ספריות חיצוניות ובלי שלב בנייה בדפדפן, כדי
+      שהאפליקציה תיפתח מהר ותעבוד בשטח בלי רשת. פותח בשיתוף עם Claude Code.</p></div>
+  <div class="ab-sec"><b>⚠️ אחריות</b>
+    <p class="ab-p">כלי עזר להוראה. מדידות מהמצלמה ומהשעון הן טובות ככל שתנאי השטח מאפשרים, ואינן
+      תחליף לציוד מדידה מוסמך לתחרות רשמית. ההחלטה החינוכית והציון הם שלך.</p></div>
+  <div class="hint" id="ab-build" style="margin-top:12px;text-align:center;font-family:'Share Tech Mono'"></div>
+</div></div>
+
+<!-- ----- ניקוי נתונים ישנים ----- -->
+<div class="modal" id="purgeModal"><div class="box" style="max-width:520px">
+  <h3><span>🧹 ניקוי נתונים ישנים</span><button class="x" data-close="purgeModal">✕</button></h3>
+  <div class="hint">מוחק <b>מדידות שנעשו לפני התאריך שתבחר</b>. רשימות הכיתה, התלמידים, הנורמות
+    וההגדרות לא נוגעים. שנה שעברה כבר לא רלוונטית למעקב, אבל היא כן מאטה את הטבלאות.</div>
+  <div class="row" style="margin-top:11px;gap:9px;align-items:end">
+    <div class="field" style="width:180px"><label>מחק מדידות מלפני</label>
+      <input type="date" id="pg-date"></div>
+    <div class="seg" id="pg-quick">
+      <button data-m="12">שנה</button><button data-m="24">שנתיים</button><button data-m="36">3 שנים</button>
+    </div>
+  </div>
+  <div class="bw-note" id="pg-preview" style="margin-top:12px">בחר תאריך כדי לראות מה יימחק.</div>
+  <div class="bw-warn" style="margin-top:10px">הפעולה אינה הפיכה. גבה קודם — הגדרות ← «⬇ גבה הכל לקובץ».</div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn sm" id="pg-backup">⬇ גבה קודם</button>
+  </div>
+  <div class="row" style="margin-top:9px">
+    <button class="btn stop grow" id="pg-go" disabled>🗑 מחק את מה שלמעלה</button>
+    <button class="btn ghost" data-close="purgeModal">ביטול</button>
+  </div>
+</div></div>
+
 <div class="modal" id="cp-pickModal"><div class="box" style="max-width:520px">
   <h3 id="cp-title"><span>טעינת כיתה</span><button class="x" data-close="cp-pickModal">✕</button></h3>
   <div class="hint" id="cp-note"></div>
@@ -2472,6 +2530,10 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
   </div>
   <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
+  <div class="row" style="margin-top:11px;gap:8px">
+    <button class="btn sm ghost grow" id="set-about">ℹ אודות, גרסה וקרדיטים</button>
+    <button class="btn sm ghost grow" id="set-purge">🧹 נקה נתונים ישנים</button>
+  </div>
   <div class="hint" id="set-build" style="margin-top:9px;text-align:center;font-family:'Share Tech Mono'"></div>
 </div></div>
 
@@ -2787,7 +2849,7 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
-  wireBackup();
+  wireBackup(); wireAbout(); wirePurge();
 }
 
 /* ============================================================
@@ -2886,6 +2948,67 @@ function wireBackup(){
     r.readAsText(f);
   });
 }
+/* ---------- אודות ---------- */
+function wireAbout(){
+  const b=$("#set-about"); if(!b)return;
+  b.addEventListener("click",()=>{
+    const v="גרסה "+buildId();
+    const av=$("#ab-ver"); if(av)av.textContent=v;
+    const ab=$("#ab-build"); if(ab)ab.textContent=v+" · "+(navigator.onLine?"מחובר":"לא מחובר")+
+      " · "+(location.protocol==="file:"?"קובץ מקומי":"מותקן מהרשת");
+    modal("setModal",false); modal("aboutModal",true);
+  });
+}
+
+/* ---------- ניקוי מדידות ישנות ----------
+   שנה שעברה כבר לא רלוונטית למעקב אבל כן מאטה כל טבלה. הניקוי נוגע
+   רק במדידות עם תאריך — לא ברשימות הכיתה, לא בתלמידים ולא בנורמות,
+   כי אלה נכסים שמורה בונה פעם אחת. מוצג בדיוק מה יימחק לפני, ויש
+   גיבוי בלחיצה באותו חלון. */
+function wirePurge(){
+  const b=$("#set-purge"); if(!b)return;
+  const dated=()=>{ const r=LS.get("ft.results",[]); return Array.isArray(r)?r:[]; };
+  const count=iso=>{
+    const res=dated().filter(r=>r&&r.d&&r.d<iso);
+    const arc=(LS.get("pf.archive",[])||[]).filter(a=>a&&a.date&&a.date<iso);
+    return {res:res.length,resAll:dated().length,arc:arc.length,
+            names:[...new Set(res.map(r=>r.name))].length};
+  };
+  const paint=()=>{
+    const iso=$("#pg-date").value;
+    const go=$("#pg-go");
+    if(!iso){ $("#pg-preview").textContent="בחר תאריך כדי לראות מה יימחק."; go.disabled=true; return; }
+    const c=count(iso);
+    $("#pg-preview").innerHTML=c.res||c.arc
+      ? "יימחקו <b>"+c.res+"</b> מדידות מתוך "+c.resAll+" (של "+c.names+" תלמידים)"+
+        (c.arc?" ועוד <b>"+c.arc+"</b> מירוצים מהארכיון":"")+" — כל מה שלפני "+iso+"."
+      : "אין מדידות לפני "+iso+" — אין מה למחוק.";
+    go.disabled=!(c.res||c.arc);
+  };
+  b.addEventListener("click",()=>{ modal("setModal",false); $("#pg-date").value=""; paint(); modal("purgeModal",true); });
+  $("#pg-date").addEventListener("change",paint);
+  $$("#pg-quick button").forEach(q=>q.addEventListener("click",()=>{
+    const d=new Date(); d.setMonth(d.getMonth()-(+q.dataset.m));
+    $("#pg-date").value=d.toISOString().slice(0,10);
+    $$("#pg-quick button").forEach(x=>x.classList.toggle("on",x===q));
+    paint();
+  }));
+  $("#pg-backup").addEventListener("click",()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL")); });
+  $("#pg-go").addEventListener("click",()=>{
+    const iso=$("#pg-date").value; if(!iso)return;
+    const c=count(iso);
+    /* אישור כפול: הראשון מסביר, השני דורש לכתוב את המילה — מחיקה של
+       היסטוריית מדידות של תלמידים אמיתיים לא צריכה להיות הקשה אחת. */
+    if(!confirm("למחוק "+c.res+" מדידות ו-"+c.arc+" מירוצים שלפני "+iso+"?\n\nהפעולה אינה הפיכה."))return;
+    if(prompt('הקלד "מחק" לאישור סופי:')!=="מחק"){ toast("בוטל"); return; }
+    LS.set("ft.results",dated().filter(r=>!(r&&r.d&&r.d<iso)));
+    LS.set("pf.archive",(LS.get("pf.archive",[])||[]).filter(a=>!(a&&a.date&&a.date<iso)));
+    modal("purgeModal",false);
+    toast("נמחקו "+c.res+" מדידות · טוען מחדש");
+    setTimeout(()=>location.reload(),700);
+  });
+}
+
 function bkPreview(snap){
   const inFile=Object.keys(snap.data), here=bkKeys();
   const all=[...new Set(inFile.concat(here))].sort((a,b)=>{
@@ -2920,21 +3043,46 @@ function bkPreview(snap){
   modal("bk-modal",true);
 }
 
-/* ---------- PWA-ish manifest ---------- */
+/* ---------- PWA ----------
+   בפריסת ה-Pages יש manifest.webmanifest ו-sw.js אמיתיים בצד השרת.
+   הקובץ הבודד (Hamegrash.html) רץ מ-file:// שבו אין service worker
+   ואין קובץ manifest נפרד — ולכן שם נבנה manifest מינימלי בזיכרון,
+   רק כדי שאפשר יהיה «הוסף למסך הבית». */
 (function(){
-  try{
-    const cv=document.createElement("canvas"); cv.width=cv.height=192; const x=cv.getContext("2d");
-    x.fillStyle="#06100c"; x.fillRect(0,0,192,192);
-    x.fillStyle="#19d27a"; x.beginPath(); x.arc(96,96,70,0,7); x.fill();
-    x.font="86px serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText("🏟️",96,104);
-    const icon=cv.toDataURL("image/png");
-    const man={name:"המגרש PRO",short_name:"המגרש",display:"standalone",dir:"rtl",lang:"he",
-      start_url:location.href.split("#")[0],background_color:"#06100c",theme_color:"#06100c",
-      icons:[{src:icon,sizes:"192x192",type:"image/png"}]};
-    const l=document.createElement("link"); l.rel="manifest";
-    l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
-    document.head.appendChild(l);
-  }catch(e){}
+  const httpish=location.protocol==="https:"||location.protocol==="http:";
+  if(!document.querySelector('link[rel="manifest"]')){
+    try{
+      const cv=document.createElement("canvas"); cv.width=cv.height=192; const x=cv.getContext("2d");
+      x.fillStyle="#06100c"; x.fillRect(0,0,192,192);
+      x.fillStyle="#19d27a"; x.beginPath(); x.arc(96,96,70,0,7); x.fill();
+      x.font="86px serif"; x.textAlign="center"; x.textBaseline="middle"; x.fillText("🏟️",96,104);
+      const icon=cv.toDataURL("image/png");
+      const man={name:"המגרש PRO",short_name:"המגרש",display:"standalone",dir:"rtl",lang:"he",
+        start_url:location.href.split("#")[0],background_color:"#06100c",theme_color:"#06100c",
+        icons:[{src:icon,sizes:"192x192",type:"image/png"}]};
+      const l=document.createElement("link"); l.rel="manifest";
+      l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+      document.head.appendChild(l);
+    }catch(e){}
+  }
+  /* רישום ה-service worker רק מעל http(s). מ-file:// הדפדפן חוסם
+     אותו ממילא, והאפליקציה שם כבר עובדת אופליין כקובץ יחיד. */
+  if(httpish&&"serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("sw.js").then(reg=>{
+        /* גרסה חדשה שהותקנה ברקע — מודיעים ומרעננים בהסכמה, במקום
+           להחליף מתחת לרגליים באמצע מדידה. */
+        reg.addEventListener("updatefound",()=>{
+          const w=reg.installing; if(!w)return;
+          w.addEventListener("statechange",()=>{
+            if(w.state==="installed"&&navigator.serviceWorker.controller){
+              if(typeof toast==="function")toast("גרסה חדשה מוכנה — רענן כדי לעבור אליה");
+            }
+          });
+        });
+      }).catch(()=>{});
+    });
+  }
 })();
 
 
