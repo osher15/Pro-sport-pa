@@ -1766,6 +1766,71 @@ window.FT=(function(){
     renderTab();
   }
 
-  return {init, tests:()=>TESTS, results:()=>allRes()};
+  /* ============================================================
+     בורר הכיתה המשותף
+     ------------------------------------------------------------
+     רשימות הכיתה חיות כאן, אבל גם הביפ טסט והפוטו־פיניש צריכים
+     אותן — אחרת המורה מקליד את אותם שמות שלוש פעמים. הבורר נחשף
+     החוצה כ-FT.pick כדי שכל מודול יקבל בדיוק את אותה רשימה, עם
+     אותה התאמה סלחנית של שם הכיתה, בלי לשכפל את הלוגיקה.
+
+       FT.pick({title, note, max, onPick(names, clsLabel)})
+
+     max — תקרת בחירה (מסלולי הפוטו־פיניש מוגבלים ל-9), ובלעדיה
+     אין הגבלה. onPick מקבל מערך שמות ואת שם הכיתה לתצוגה.
+     ============================================================ */
+  function pick(opts){
+    const o=opts||{}, $=H().$, $$=H().$$;
+    const last=LS().get("ft.last",{grade:"ט",num:1});
+    let g=last.grade||"ט", num=+last.num||1, sel=null;
+    const host=id=>$("#"+id);
+    host("cp-title").querySelector("span").textContent=o.title||"טעינת כיתה";
+    host("cp-note").textContent=o.note||"";
+    host("cp-grades").innerHTML=GRADES.map(([k,lbl])=>
+      `<button data-g="${k}"${k===g?' class="on"':""}>${lbl}</button>`).join("");
+    host("cp-nums").innerHTML=NUMS.map(n=>
+      `<button data-n="${n}"${n===num?' class="on"':""}>${n}</button>`).join("");
+
+    const paint=()=>{
+      $$("#cp-grades button").forEach(b=>b.classList.toggle("on",b.dataset.g===g));
+      $$("#cp-nums button").forEach(b=>b.classList.toggle("on",+b.dataset.n===num));
+      const c=clsName(g,num);
+      let list=roster(c);
+      if(!list.length){ importFromStu(c); list=roster(c); }
+      sel=new Set(list.map(x=>x.name));
+      if(o.max&&list.length>o.max) sel=new Set(list.slice(0,o.max).map(x=>x.name));
+      host("cp-list").innerHTML=list.length
+        ? list.map(x=>`<label class="cp-item"><input type="checkbox" value="${H().esc(x.name)}"${sel.has(x.name)?" checked":""}><span>${H().esc(x.name)}</span></label>`).join("")
+        : `<div class="empty-state" style="margin:0"><div class="big">👥</div>אין עדיין רשימה לכיתה ${c}.<br>
+           פתח «🏅 מבחני כושר» ← הכיתה הזאת ← «👥 רשימה» וייבא אותה פעם אחת — ומאז היא זמינה בכל המודולים.</div>`;
+      $$("#cp-list input").forEach(i=>i.addEventListener("change",()=>{
+        if(i.checked)sel.add(i.value); else sel.delete(i.value);
+        if(o.max&&sel.size>o.max){ i.checked=false; sel.delete(i.value); H().toast("אפשר לבחור עד "+o.max); }
+        stat();
+      }));
+      stat();
+    };
+    const stat=()=>{
+      const n=$$("#cp-list input").length;
+      host("cp-stat").textContent=n?("נבחרו "+sel.size+" מתוך "+n+(o.max?" · עד "+o.max:"")):"";
+      host("cp-load").disabled=!sel||!sel.size;
+    };
+    $$("#cp-grades button").forEach(b=>b.addEventListener("click",()=>{ g=b.dataset.g; paint(); }));
+    $$("#cp-nums button").forEach(b=>b.addEventListener("click",()=>{ num=+b.dataset.n; paint(); }));
+    host("cp-all").onclick=()=>{ $$("#cp-list input").forEach(i=>{
+      if(o.max&&sel.size>=o.max&&!i.checked)return; i.checked=true; sel.add(i.value); }); stat(); };
+    host("cp-none").onclick=()=>{ $$("#cp-list input").forEach(i=>i.checked=false); sel.clear(); stat(); };
+    host("cp-load").onclick=()=>{
+      const c=clsName(g,num);
+      const names=roster(c).map(x=>x.name).filter(n=>sel.has(n));
+      if(!names.length){ H().toast("לא נבחר אף תלמיד"); return; }
+      LS().set("ft.last",Object.assign({},last,{grade:g,num}));
+      H().modal("cp-pickModal",false);
+      o.onPick&&o.onPick(names,c);
+    };
+    paint(); H().modal("cp-pickModal",true);
+  }
+
+  return {init, pick, tests:()=>TESTS, results:()=>allRes(), roster, classOf:clsName};
 })();
 })();

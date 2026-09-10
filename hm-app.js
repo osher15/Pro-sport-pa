@@ -103,7 +103,13 @@ function setRole(r){
 function applyRole(){
   const stu=isStudent();
   document.body.classList.toggle("role-student",stu);
-  $$(".nav button[data-go]").forEach(b=>{ b.style.display=(!stu||STUDENT_MODS[b.dataset.go])?"":"none"; });
+  /* data-stuonly — כפתור שקיים בסרגל רק בשביל התלמיד. «שיאים» הוא הבית
+     של התלמיד ולכן חייב להישאר בסרגל שלו, אבל אצל המורה הוא פינה את
+     מקומו למבחני הכושר ועבר ל«עוד אפשרויות». */
+  $$(".nav button[data-go]").forEach(b=>{
+    b.style.display = stu ? (STUDENT_MODS[b.dataset.go]?"":"none")
+                          : (b.dataset.stuonly==="1"?"none":"");
+  });
   /* «משחקים» עבר לתוך אשכול «שיעור» עבור המורה — לתלמיד (שלא נכנס ל-שיעור בכלל)
      הוא חייב להישאר כפתור ישיר בסרגל. «עוד» מוביל רק למודולים שאסורים לתלמיד ממילא. */
   const ng=$("#navGames"); if(ng)ng.style.display=stu?"":"none";
@@ -118,7 +124,7 @@ function applyRole(){
 /* ---------- router ---------- */
 const MODS={home:1,beep:1,photo:1,rec:1,fit:1,stu:1,lesson:1,nut:1,games:1,know:1,tools:1,ft:1};
 /* מודולים שנגישים דרך כפתור «עוד» ולא ישירות בסרגל — כדי שהכפתור יודגש כשנמצאים באחד מהם */
-const MORE_MODS=["stu","know","tools","nut","ft"];
+const MORE_MODS=["stu","know","tools","nut","rec"];
 const inited={};
 function go(mod){
   if(!MODS[mod])mod="home";
@@ -347,18 +353,46 @@ const BT=(function(){
 
   /* ----- results (כמו במקור: מחיקה פר-שורה, דירוג קבוע לפי מרחק, תקרה 30) ----- */
   let results=LS.get("bt.results",[]), nextNum=results.length+1, sortBy="order";
+  /* רשימת המקצה — שמות הכיתה שנטענו מראש. כשהיא מלאה, נשירה נרשמת
+     בהקשה על התלמיד עצמו ולא בכפתור הכללי, כך שהשם נכנס נכון בשידור
+     חי במקום להיות מוקלד אחרי המבחן. */
+  let heat=LS.get("bt.heat",{cls:"",names:[]});
+  const heatSave=()=>LS.set("bt.heat",heat);
   function persist(){
     LS.set("bt.results",results);
     if(results.length)LS.set("bt.best",Math.max(LS.get("bt.best",0)||0,...results.map(r=>r.dist)));
   }
-  function registerDrop(){
+  function registerDrop(who){
     if(results.length>=30){toast("הלוח מלא (30 רישומים)");return;}
+    if(!running&&!elapsedOffset){toast("המבחן עוד לא התחיל");return;}
     const el=getElapsed(), done=completedCount(el);
     const lb=done>0?beeps[done-1]:{level:1,shInLvl:0,speed:startSpeed};
-    results.push({id:Date.now()+Math.random(),name:"תלמיד "+nextNum,level:lb.level,sh:lb.shInLvl,dist:done*distance,time:+el.toFixed(1),speed:lb.speed});
-    nextNum++; persist(); renderResults(); beep(440,0.16);
-    toast("נרשם: "+(done*distance)+" מ׳ · שלב "+lb.level);
+    const nm=who||("תלמיד "+nextNum);
+    results.push({id:Date.now()+Math.random(),name:nm,level:lb.level,sh:lb.shInLvl,dist:done*distance,time:+el.toFixed(1),speed:lb.speed});
+    if(!who)nextNum++;
+    persist(); renderResults(); renderHeat(); beep(440,0.16);
+    toast(nm+" — "+(done*distance)+" מ׳ · שלב "+lb.level);
     if(results.length>=30)$("#bt-regBtn").disabled=true;
+  }
+
+  /* ----- רשימת המקצה ----- */
+  const heatDone=nm=>results.find(r=>r.name===nm);
+  function renderHeat(){
+    const box=$("#bt-heatChips"); if(!box)return;
+    if(!heat.names.length){
+      box.innerHTML="";
+      $("#bt-heatHint").textContent="טען כיתה ובמקום הכפתור הגדול פשוט הקש על התלמיד שעצר — השם נכנס ללוח מדויק, בלי להקליד אחר כך.";
+      return;
+    }
+    const left=heat.names.filter(n=>!heatDone(n)).length;
+    $("#bt-heatHint").innerHTML="כיתה <b>"+esc(heat.cls)+"</b> · נותרו "+left+" מתוך "+heat.names.length+
+      " — הקש על התלמיד ברגע שהוא עוצר.";
+    box.innerHTML=heat.names.map(n=>{
+      const r=heatDone(n);
+      return `<button class="hc${r?" done":""}" data-nm="${esc(n)}"${r?" disabled":""}>${esc(n)}`+
+        (r?`<span class="dist">${r.dist} מ׳</span>`:"")+`</button>`;
+    }).join("");
+    $$("#bt-heatChips .hc").forEach(b=>b.addEventListener("click",()=>{ ac(); registerDrop(b.dataset.nm); }));
   }
   function renderResults(){
     $("#bt-empty").style.display=results.length?"none":"block";
@@ -379,7 +413,7 @@ const BT=(function(){
     }).join("");
     $$("#bt-tbody .nm").forEach(inp=>inp.addEventListener("input",()=>{ const r=results.find(x=>x.id==inp.dataset.id); if(r){r.name=inp.value;persist();} }));
     $$("#bt-tbody .del").forEach(b=>b.addEventListener("click",()=>{
-      results=results.filter(x=>x.id!=b.dataset.id); persist(); renderResults();
+      results=results.filter(x=>x.id!=b.dataset.id); persist(); renderResults(); renderHeat();
       $("#bt-regBtn").disabled=(running||elapsedOffset>0)?results.length>=30:true;
     }));
     $("#bt-undoBtn").disabled=!results.length;
@@ -442,8 +476,20 @@ const BT=(function(){
     $("#bt-sound").addEventListener("change",e=>{SET.sound=e.target.checked;saveSet()});
     $("#bt-startBtn").addEventListener("click",()=>running?pause():start());
     $("#bt-resetBtn").addEventListener("click",()=>{ if(getElapsed()===0||confirm("לאפס את שעון המבחן? (הלוח נשמר)"))reset(); });
-    $("#bt-regBtn").addEventListener("click",registerDrop);
-    $("#bt-undoBtn").addEventListener("click",()=>{ if(results.length){results.pop();nextNum=Math.max(1,nextNum-1);persist();renderResults();toast("הרישום האחרון בוטל");} });
+    $("#bt-regBtn").addEventListener("click",()=>registerDrop());
+    $("#bt-loadCls").addEventListener("click",()=>{
+      if(!window.FT||!window.FT.pick){toast("בורר הכיתה לא זמין");return;}
+      window.FT.pick({title:"טעינת כיתה לביפ טסט",
+        note:"הרשימה נטענת מ«מבחני כושר» — אותה רשימה בדיוק, בלי להקליד שוב.",
+        onPick:(names,cls)=>{ heat={cls,names}; heatSave(); renderHeat();
+          toast("נטענו "+names.length+" תלמידים מ"+cls); }});
+    });
+    $("#bt-clrCls").addEventListener("click",()=>{
+      if(!heat.names.length)return;
+      if(!confirm("לנקות את רשימת המקצה? הרישומים בלוח נשמרים."))return;
+      heat={cls:"",names:[]}; heatSave(); renderHeat();
+    });
+    $("#bt-undoBtn").addEventListener("click",()=>{ if(results.length){results.pop();nextNum=Math.max(1,nextNum-1);persist();renderResults();renderHeat();toast("הרישום האחרון בוטל");} });
     $("#bt-sortOrder").addEventListener("click",function(){sortBy="order";this.classList.add("on");$("#bt-sortDist").classList.remove("on");renderResults()});
     $("#bt-sortDist").addEventListener("click",function(){sortBy="dist";this.classList.add("on");$("#bt-sortOrder").classList.remove("on");renderResults()});
     $("#bt-csvBtn").addEventListener("click",()=>{
@@ -454,7 +500,7 @@ const BT=(function(){
         rows.push([i+1,r.name,r.level,r.sh,r.dist,r.time.toFixed(1),r.speed.toFixed(1),ok?v.toFixed(1):"",ok?classify(v,classAge,classSex).g:"",sexHe,classAge,distance]); });
       dlCSV("beep_test_results.csv",rows);
     });
-    $("#bt-clearBtn").addEventListener("click",()=>{ if(results.length&&confirm("למחוק את כל הרישומים?")){results=[];nextNum=1;persist();renderResults();$("#bt-regBtn").disabled=!(running||elapsedOffset>0);} });
+    $("#bt-clearBtn").addEventListener("click",()=>{ if(results.length&&confirm("למחוק את כל הרישומים?")){results=[];nextNum=1;persist();renderResults();renderHeat();$("#bt-regBtn").disabled=!(running||elapsedOffset>0);} });
     document.addEventListener("keydown",e=>{
       if(!$("#view-beep").classList.contains("on"))return;
       if(e.target.classList&&e.target.classList.contains("nm"))return;
@@ -462,7 +508,7 @@ const BT=(function(){
       if(e.code==="Space"){e.preventDefault();running?pause():start();}
       else if(e.code==="Enter"){e.preventDefault();if(!$("#bt-regBtn").disabled)registerDrop();}
     });
-    buildSchedule(); buildNorms(); reset(); renderResults();
+    buildSchedule(); buildNorms(); reset(); renderResults(); renderHeat();
   }
   return {init,_test:{buildSchedule:()=>{buildSchedule();return beeps},vo2max,classify,setProto:(d,s2)=>{distance=d;startSpeed=s2}}};
 })();
@@ -1129,6 +1175,24 @@ const PF=(function(){
     });
     $("#pf-gunLag").textContent=(()=>{const d=LS.get("pf.gunDist",0);
       return d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";})();
+    /* טעינת כיתה — אותה רשימה שמשמשת את מבחני הכושר, כדי שהשמות בלוח
+       התוצאות יהיו זהים לאלה שבמעקב ולא גרסה מוקלדת מחדש. המסלולים
+       מוגבלים ל-9, ולכן הבורר מוגבל לתשעה נבחרים — מקצה אחרי מקצה. */
+    $("#pf-loadCls").addEventListener("click",()=>{
+      if(!window.FT||!window.FT.pick){toast("בורר הכיתה לא זמין");return;}
+      window.FT.pick({title:"טעינת מקצה מכיתה", max:9,
+        note:"בחר את הרצים של המקצה הזה — עד 9 מסלולים. אפשר לחזור ולטעון מקצה נוסף מאותה כיתה.",
+        onPick:(list)=>{
+          laneN=Math.max(2,Math.min(9,list.length));
+          LS.set("pf.laneN",laneN);
+          $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
+          buildLanes(false);
+          lanes.forEach((l,i)=>{ l.name=list[i]||l.name; });
+          persistNames(); renderChips(); renderBoard(); refreshLaneSel();
+          if(mode==="sim"&&!race.on)drawSimIdle();
+          toast("נטענו "+list.length+" רצים למסלולים");
+        }});
+    });
     /* הדבקת רשימת שמות */
     $("#pf-pasteNames").addEventListener("click",()=>{
       const txt=prompt("הדבק רשימת שמות — שם בכל שורה (או מופרד בפסיקים):");

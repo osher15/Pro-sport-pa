@@ -1043,3 +1043,22 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-card .dim{color:var(--muted)}
 .ft-card .up{color:var(--green)}
 .ft-card .cap{display:block;font-size:10.5px;color:var(--warn);font-weight:400}
+
+
+/* ===== בורר הכיתה המשותף ===== */
+.seg.wrap{flex-wrap:wrap}
+.cp-list{margin-top:10px;max-height:270px;overflow:auto;border:1px solid var(--line);
+  border-radius:12px;padding:6px;background:var(--inset)}
+.cp-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer}
+.cp-item:hover{background:rgba(255,255,255,.05)}
+.cp-item input{width:19px;height:19px;accent-color:var(--acc);flex:none}
+.cp-item span{font-size:14px}
+
+/* ===== רשימת המקצה בביפ טסט ===== */
+.ft-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ft-chips .hc{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);
+  border-radius:13px;padding:10px 14px;font-weight:700;font-size:14px;cursor:pointer;user-select:none;
+  transition:.14s;min-height:var(--touch,42px)}
+.ft-chips .hc:active{transform:scale(.95)}
+.ft-chips .hc.done{opacity:.55;border-color:var(--acc);cursor:default}
+.ft-chips .hc .dist{font-family:'Share Tech Mono';font-size:12.5px;color:var(--acc)}

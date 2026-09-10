@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=142a6c61">
-<script src="hm-app.js?v=56ba02c3"></script>
+<link rel="stylesheet" href="hm-styles.css?v=0229a33f">
+<script src="hm-app.js?v=372499f5"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -21,7 +21,7 @@
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=fa4422f0"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=6a1cb479"></script>
+<script src="hm-tests.js?v=3fd87025"></script>
 <script src="hm-new.js?v=e443f3c8"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -48,16 +48,16 @@
     <div class="sb"><div class="n" id="qsStu">0</div><div class="l">תלמידים במעקב</div></div>
   </div>
   <div class="hx-mods">
-    <div class="hx-mod primary" data-go="lesson" style="--lc:#f472b6"><div class="no">01</div>
-      <div class="tx"><b>שיעור מלא</b><span>חימום → תחנות → מדידה · מערך אוטומטי · כולל כושר ומשחקים</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">02</div>
+    <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
+      <div class="tx"><b>מבחני כושר</b><span>30 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
+      <div class="tx"><b>מערכי שיעור</b><span>חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">03</div>
       <div class="tx"><b>ביפ טסט</b><span>ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">03</div>
+    <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
       <div class="tx"><b>פוטו־פיניש</b><span>מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="rec" style="--lc:#fbbf24"><div class="no">04</div>
-      <div class="tx"><b>אלופי בית הספר</b><span>לוח שיאים · אישור מורה · מצב טלוויזיה</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b>עוד מודולים</b><span>תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+      <div class="tx"><b>עוד אפשרויות</b><span>אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -118,6 +118,16 @@
       <button class="btn sm ghost" id="bt-undoBtn" disabled>↩ בטל רישום אחרון</button>
       <div class="hint">קיצורים: רווח = התחל/השהה · Enter = רישום</div>
     </div>
+  </div>
+
+  <div class="card" id="bt-heatCard">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0"><span class="dot"></span> רשימת המקצה</h2>
+      <div class="row"><button class="btn sm acc" id="bt-loadCls">👥 טען כיתה</button>
+      <button class="btn sm ghost" id="bt-clrCls">✕ נקה</button></div>
+    </div>
+    <div class="hint" id="bt-heatHint">טען כיתה ובמקום הכפתור הגדול פשוט הקש על התלמיד שעצר — השם נכנס ללוח מדויק, בלי להקליד אחר כך.</div>
+    <div class="ft-chips" id="bt-heatChips" style="margin-top:10px"></div>
   </div>
 
   <div class="card">
@@ -265,7 +275,8 @@
     <div class="card">
       <div class="row" style="justify-content:space-between">
         <h2 style="margin:0"><span class="dot"></span> מסלולים ומתחרים</h2>
-        <div class="row"><button class="btn sm" id="pf-pasteNames">📋 הדבק רשימה</button>
+        <div class="row"><button class="btn sm acc" id="pf-loadCls">👥 טען כיתה</button>
+        <button class="btn sm" id="pf-pasteNames">📋 הדבק רשימה</button>
         <button class="btn sm ghost" id="pf-editNames">✎ ערוך שמות</button></div>
       </div>
       <div class="field" style="margin-top:6px"><label>מספר מסלולים · <b id="pf-laneCountVal">4</b></label><input type="range" id="pf-laneCount" min="2" max="9" value="4"></div>
@@ -1258,21 +1269,40 @@
 </div>
 <div class="nav">
   <button data-go="home"><span class="ic">🏠</span>בית</button>
+  <button data-go="ft"><span class="ic">🏅</span>מבחנים</button>
   <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
   <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
   <button data-go="photo"><span class="ic">📷</span>פיניש</button>
-  <button data-go="rec" id="navRec"><span class="ic">🏆</span>שיאים</button>
+  <button data-go="rec" id="navRec" data-stuonly="1"><span class="ic">🏆</span>שיאים</button>
   <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span>משחקים</button>
   <button id="navMore"><span class="ic">⋯</span>עוד</button>
 </div>
 <!-- more menu -->
+<!-- ----- בורר כיתה משותף (ביפ טסט / פוטו־פיניש) ----- -->
+<div class="modal" id="cp-pickModal"><div class="box" style="max-width:520px">
+  <h3 id="cp-title"><span>טעינת כיתה</span><button class="x" data-close="cp-pickModal">✕</button></h3>
+  <div class="hint" id="cp-note"></div>
+  <div class="field" style="margin-top:8px"><label>שכבה</label><div class="seg wrap" id="cp-grades"></div></div>
+  <div class="field" style="margin-top:8px"><label>מספר כיתה</label><div class="seg wrap" id="cp-nums"></div></div>
+  <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+    <button class="btn sm ghost" id="cp-all">בחר הכל</button>
+    <button class="btn sm ghost" id="cp-none">נקה</button>
+    <span class="hint grow" id="cp-stat"></span>
+  </div>
+  <div class="cp-list" id="cp-list"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn acc grow" id="cp-load">✓ טען למקצה</button>
+    <button class="btn ghost" data-close="cp-pickModal">ביטול</button>
+  </div>
+</div></div>
+
 <div class="modal" id="moreModal"><div class="box" style="max-width:400px">
   <h3>⋯ עוד מודולים<button class="x" data-close="moreModal">✕</button></h3>
   <div class="hint" style="margin-bottom:9px">כושר ומשחקים עברו לתוך «שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
+    <button class="more-item" data-go="rec" data-close="moreModal"><span class="ic">🏆</span>אלופי בית הספר<span class="go">→</span></button>
     <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
-    <button class="more-item" data-go="ft" data-close="moreModal"><span class="ic">🏅</span>מבחני כושר<span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
