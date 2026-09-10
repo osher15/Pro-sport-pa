@@ -1,6 +1,6 @@
-
-
 "use strict";
+/* עוזר מקומי: אזור הלוקאל נגזר משפת הממשק (HM.loc). */
+function H_LOC(){ return (window.HM&&window.HM.loc)?window.HM.loc():"he-IL"; }
 /* ============================================================
    המגרש PRO — ליבה משותפת: אחסון, שמע, קול, ניווט, עזרים
    ============================================================ */
@@ -141,6 +141,7 @@ function go(mod){
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home")homeStats();
   updateBack(); wireTips();
+  if(window.I18N)window.I18N.applyDom();
   /* המסך האחרון נשמר כדי שרענון או חזרה לאפליקציה יחזירו אותך לאן
      שהיית — לא לדף הבית באמצע שיעור. */
   if(!isStudent())LS.set("hx.lastMod",mod);
@@ -180,6 +181,35 @@ function buildId(){
     const m=sc.match(/[?&]v=([0-9a-f]+)/);
     return m?m[1]:"local";
   }catch(e){ return "—"; }
+}
+
+/* קיצור לשימוש בקוד: HM.t("nav.home") — מפתח חסר נופל לעברית שנמסרה. */
+function t(key,def){ return window.I18N?window.I18N.t(key,def):(def!=null?def:key); }
+/* תאריכים ומספרים לפי שפת הממשק. עד עכשיו הם היו נעולים על he-IL,
+   ולכן דף הבית בערבית הציג כותרת ערבית מעל תאריך עברי. */
+function loc(){
+  const l=window.I18N?window.I18N.lang():"he";
+  return {he:"he-IL",en:"en-GB",ar:"ar",ru:"ru-RU"}[l]||"he-IL";
+}
+
+function wireLang(){
+  const box=$("#set-lang"); if(!box||!window.I18N)return;
+  const cov=window.I18N.coverage();
+  const paint=()=>{
+    const cur=window.I18N.lang();
+    box.innerHTML=window.I18N.langs().map(l=>{
+      const n=cov.out[l.code]||0;
+      const pct=l.code==="he"?100:Math.round(n/Math.max(1,cov.base)*100);
+      return '<button data-l="'+l.code+'"'+(l.code===cur?' class="on"':"")+'>'+
+        '<span class="fl">'+l.flag+'</span><span>'+l.native+'</span>'+
+        '<span class="cv">'+pct+'%</span></button>';
+    }).join("");
+    $$("#set-lang button").forEach(b=>b.addEventListener("click",()=>{
+      window.I18N.set(b.dataset.l); paint(); applyTheme();
+      toast(window.I18N.info().native);
+    }));
+  };
+  paint();
 }
 
 function applyTheme(){
@@ -322,6 +352,100 @@ function bkFileName(){
   const school=(SET.school||"").replace(/[\\/:*?"<>|]/g,"").trim().replace(/\s+/g,"-");
   return "hamegrash-גיבוי"+(school?"-"+school:"")+"-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+".json";
 }
+/* ============================================================
+   הצפנת גיבוי — הצעד הראשון של «מקצה לקצה»
+   ------------------------------------------------------------
+   גיבוי פותר אובדן מכשיר, אבל יוצר בעיה חדשה: קובץ עם שמות ותוצאות
+   של קטינים שנוסע לדרייב, למייל או לוואטסאפ. ההצפנה כאן נעשית
+   במכשיר, לפני שהקובץ בכלל קיים, ולכן מי שמאחסן אותו מחזיק ג׳יבריש.
+
+   PBKDF2-SHA256 עם 310,000 סבבים (המלצת OWASP) גוזר מפתח מהסיסמה,
+   ו-AES-GCM מצפין ומאמת. מלח ו-IV אקראיים לכל קובץ. הכול דרך
+   WebCrypto שמובנה בדפדפן — בלי ספרייה ובלי רשת.
+
+   אין שחזור סיסמה, וזה מכוון: מפתח שאפשר לשחזר הוא מפתח שגם מישהו
+   אחר יכול לשחזר. לכן ההצפנה היא בחירה מפורשת ולא ברירת מחדל.
+   ============================================================ */
+const BK_ITER=310000;
+const b64=buf=>{ let s2=""; const b=new Uint8Array(buf);
+  for(let i=0;i<b.length;i++)s2+=String.fromCharCode(b[i]);
+  return btoa(s2); };
+const unb64=str=>{ const s2=atob(str), out=new Uint8Array(s2.length);
+  for(let i=0;i<s2.length;i++)out[i]=s2.charCodeAt(i); return out; };
+
+async function bkKey(pass,salt){
+  const enc=new TextEncoder();
+  const base=await crypto.subtle.importKey("raw",enc.encode(pass),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt,iterations:BK_ITER,hash:"SHA-256"},
+    base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function bkEncrypt(snap,pass){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await bkKey(pass,salt);
+  const data=new TextEncoder().encode(JSON.stringify(snap));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,data);
+  /* המעטפת גלויה בכוונה: מי שמוצא את הקובץ צריך לדעת מה הוא ואיך
+     לפתוח אותו. שם בית הספר ותוכן הנתונים נשארים בפנים, מוצפנים. */
+  return {app:"hamegrash-pro",kind:"backup-encrypted",v:1,
+    at:snap.at,alg:"AES-GCM",kdf:"PBKDF2-SHA256",iter:BK_ITER,
+    salt:b64(salt),iv:b64(iv),ct:b64(ct)};
+}
+async function bkDecrypt(file,pass){
+  const key=await bkKey(pass,unb64(file.salt));
+  const pt=await crypto.subtle.decrypt(
+    {name:"AES-GCM",iv:unb64(file.iv)},key,unb64(file.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+/* חלון סיסמה משותף להצפנה ולפתיחה. מחזיר Promise שנפתר בסיסמה
+   או ב-null אם בוטל. */
+function bkAskPass(mode){
+  return new Promise(resolve=>{
+    const two=mode==="new";
+    $("#bkPassTitle").textContent=two?"🔐 סיסמה לגיבוי":"🔐 הקובץ מוצפן";
+    $("#bkPassHint").innerHTML=two
+      ? "בחר סיסמה. <b>אין דרך לשחזר אותה</b> — שמור אותה במקום שאתה זוכר, אחרת הקובץ אבוד."
+      : "הקובץ הזה מוצפן. הזן את הסיסמה שאיתה נוצר.";
+    $("#bk-pass2Wrap").style.display=two?"":"none";
+    $("#bk-pass1").value=""; $("#bk-pass2").value="";
+    $("#bk-passWarn").style.display="none";
+    const done=v=>{ modal("bkPassModal",false); cleanup(); resolve(v); };
+    const go=()=>{
+      const a=$("#bk-pass1").value, b=$("#bk-pass2").value;
+      const warn=m=>{ const w=$("#bk-passWarn"); w.textContent=m; w.style.display="block"; };
+      if(a.length<8)return warn("סיסמה של 8 תווים לפחות.");
+      if(two&&a!==b)return warn("שתי הסיסמאות אינן זהות.");
+      done(a);
+    };
+    const onKey=e=>{ if(e.key==="Enter"){e.preventDefault();go();} };
+    const onClose=()=>done(null);
+    function cleanup(){
+      $("#bk-passGo").removeEventListener("click",go);
+      $("#bk-pass1").removeEventListener("keydown",onKey);
+      $("#bk-pass2").removeEventListener("keydown",onKey);
+      $$('#bkPassModal [data-close="bkPassModal"]').forEach(b=>b.removeEventListener("click",onClose));
+    }
+    $("#bk-passGo").addEventListener("click",go);
+    $("#bk-pass1").addEventListener("keydown",onKey);
+    $("#bk-pass2").addEventListener("keydown",onKey);
+    $$('#bkPassModal [data-close="bkPassModal"]').forEach(b=>b.addEventListener("click",onClose));
+    /* חלון ההגדרות יושב אחרי זה ב-DOM ולכן היה מכסה את שדה הסיסמה —
+       אותה תקלה שכבר תוקנה בתצוגה המקדימה של השחזור. */
+    modal("setModal",false);
+    modal("bkPassModal",true);
+    setTimeout(()=>$("#bk-pass1").focus(),120);
+  });
+}
+function bkSave(obj,enc){
+  const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=bkFileName().replace(/\.json$/, enc?"-מוצפן.hmg":".json");
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
 function bkExport(){
   const snap=bkSnapshot(), keys=Object.keys(snap.data);
   if(!keys.length){ toast("אין עדיין נתונים לגיבוי"); return false; }
@@ -351,9 +475,24 @@ function bkApply(snap){
 function wireBackup(){
   if(!$("#set-bkExport"))return;
   bkStat();
-  $("#set-bkExport").addEventListener("click",()=>{
-    if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL"));
-    bkStat();
+  $("#set-bkEnc").checked=!!LS.get("bk.enc",false);
+  $("#set-bkEnc").addEventListener("change",e=>LS.set("bk.enc",e.target.checked));
+  $("#set-bkExport").addEventListener("click",async()=>{
+    const snap=bkSnapshot();
+    if(!Object.keys(snap.data).length){ toast("אין עדיין נתונים לגיבוי"); return; }
+    if(!$("#set-bkEnc").checked){
+      if(bkExport())LS.set("bk.last",new Date().toLocaleDateString(H_LOC()));
+      bkStat(); return;
+    }
+    if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בהצפנה — הסר את הסימון"); return; }
+    const pass=await bkAskPass("new"); if(pass===null)return;
+    toast("מצפין…");
+    try{
+      const enc=await bkEncrypt(snap,pass);
+      bkSave(enc,true);
+      LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); bkStat();
+      toast("🔐 גובה מוצפן — בלי הסיסמה אי אפשר לפתוח");
+    }catch(err){ toast("ההצפנה נכשלה: "+err.message); }
   });
   $("#set-bkImport").addEventListener("click",()=>$("#set-bkFile").click());
   $("#set-bkFile").addEventListener("change",e=>{
@@ -363,8 +502,27 @@ function wireBackup(){
     r.onload=()=>{
       let snap;
       try{ snap=JSON.parse(r.result); }catch(err){ toast("הקובץ אינו קובץ גיבוי תקין"); return; }
-      if(!snap||snap.app!=="hamegrash-pro"||!snap.data||typeof snap.data!=="object"){
-        toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
+      if(!snap||snap.app!=="hamegrash-pro"){ toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
+      if(snap.kind==="backup-encrypted"){
+        (async()=>{
+          if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בפענוח"); return; }
+          /* שלוש הזדמנויות ואז עצירה — הקצב איטי ממילא בגלל ה-KDF,
+             אבל אין סיבה להזמין ניחושים אינסופיים על קובץ שהועתק. */
+          for(let tryN=1;tryN<=3;tryN++){
+            const pass=await bkAskPass("open"); if(pass===null)return;
+            toast("מפענח…");
+            try{
+              const inner=await bkDecrypt(snap,pass);
+              if(!inner||!inner.data){ toast("הקובץ פוענח אבל תוכנו אינו גיבוי"); return; }
+              bkPreview(inner); return;
+            }catch(err){
+              toast(tryN<3?("סיסמה שגויה — נותרו "+(3-tryN)+" ניסיונות"):"סיסמה שגויה. הקובץ לא נפתח.");
+            }
+          }
+        })();
+        return;
+      }
+      if(!snap.data||typeof snap.data!=="object"){ toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
       bkPreview(snap);
     };
     r.onerror=()=>toast("לא הצלחתי לקרוא את הקובץ");
@@ -416,7 +574,7 @@ function wirePurge(){
     $$("#pg-quick button").forEach(x=>x.classList.toggle("on",x===q));
     paint();
   }));
-  $("#pg-backup").addEventListener("click",()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL")); });
+  $("#pg-backup").addEventListener("click",()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); });
   $("#pg-go").addEventListener("click",()=>{
     const iso=$("#pg-date").value; if(!iso)return;
     const c=count(iso);
@@ -438,7 +596,7 @@ function bkPreview(snap){
     const ia=BK_LABELS[a]?0:1, ib=BK_LABELS[b]?0:1;
     return ia-ib || a.localeCompare(b);
   });
-  const when=(()=>{ try{ return new Date(snap.at).toLocaleString("he-IL"); }catch(e){ return snap.at||"—"; } })();
+  const when=(()=>{ try{ return new Date(snap.at).toLocaleString(H_LOC()); }catch(e){ return snap.at||"—"; } })();
   $("#bk-meta").innerHTML="<span>נוצר: "+esc(when)+"</span>"+
     (snap.school?"<span>בית ספר: "+esc(snap.school)+"</span>":"")+
     "<span>"+inFile.length+" קבוצות נתונים</span>";
@@ -452,7 +610,7 @@ function bkPreview(snap){
   const w=$("#bk-warn");
   w.style.display=lost.length?"block":"none";
   if(lost.length)w.textContent="⚠️ הקובץ לא מכיל: "+lost.join(" · ")+" — הנתונים האלה יימחקו מהמכשיר.";
-  $("#bk-safety").onclick=()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL")); };
+  $("#bk-safety").onclick=()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); };
   $("#bk-go").onclick=()=>{
     if(!confirm("לשחזר? כל הנתונים שבמכשיר יוחלפו בנתונים שבקובץ."))return;
     bkApply(snap);
@@ -596,7 +754,7 @@ const BT=(function(){
   function render(){
     const el=getElapsed(), done=completedCount(el);
     const finished=el>=beeps[beeps.length-1].t;
-    $("#bt-distVal").innerHTML=(done*distance).toLocaleString("he-IL")+"<small> מ׳</small>";
+    $("#bt-distVal").innerHTML=(done*distance).toLocaleString(H_LOC())+"<small> מ׳</small>";
     $("#bt-timeVal").textContent=fmtMS(el);
     const segIdx=Math.min(done,beeps.length-1), cur=beeps[segIdx];
     $("#bt-stageVal").textContent=cur.level+" · "+cur.shInLvl+"/"+cur.shTot;
@@ -731,7 +889,7 @@ const BT=(function(){
       const cat=ok?classify(v,classAge,classSex):null;
       return `<tr><td class="rk">${medal}</td>
         <td><input class="nm" data-id="${r.id}" value="${esc(r.name)}" style="background:none;border:none;border-bottom:1px dashed var(--line);color:var(--ink);font-family:'Rubik';font-size:13.5px;width:110px"></td>
-        <td class="mono">${r.level}·${r.sh}</td><td class="mono">${r.dist.toLocaleString("he-IL")} מ׳</td><td class="mono">${fmtMS(r.time)}</td>
+        <td class="mono">${r.level}·${r.sh}</td><td class="mono">${r.dist.toLocaleString(H_LOC())} מ׳</td><td class="mono">${fmtMS(r.time)}</td>
         <td class="mono">${r.speed.toFixed(1)}</td><td class="mono">${ok?v.toFixed(1):"—"}</td>
         <td>${cat?`<span class="catpill" style="background:${cat.c}">${cat.g}</span>`:"—"}</td>
         <td><button class="x del" data-id="${r.id}" title="מחק">✕</button></td></tr>`;
@@ -749,7 +907,7 @@ const BT=(function(){
     let h='<table class="tbl"><thead><tr><th>שלב</th><th>מקטע</th><th>מהירות</th><th>סה״כ מרחק</th><th>זמן מצטבר</th></tr></thead><tbody>',L=0;
     beeps.forEach(b=>{
       if(b.level!==L){L=b.level;h+=`<tr style="background:#0f2419"><td class="rk">שלב ${L}</td><td class="mono">${b.shTot} מקטעים</td><td class="mono">${b.speed.toFixed(1)} קמ״ש</td><td colspan="2">—</td></tr>`;}
-      h+=`<tr data-i="${b.idx}"><td class="mono">${b.level}</td><td class="mono">${b.shInLvl}</td><td class="mono">${b.speed.toFixed(1)}</td><td class="mono">${b.cum.toLocaleString("he-IL")} מ׳</td><td class="mono">${fmtMS(b.t)}</td></tr>`;
+      h+=`<tr data-i="${b.idx}"><td class="mono">${b.level}</td><td class="mono">${b.shInLvl}</td><td class="mono">${b.speed.toFixed(1)}</td><td class="mono">${b.cum.toLocaleString(H_LOC())} מ׳</td><td class="mono">${fmtMS(b.t)}</td></tr>`;
     });
     $("#bt-refWrap").innerHTML=h+"</tbody></table>";
   }
@@ -1360,7 +1518,7 @@ const PF=(function(){
       x.fillText(l.src||"—",cols[5][1],y);
     });
     x.fillStyle="#5d7a6b"; x.font="400 14px Heebo,Arial";
-    x.fillText("נמדד ב«המגרש PRO» · פוטו־פיניש · "+new Date().toLocaleString("he-IL"),W-pad,H-20);
+    x.fillText("נמדד ב«המגרש PRO» · פוטו־פיניש · "+new Date().toLocaleString(H_LOC()),W-pad,H-20);
     const a=document.createElement("a");
     a.href=cv.toDataURL("image/png");
     a.download="מירוץ-"+(META.dist||"")+"מ-"+(META.date||new Date().toISOString().slice(0,10))+".png";
@@ -1507,7 +1665,7 @@ const PF=(function(){
       list.map((l,i)=>`<div class="c"><h1>🏅 תעודת הישג</h1><h2>${esc(SET.school||"בית הספר")} · ${esc(META.title)}</h2>
         <p class="t">${esc(l.name)}</p><p>מקום ${i+1} · מסלול ${l.lane} · זמן: ${fmtMSc(l.time)} · ${esc(META.round)} · ${META.dist} מ׳</p>
         ${windIllegal()?'<p class="w">רוח: '+META.wind+' מ/ש (מעל הסף החוקי)</p>':(META.wind!==""?'<p>רוח: '+esc(META.wind)+' מ/ש</p>':"")}
-        <p>${META.date||new Date().toLocaleDateString("he-IL")}</p></div>`).join("")+
+        <p>${META.date||new Date().toLocaleDateString(H_LOC())}</p></div>`).join("")+
       "<script>print()<\/script></body></html>");
     w.document.close();
   }
@@ -1685,6 +1843,7 @@ const PF=(function(){
       try{ if(st.classList.contains("fs"))st.requestFullscreen&&st.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }catch(e){}
       if(mode==="sim")setTimeout(()=>{simCanvas();race.on||drawSimIdle();},250); }
     $("#pf-fs").addEventListener("click",fsToggle);
+    $("#pf-fsExit").addEventListener("click",()=>{ if($("#pf-stage").classList.contains("fs"))fsToggle(); });
     $("#pf-laneCount").value=laneN; $("#pf-laneCountVal").textContent=laneN;
     $("#pf-laneCount").addEventListener("input",e=>{
       laneN=+e.target.value; LS.set("pf.laneN",laneN); $("#pf-laneCountVal").textContent=laneN;
@@ -1990,7 +2149,7 @@ const REC=(function(){
   function showVal(sp,v){
     if(TIMEY[sp.id]&&v>=60){ const h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.round(v%60);
       return (h?h+":":"")+String(m).padStart(h?2:1,"0")+":"+String(s).padStart(2,"0"); }
-    return (+v).toLocaleString("he-IL",{maximumFractionDigits:2});
+    return (+v).toLocaleString(H_LOC(),{maximumFractionDigits:2});
   }
   function approved(id){ return CACHE.filter(r=>r.sport===id&&r.status==="approved"); }
   function ranked(id){ const sp=sportById(id); return approved(id).sort((a,b)=>sp.lower?a.value-b.value:b.value-a.value); }
@@ -2908,10 +3067,21 @@ const FIT=(function(){
 
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
-window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,
+window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
-window.HMBoot=function(){ applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole();
+window.HMBoot=function(){
+  if(window.I18N)window.I18N.init();
+  applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole(); wireLang();
   wireTipPop();
+  /* מסכים שמציירים טקסט בעצמם (תאריך, סטטיסטיקות, רשימות) לא מתעדכנים
+     מ-applyDom, ולכן החלפת שפה מציירת אותם מחדש. */
+  document.addEventListener("i18n:change",()=>{
+    try{ homeStats(); }catch(e){}
+    try{ if(window.HMBootNew&&$("#hx-date"))
+      $("#hx-date").textContent=new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"}); }catch(e){}
+    const mod=document.body.dataset.mod;
+    if(mod&&mod!=="home"){ inited[mod]&&go(mod); }
+  });
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */

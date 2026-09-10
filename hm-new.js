@@ -1,4 +1,6 @@
 "use strict";
+/* עוזר מקומי: אזור הלוקאל נגזר משפת הממשק (HM.loc). */
+function H_LOC(){ return (window.HM&&window.HM.loc)?window.HM.loc():"he-IL"; }
 /* מודולים חדשים: שיעור מלא (LESSON) · תלמידים (STU) · תזונה (NUT) · תוספות בית/נעילה */
 (function(){
 const HFZ={
@@ -739,26 +741,33 @@ window.HMBootNew=function(){
   const unlockTeacher=()=>{
     sessionStorage.setItem("pehub.unlocked","1");
     H0.setRole("teacher");
-    $("#lockOv").classList.remove("on"); toast("ברוך הבא, המאמן 👋");
+    $("#lockOv").classList.remove("on"); toast(H0.t?H0.t("lock.welcome","ברוך הבא, המאמן 👋"):"ברוך הבא, המאמן 👋");
   };
   if(locked){
     $("#lockOv").classList.add("on");
     /* בפעם הראשונה אין קוד — המורה קובע אותו כאן, והוא נשמר במכשיר בלבד
        ואף פעם לא בקוד המקור. */
     if(!codeSet()){
-      $("#lockOv .box p").textContent="הגדרת קוד מורה — בחר קוד שרק אתה יודע";
-      $("#lock-pass").placeholder="קוד חדש";
-      $("#lock-enter").textContent="קבע קוד והיכנס";
+      /* הכתיבה הישירה הזאת דורסת את התרגום, ולכן היא עוברת דרך t()
+         ומסמנת מחדש את המפתח כדי שהחלפת שפה תתפוס גם אותה. */
+      const T=(k,d)=>H0.t?H0.t(k,d):d;
+      const sub=$("#lockOv .box p");
+      sub.dataset.i18n="lock.newCode"; sub.dataset.i18nHe="הגדרת קוד מורה — בחר קוד שרק אתה יודע";
+      sub.textContent=T("lock.newCode","הגדרת קוד מורה — בחר קוד שרק אתה יודע");
+      $("#lock-pass").placeholder=T("lock.newCodePh","קוד חדש");
+      const ent=$("#lock-enter");
+      ent.dataset.i18n="lock.setCode"; ent.dataset.i18nHe="קבע קוד והיכנס";
+      ent.textContent=T("lock.setCode","קבע קוד והיכנס");
     }
     const tryPass=()=>{
       const v=$("#lock-pass").value.trim();
       if(!codeSet()){
-        if(v.length<4){ toast("בחר קוד באורך 4 ספרות לפחות"); return; }
+        if(v.length<4){ toast(H0.t?H0.t("lock.tooShort","בחר קוד באורך 4 ספרות לפחות"):"בחר קוד באורך 4 ספרות לפחות"); return; }
         if(window.REC&&window.REC.setPass)window.REC.setPass(v); else LS.set("rec.pass",v);
         toast("🔑 הקוד נקבע — זכור אותו"); unlockTeacher(); return;
       }
       if(v===LS.get("rec.pass",null)) unlockTeacher();
-      else { toast("קוד שגוי"); $("#lock-pass").value=""; }
+      else { toast(H0.t?H0.t("lock.wrong","קוד שגוי"):"קוד שגוי"); $("#lock-pass").value=""; }
     };
     $("#lock-enter").addEventListener("click",tryPass);
     $("#lock-pass").addEventListener("keydown",e=>{if(e.key==="Enter")tryPass();});
@@ -888,7 +897,7 @@ window.HMBootNew=function(){
   const d=window.NUT.daily();
   $("#hx-nutTip").innerHTML="🥗 <b style='color:var(--acc)'>"+esc(d.t)+":</b> "+esc(d.tx);
   /* date on hero */
-  $("#hx-date").textContent=new Date().toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long"});
+  $("#hx-date").textContent=new Date().toLocaleDateString(H_LOC(),{weekday:"long",day:"numeric",month:"long"});
   /* save-beep-to-tracking button */
   const bt=$("#bt-toTrack"); if(bt)bt.addEventListener("click",window.STU.importFromBeep);
   const fb=$("#stu-fromBeep"); if(fb)fb.addEventListener("click",window.STU.importFromBeep);

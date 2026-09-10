@@ -12,8 +12,9 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=2e4f7ddf">
-<script src="hm-app.js?v=e6b56c1d"></script>
+<link rel="stylesheet" href="hm-styles.css?v=e9085b35">
+<script src="hm-i18n.js?v=751169c5"></script>
+<script src="hm-app.js?v=8e5615ca"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -24,56 +25,56 @@
 <script src="hm-lesson.js?v=45abc322"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=d1873503"></script>
-<script src="hm-new.js?v=411754b0"></script>
+<script src="hm-new.js?v=6cb3c9ad"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
-  <button class="backbtn" id="btnBack" hidden>→<span>חזרה</span></button>
+  <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
     <span class="clock" id="topClock">--:--</span>
-    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום">☀</button>
-    <button class="iconbtn" id="btnSettings" title="הגדרות">⚙</button></div>
+    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button>
+    <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
 </div>
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date">—</div>
-    <h1>בוקר טוב,<br><b>המאמן.</b></h1>
+    <h1><span data-i18n="home.greet">בוקר טוב,</span><br><b data-i18n="home.coach">המאמן.</b></h1>
   </div>
   <div class="scoreband">
-    <div class="sb"><div class="n" id="qsRuns">0</div><div class="l">מקצים נמדדו</div></div>
+    <div class="sb"><div class="n" id="qsRuns">0</div><div class="l" data-i18n="home.statRuns">מקצים נמדדו</div></div>
     <div class="div"></div>
-    <div class="sb"><div class="n" id="qsBeep">—</div><div class="l">שיא ביפ</div></div>
+    <div class="sb"><div class="n" id="qsBeep">—</div><div class="l" data-i18n="home.statBeep">שיא ביפ</div></div>
     <div class="div"></div>
-    <div class="sb"><div class="n" id="qsRecs">0</div><div class="l">שיאים מאושרים</div></div>
+    <div class="sb"><div class="n" id="qsRecs">0</div><div class="l" data-i18n="home.statRecs">שיאים מאושרים</div></div>
     <div class="div"></div>
-    <div class="sb"><div class="n" id="qsStu">0</div><div class="l">תלמידים במעקב</div></div>
+    <div class="sb"><div class="n" id="qsStu">0</div><div class="l" data-i18n="home.statStu">תלמידים במעקב</div></div>
   </div>
   <div class="hx-mods">
     <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
-      <div class="tx"><b>מבחני כושר</b><span>30 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.ft">מבחני כושר</b><span data-i18n="home.ftSub">30 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
-      <div class="tx"><b>מערכי שיעור</b><span>חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.lesson">מערכי שיעור</b><span data-i18n="home.lessonSub">חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">03</div>
-      <div class="tx"><b>ביפ טסט</b><span>ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
-      <div class="tx"><b>פוטו־פיניש</b><span>מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b>עוד אפשרויות</b><span>אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
-    <div class="top"><b id="hx-chTitle">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
+    <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
     <div class="track"><i id="hx-chBar"></i></div>
     <div class="row" style="margin-top:11px">
-      <button class="btn sm acc" id="hx-chPlus">+ הוסף ספירה</button>
-      <button class="btn sm ghost" id="hx-chEdit">✎ אתגר חדש</button>
+      <button class="btn sm acc" id="hx-chPlus" data-i18n="home.chPlus">+ הוסף ספירה</button>
+      <button class="btn sm ghost" id="hx-chEdit" data-i18n="home.chEdit">✎ אתגר חדש</button>
     </div>
   </div>
   <div class="hx-nut"><div id="hx-nutTip"></div></div>
-  <div class="card" style="margin-top:14px"><h2><span class="dot"></span> טיפ שטח</h2><div class="hint" id="fieldTip"></div></div>
+  <div class="card" style="margin-top:14px"><h2><span class="dot"></span> <span data-i18n="home.tip">טיפ שטח</span></h2><div class="hint" id="fieldTip"></div></div>
 </section>
 <section class="view" id="view-beep">
   <div class="card">
@@ -198,6 +199,7 @@
         <div class="tm" id="pf-fsClock">00:00.00</div>
         <button class="go" id="pf-fsGun" title="זינוק / עצור (רווח)">🔫 זינוק</button>
         <button id="pf-fsReset" title="איפוס מקצה">↺</button>
+        <button id="pf-fsExit" title="יציאה ממסך מלא">⤡</button>
       </div>
     </div>
 
@@ -1312,29 +1314,29 @@
 </section>
 </div>
 <div class="nav">
-  <button data-go="home"><span class="ic">🏠</span>בית</button>
-  <button data-go="ft"><span class="ic">🏅</span>מבחנים</button>
-  <button data-go="lesson"><span class="ic">📋</span>שיעור</button>
-  <button data-go="beep"><span class="ic">🎵</span>ביפ</button>
-  <button data-go="photo"><span class="ic">📷</span>פיניש</button>
-  <button data-go="rec" id="navRec" data-stuonly="1"><span class="ic">🏆</span>שיאים</button>
-  <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span>משחקים</button>
-  <button id="navMore"><span class="ic">⋯</span>עוד</button>
+  <button data-go="home"><span class="ic">🏠</span><span data-i18n="nav.home">בית</span></button>
+  <button data-go="ft"><span class="ic">🏅</span><span data-i18n="nav.tests">מבחנים</span></button>
+  <button data-go="lesson"><span class="ic">📋</span><span data-i18n="nav.lesson">שיעור</span></button>
+  <button data-go="beep"><span class="ic">🎵</span><span data-i18n="nav.beep">ביפ</span></button>
+  <button data-go="photo"><span class="ic">📷</span><span data-i18n="nav.photo">פיניש</span></button>
+  <button data-go="rec" id="navRec" data-stuonly="1"><span class="ic">🏆</span><span data-i18n="nav.records">שיאים</span></button>
+  <button data-go="games" id="navGames" style="display:none"><span class="ic">🎮</span><span data-i18n="nav.games">משחקים</span></button>
+  <button id="navMore"><span class="ic">⋯</span><span data-i18n="nav.more">עוד</span></button>
 </div>
 <!-- more menu -->
 <!-- ----- בורר כיתה משותף (ביפ טסט / פוטו־פיניש) ----- -->
 <!-- ----- תצוגה מקדימה לשחזור גיבוי ----- -->
 <div class="modal" id="bk-modal"><div class="box" style="max-width:520px">
-  <h3><span>⬆ שחזור מקובץ גיבוי</span><button class="x" data-close="bk-modal">✕</button></h3>
+  <h3><span data-i18n="bk.restoreTitle">⬆ שחזור מקובץ גיבוי</span><button class="x" data-close="bk-modal">✕</button></h3>
   <div class="hint">זה מה שיש בקובץ. השחזור <b>מחליף</b> את הנתונים שבמכשיר — לכן כדאי לגבות את המצב הנוכחי קודם.</div>
   <div class="bk-meta" id="bk-meta"></div>
   <div class="tblwrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>נתון</th><th>בקובץ</th><th>במכשיר עכשיו</th></tr></thead><tbody id="bk-diff"></tbody></table></div>
   <div class="bw-warn" id="bk-warn" style="margin-top:10px;display:none"></div>
   <div class="row" style="margin-top:13px">
-    <button class="btn sm" id="bk-safety">⬇ גבה את המצב הנוכחי קודם</button>
+    <button class="btn sm" id="bk-safety" data-i18n="bk.safety">⬇ גבה את המצב הנוכחי קודם</button>
   </div>
   <div class="row" style="margin-top:9px">
-    <button class="btn acc grow" id="bk-go">✓ שחזר והחלף</button>
+    <button class="btn acc grow" id="bk-go" data-i18n="bk.go">✓ שחזר והחלף</button>
     <button class="btn ghost" data-close="bk-modal">ביטול</button>
   </div>
 </div></div>
@@ -1424,6 +1426,21 @@
   </div>
 </div></div>
 
+<!-- ----- סיסמת גיבוי ----- -->
+<div class="modal" id="bkPassModal"><div class="box" style="max-width:460px">
+  <h3><span id="bkPassTitle">🔐 סיסמת הגיבוי</span><button class="x" data-close="bkPassModal">✕</button></h3>
+  <div class="hint" id="bkPassHint"></div>
+  <div class="field" style="margin-top:10px"><label data-i18n="bk.pass">סיסמה</label>
+    <input type="password" id="bk-pass1" autocomplete="new-password"></div>
+  <div class="field" id="bk-pass2Wrap" style="margin-top:9px"><label data-i18n="bk.passAgain">שוב, לאימות</label>
+    <input type="password" id="bk-pass2" autocomplete="new-password"></div>
+  <div class="bw-warn" id="bk-passWarn" style="margin-top:10px;display:none"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn acc grow" id="bk-passGo">המשך</button>
+    <button class="btn ghost" data-close="bkPassModal" data-i18n="ui.cancel">ביטול</button>
+  </div>
+</div></div>
+
 <div class="modal" id="cp-pickModal"><div class="box" style="max-width:520px">
   <h3 id="cp-title"><span>טעינת כיתה</span><button class="x" data-close="cp-pickModal">✕</button></h3>
   <div class="hint" id="cp-note"></div>
@@ -1442,40 +1459,44 @@
 </div></div>
 
 <div class="modal" id="moreModal"><div class="box" style="max-width:400px">
-  <h3>⋯ עוד מודולים<button class="x" data-close="moreModal">✕</button></h3>
+  <h3><span data-i18n="more.title">⋯ עוד מודולים</span><button class="x" data-close="moreModal">✕</button></h3>
   <div class="hint" style="margin-bottom:9px">כושר ומשחקים עברו לתוך «שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
-    <button class="more-item" data-go="rec" data-close="moreModal"><span class="ic">🏆</span>אלופי בית הספר<span class="go">→</span></button>
-    <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span>תלמידים וציונים<span class="go">→</span></button>
+    <button class="more-item" data-go="rec" data-close="moreModal"><span class="ic">🏆</span><span data-i18n="more.records">אלופי בית הספר</span><span class="go">→</span></button>
+    <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span><span data-i18n="more.students">תלמידים וציונים</span><span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
-    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span>ידע<span class="go">→</span></button>
-    <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span>כלי כיתה<span class="go">→</span></button>
-    <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span>פינת תזונה<span class="go">→</span></button>
+    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
+    <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
+    <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
 </div></div>
 <!-- settings modal -->
 <div class="modal" id="setModal"><div class="box">
-  <h3>⚙️ הגדרות<button class="x" data-close="setModal">✕</button></h3>
-  <div class="field"><label>שם בית הספר (מופיע בכותרת, בתעודות ובמצב טלוויזיה)</label><input type="text" id="set-school" placeholder="מקיף גימל באר שבע"></div>
-  <div class="field" style="margin-top:12px"><label>ערכת רקע — נשמרת במכשיר הזה</label>
+  <h3><span data-i18n="set.title">⚙️ הגדרות</span><button class="x" data-close="setModal">✕</button></h3>
+  <div class="field"><label data-i18n="set.lang">שפת הממשק</label>
+    <div class="lang-pick" id="set-lang"></div>
+    <div class="hint" id="set-langHint" data-i18n="set.langHint" style="margin-top:6px">שפת הממשק מתחלפת מיד. תוכן מקצועי (משחקים, מערכי שיעור, מאגר ידע) עדיין בעברית ומתורגם בהדרגה.</div>
+  </div>
+  <div class="field" style="margin-top:11px"><label data-i18n="set.school">שם בית הספר (מופיע בכותרת, בתעודות ובמצב טלוויזיה)</label><input type="text" id="set-school" placeholder="מקיף גימל באר שבע"></div>
+  <div class="field" style="margin-top:12px"><label data-i18n="set.theme">ערכת רקע — נשמרת במכשיר הזה</label>
     <div class="thm-pick" id="set-theme">
-      <button class="thm" data-t="dark"><span class="sw"></span>לילה</button>
-      <button class="thm" data-t="turf"><span class="sw"></span>דשא</button>
-      <button class="thm" data-t="slate"><span class="sw"></span>רגוע</button>
-      <button class="thm" data-t="day"><span class="sw"></span>יום</button>
-      <button class="thm" data-t="sun"><span class="sw"></span>שמש חזקה</button>
+      <button class="thm" data-t="dark"><span class="sw"></span><span data-i18n="thm.dark">לילה</span></button>
+      <button class="thm" data-t="turf"><span class="sw"></span><span data-i18n="thm.turf">דשא</span></button>
+      <button class="thm" data-t="slate"><span class="sw"></span><span data-i18n="thm.slate">רגוע</span></button>
+      <button class="thm" data-t="day"><span class="sw"></span><span data-i18n="thm.day">יום</span></button>
+      <button class="thm" data-t="sun"><span class="sw"></span><span data-i18n="thm.sun">שמש חזקה</span></button>
     </div>
-    <div class="hint" style="margin-top:6px">«יום» ו«שמש חזקה» נועדו לשימוש במגרש באור יום — רקע בהיר וניגודיות גבוהה שנקראים גם בשמש ישירה.</div>
+    <div class="hint" style="margin-top:6px" data-i18n="set.themeHint">«יום» ו«שמש חזקה» נועדו לשימוש במגרש באור יום — רקע בהיר וניגודיות גבוהה שנקראים גם בשמש ישירה.</div>
   </div>
   <div class="row" style="margin-top:11px">
-    <label class="check"><input type="checkbox" id="set-sound" checked> צלילים</label>
-    <label class="check"><input type="checkbox" id="set-voice" checked> כריזה קולית</label>
-    <label class="check"><input type="checkbox" id="set-wake" checked> מניעת כיבוי מסך בזמן פעילות</label>
-    <label class="check"><input type="checkbox" id="set-lock" checked> נעילת אזור מורה בכניסה</label>
-    <label class="check"><input type="checkbox" id="set-touch"> כפתורים גדולים (הפעלה ביד אחת תוך כדי שיעור)</label>
+    <label class="check"><input type="checkbox" id="set-sound" checked> <span data-i18n="set.sound">צלילים</span></label>
+    <label class="check"><input type="checkbox" id="set-voice" checked> <span data-i18n="set.voice">כריזה קולית</span></label>
+    <label class="check"><input type="checkbox" id="set-wake" checked> <span data-i18n="set.wake">מניעת כיבוי מסך בזמן פעילות</span></label>
+    <label class="check"><input type="checkbox" id="set-lock" checked> <span data-i18n="set.lock">נעילת אזור מורה בכניסה</span></label>
+    <label class="check"><input type="checkbox" id="set-touch"> <span data-i18n="set.touch">כפתורים גדולים (הפעלה ביד אחת תוך כדי שיעור)</span></label>
   </div>
   <div class="field" style="margin-top:13px"><label>קישור לטופס העלאת סרטונים (Google Forms)</label>
     <input type="url" id="set-driveForm" placeholder="https://forms.gle/..." style="direction:ltr;text-align:left;font-size:12px"></div>
@@ -1489,23 +1510,27 @@
     <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
   <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
 
-  <div class="hint" style="margin-top:13px">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
+  <div class="hint" style="margin-top:13px" data-i18n="set.install">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <div class="bk-card">
-    <b>💾 גיבוי ושחזור</b>
-    <div class="hint" style="margin-top:5px">כל הנתונים — תלמידים, תוצאות, שיאים, ציונים, נורמות והגדרות — שמורים <b>במכשיר הזה בלבד</b>.
+    <b data-i18n="bk.title">💾 גיבוי ושחזור</b>
+    <div class="hint" style="margin-top:5px" data-i18n="bk.body">כל הנתונים — תלמידים, תוצאות, שיאים, ציונים, נורמות והגדרות — שמורים <b>במכשיר הזה בלבד</b>.
       מכשיר שנשבר או ניקוי נתוני אתר = הכול נעלם, בלי שחזור. קובץ גיבוי אחד פותר גם את זה וגם העברה למכשיר חדש
       או למורה נוסף.</div>
     <div class="row" style="margin-top:10px;gap:8px">
-      <button class="btn sm acc" id="set-bkExport">⬇ גבה הכל לקובץ</button>
-      <button class="btn sm" id="set-bkImport">⬆ שחזר מקובץ</button>
-      <input type="file" id="set-bkFile" accept=".json,application/json" style="display:none">
+      <button class="btn sm acc" id="set-bkExport" data-i18n="bk.export">⬇ גבה הכל לקובץ</button>
+      <button class="btn sm" id="set-bkImport" data-i18n="bk.import">⬆ שחזר מקובץ</button>
+      <input type="file" id="set-bkFile" accept=".json,.hmg,application/json" style="display:none">
     </div>
+    <label class="check" style="margin-top:10px"><input type="checkbox" id="set-bkEnc">
+      <span data-i18n="bk.encrypt">🔐 הצפן את הגיבוי בסיסמה</span></label>
+    <div class="hint" data-i18n="bk.encryptHint" style="margin-top:4px">קובץ מוצפן אפשר לשמור בדרייב או לשלוח במייל בלי שהתוכן יהיה קריא לאף אחד — גם לא לשירות שמאחסן אותו.
+      <b>אין שחזור סיסמה:</b> אבדה הסיסמה, אבד הקובץ. זו המשמעות של הצפנה אמיתית.</div>
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
   </div>
-  <button class="btn acc big" id="set-save" style="margin-top:13px">שמור</button>
+  <button class="btn acc big" id="set-save" style="margin-top:13px" data-i18n="set.save">שמור</button>
   <div class="row" style="margin-top:11px;gap:8px">
-    <button class="btn sm ghost grow" id="set-about">ℹ אודות, גרסה וקרדיטים</button>
-    <button class="btn sm ghost grow" id="set-purge">🧹 נקה נתונים ישנים</button>
+    <button class="btn sm ghost grow" id="set-about" data-i18n="set.about">ℹ אודות, גרסה וקרדיטים</button>
+    <button class="btn sm ghost grow" id="set-purge" data-i18n="set.purge">🧹 נקה נתונים ישנים</button>
   </div>
   <div class="hint" id="set-build" style="margin-top:9px;text-align:center;font-family:'Share Tech Mono'"></div>
 </div></div>
@@ -1516,8 +1541,8 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
-<div id="demoBar" hidden>🎬 <b>מצב הדגמה</b> — הנתונים כאן הם דוגמה
-  <button class="btn sm" id="demoClear">נקה נתוני הדגמה</button></div>
+<div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
+  <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
 <div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
 <div id="toast"><div class="t" id="toastT"></div></div>
 
@@ -1539,14 +1564,14 @@
 <div id="lockOv"><div class="box">
   <div class="lg">🔐</div>
   <h1>המגרש PRO</h1>
-  <p>אזור מורה — הזן קוד כדי להיכנס</p>
+  <p data-i18n="lock.sub">אזור מורה — הזן קוד כדי להיכנס</p>
   <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
-  <button class="btn acc big" id="lock-enter" style="margin-top:14px">כניסת מורה</button>
-  <div class="lock-or"><span>או</span></div>
-  <button class="btn big ghost" id="lock-student">👦 כניסת תלמיד — בלי קוד</button>
-  <p class="lock-note">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
-  <button class="btn big ghost" id="lock-demo" style="margin-top:10px">🎬 מצב הדגמה — סיור בלי קוד</button>
-  <p class="lock-note">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
+  <button class="btn acc big" id="lock-enter" style="margin-top:14px" data-i18n="lock.enter">כניסת מורה</button>
+  <div class="lock-or"><span data-i18n="lock.or">או</span></div>
+  <button class="btn big ghost" id="lock-student" data-i18n="lock.student">👦 כניסת תלמיד — בלי קוד</button>
+  <p class="lock-note" data-i18n="lock.studentNote">מצב תלמיד: צפייה בלוח השיאים ובדף המשחקים, ושליחת שיא חדש לאישור המורה. בלי גישה לתלמידים, למבחנים, להגדרות ולאישור שיאים.</p>
+  <button class="btn big ghost" id="lock-demo" style="margin-top:10px" data-i18n="lock.demo">🎬 מצב הדגמה — סיור בלי קוד</button>
+  <p class="lock-note" data-i18n="lock.demoNote">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
   <div class="lock-about">
     <b>מה זה?</b> ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור, שיאים וציונים.<br>
     <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת, אין חשבון, שום דבר לא נשלח לשום מקום.

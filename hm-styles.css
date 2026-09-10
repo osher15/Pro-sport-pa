@@ -233,6 +233,16 @@ details.fold .bd{padding:0 12px 13px}
 .pf-fsctl button.go{background:rgba(31,122,77,.75)}
 .pf-fsctl button#pf-fsReset{width:36px;padding:8px 0}
 @media (min-width:761px){ .pf-stage:not(.fs) .pf-fsctl{display:none} }
+/* במסך מלא הדפדפן עצמו מצייר הודעת «הקש Esc ליציאה» בשולי המסך, והיא
+   יכולה לכסות את הבר. מרימים אותו מעל האזור הזה ונותנים לו רקע אטום,
+   ומוסיפים כפתור יציאה משלנו כדי שלא תהיה תלות בהודעה של הדפדפן. */
+.pf-stage.fs .pf-fsctl{bottom:26px}
+.pf-stage.fs .pf-fsctl .tm,.pf-stage.fs .pf-fsctl button{background:rgba(0,0,0,.82)}
+#pf-fsExit{display:none;width:36px;padding:8px 0}
+.pf-stage.fs #pf-fsExit{display:block}
+/* הבאנר של «מקום ראשון» יושב בתחתית כמו הבר — במסך מלא הוא מתרומם
+   מעליו כדי שלא יכסה אותו בדיוק ברגע שצריך לעצור. */
+.pf-stage.fs .pf-banner{bottom:62px;background:linear-gradient(0deg,rgba(0,0,0,.9),transparent)}
 .pf-runchips{display:flex;flex-wrap:wrap;gap:8px}
 .pf-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);border-radius:13px;
   padding:9px 13px;font-weight:700;font-size:14px;cursor:pointer;user-select:none;transition:.14s}
@@ -1165,3 +1175,14 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .stu-chips button:active{transform:scale(.95)}
 .stu-chips button i{font-style:normal;font-family:'Share Tech Mono';font-size:11.5px;color:var(--muted)}
 .stu-chips button.on i{color:var(--acc)}
+
+/* ===== בורר שפה ===== */
+.lang-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.lang-pick button{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--ink);border-radius:12px;padding:10px 14px;font-family:'Heebo';font-size:14px;cursor:pointer;
+  transition:.12s;min-height:var(--touch,42px)}
+.lang-pick button.on{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,var(--panel2))}
+.lang-pick button:active{transform:scale(.96)}
+.lang-pick button .fl{font-size:17px;line-height:1}
+.lang-pick button .cv{font-family:'Share Tech Mono';font-size:10.5px;color:var(--muted)}
+.lang-pick button.on .cv{color:var(--acc)}
