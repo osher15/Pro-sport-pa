@@ -1186,3 +1186,36 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .lang-pick button .fl{font-size:17px;line-height:1}
 .lang-pick button .cv{font-family:'Share Tech Mono';font-size:10.5px;color:var(--muted)}
 .lang-pick button.on .cv{color:var(--acc)}
+
+/* ============================================================
+   כיוון טקסט כשהממשק והתוכן אינם באותה שפה
+   ------------------------------------------------------------
+   הממשק מתורגם, אבל התוכן המקצועי (משחקים, מערכי שיעור, מאגר
+   ידע, דגשי מבחנים) עדיין עברית. באנגלית וברוסית הוא מצא את עצמו
+   בתוך מיכל LTR, והדפדפן סידר פסקאות עבריות משמאל לימין — כלומר
+   טקסט הפוך על המסך.
+
+   unicode-bidi:plaintext הוא בדיוק הכלי לזה: כל פסקה מחליטה את
+   כיוונה בעצמה לפי התו החזק הראשון שבה. עברית יוצאת RTL, אנגלית
+   יוצאת LTR, ומונחים מעורבים כמו «VO₂max» או «ייצוא CSV» נשארים
+   מבודדים ולא גוררים את הפסקה איתם. הכול ב-CSS, בלי מעבר על ה-DOM
+   בכל ציור מחדש.
+   ============================================================ */
+/* רשימת סלקטורים תמיד תפספס משהו — נוסתה, וכיסתה פחות משליש
+   מהאלמנטים. הכלל חל לכן על כל מה שבתוך תצוגה או מודאל. הוא נוגע
+   רק בכיוון הטקסט הפנימי ולא במאפיין direction, ולכן סדר הקופסאות
+   ב-flex וב-grid אינו משתנה. */
+body[data-dir="ltr"] .view *,
+body[data-dir="ltr"] .modal .box *,
+body[data-dir="ltr"] #lockOv .box *,
+body[data-dir="ltr"] .nav *,
+body[data-dir="ltr"] #demoBar *{
+  unicode-bidi:plaintext;
+}
+/* שדות קלט: plaintext הופך את סמן ההקלדה לבלתי צפוי בטופס ריק,
+   ולכן שם עדיף dir=auto שמחליט פעם אחת לפי מה שהוקלד. */
+body[data-dir="ltr"] input,
+body[data-dir="ltr"] textarea{unicode-bidi:normal}
+/* שם המותג הוא שם עברי ולא טקסט ממשק — הוא נשאר RTL בכל שפה,
+   אחרת «המגרש PRO» מתהפך ל-«PRO המגרש». */
+.topbar .ttl{direction:rtl;unicode-bidi:isolate}

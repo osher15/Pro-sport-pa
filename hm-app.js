@@ -453,7 +453,9 @@ function bkExport(){
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=bkFileName();
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  toast("✓ גובו "+keys.length+" קבוצות נתונים");
+  /* אומרים בפירוש מה ירד. מורה שלא שם לב לתיבת הסימון צריך לדעת
+     שהקובץ שהוא עומד לשמור בדרייב קריא לכל מי שיפתח אותו. */
+  toast("✓ גובו "+keys.length+" קבוצות נתונים · הקובץ אינו מוצפן");
   bkStat(); return true;
 }
 function bkStat(){

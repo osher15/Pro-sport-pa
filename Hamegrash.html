@@ -1198,6 +1198,39 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .lang-pick button .cv{font-family:'Share Tech Mono';font-size:10.5px;color:var(--muted)}
 .lang-pick button.on .cv{color:var(--acc)}
 
+/* ============================================================
+   כיוון טקסט כשהממשק והתוכן אינם באותה שפה
+   ------------------------------------------------------------
+   הממשק מתורגם, אבל התוכן המקצועי (משחקים, מערכי שיעור, מאגר
+   ידע, דגשי מבחנים) עדיין עברית. באנגלית וברוסית הוא מצא את עצמו
+   בתוך מיכל LTR, והדפדפן סידר פסקאות עבריות משמאל לימין — כלומר
+   טקסט הפוך על המסך.
+
+   unicode-bidi:plaintext הוא בדיוק הכלי לזה: כל פסקה מחליטה את
+   כיוונה בעצמה לפי התו החזק הראשון שבה. עברית יוצאת RTL, אנגלית
+   יוצאת LTR, ומונחים מעורבים כמו «VO₂max» או «ייצוא CSV» נשארים
+   מבודדים ולא גוררים את הפסקה איתם. הכול ב-CSS, בלי מעבר על ה-DOM
+   בכל ציור מחדש.
+   ============================================================ */
+/* רשימת סלקטורים תמיד תפספס משהו — נוסתה, וכיסתה פחות משליש
+   מהאלמנטים. הכלל חל לכן על כל מה שבתוך תצוגה או מודאל. הוא נוגע
+   רק בכיוון הטקסט הפנימי ולא במאפיין direction, ולכן סדר הקופסאות
+   ב-flex וב-grid אינו משתנה. */
+body[data-dir="ltr"] .view *,
+body[data-dir="ltr"] .modal .box *,
+body[data-dir="ltr"] #lockOv .box *,
+body[data-dir="ltr"] .nav *,
+body[data-dir="ltr"] #demoBar *{
+  unicode-bidi:plaintext;
+}
+/* שדות קלט: plaintext הופך את סמן ההקלדה לבלתי צפוי בטופס ריק,
+   ולכן שם עדיף dir=auto שמחליט פעם אחת לפי מה שהוקלד. */
+body[data-dir="ltr"] input,
+body[data-dir="ltr"] textarea{unicode-bidi:normal}
+/* שם המותג הוא שם עברי ולא טקסט ממשק — הוא נשאר RTL בכל שפה,
+   אחרת «המגרש PRO» מתהפך ל-«PRO המגרש». */
+.topbar .ttl{direction:rtl;unicode-bidi:isolate}
+
 </style>
 </head>
 <body>
@@ -1205,7 +1238,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 <div class="topbar">
   <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
-    <div><div class="ttl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub">ערכת שטח למורה לחינוך גופני</div></div>
+    <div><div class="ttl" dir="rtl">המגרש <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub" dir="auto">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
@@ -1215,7 +1248,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 </div>
 <section class="view" id="view-home">
   <div class="hero">
-    <div class="kick" id="hx-date">—</div>
+    <div class="kick" id="hx-date" dir="auto">—</div>
     <h1><span data-i18n="home.greet">בוקר טוב,</span><br><b data-i18n="home.coach">המאמן.</b></h1>
   </div>
   <div class="scoreband">
@@ -2721,7 +2754,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 <div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
   <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
 <div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
-<div id="toast"><div class="t" id="toastT"></div></div>
+<div id="toast"><div class="t" id="toastT" dir="auto"></div></div>
 
 <div class="modal" id="stu-modal"><div class="box">
   <h3>👤 <span id="stu-mTitle"></span><button class="x" data-close="stu-modal">✕</button></h3>
@@ -3595,7 +3628,9 @@ function bkExport(){
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=bkFileName();
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  toast("✓ גובו "+keys.length+" קבוצות נתונים");
+  /* אומרים בפירוש מה ירד. מורה שלא שם לב לתיבת הסימון צריך לדעת
+     שהקובץ שהוא עומד לשמור בדרייב קריא לכל מי שיפתח אותו. */
+  toast("✓ גובו "+keys.length+" קבוצות נתונים · הקובץ אינו מוצפן");
   bkStat(); return true;
 }
 function bkStat(){
