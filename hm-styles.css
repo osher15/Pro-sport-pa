@@ -1133,3 +1133,13 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .pf-numrow input{flex:1}
 .bibpill{display:inline-block;background:var(--inset);border:1px solid var(--line);border-radius:6px;
   padding:1px 6px;font-size:11px;color:var(--acc);font-family:'Share Tech Mono'}
+
+/* ===== רישום ביפ לפי מסלול ===== */
+.bt-lanes{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px;margin-top:10px}
+.bt-lanes:empty{display:none}
+.bt-lanes button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:12px;
+  padding:13px 6px;font-family:'Share Tech Mono';font-size:20px;cursor:pointer;transition:.12s;
+  min-height:var(--touch,52px)}
+.bt-lanes button:active{transform:scale(.93)}
+.bt-lanes button.done{opacity:.5;border-color:var(--acc);cursor:default}
+.bt-lanes button small{display:block;font-family:'Heebo';font-size:10px;color:var(--acc);margin-top:2px}

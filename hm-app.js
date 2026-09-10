@@ -600,6 +600,18 @@ const BT=(function(){
     if(done>0){const v=vo2max(beeps[done-1].speed,classAge);$("#bt-vo2Val").textContent=v>0?v.toFixed(1):"—";
       if(beeps[done-1].level!==lastLvl){lastLvl=beeps[done-1].level; if(beeps[done-1].levelEnd&&!finished)say("שלב "+(lastLvl+1));}
     } else $("#bt-vo2Val").textContent="—";
+    /* אזהרה שלוש שניות לפני עליית שלב. עליית שלב היא הרגע שבו רץ
+       על הגבול נושר, ולכן שווה לו לדעת שהיא מגיעה — במקום לגלות
+       שהקצב קפץ אחרי שהוא כבר פספס ביפ. */
+    if(running&&!finished){
+      const nb=beeps.find(b=>b.levelEnd&&b.t>el);
+      if(nb&&nb.t-el<=3.05&&nb.idx!==lvlWarned){
+        lvlWarned=nb.idx;
+        beep(1320,0.09,0.45,"sine");
+        setTimeout(()=>beep(1320,0.09,0.45,"sine"),150);
+        say("שלב "+(nb.level+1)+" בעוד שלוש");
+      }
+    }
     if(done!==lastFlash&&done>0&&running){ lastFlash=done;
       const bd=$("#bt-statsCard"); bd.classList.remove("board-flash"); void bd.offsetWidth; bd.classList.add("board-flash"); }
     highlightRef(done);
@@ -630,7 +642,7 @@ const BT=(function(){
   }
   function reset(){
     running=false; clearInterval(schedTimer); cancelAnimationFrame(raf); keepAwake(false);
-    elapsedOffset=0; audioIdx=0; lastFlash=-1; lastLvl=0;
+    elapsedOffset=0; audioIdx=0; lastFlash=-1; lastLvl=0; lvlWarned=-1;
     $("#bt-startBtn").innerHTML="▶ זינוק"; $("#bt-regBtn").disabled=true;
     setSegEnabled(true); render();
   }
@@ -642,6 +654,7 @@ const BT=(function(){
 
   /* ----- results (כמו במקור: מחיקה פר-שורה, דירוג קבוע לפי מרחק, תקרה 30) ----- */
   let results=LS.get("bt.results",[]), nextNum=results.length+1, sortBy="order";
+  let lvlWarned=-1;
   /* רשימת המקצה — שמות הכיתה שנטענו מראש. כשהיא מלאה, נשירה נרשמת
      בהקשה על התלמיד עצמו ולא בכפתור הכללי, כך שהשם נכנס נכון בשידור
      חי במקום להיות מוקלד אחרי המבחן. */
@@ -659,7 +672,7 @@ const BT=(function(){
     const nm=who||("תלמיד "+nextNum);
     results.push({id:Date.now()+Math.random(),name:nm,level:lb.level,sh:lb.shInLvl,dist:done*distance,time:+el.toFixed(1),speed:lb.speed});
     if(!who)nextNum++;
-    persist(); renderResults(); renderHeat(); beep(440,0.16);
+    persist(); renderResults(); renderHeat(); renderLanes(); beep(440,0.16);
     toast(nm+" — "+(done*distance)+" מ׳ · שלב "+lb.level);
     if(results.length>=30)$("#bt-regBtn").disabled=true;
   }
@@ -683,6 +696,24 @@ const BT=(function(){
     }).join("");
     $$("#bt-heatChips .hc").forEach(b=>b.addEventListener("click",()=>{ ac(); registerDrop(b.dataset.nm); }));
   }
+
+  /* ---------- רישום לפי מספר מסלול ----------
+     יש מורים שמריצים ביפ במסלולים ממוספרים ולא לפי רשימת שמות. שם
+     הזהות היא המספר, וההקלדה של שמות אחר כך היא בדיוק מה שגורם
+     לתוצאות להישאר בלוח ולא להגיע למעקב. */
+  const laneOn=()=>!!LS.get("bt.laneMode",false);
+  const laneCount=()=>Math.max(2,Math.min(20,+LS.get("bt.laneN",8)||8));
+  function renderLanes(){
+    const box=$("#bt-lanes"); if(!box)return;
+    if(!laneOn()){ box.innerHTML=""; return; }
+    box.innerHTML=Array.from({length:laneCount()},(_,i)=>{
+      const nm="מסלול "+(i+1), r=results.find(x=>x.name===nm);
+      return '<button data-ln="'+(i+1)+'"'+(r?' class="done" disabled':"")+">"+(i+1)+
+        (r?"<small>"+r.dist+" מ׳</small>":"")+"</button>";
+    }).join("");
+    $$("#bt-lanes button").forEach(b=>b.addEventListener("click",()=>{
+      ac(); registerDrop("מסלול "+b.dataset.ln); }));
+  }
   function renderResults(){
     $("#bt-empty").style.display=results.length?"none":"block";
     let view=results.map((r,i)=>({r,order:i}));
@@ -702,7 +733,7 @@ const BT=(function(){
     }).join("");
     $$("#bt-tbody .nm").forEach(inp=>inp.addEventListener("input",()=>{ const r=results.find(x=>x.id==inp.dataset.id); if(r){r.name=inp.value;persist();} }));
     $$("#bt-tbody .del").forEach(b=>b.addEventListener("click",()=>{
-      results=results.filter(x=>x.id!=b.dataset.id); persist(); renderResults(); renderHeat();
+      results=results.filter(x=>x.id!=b.dataset.id); persist(); renderResults(); renderHeat(); renderLanes();
       $("#bt-regBtn").disabled=(running||elapsedOffset>0)?results.length>=30:true;
     }));
     $("#bt-undoBtn").disabled=!results.length;
@@ -778,7 +809,7 @@ const BT=(function(){
       if(!confirm("לנקות את רשימת המקצה? הרישומים בלוח נשמרים."))return;
       heat={cls:"",names:[]}; heatSave(); renderHeat();
     });
-    $("#bt-undoBtn").addEventListener("click",()=>{ if(results.length){results.pop();nextNum=Math.max(1,nextNum-1);persist();renderResults();renderHeat();toast("הרישום האחרון בוטל");} });
+    $("#bt-undoBtn").addEventListener("click",()=>{ if(results.length){results.pop();nextNum=Math.max(1,nextNum-1);persist();renderResults();renderHeat();renderLanes();toast("הרישום האחרון בוטל");} });
     /* התוצאה של הביפ נשמרת כמרחק במבחן «ביפ טסט» של מודול המבחנים,
        כדי שהיא תופיע בכרטיס התלמיד ובמדד הכושר יחד עם כל השאר. */
     $("#bt-toFt").addEventListener("click",()=>{
@@ -798,6 +829,64 @@ const BT=(function(){
         note:"התוצאות ייכנסו למבחן «ביפ טסט» של הכיתה הזאת.",
         onPick:(names,cls)=>send(cls)});
     });
+    /* ---------- פרופילי הגדרה ----------
+       מורה שמלמד בנים ובנות, או שמריץ גם באולם 15 מ׳ וגם במגרש 20 מ׳,
+       הגדיר את אותם ארבעה פרמטרים מחדש בכל שיעור. פרופיל שומר את
+       המצב השלם ומחזיר אותו בבחירה אחת. */
+    const profs=()=>LS.get("bt.profiles",[]);
+    const setProfs=p2=>LS.set("bt.profiles",p2);
+    function profPaint(){
+      const list=profs();
+      $("#bt-profSel").innerHTML='<option value="">— פרופיל —</option>'+
+        list.map((p2,i)=>'<option value="'+i+'">'+esc(p2.name)+"</option>").join("");
+      $("#bt-profDel").disabled=!list.length;
+    }
+    function profApply(p2){
+      distance=p2.dist; startSpeed=p2.speed; classAge=p2.age; classSex=p2.sex;
+      LS.set("bt.dist",distance); LS.set("bt.start",startSpeed);
+      LS.set("bt.age",classAge); LS.set("bt.sex",classSex);
+      $$("#bt-distSeg button").forEach(b=>b.classList.toggle("on",+b.dataset.d===distance));
+      $("#bt-spVal").textContent=startSpeed.toFixed(1);
+      $("#bt-age").value=classAge;
+      $$("#bt-sexSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===classSex));
+      buildSchedule(); buildNorms(); reset(); renderResults();
+      toast("נטען פרופיל: "+p2.name);
+    }
+    $("#bt-profSel").addEventListener("change",e=>{
+      const i=e.target.value; if(i==="")return;
+      const p2=profs()[+i]; if(p2)profApply(p2);
+    });
+    $("#bt-profSave").addEventListener("click",()=>{
+      const def=(classSex==="girls"?"בנות":"בנים")+" · "+distance+" מ׳ · גיל "+classAge;
+      const nm=prompt("שם הפרופיל:",def); if(nm===null)return;
+      const name=nm.trim()||def;
+      const list=profs();
+      const rec={name,dist:distance,speed:startSpeed,age:classAge,sex:classSex};
+      const at=list.findIndex(p2=>p2.name===name);
+      if(at>=0){ if(!confirm("כבר יש פרופיל בשם הזה — לדרוס אותו?"))return; list[at]=rec; }
+      else list.push(rec);
+      setProfs(list); profPaint();
+      $("#bt-profSel").value=String(at>=0?at:list.length-1);
+      toast("✓ הפרופיל נשמר");
+    });
+    $("#bt-profDel").addEventListener("click",()=>{
+      const i=$("#bt-profSel").value;
+      if(i===""){ toast("בחר פרופיל למחיקה"); return; }
+      const list=profs(), p2=list[+i]; if(!p2)return;
+      if(!confirm("למחוק את הפרופיל «"+p2.name+"»?"))return;
+      list.splice(+i,1); setProfs(list); profPaint(); $("#bt-profSel").value="";
+      toast("הפרופיל נמחק");
+    });
+    profPaint();
+
+    $("#bt-laneMode").checked=laneOn();
+    $("#bt-laneN").value=laneCount();
+    $("#bt-laneMode").addEventListener("change",e=>{ LS.set("bt.laneMode",e.target.checked); renderLanes(); });
+    $("#bt-laneN").addEventListener("change",e=>{
+      const v=Math.max(2,Math.min(20,+e.target.value||8));
+      e.target.value=v; LS.set("bt.laneN",v); renderLanes();
+    });
+
     $("#bt-sortOrder").addEventListener("click",function(){sortBy="order";this.classList.add("on");$("#bt-sortDist").classList.remove("on");renderResults()});
     $("#bt-sortDist").addEventListener("click",function(){sortBy="dist";this.classList.add("on");$("#bt-sortOrder").classList.remove("on");renderResults()});
     $("#bt-csvBtn").addEventListener("click",()=>{
@@ -806,9 +895,12 @@ const BT=(function(){
       const rows=[["מס","שם","שלב","מקטע","מרחק (מ)","זמן (שנ)","מהירות (קמ\"ש)","VO2max","דרגה","מין","גיל","מרחק לכיוון (מ)"]];
       results.forEach((r,i)=>{ const v=vo2max(r.speed,classAge), ok=r.dist>0&&v>0;
         rows.push([i+1,r.name,r.level,r.sh,r.dist,r.time.toFixed(1),r.speed.toFixed(1),ok?v.toFixed(1):"",ok?classify(v,classAge,classSex).g:"",sexHe,classAge,distance]); });
-      dlCSV("beep_test_results.csv",rows);
+      /* שם הקובץ נשא תאריך ולא כלום, ולכן שלושה מקצים באותו יום ירדו
+         כ-«(1)», «(2)» ו«(3)» בתיקיית ההורדות. */
+      const clsPart=(heat.cls||"").replace(/[\\/:*?"<>|]/g,"").trim();
+      dlCSV("ביפ-טסט"+(clsPart?"-"+clsPart:"")+"-"+new Date().toISOString().slice(0,10)+".csv",rows);
     });
-    $("#bt-clearBtn").addEventListener("click",()=>{ if(results.length&&confirm("למחוק את כל הרישומים?")){results=[];nextNum=1;persist();renderResults();renderHeat();$("#bt-regBtn").disabled=!(running||elapsedOffset>0);} });
+    $("#bt-clearBtn").addEventListener("click",()=>{ if(results.length&&confirm("למחוק את כל הרישומים?")){results=[];nextNum=1;persist();renderResults();renderHeat();renderLanes();$("#bt-regBtn").disabled=!(running||elapsedOffset>0);} });
     document.addEventListener("keydown",e=>{
       if(!$("#view-beep").classList.contains("on"))return;
       if(e.target.classList&&e.target.classList.contains("nm"))return;
@@ -816,7 +908,7 @@ const BT=(function(){
       if(e.code==="Space"){e.preventDefault();running?pause():start();}
       else if(e.code==="Enter"){e.preventDefault();if(!$("#bt-regBtn").disabled)registerDrop();}
     });
-    buildSchedule(); buildNorms(); reset(); renderResults(); renderHeat();
+    buildSchedule(); buildNorms(); reset(); renderResults(); renderHeat(); renderLanes();
   }
   return {init,_test:{buildSchedule:()=>{buildSchedule();return beeps},vo2max,classify,setProto:(d,s2)=>{distance=d;startSpeed=s2}}};
 })();

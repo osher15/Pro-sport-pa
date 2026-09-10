@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=ab39df4d">
-<script src="hm-app.js?v=8da452e6"></script>
+<link rel="stylesheet" href="hm-styles.css?v=fa3b2a35">
+<script src="hm-app.js?v=67de927e"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -87,6 +87,11 @@
       </div>
       <button class="btn sm ghost" id="bt-spStd">↺ תקני (8.0)</button>
       <span class="pill acc" id="bt-protoPill">פרוטוקול תקני</span>
+      <div class="row grow" style="justify-content:flex-end;gap:7px">
+        <select id="bt-profSel" style="background:var(--inset);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:9px 11px;font-family:'Heebo';font-size:13px"></select>
+        <button class="btn sm" id="bt-profSave">💾 שמור פרופיל</button>
+        <button class="btn sm ghost" id="bt-profDel">🗑</button>
+      </div>
     </div>
     <div class="row" style="margin-top:11px">
       <div class="field" style="width:130px"><label>גיל הכיתה</label>
@@ -119,6 +124,12 @@
       <button class="btn ghost" id="bt-resetBtn">↺ איפוס</button>
     </div>
     <button class="btn stop big" id="bt-regBtn" style="margin-top:11px" disabled>🛑 רישום נשירה · התלמיד עצר</button>
+    <div class="bt-lanes" id="bt-lanes"></div>
+    <div class="row" style="margin-top:8px;gap:9px;align-items:center">
+      <label class="check"><input type="checkbox" id="bt-laneMode"> רישום לפי מספר מסלול</label>
+      <div class="field" style="width:130px"><label>כמה מסלולים</label>
+        <input type="number" id="bt-laneN" min="2" max="20" value="8"></div>
+    </div>
     <div class="row" style="margin-top:9px;justify-content:space-between">
       <button class="btn sm ghost" id="bt-undoBtn" disabled>↩ בטל רישום אחרון</button>
       <div class="hint">קיצורים: רווח = התחל/השהה · Enter = רישום</div>
