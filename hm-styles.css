@@ -1113,3 +1113,23 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ab-p b{color:var(--ink)}
 .ab-sec{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
 .ab-sec>b{font-size:14px}
+
+/* ===== הדרכת פוטו־פיניש ===== */
+.pfg{min-height:210px}
+.pfg .step{display:flex;flex-direction:column;gap:9px}
+.pfg .art{height:104px;border:1px solid var(--line);border-radius:13px;background:var(--inset);
+  display:grid;place-items:center;font-size:46px}
+.pfg h4{margin:0;font-size:17px;font-family:'Inter'}
+.pfg p{margin:0;font-size:14px;line-height:1.75;color:var(--muted)}
+.pfg p b{color:var(--ink)}
+.pfg-dots{display:flex;gap:7px;justify-content:center;margin-top:13px}
+.pfg-dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:.15s}
+.pfg-dots i.on{background:var(--acc);width:22px;border-radius:5px}
+.pf-check{margin:11px 0 0;padding-inline-start:20px;line-height:1.85;font-size:13.8px;color:var(--muted)}
+.pf-check li{margin-bottom:7px}
+.pf-check b{color:var(--ink)}
+.pf-numrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pf-numrow .ln{font-family:'Share Tech Mono';font-size:13px;color:var(--muted);width:64px;flex:none}
+.pf-numrow input{flex:1}
+.bibpill{display:inline-block;background:var(--inset);border:1px solid var(--line);border-radius:6px;
+  padding:1px 6px;font-size:11px;color:var(--acc);font-family:'Share Tech Mono'}

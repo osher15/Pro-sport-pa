@@ -61,6 +61,26 @@ const css=R("hm-styles.css");
   if(depth!==0)problems.push("סוגריים מסולסלים לא מאוזנים (מאזן "+depth+")");
   if(problems.length)throw new Error("hm-styles.css לא תקין: "+problems.join(" · "));
 })();
+/* בדיקת שפיות למבנה ה-HTML: תג שלא נסגר ב-«>» בולע בשקט את כל
+   המרקאפ שאחריו — הדפדפן לא מתלונן, שום דבר לא נופל, ופשוט אלמנטים
+   שלמים מוצאים את עצמם מקוננים במקום הלא נכון. זה כבר קרה פעם אחת
+   בעריכת data-tip, ולכן הבדיקה כאן. */
+(function checkHtml(){
+  const problems=[];
+  /* תג פתיחה שנקטע: «<tag ... "» ואחריו «<» בלי «>» שסוגר אותו */
+  const unterminated=/<[a-zA-Z][^<>]*"\s*<\//g;
+  let m;
+  while((m=unterminated.exec(body))!==null){
+    const at=body.slice(Math.max(0,m.index-70),m.index+40).replace(/\s+/g," ");
+    problems.push("תג שלא נסגר ב-«>» סמוך ל: …"+at+"…");
+    if(problems.length>4)break;
+  }
+  /* איזון div ברמת הקובץ */
+  const open=(body.match(/<div\b[^>]*>/g)||[]).length;
+  const close=(body.match(/<\/div>/g)||[]).length;
+  if(open!==close)problems.push("תגי div לא מאוזנים: "+open+" פתיחות מול "+close+" סגירות");
+  if(problems.length)throw new Error("index.html לא תקין:\n  · "+problems.join("\n  · "));
+})();
 /* חייב להישאר זהה לסדר תגי ה-script ב-index.html */
 const SCRIPTS=["hm-app.js","hm-qr.js","hm-howto.js","hm-know.js","hm-tools.js","hm-plans.js","hm-lesson.js","hm-build.js","hm-tests.js","hm-new.js"];
 /* בדיקת שפיות: כל סקריפט שמופיע ב-index.html חייב להיכלל גם כאן */

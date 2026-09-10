@@ -836,11 +836,17 @@ const PF=(function(){
   let laneN=LS.get("pf.laneN",4);
   let names=LS.get("pf.names",[]);
   let lanes=[]; // {lane,name,color,time,src,snap}
+  let bibs=LS.get("pf.bibs",[]);
+  /* המספר מוצג ליד המסלול רק כשהוא מוסיף מידע. כשאין שם והמספר הוא
+     כל הזהות, השם כבר «#107» — והצגתו פעמיים היא רעש. */
+  const bibExtra=l=>(l.bib&&l.name!=="#"+l.bib)?l.bib:null;
+  function persistBibs(){ bibs=lanes.map(l=>l.bib||null); LS.set("pf.bibs",bibs); }
   function buildLanes(keepTimes){
     const old=lanes;
     lanes=Array.from({length:laneN},(_,i)=>({
       lane:i+1,
       name:names[i]||("מסלול "+(i+1)),
+      bib:bibs[i]||null,
       color:COLORS[i%COLORS.length],
       time:keepTimes&&old[i]?old[i].time:null,
       src:keepTimes&&old[i]?old[i].src:null,
@@ -1204,6 +1210,66 @@ const PF=(function(){
 
   /* ---------- results ---------- */
   function finished(){ return lanes.filter(l=>l.time!=null).sort((a,b)=>a.time-b.time); }
+
+  /* ---------- ייצוא: תמונת סיום + טבלת זמנים בקובץ אחד ----------
+     שני קבצים נפרדים מאבדים את הקישור ביניהם ברגע שהם עוברים הלאה —
+     מי שמקבל אותם לא יודע איזה זמן שייך לאיזו רצועה בתמונה. כאן
+     הכול נשמר כתמונה אחת עם הכותרת, הרצועה והטבלה מתחתיה. */
+  function exportSheet(){
+    const list=finished();
+    if(!list.length){ toast("אין תוצאות לייצא"); return; }
+    const W=1100, pad=34, rowH=44, headH=132;
+    const hasStrip=stripX>0;
+    const stripH=hasStrip?Math.round(Math.min(240,STRIPH)):0;
+    const tableTop=headH+(hasStrip?stripH+26:0);
+    const H=tableTop+38+rowH*(list.length+1)+56;
+    const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    const x=cv.getContext("2d");
+    x.fillStyle="#06100c"; x.fillRect(0,0,W,H);
+    x.fillStyle="#19d27a"; x.fillRect(0,0,W,5);
+    x.direction="rtl"; x.textAlign="right";
+    x.fillStyle="#eaf5ee"; x.font="700 30px Heebo,Arial";
+    x.fillText(META.title||"מירוץ",W-pad,54);
+    x.fillStyle="#8fa79a"; x.font="400 17px Heebo,Arial";
+    const sub=[META.round,META.dist+" מ׳",META.date||new Date().toISOString().slice(0,10),
+      (META.wind!==""&&META.wind!=null)?("רוח "+META.wind+" מ/ש"):null,
+      SET.school||null].filter(Boolean).join("  ·  ");
+    x.fillText(sub,W-pad,84);
+    if(windIllegal()){ x.fillStyle="#ffd23f"; x.fillText("⚠ רוח לא חוקית (מעל +2.0)",W-pad,110); }
+    if(hasStrip){
+      try{ x.drawImage(buf,0,0,stripX,STRIPH,pad,headH,W-pad*2,stripH);
+        x.strokeStyle="#1d3b2b"; x.lineWidth=1; x.strokeRect(pad,headH,W-pad*2,stripH);
+      }catch(e){}
+    }
+    /* טבלה */
+    const cols=[["דירוג",W-pad],["מסלול",W-pad-130],["שם",W-pad-250],["זמן",W-pad-640],["פער",W-pad-810],["מקור",W-pad-960]];
+    let y=tableTop+30;
+    x.fillStyle="#8fa79a"; x.font="600 16px Heebo,Arial";
+    cols.forEach(([t,cx])=>x.fillText(t,cx,y));
+    y+=12; x.strokeStyle="#1d3b2b"; x.beginPath(); x.moveTo(pad,y); x.lineTo(W-pad,y); x.stroke();
+    x.font="400 18px Heebo,Arial";
+    list.forEach((l,i)=>{
+      y+=rowH;
+      if(i%2===0){ x.fillStyle="rgba(255,255,255,.03)"; x.fillRect(pad,y-rowH+12,W-pad*2,rowH); }
+      x.fillStyle=i===0?"#19d27a":"#eaf5ee";
+      x.fillText(["🥇","🥈","🥉"][i]||String(i+1),cols[0][1],y);
+      x.fillStyle="#eaf5ee";
+      x.fillText(String(l.lane)+(bibExtra(l)?"  #"+l.bib:""),cols[1][1],y);
+      x.fillText(l.name||"—",cols[2][1],y);
+      x.fillStyle=i===0?"#19d27a":"#eaf5ee";
+      x.fillText(fmtMSc(l.time),cols[3][1],y);
+      x.fillStyle="#8fa79a";
+      x.fillText(i===0?"—":"+"+(l.time-list[0].time).toFixed(2),cols[4][1],y);
+      x.fillText(l.src||"—",cols[5][1],y);
+    });
+    x.fillStyle="#5d7a6b"; x.font="400 14px Heebo,Arial";
+    x.fillText("נמדד ב«המגרש PRO» · פוטו־פיניש · "+new Date().toLocaleString("he-IL"),W-pad,H-20);
+    const a=document.createElement("a");
+    a.href=cv.toDataURL("image/png");
+    a.download="מירוץ-"+(META.dist||"")+"מ-"+(META.date||new Date().toISOString().slice(0,10))+".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("✓ נשמרה תמונה עם הרצועה והטבלה");
+  }
   function windIllegal(){ const w=parseFloat(META.wind); return !isNaN(w)&&w>2.0; }
   function renderMeta(){
     const items=[["",`<b>${esc(META.title)}</b>`],["שלב",META.round],["מרחק",META.dist+" מ׳"],["תאריך",META.date||"—"]];
@@ -1216,7 +1282,7 @@ const PF=(function(){
     const list=finished(), medals=["🥇","🥈","🥉"];
     $("#pf-empty").style.display=list.length?"none":"block";
     $("#pf-tbody").innerHTML=list.map((l,i)=>`
-      <tr><td class="rk">${medals[i]||i+1}</td><td class="mono">${l.lane}</td>
+      <tr><td class="rk">${medals[i]||i+1}</td><td class="mono">${l.lane}${bibExtra(l)?' <span class="bibpill">#'+esc(l.bib)+'</span>':""}</td>
       <td><input class="nm" data-lane="${l.lane}" value="${esc(l.name)}" style="background:none;border:none;border-bottom:1px dashed var(--line);color:var(--ink);font-family:'Rubik';font-size:13.5px;width:110px"></td>
       <td class="mono">${fmtMSc(l.time)}</td>
       <td class="mono">${i===0?"—":"+"+(l.time-list[0].time).toFixed(2)}</td>
@@ -1574,6 +1640,60 @@ const PF=(function(){
                          :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
         }});
     });
+    /* ---------- הדרכת פתיחה ----------
+       פוטו־פיניש הוא המודול שהכי קל לתפעל לא נכון, והתוצאה של תפעול
+       לא נכון היא מספרים שנראים אמינים לגמרי. ארבעה מסכים בפעם
+       הראשונה חוסכים מקצה שלם שנמדד לא נכון. */
+    const PFG=[
+      ["🔭","העמד את הטלפון — ולא ביד","המצלמה צריכה לראות את <b>קו הסיום מהצד</b>, בגובה החזה בערך. חצובה, גדר, ספסל או תיק — כל דבר יציב. תזוזה של סנטימטר מזיזה את הקו, וכל הזמנים זזים איתו."],
+      ["📏","יישר את הקו האדום על קו הסיום","הזז את «מיקום קו הסיום» עד שהקו האדום במסך יושב <b>בדיוק</b> על קו הסיום במגרש. זה הפרמטר היחיד שטעות בו פוסלת את כל המקצה."],
+      ["🔫","אם יש אקדח — הזן את המרחק ממנו","הקול נוסע ‎343‎ מ׳ בשנייה. מצלמה שעומדת ‎34‎ מ׳ מהזינוק שומעת את הירייה עשירית שנייה מאוחר מדי, וכל הזמנים יוצאים קצרים בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."],
+      ["🎯","לגמר צמוד — לחץ על הרץ בתמונה","אחרי המקצה, ב«🎞 תמונת סיום», לחיצה על גוף הרץ נותנת זמן באינטרפולציה בין העמודות. <b>מדויק יותר מהטריגר האוטומטי</b> — זו דרך העבודה לגמר."]
+    ];
+    let pfgI=0;
+    function pfgPaint(){
+      const [em,h,p]=PFG[pfgI];
+      $("#pfg-body").innerHTML='<div class="step"><div class="art">'+em+'</div><h4>'+h+'</h4><p>'+p+'</p></div>';
+      $("#pfg-dots").innerHTML=PFG.map((_,i)=>'<i class="'+(i===pfgI?"on":"")+'"></i>').join("");
+      $("#pfg-prev").disabled=pfgI===0;
+      $("#pfg-next").textContent=pfgI===PFG.length-1?"יאללה, בוא נמדוד":"הבא ←";
+    }
+    function pfgClose(){
+      if($("#pfg-skip").checked)LS.set("pf.guideSeen",true);
+      modal("pfGuideModal",false);
+    }
+    $("#pfg-prev").addEventListener("click",()=>{ if(pfgI>0){pfgI--;pfgPaint();} });
+    $("#pfg-next").addEventListener("click",()=>{
+      if(pfgI<PFG.length-1){pfgI++;pfgPaint();} else pfgClose(); });
+    $("#pf-sanityBtn").addEventListener("click",()=>modal("pfSanityModal",true));
+    if(!LS.get("pf.guideSeen",false)){ pfgI=0; pfgPaint(); $("#pfg-skip").checked=true; modal("pfGuideModal",true); }
+
+    /* ---------- מספרי חזה ----------
+       לא כל מקצה רץ לפי רשימת שמות. כשיש מספרי חזה, המספר הוא הזהות
+       שבאמת מזהה את הרץ בשטח — ולכן הוא יושב לצד השם ולא במקומו,
+       כדי שאפשר יהיה להשלים את השם אחר כך בלי לאבד את הקישור. */
+    function renderNums(){
+      $("#pf-numBody").innerHTML=lanes.map((l,i)=>
+        '<div class="pf-numrow"><span class="ln">מסלול '+l.lane+'</span>'+
+        '<input type="text" inputmode="numeric" data-i="'+i+'" value="'+esc(l.bib||"")+'" placeholder="מספר"></div>').join("");
+    }
+    $("#pf-numbers").addEventListener("click",()=>{ renderNums(); modal("pfNumModal",true); });
+    $("#pf-numSave").addEventListener("click",()=>{
+      $$("#pf-numBody input").forEach(inp=>{
+        const l=lanes[+inp.dataset.i]; if(!l)return;
+        const v=inp.value.trim();
+        l.bib=v||null;
+        /* מספר בלי שם — המספר הוא השם, כדי שהלוח לא יציג «מסלול 3» ריק */
+        if(v&&(!l.name||/^מסלול\s*\d+$/.test(l.name)))l.name="#"+v;
+      });
+      persistBibs(); persistNames(); renderChips(); renderBoard();
+      modal("pfNumModal",false); toast("מספרי החזה נשמרו");
+    });
+
+    /* ---------- ייצוא תמונה + טבלה ----------
+       עד עכשיו התמונה ירדה בנפרד מהטבלה, ומי שקיבל אותן לא ידע איזה
+       זמן שייך לאיזו רצועה. כאן הן נשמרות כתמונה אחת. */
+    $("#pf-sheet").addEventListener("click",exportSheet);
     $("#pf-btnSave").addEventListener("click",arcSave);
     $("#pf-csv").addEventListener("click",csvSprint);
     $("#pf-print").addEventListener("click",printCert);

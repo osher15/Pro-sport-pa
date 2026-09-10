@@ -1125,6 +1125,26 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ab-sec{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
 .ab-sec>b{font-size:14px}
 
+/* ===== הדרכת פוטו־פיניש ===== */
+.pfg{min-height:210px}
+.pfg .step{display:flex;flex-direction:column;gap:9px}
+.pfg .art{height:104px;border:1px solid var(--line);border-radius:13px;background:var(--inset);
+  display:grid;place-items:center;font-size:46px}
+.pfg h4{margin:0;font-size:17px;font-family:'Inter'}
+.pfg p{margin:0;font-size:14px;line-height:1.75;color:var(--muted)}
+.pfg p b{color:var(--ink)}
+.pfg-dots{display:flex;gap:7px;justify-content:center;margin-top:13px}
+.pfg-dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:.15s}
+.pfg-dots i.on{background:var(--acc);width:22px;border-radius:5px}
+.pf-check{margin:11px 0 0;padding-inline-start:20px;line-height:1.85;font-size:13.8px;color:var(--muted)}
+.pf-check li{margin-bottom:7px}
+.pf-check b{color:var(--ink)}
+.pf-numrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pf-numrow .ln{font-family:'Share Tech Mono';font-size:13px;color:var(--muted);width:64px;flex:none}
+.pf-numrow input{flex:1}
+.bibpill{display:inline-block;background:var(--inset);border:1px solid var(--line);border-radius:6px;
+  padding:1px 6px;font-size:11px;color:var(--acc);font-family:'Share Tech Mono'}
+
 </style>
 </head>
 <body>
@@ -1306,7 +1326,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
       </div>
       <div class="row" style="margin-top:10px">
         <div class="field grow"><label>מיקום קו הסיום</label><input type="range" id="pf-lineRange" min="5" max="95" value="50"></div>
-        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45" data-tip="כמה שינוי בתמונה נחשב «רץ עבר». נמוך מדי — צל, ענף או תלמיד ברקע נספרים כחצייה. גבוה מדי — רץ בחולצה בהירה על רקע בהיר לא נתפס. התחל ב-45, ואם יש חציות מדומות העלה בהדרגה."</div>
+        <div class="field grow"><label>רגישות זיהוי · <b id="pf-sensVal">45</b></label><input type="range" id="pf-sens" min="0" max="100" value="45" data-tip="כמה שינוי בתמונה נחשב «רץ עבר». נמוך מדי — צל, ענף או תלמיד ברקע נספרים כחצייה. גבוה מדי — רץ בחולצה בהירה על רקע בהיר לא נתפס. התחל ב-45, ואם יש חציות מדומות העלה בהדרגה."></div>
         <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
         <div class="field" style="width:104px"><label>זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
       </div>
@@ -1316,7 +1336,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
       </div>
       <div class="row" style="margin-top:9px">
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
-          <input type="number" id="pf-gunDist" value="0" min="0" step="1" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."</div>
+          <input type="number" id="pf-gunDist" value="0" min="0" step="1" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."></div>
         <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
         <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
@@ -1368,10 +1388,8 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
           <li><b>הכי מדויק:</b> ב«תמונת סיום» אפשר <b>ללחוץ על הרץ עצמו</b>, והזמן מחושב באינטרפולציה בין העמודות.
             מדויק יותר מהטריגר האוטומטי, ופותר גם את חלון ה‑450 מ״ש. זו דרך העבודה המומלצת לגמר צמוד.</li>
         </ol>
-        <div class="hint" style="margin-top:6px"><b>בדיקת שפיות של דקה:</b> העמד את הטלפון, בקש מתלמיד לעבור את הקו בהליכה,
-          וודא שהצפצוף נשמע בדיוק כשהוא על הקו. אם זה יורה מוקדם — הקו האדום במסך לא יושב על קו הסיום האמיתי;
-          תקן עם «מיקום קו הסיום».</div>
       </details>
+      <button class="btn acc big" id="pf-sanityBtn" style="margin-top:11px">✅ בדיקת שפיות של דקה — לפני כל מקצה</button>
     </div>
 
     <div class="card">
@@ -1430,9 +1448,11 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
         <button class="btn sm acc" id="pf-toFt">🏅 שלח למבחני כושר</button>
         <button class="btn sm" id="pf-btnSave">💾 שמור לארכיון</button>
         <button class="btn sm" id="pf-csv">⬇ ייצוא CSV</button>
+        <button class="btn sm" id="pf-sheet">🖼 תמונה + טבלה</button>
         <button class="btn sm ghost" id="pf-print">🖨 תעודת זכייה</button>
         <button class="btn sm ghost" id="pf-mail">✉ שלח תוצאות</button>
         <button class="btn sm ghost" id="pf-addRow">＋ שורה</button>
+        <button class="btn sm ghost" id="pf-numbers">🔢 מספרי חזה</button>
       </div>
       <div class="aiBox" id="pf-aiBox">
         <div class="ai-head"><span class="av">🎙️</span><b>פרשן המירוץ</b><span class="tag">מנוע מקומי · עובד בלי אינטרנט</span></div>
@@ -2451,6 +2471,44 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
   </div>
 </div></div>
 
+<!-- ----- פוטו־פיניש: הדרכת פתיחה ----- -->
+<div class="modal" id="pfGuideModal"><div class="box" style="max-width:520px">
+  <h3><span>📷 פוטו־פיניש — ‎4‎ שלבים</span><button class="x" data-close="pfGuideModal">✕</button></h3>
+  <div class="pfg" id="pfg-body"></div>
+  <div class="pfg-dots" id="pfg-dots"></div>
+  <div class="row" style="margin-top:13px">
+    <button class="btn ghost" id="pfg-prev">→ הקודם</button>
+    <button class="btn acc grow" id="pfg-next">הבא ←</button>
+  </div>
+  <label class="check" style="margin-top:11px"><input type="checkbox" id="pfg-skip"> אל תציג שוב</label>
+</div></div>
+
+<!-- ----- פוטו־פיניש: בדיקת שפיות ----- -->
+<div class="modal" id="pfSanityModal"><div class="box" style="max-width:500px">
+  <h3><span>✅ בדיקת שפיות של דקה</span><button class="x" data-close="pfSanityModal">✕</button></h3>
+  <div class="hint">עושים את זה פעם אחת בכל מקום חדש. זה מה שמפריד בין מדידה למספר שנראה כמו מדידה.</div>
+  <ol class="pf-check">
+    <li><b>הטלפון יציב.</b> חצובה, גדר או תיק — לא ביד. תזוזה של סנטימטר מזיזה את קו הסיום.</li>
+    <li><b>שורת הסטטוס ירוקה:</b> «🟢 מצלמה פעילה · זיהוי חמוש». תקוע על «מכייל רקע…» = משהו זז או שהתאורה משתנה.</li>
+    <li><b>תלמיד חוצה בהליכה.</b> הצפצוף חייב להישמע <b>בדיוק</b> כשהוא על הקו. מוקדם מדי — הקו האדום לא יושב על קו הסיום; תקן ב«מיקום קו הסיום».</li>
+    <li><b>אחרי המקצה</b> — «🎞 תמונת סיום» מציגה רזולוציית זמן ‎±X‎ מ״ש. זו מדידה אמיתית מהטלפון שלך, לא הבטחה.</li>
+    <li><b>לגמר צמוד:</b> לחץ על הרץ עצמו ברצועה. אינטרפולציה בין העמודות מדויקת יותר מהטריגר האוטומטי.</li>
+  </ol>
+  <div class="row" style="margin-top:12px"><button class="btn acc grow" data-close="pfSanityModal">הבנתי — יאללה</button></div>
+</div></div>
+
+<!-- ----- פוטו־פיניש: מספרי חזה ----- -->
+<div class="modal" id="pfNumModal"><div class="box" style="max-width:460px">
+  <h3><span>🔢 מספרי חזה</span><button class="x" data-close="pfNumModal">✕</button></h3>
+  <div class="hint">כשהרצים עם מספרי חזה ולא לפי רשימה — רשום כאן את המספר בכל מסלול.
+    הוא יופיע בלוח, בייצוא ובתעודה. אפשר להשאיר ריק במסלול שאין בו רץ.</div>
+  <div id="pf-numBody" style="margin-top:11px"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn acc grow" id="pf-numSave">שמור</button>
+    <button class="btn ghost" data-close="pfNumModal">ביטול</button>
+  </div>
+</div></div>
+
 <div class="modal" id="cp-pickModal"><div class="box" style="max-width:520px">
   <h3 id="cp-title"><span>טעינת כיתה</span><button class="x" data-close="cp-pickModal">✕</button></h3>
   <div class="hint" id="cp-note"></div>
@@ -3418,11 +3476,17 @@ const PF=(function(){
   let laneN=LS.get("pf.laneN",4);
   let names=LS.get("pf.names",[]);
   let lanes=[]; // {lane,name,color,time,src,snap}
+  let bibs=LS.get("pf.bibs",[]);
+  /* המספר מוצג ליד המסלול רק כשהוא מוסיף מידע. כשאין שם והמספר הוא
+     כל הזהות, השם כבר «#107» — והצגתו פעמיים היא רעש. */
+  const bibExtra=l=>(l.bib&&l.name!=="#"+l.bib)?l.bib:null;
+  function persistBibs(){ bibs=lanes.map(l=>l.bib||null); LS.set("pf.bibs",bibs); }
   function buildLanes(keepTimes){
     const old=lanes;
     lanes=Array.from({length:laneN},(_,i)=>({
       lane:i+1,
       name:names[i]||("מסלול "+(i+1)),
+      bib:bibs[i]||null,
       color:COLORS[i%COLORS.length],
       time:keepTimes&&old[i]?old[i].time:null,
       src:keepTimes&&old[i]?old[i].src:null,
@@ -3786,6 +3850,66 @@ const PF=(function(){
 
   /* ---------- results ---------- */
   function finished(){ return lanes.filter(l=>l.time!=null).sort((a,b)=>a.time-b.time); }
+
+  /* ---------- ייצוא: תמונת סיום + טבלת זמנים בקובץ אחד ----------
+     שני קבצים נפרדים מאבדים את הקישור ביניהם ברגע שהם עוברים הלאה —
+     מי שמקבל אותם לא יודע איזה זמן שייך לאיזו רצועה בתמונה. כאן
+     הכול נשמר כתמונה אחת עם הכותרת, הרצועה והטבלה מתחתיה. */
+  function exportSheet(){
+    const list=finished();
+    if(!list.length){ toast("אין תוצאות לייצא"); return; }
+    const W=1100, pad=34, rowH=44, headH=132;
+    const hasStrip=stripX>0;
+    const stripH=hasStrip?Math.round(Math.min(240,STRIPH)):0;
+    const tableTop=headH+(hasStrip?stripH+26:0);
+    const H=tableTop+38+rowH*(list.length+1)+56;
+    const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    const x=cv.getContext("2d");
+    x.fillStyle="#06100c"; x.fillRect(0,0,W,H);
+    x.fillStyle="#19d27a"; x.fillRect(0,0,W,5);
+    x.direction="rtl"; x.textAlign="right";
+    x.fillStyle="#eaf5ee"; x.font="700 30px Heebo,Arial";
+    x.fillText(META.title||"מירוץ",W-pad,54);
+    x.fillStyle="#8fa79a"; x.font="400 17px Heebo,Arial";
+    const sub=[META.round,META.dist+" מ׳",META.date||new Date().toISOString().slice(0,10),
+      (META.wind!==""&&META.wind!=null)?("רוח "+META.wind+" מ/ש"):null,
+      SET.school||null].filter(Boolean).join("  ·  ");
+    x.fillText(sub,W-pad,84);
+    if(windIllegal()){ x.fillStyle="#ffd23f"; x.fillText("⚠ רוח לא חוקית (מעל +2.0)",W-pad,110); }
+    if(hasStrip){
+      try{ x.drawImage(buf,0,0,stripX,STRIPH,pad,headH,W-pad*2,stripH);
+        x.strokeStyle="#1d3b2b"; x.lineWidth=1; x.strokeRect(pad,headH,W-pad*2,stripH);
+      }catch(e){}
+    }
+    /* טבלה */
+    const cols=[["דירוג",W-pad],["מסלול",W-pad-130],["שם",W-pad-250],["זמן",W-pad-640],["פער",W-pad-810],["מקור",W-pad-960]];
+    let y=tableTop+30;
+    x.fillStyle="#8fa79a"; x.font="600 16px Heebo,Arial";
+    cols.forEach(([t,cx])=>x.fillText(t,cx,y));
+    y+=12; x.strokeStyle="#1d3b2b"; x.beginPath(); x.moveTo(pad,y); x.lineTo(W-pad,y); x.stroke();
+    x.font="400 18px Heebo,Arial";
+    list.forEach((l,i)=>{
+      y+=rowH;
+      if(i%2===0){ x.fillStyle="rgba(255,255,255,.03)"; x.fillRect(pad,y-rowH+12,W-pad*2,rowH); }
+      x.fillStyle=i===0?"#19d27a":"#eaf5ee";
+      x.fillText(["🥇","🥈","🥉"][i]||String(i+1),cols[0][1],y);
+      x.fillStyle="#eaf5ee";
+      x.fillText(String(l.lane)+(bibExtra(l)?"  #"+l.bib:""),cols[1][1],y);
+      x.fillText(l.name||"—",cols[2][1],y);
+      x.fillStyle=i===0?"#19d27a":"#eaf5ee";
+      x.fillText(fmtMSc(l.time),cols[3][1],y);
+      x.fillStyle="#8fa79a";
+      x.fillText(i===0?"—":"+"+(l.time-list[0].time).toFixed(2),cols[4][1],y);
+      x.fillText(l.src||"—",cols[5][1],y);
+    });
+    x.fillStyle="#5d7a6b"; x.font="400 14px Heebo,Arial";
+    x.fillText("נמדד ב«המגרש PRO» · פוטו־פיניש · "+new Date().toLocaleString("he-IL"),W-pad,H-20);
+    const a=document.createElement("a");
+    a.href=cv.toDataURL("image/png");
+    a.download="מירוץ-"+(META.dist||"")+"מ-"+(META.date||new Date().toISOString().slice(0,10))+".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("✓ נשמרה תמונה עם הרצועה והטבלה");
+  }
   function windIllegal(){ const w=parseFloat(META.wind); return !isNaN(w)&&w>2.0; }
   function renderMeta(){
     const items=[["",`<b>${esc(META.title)}</b>`],["שלב",META.round],["מרחק",META.dist+" מ׳"],["תאריך",META.date||"—"]];
@@ -3798,7 +3922,7 @@ const PF=(function(){
     const list=finished(), medals=["🥇","🥈","🥉"];
     $("#pf-empty").style.display=list.length?"none":"block";
     $("#pf-tbody").innerHTML=list.map((l,i)=>`
-      <tr><td class="rk">${medals[i]||i+1}</td><td class="mono">${l.lane}</td>
+      <tr><td class="rk">${medals[i]||i+1}</td><td class="mono">${l.lane}${bibExtra(l)?' <span class="bibpill">#'+esc(l.bib)+'</span>':""}</td>
       <td><input class="nm" data-lane="${l.lane}" value="${esc(l.name)}" style="background:none;border:none;border-bottom:1px dashed var(--line);color:var(--ink);font-family:'Rubik';font-size:13.5px;width:110px"></td>
       <td class="mono">${fmtMSc(l.time)}</td>
       <td class="mono">${i===0?"—":"+"+(l.time-list[0].time).toFixed(2)}</td>
@@ -4156,6 +4280,60 @@ const PF=(function(){
                          :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
         }});
     });
+    /* ---------- הדרכת פתיחה ----------
+       פוטו־פיניש הוא המודול שהכי קל לתפעל לא נכון, והתוצאה של תפעול
+       לא נכון היא מספרים שנראים אמינים לגמרי. ארבעה מסכים בפעם
+       הראשונה חוסכים מקצה שלם שנמדד לא נכון. */
+    const PFG=[
+      ["🔭","העמד את הטלפון — ולא ביד","המצלמה צריכה לראות את <b>קו הסיום מהצד</b>, בגובה החזה בערך. חצובה, גדר, ספסל או תיק — כל דבר יציב. תזוזה של סנטימטר מזיזה את הקו, וכל הזמנים זזים איתו."],
+      ["📏","יישר את הקו האדום על קו הסיום","הזז את «מיקום קו הסיום» עד שהקו האדום במסך יושב <b>בדיוק</b> על קו הסיום במגרש. זה הפרמטר היחיד שטעות בו פוסלת את כל המקצה."],
+      ["🔫","אם יש אקדח — הזן את המרחק ממנו","הקול נוסע ‎343‎ מ׳ בשנייה. מצלמה שעומדת ‎34‎ מ׳ מהזינוק שומעת את הירייה עשירית שנייה מאוחר מדי, וכל הזמנים יוצאים קצרים בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."],
+      ["🎯","לגמר צמוד — לחץ על הרץ בתמונה","אחרי המקצה, ב«🎞 תמונת סיום», לחיצה על גוף הרץ נותנת זמן באינטרפולציה בין העמודות. <b>מדויק יותר מהטריגר האוטומטי</b> — זו דרך העבודה לגמר."]
+    ];
+    let pfgI=0;
+    function pfgPaint(){
+      const [em,h,p]=PFG[pfgI];
+      $("#pfg-body").innerHTML='<div class="step"><div class="art">'+em+'</div><h4>'+h+'</h4><p>'+p+'</p></div>';
+      $("#pfg-dots").innerHTML=PFG.map((_,i)=>'<i class="'+(i===pfgI?"on":"")+'"></i>').join("");
+      $("#pfg-prev").disabled=pfgI===0;
+      $("#pfg-next").textContent=pfgI===PFG.length-1?"יאללה, בוא נמדוד":"הבא ←";
+    }
+    function pfgClose(){
+      if($("#pfg-skip").checked)LS.set("pf.guideSeen",true);
+      modal("pfGuideModal",false);
+    }
+    $("#pfg-prev").addEventListener("click",()=>{ if(pfgI>0){pfgI--;pfgPaint();} });
+    $("#pfg-next").addEventListener("click",()=>{
+      if(pfgI<PFG.length-1){pfgI++;pfgPaint();} else pfgClose(); });
+    $("#pf-sanityBtn").addEventListener("click",()=>modal("pfSanityModal",true));
+    if(!LS.get("pf.guideSeen",false)){ pfgI=0; pfgPaint(); $("#pfg-skip").checked=true; modal("pfGuideModal",true); }
+
+    /* ---------- מספרי חזה ----------
+       לא כל מקצה רץ לפי רשימת שמות. כשיש מספרי חזה, המספר הוא הזהות
+       שבאמת מזהה את הרץ בשטח — ולכן הוא יושב לצד השם ולא במקומו,
+       כדי שאפשר יהיה להשלים את השם אחר כך בלי לאבד את הקישור. */
+    function renderNums(){
+      $("#pf-numBody").innerHTML=lanes.map((l,i)=>
+        '<div class="pf-numrow"><span class="ln">מסלול '+l.lane+'</span>'+
+        '<input type="text" inputmode="numeric" data-i="'+i+'" value="'+esc(l.bib||"")+'" placeholder="מספר"></div>').join("");
+    }
+    $("#pf-numbers").addEventListener("click",()=>{ renderNums(); modal("pfNumModal",true); });
+    $("#pf-numSave").addEventListener("click",()=>{
+      $$("#pf-numBody input").forEach(inp=>{
+        const l=lanes[+inp.dataset.i]; if(!l)return;
+        const v=inp.value.trim();
+        l.bib=v||null;
+        /* מספר בלי שם — המספר הוא השם, כדי שהלוח לא יציג «מסלול 3» ריק */
+        if(v&&(!l.name||/^מסלול\s*\d+$/.test(l.name)))l.name="#"+v;
+      });
+      persistBibs(); persistNames(); renderChips(); renderBoard();
+      modal("pfNumModal",false); toast("מספרי החזה נשמרו");
+    });
+
+    /* ---------- ייצוא תמונה + טבלה ----------
+       עד עכשיו התמונה ירדה בנפרד מהטבלה, ומי שקיבל אותן לא ידע איזה
+       זמן שייך לאיזו רצועה. כאן הן נשמרות כתמונה אחת. */
+    $("#pf-sheet").addEventListener("click",exportSheet);
     $("#pf-btnSave").addEventListener("click",arcSave);
     $("#pf-csv").addEventListener("click",csvSprint);
     $("#pf-print").addEventListener("click",printCert);
