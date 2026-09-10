@@ -1005,3 +1005,15 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ot-flag.on{background:var(--green);color:var(--onAcc);border-color:transparent;font-weight:800}
 .ot-pct{width:58px;background:var(--inset);border:1px solid var(--line);border-radius:7px;color:var(--ink);
   font-family:'Share Tech Mono';font-size:14px;padding:6px 4px;text-align:center}
+
+/* טבלת ההקפות והפערים */
+.ft-lapsel{display:flex;gap:3px;background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:3px}
+.ft-lapsel button{width:34px;height:32px;border:none;background:transparent;color:var(--muted);
+  border-radius:7px;font-family:'Share Tech Mono';font-size:15px;cursor:pointer;transition:.13s}
+.ft-lapsel button.on{background:var(--acc);color:var(--onAcc);font-weight:700}
+.ft-splt th{font-size:11px;white-space:nowrap}
+.ft-splt td{padding:7px 6px;white-space:nowrap}
+.ft-splt tr.done td{background:color-mix(in srgb,var(--acc) 9%,transparent)}
+.ft-splt .lap{display:block;font-size:10.5px;color:var(--faint);font-family:'Heebo'}
+.ft-splt .dim{color:var(--faint)}
+.ft-splt .gap{color:var(--warn)}

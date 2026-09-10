@@ -1017,6 +1017,18 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ot-pct{width:58px;background:var(--inset);border:1px solid var(--line);border-radius:7px;color:var(--ink);
   font-family:'Share Tech Mono';font-size:14px;padding:6px 4px;text-align:center}
 
+/* טבלת ההקפות והפערים */
+.ft-lapsel{display:flex;gap:3px;background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:3px}
+.ft-lapsel button{width:34px;height:32px;border:none;background:transparent;color:var(--muted);
+  border-radius:7px;font-family:'Share Tech Mono';font-size:15px;cursor:pointer;transition:.13s}
+.ft-lapsel button.on{background:var(--acc);color:var(--onAcc);font-weight:700}
+.ft-splt th{font-size:11px;white-space:nowrap}
+.ft-splt td{padding:7px 6px;white-space:nowrap}
+.ft-splt tr.done td{background:color-mix(in srgb,var(--acc) 9%,transparent)}
+.ft-splt .lap{display:block;font-size:10.5px;color:var(--faint);font-family:'Heebo'}
+.ft-splt .dim{color:var(--faint)}
+.ft-splt .gap{color:var(--warn)}
+
 </style>
 </head>
 <body>
@@ -8887,6 +8899,9 @@ window.FT=(function(){
   let inited=false;
   let st={grade:"ז",num:1,test:null,sort:"todo",tab:"tests"};
   let clk={on:false,t0:0,raf:0,paused:0};      /* השעון המשותף לכיתה */
+  /* הקפות של המקצה הנוכחי: {שם: [זמן הקפה 1, 2, ...]}. חי בזיכרון בזמן
+     המקצה; הזמן הסופי נשמר כרגיל, והפערים נשמרים איתו לצפייה מאוחרת. */
+  let lapRun={};
   let cd ={on:false,end:0,raf:0};              /* ספירה לאחור למבחנים קצובים */
 
   const LS=()=>H().LS;
@@ -8960,6 +8975,8 @@ window.FT=(function(){
   const scoreMode=()=>LS().get("ft.scoreMode","rel");
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
   /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
+  const lapsFor   =tid=>Math.max(1,+((LS().get("ft.laps",{}))[tid]||1));
+  const setLapsFor=(tid,n)=>{ const a=LS().get("ft.laps",{}); a[tid]=Math.max(1,Math.min(20,n)); LS().set("ft.laps",a); };
   const idxTests   =()=>LS().get("ft.idxTests",[]);
   const setIdxTests=a=>LS().set("ft.idxTests",a);
 
@@ -9060,7 +9077,7 @@ window.FT=(function(){
       H().toast("למבחן הזה יש מודול ייעודי — מעביר אותך אליו");
       H().go(T.link); return;
     }
-    st.test=id; stopClock(true); stopCd();
+    st.test=id; stopClock(true); stopCd(); lapRun={}; clk.paused=0;
     H().$("#ft-pick").style.display="none";
     H().$("#ft-idx").style.display="none";
     H().$("#ft-ot").style.display="none";
@@ -9110,9 +9127,19 @@ window.FT=(function(){
              <button class="btn stop" id="ft-clkStop" disabled>⏹ עצור</button>
              <button class="btn ghost" id="ft-clkReset">↺</button>
            </div>
+           ${T.dir==="low"?`<div class="row" style="justify-content:center;align-items:center;gap:9px;margin-top:11px">
+             <span class="hint">מספר הקפות לכל רץ</span>
+             <div class="ft-lapsel" id="ft-lapSel">${[1,2,3,4,5].map(n=>
+               `<button data-lp="${n}" class="${lapsFor(T.id)===n?"on":""}">${n}</button>`).join("")}</div>
+           </div>`:""}
            <div class="hint" style="margin-top:8px;text-align:center">
-             ${T.dir==="low"?"הקש על שם התלמיד ברגע שהוא חוצה את הקו":"הקש על שם התלמיד ברגע שהוא מפסיק"} — הזמן נרשם אוטומטית.</div>
-         </div>`
+             ${T.dir==="low"
+               ? (lapsFor(T.id)>1
+                  ? "הקש על שם התלמיד בכל מעבר. ההקפה האחרונה היא הסיום."
+                  : "הקש על שם התלמיד ברגע שהוא חוצה את הקו")
+               : "הקש על שם התלמיד ברגע שהוא מפסיק"} — הזמן נרשם אוטומטית.</div>
+         </div>
+         <div id="ft-splits"></div>`
       : T.dur
       ? `<div class="ft-clock" id="ft-cdBox">
            <div class="tm" id="ft-cdTm">${T.dur>=60?Math.floor(T.dur/60)+":"+String(T.dur%60).padStart(2,"0"):"0:"+String(T.dur).padStart(2,"0")}</div>
@@ -9151,7 +9178,9 @@ window.FT=(function(){
         <div class="nm">${esc(s.name)}${pv?`<span class="pv">קודם: ${fmtVal(T,pv.val)}</span>`:""}</div>
         <div class="vl">${r?fmtVal(T,r.val):"—"}${delta}</div>
         ${T.kind==="clock"
-          ? `<button class="btn sm ${r?"ghost":"acc"}" data-cap="${esc(s.name)}">${r?"↺ שוב":"⏱ קלוט"}</button>`
+          ? (()=>{ const need=T.dir==="low"?lapsFor(T.id):1, done=(lapRun[s.name]||[]).length;
+              const lbl=r?"↺ שוב":(need>1?`⏱ ${done+1}/${need}`:"⏱ קלוט");
+              return `<button class="btn sm ${r?"ghost":"acc"}" data-cap="${esc(s.name)}">${lbl}</button>`; })()
           : T.kind==="count"
           ? `<div class="ft-step">
                <button class="plus" data-inc="${esc(s.name)}">+</button>
@@ -9166,6 +9195,7 @@ window.FT=(function(){
          לחץ «👥 רשימה» כדי לייבא מ«התלמידים שלי», להדביק רשימה, או להוסיף ידנית.</div>`;
 
     wireRun();
+    renderSplits();
   }
 
   /* ---------- עדכון שורה במקום, בלי לרנדר מחדש ----------
@@ -9183,7 +9213,11 @@ window.FT=(function(){
     row.querySelector(".vl").innerHTML=(r?fmtVal(T,r.val):"—")+delta;
     const stepB=row.querySelector(".ft-step b"); if(stepB)stepB.textContent=r?Math.round(r.val):0;
     const cap=row.querySelector("[data-cap]");
-    if(cap){ cap.textContent=r?"↺ שוב":"⏱ קלוט"; cap.className="btn sm "+(r?"ghost":"acc"); }
+    if(cap){
+      const need=T.dir==="low"?lapsFor(T.id):1, done=(lapRun[name]||[]).length;
+      cap.textContent=r?"↺ שוב":(need>1?`⏱ ${done+1}/${need}`:"⏱ קלוט");
+      cap.className="btn sm "+(r?"ghost":"acc");
+    }
     let del=row.querySelector("[data-del]");
     if(r&&!del){
       del=document.createElement("button");
@@ -9203,6 +9237,53 @@ window.FT=(function(){
     if(sb)sb.textContent=`כיתה ${c} · ${vals.length}/${rst.length} נמדדו`
       +(avg!=null?` · ממוצע ${fmtVal(T,avg)} ${T.unit}`:"")
       +(best!=null?` · הטוב ${fmtVal(T,best)}`:"");
+  }
+
+  /* ---------- טבלת ההקפות והפערים ----------
+     נבנית מהקליטות של המקצה הנוכחי בלבד (lapRun), ולכן היא מתאפסת
+     עם השעון ולא מתערבבת עם תוצאות של מקצים קודמים. */
+  function renderSplits(){
+    const {$, esc}=H(), T=testById(st.test); if(!T)return;
+    const box=$("#ft-splits"); if(!box)return;
+    const need=T.dir==="low"?lapsFor(T.id):1;
+    const names=Object.keys(lapRun).filter(n=>(lapRun[n]||[]).length);
+    if(!names.length){ box.innerHTML=""; return; }
+
+    /* דירוג לפי הזמן האחרון שנרשם — מי שסיים קודם למעלה */
+    const rows=names.map(n=>{
+      const a=lapRun[n], last=a[a.length-1];
+      return {n,a,last,done:a.length>=need};
+    }).sort((x,y)=>(y.done-x.done)||(x.last-y.last));
+    const leader=rows.find(r=>r.done);
+    const fmt=v=>v>=60?H().fmtMSc(v):v.toFixed(2);
+
+    box.innerHTML=`<div class="card" style="margin-bottom:14px">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0"><span class="dot"></span> ⏱ הקפות ופערים</h2>
+        <span class="hint">${rows.filter(r=>r.done).length}/${rows.length} סיימו</span>
+      </div>
+      <div class="tblwrap" style="margin-top:10px"><table class="tbl ft-splt">
+        <thead><tr><th>#</th><th>שם</th>
+          ${need>1?[...Array(need)].map((_,i)=>`<th>${i+1===need?"סיום":"הקפה "+(i+1)}</th>`).join(""):"<th>זמן</th>"}
+          <th>פער</th></tr></thead>
+        <tbody>${rows.map((r,i)=>{
+          const gap=leader&&r.done&&r!==leader?r.last-leader.last:null;
+          return `<tr class="${r.done?"done":""}">
+            <td class="mono">${r.done?i+1:"–"}</td>
+            <td><b>${esc(r.n)}</b></td>
+            ${need>1?[...Array(need)].map((_,k)=>{
+              const t=r.a[k];
+              if(t==null)return '<td class="mono dim">—</td>';
+              const prev=k?r.a[k-1]:0;
+              return `<td class="mono">${fmt(t)}<span class="lap">+${fmt(t-prev)}</span></td>`;
+            }).join(""):`<td class="mono">${fmt(r.last)}</td>`}
+            <td class="mono ${gap!=null?"gap":""}">${gap!=null?"+"+fmt(gap):r.done?"—":"רץ"}</td>
+          </tr>`;}).join("")}</tbody>
+      </table></div>
+      <div class="hint" style="margin-top:7px">${need>1
+        ? "מתחת לכל זמן מצטבר מופיע זמן ההקפה עצמה. «פער» הוא ההפרש מהמסיים הראשון."
+        : "«פער» הוא ההפרש מהמסיים הראשון."}</div>
+    </div>`;
   }
 
   /* ---------- השעון המשותף ---------- */
@@ -9275,7 +9356,10 @@ window.FT=(function(){
 
     on("#ft-clkGo","click",startClock);
     on("#ft-clkStop","click",()=>stopClock(false));
-    on("#ft-clkReset","click",()=>{ if(clk.paused===0||confirm("לאפס את השעון? התוצאות שנרשמו נשמרות."))resetClock(); });
+    on("#ft-clkReset","click",()=>{ if(clk.paused===0||confirm("לאפס את השעון? התוצאות שנרשמו נשמרות."))
+      {lapRun={};resetClock();renderSplits();} });
+    $$("#ft-lapSel button").forEach(b=>b.addEventListener("click",()=>{
+      setLapsFor(T.id,+b.dataset.lp); lapRun={}; renderRun(); }));
     on("#ft-cdGo","click",()=>startCd(T.dur));
     on("#ft-cdStop","click",stopCd);
 
@@ -9283,8 +9367,19 @@ window.FT=(function(){
     $$("#ft-list [data-cap]").forEach(b=>b.addEventListener("click",()=>{
       if(!clk.on&&clk.paused===0){H().toast("הפעל קודם את השעון");return;}
       const nm=b.dataset.cap, s=roster(c).find(x=>x.name===nm)||{name:nm};
-      saveVal(c,T.id,s,elapsed());
-      H().beep(1100,0.09); refreshRow(nm);
+      const need=T.dir==="low"?lapsFor(T.id):1;
+      const t=elapsed();
+      const arr=lapRun[nm]=(lapRun[nm]||[]);
+      if(need>1){
+        if(arr.length>=need){ H().toast(nm+" כבר סיים — «↺ שוב» מאפס אותו"); return; }
+        arr.push(t);
+        if(arr.length>=need){ saveVal(c,T.id,s,t); H().beep(1320,0.14); }
+        else H().beep(880,0.07);
+      }else{
+        arr.length=0; arr.push(t);
+        saveVal(c,T.id,s,t); H().beep(1100,0.09);
+      }
+      refreshRow(nm); renderSplits();
     }));
     /* מונה חזרות */
     $$("#ft-list [data-inc]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc,1)));
@@ -9297,7 +9392,8 @@ window.FT=(function(){
       refreshRow(nm);
     }));
     $$("#ft-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
-      clearVal(c,T.id,b.dataset.del); refreshRow(b.dataset.del);
+      delete lapRun[b.dataset.del];
+      clearVal(c,T.id,b.dataset.del); refreshRow(b.dataset.del); renderSplits();
       const inp=document.querySelector('#ft-list [data-val="'+CSS.escape(b.dataset.del)+'"]');
       if(inp)inp.value="";
     }));
