@@ -189,12 +189,144 @@ $("#set-touch").addEventListener("change",e=>{ SET.touch=e.target.checked; saveS
 $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi)bi.textContent="גרסה "+buildId();
   $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
-  $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||""; modal("setModal"); });
+  $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||"";
+  bkStat(); modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
+  wireBackup();
+}
+
+/* ============================================================
+   גיבוי ושחזור
+   ------------------------------------------------------------
+   כל האפליקציה חיה ב-localStorage תחת התחילית «pehub.», בלי שרת
+   ובלי חשבון. זה מה שנותן את הפרטיות — ובדיוק זה מה שהופך מכשיר
+   שנשבר לאובדן מוחלט. הגיבוי הוא קובץ JSON יחיד עם כל המפתחות
+   האלה, ולכן הוא גם העברה למכשיר חדש וגם שיתוף עם מורה נוסף.
+
+   השחזור מחליף ולא ממזג: מיזוג של שתי היסטוריות מדידה היה יוצר
+   כפילויות שקטות בתוצאות של תלמידים אמיתיים. במקום זה מוצגת
+   תצוגה מקדימה שמראה בדיוק מה ייכנס ומה יאבד, ומוצע גיבוי בטיחות
+   של המצב הנוכחי לפני הדריסה.
+   ============================================================ */
+const BK_PREFIX="pehub.";
+const BK_LABELS={"ft.results":"תוצאות מבחני כושר","ft.roster":"רשימות כיתה","ft.norms":"טבלת נורמה",
+  "ft.schoolBase":"בסיס הנורמה","ft.ot":"אות החינוך הגופני","ft.laps":"הקפות","stu.list":"תלמידים",
+  "stu.grades":"ציונים","stu.weights":"מבנה הציון","rec.list":"שיאים","rec.sports":"ענפי השיאים",
+  "rec.pass":"קוד המורה","bt.results":"לוח ביפ טסט","bt.heat":"רשימת מקצה","pf.archive":"ארכיון מירוצים",
+  "pf.names":"שמות המסלולים","settings":"הגדרות"};
+/* מפתחות שהם רישום מקומי על המכשיר עצמו ולא נתונים של המורה — אין
+   טעם לשאת אותם בקובץ ולא להציג אותם בהשוואה. */
+const BK_SKIP={"bk.last":1};
+function bkKeys(){ const out=[]; try{
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+      if(!k||k.indexOf(BK_PREFIX)!==0)continue;
+      const short=k.slice(BK_PREFIX.length);
+      if(!BK_SKIP[short])out.push(short); }
+  }catch(e){} return out.sort(); }
+function bkSnapshot(){
+  const data={}; bkKeys().forEach(k=>{ try{ data[k]=localStorage.getItem(BK_PREFIX+k); }catch(e){} });
+  return {app:"hamegrash-pro",kind:"backup",v:1,at:new Date().toISOString(),
+    school:SET.school||"",build:(typeof buildId==="function"?buildId():""),data};
+}
+/* ספירה קריאה לאדם לכל מפתח — «57 תוצאות» ולא «4.2KB» */
+function bkCount(raw){
+  if(raw==null)return "—";
+  try{ const v=JSON.parse(raw);
+    if(Array.isArray(v))return v.length;
+    if(v&&typeof v==="object")return Object.keys(v).length;
+    return v===""?"—":1;
+  }catch(e){ return "—"; }
+}
+function bkFileName(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  const school=(SET.school||"").replace(/[\\/:*?"<>|]/g,"").trim().replace(/\s+/g,"-");
+  return "hamegrash-גיבוי"+(school?"-"+school:"")+"-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+".json";
+}
+function bkExport(){
+  const snap=bkSnapshot(), keys=Object.keys(snap.data);
+  if(!keys.length){ toast("אין עדיין נתונים לגיבוי"); return false; }
+  const blob=new Blob([JSON.stringify(snap)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=bkFileName();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast("✓ גובו "+keys.length+" קבוצות נתונים");
+  bkStat(); return true;
+}
+function bkStat(){
+  const el=$("#set-bkStat"); if(!el)return;
+  const keys=bkKeys();
+  let bytes=0; keys.forEach(k=>{ try{ bytes+=(localStorage.getItem(BK_PREFIX+k)||"").length; }catch(e){} });
+  const last=LS.get("bk.last",null);
+  el.innerHTML=keys.length
+    ? keys.length+" קבוצות נתונים · "+(bytes/1024).toFixed(0)+"KB"+
+      (last?" · גובה לאחרונה "+last:" · <b>עדיין לא גובה מעולם</b>")
+    : "אין עדיין נתונים במכשיר.";
+}
+function bkApply(snap){
+  /* מוחקים רק את המפתחות שלנו — מפתחות של אתרים אחרים באותו דומיין
+     אינם שלנו למחוק, וגם דגלים שהאפליקציה תכתוב מחדש בעצמה. */
+  try{ bkKeys().forEach(k=>localStorage.removeItem(BK_PREFIX+k)); }catch(e){}
+  Object.keys(snap.data).forEach(k=>{ try{ localStorage.setItem(BK_PREFIX+k,snap.data[k]); }catch(e){} });
+}
+function wireBackup(){
+  if(!$("#set-bkExport"))return;
+  bkStat();
+  $("#set-bkExport").addEventListener("click",()=>{
+    if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL"));
+    bkStat();
+  });
+  $("#set-bkImport").addEventListener("click",()=>$("#set-bkFile").click());
+  $("#set-bkFile").addEventListener("change",e=>{
+    const f=e.target.files[0]; e.target.value="";
+    if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      let snap;
+      try{ snap=JSON.parse(r.result); }catch(err){ toast("הקובץ אינו קובץ גיבוי תקין"); return; }
+      if(!snap||snap.app!=="hamegrash-pro"||!snap.data||typeof snap.data!=="object"){
+        toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
+      bkPreview(snap);
+    };
+    r.onerror=()=>toast("לא הצלחתי לקרוא את הקובץ");
+    r.readAsText(f);
+  });
+}
+function bkPreview(snap){
+  const inFile=Object.keys(snap.data), here=bkKeys();
+  const all=[...new Set(inFile.concat(here))].sort((a,b)=>{
+    const ia=BK_LABELS[a]?0:1, ib=BK_LABELS[b]?0:1;
+    return ia-ib || a.localeCompare(b);
+  });
+  const when=(()=>{ try{ return new Date(snap.at).toLocaleString("he-IL"); }catch(e){ return snap.at||"—"; } })();
+  $("#bk-meta").innerHTML="<span>נוצר: "+esc(when)+"</span>"+
+    (snap.school?"<span>בית ספר: "+esc(snap.school)+"</span>":"")+
+    "<span>"+inFile.length+" קבוצות נתונים</span>";
+  $("#bk-diff").innerHTML=all.map(k=>{
+    const fv=snap.data[k]!=null?bkCount(snap.data[k]):"—";
+    const hv=here.includes(k)?bkCount(localStorage.getItem(BK_PREFIX+k)):"—";
+    const gone=snap.data[k]==null&&here.includes(k);
+    return '<tr'+(gone?' class="gone"':"")+"><td>"+esc(BK_LABELS[k]||k)+"</td><td>"+fv+"</td><td>"+hv+"</td></tr>";
+  }).join("");
+  const lost=all.filter(k=>snap.data[k]==null&&here.includes(k)).map(k=>BK_LABELS[k]||k);
+  const w=$("#bk-warn");
+  w.style.display=lost.length?"block":"none";
+  if(lost.length)w.textContent="⚠️ הקובץ לא מכיל: "+lost.join(" · ")+" — הנתונים האלה יימחקו מהמכשיר.";
+  $("#bk-safety").onclick=()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString("he-IL")); };
+  $("#bk-go").onclick=()=>{
+    if(!confirm("לשחזר? כל הנתונים שבמכשיר יוחלפו בנתונים שבקובץ."))return;
+    bkApply(snap);
+    modal("bk-modal",false);
+    toast("✓ שוחזר — טוען מחדש");
+    setTimeout(()=>location.reload(),700);
+  };
+  /* חלון ההגדרות נפתח לפני זה ויושב אחריו ב-DOM, ולכן הוא היה מכסה
+     את התצוגה המקדימה. סוגרים אותו — וממילא אחרי שחזור הדף נטען מחדש. */
+  modal("setModal",false);
+  modal("bk-modal",true);
 }
 
 /* ---------- PWA-ish manifest ---------- */
@@ -490,6 +622,25 @@ const BT=(function(){
       heat={cls:"",names:[]}; heatSave(); renderHeat();
     });
     $("#bt-undoBtn").addEventListener("click",()=>{ if(results.length){results.pop();nextNum=Math.max(1,nextNum-1);persist();renderResults();renderHeat();toast("הרישום האחרון בוטל");} });
+    /* התוצאה של הביפ נשמרת כמרחק במבחן «ביפ טסט» של מודול המבחנים,
+       כדי שהיא תופיע בכרטיס התלמיד ובמדד הכושר יחד עם כל השאר. */
+    $("#bt-toFt").addEventListener("click",()=>{
+      if(!results.length){toast("אין רישומים");return;}
+      if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
+      const send=cls=>{
+        const rows=results.filter(r=>r.dist>0).map(r=>({name:r.name,val:r.dist,
+          sex:classSex==="girls"?"girls":"boys"}));
+        if(!rows.length){toast("אין תוצאה עם מרחק");return;}
+        const res=window.FT.ingest(cls,"beep",rows,"ביפ טסט");
+        toast(res.added?("✓ נשלחו "+res.added+" תוצאות ל"+cls+(res.dup?" · "+res.dup+" כבר היו":"")) 
+                       :(res.dup?"כל התוצאות כבר נשלחו":"לא נשלח דבר"));
+      };
+      /* אם נטענה כיתה למקצה — היא היעד המובן מאליו; אחרת שואלים. */
+      if(heat.cls)send(heat.cls);
+      else window.FT.pick({title:"לאיזו כיתה לשלוח?",
+        note:"התוצאות ייכנסו למבחן «ביפ טסט» של הכיתה הזאת.",
+        onPick:(names,cls)=>send(cls)});
+    });
     $("#bt-sortOrder").addEventListener("click",function(){sortBy="order";this.classList.add("on");$("#bt-sortDist").classList.remove("on");renderResults()});
     $("#bt-sortDist").addEventListener("click",function(){sortBy="dist";this.classList.add("on");$("#bt-sortOrder").classList.remove("on");renderResults()});
     $("#bt-csvBtn").addEventListener("click",()=>{
@@ -1247,6 +1398,25 @@ const PF=(function(){
     });
     /* results */
     $("#pf-btnAI").addEventListener("click",aiReport);
+    /* זמן ספרינט מגיע ישר למבחן המרחק המתאים. רק מרחקים שיש להם מבחן
+       בקטלוג נשלחים — «85 מ׳» אינו מבחן, ולכן עדיף להגיד את זה מפורש
+       מאשר להמציא לו מבחן קרוב ולזהם את הנורמה. */
+    const PF_DIST_TEST={60:"r60",100:"r100",300:"r300",600:"r600",1000:"r1000",1500:"r1500",2000:"r2000"};
+    $("#pf-toFt").addEventListener("click",()=>{
+      const list=finished();
+      if(!list.length){toast("אין תוצאות לשלוח");return;}
+      if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
+      const tid=PF_DIST_TEST[+META.dist];
+      if(!tid){ toast("אין מבחן ל-"+META.dist+" מ׳ — שנה את המרחק בהגדרות המירוץ"); return; }
+      window.FT.pick({title:"לאיזו כיתה לשלוח?",
+        note:"‎"+list.length+"‎ זמנים ייכנסו למבחן «"+META.dist+" מטר» של הכיתה.",
+        onPick:(names,cls)=>{
+          const rows=list.map(l=>({name:l.name,val:l.time}));
+          const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
+          toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
+                         :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
+        }});
+    });
     $("#pf-btnSave").addEventListener("click",arcSave);
     $("#pf-csv").addEventListener("click",csvSprint);
     $("#pf-print").addEventListener("click",printCert);

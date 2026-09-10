@@ -1831,6 +1831,41 @@ window.FT=(function(){
     paint(); H().modal("cp-pickModal",true);
   }
 
-  return {init, pick, tests:()=>TESTS, results:()=>allRes(), roster, classOf:clsName};
+  /* ============================================================
+     קליטת תוצאות ממודול אחר
+     ------------------------------------------------------------
+     ביפ טסט ופוטו־פיניש מדדו את אותם תלמידים ושמרו את התוצאה אצלם
+     בלבד, ולכן כרטיס התלמיד הראה שני שלישים מהתמונה. עכשיו שהשמות
+     מגיעים מאותה רשימה, אפשר להזרים אותן פנימה.
+
+     כל קליטה היא ניסיון חדש — זאת מדידה שקרתה באמת, לא תיקון של
+     ערך קיים. השמירה היחידה היא מפני כפילות: אותו תלמיד, אותו
+     מבחן, אותו ערך ואותו יום נחשב לאותה מדידה, כך שלחיצה כפולה על
+     «שלח למבחני כושר» לא מכפילה לו את ההיסטוריה.
+     ============================================================ */
+  function ingest(cls,testId,rows,src){
+    const T=testById(testId), pc=parseCls(cls);
+    if(!T||!pc||!Array.isArray(rows))return {added:0,dup:0,skipped:0};
+    const c=clsName(pc.grade,pc.num), rs=allRes();
+    const seen=new Set(rs.filter(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.d===today())
+      .map(r=>r.name+"|"+(+r.val).toFixed(2)));
+    let added=0,dup=0,skipped=0;
+    rows.forEach(row=>{
+      const nm=String(row&&row.name||"").trim(), v=+(row&&row.val);
+      if(!nm||!(v>0)){ skipped++; return; }
+      const key=nm+"|"+v.toFixed(2);
+      if(seen.has(key)){ dup++; return; }
+      seen.add(key);
+      const known=roster(c).find(x=>x.name===nm);
+      rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
+        cls:c,test:testId,name:nm,sid:known?known.id:null,gradeKey:pc.grade,
+        sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
+      added++;
+    });
+    if(added)setRes(rs);
+    return {added,dup,skipped};
+  }
+
+  return {init, pick, ingest, tests:()=>TESTS, results:()=>allRes(), roster, classOf:clsName};
 })();
 })();
