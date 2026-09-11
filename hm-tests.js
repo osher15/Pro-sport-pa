@@ -294,6 +294,10 @@ window.FT=(function(){
       ts:Date.now(),d:today(),cls:c,cid:DATA.classId(c),test:testId,
       name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
+      /* גרסת כללי הניקוד שהיו בתוקף כשהמדידה נלקחה. הציון עצמו לא
+         נשמר — הוא נגזר בכל תצוגה — אבל בלי החותמת הזאת החלפת טבלת
+         נורמה הייתה משנה בשקט את הפרשנות של כל ההיסטוריה. */
+      normVer:normVersion(),
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
@@ -319,6 +323,9 @@ window.FT=(function(){
   const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
   const setNorms=n=>LS().set("ft.norms",n);
   const scoreMode=()=>LS().get("ft.scoreMode","rel");
+  /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
+     מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
+  const normVersion=()=>String(norms().version||"");
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
   /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
   const lapsFor   =tid=>Math.max(1,+((LS().get("ft.laps",{}))[tid]||1));
@@ -2110,7 +2117,8 @@ window.FT=(function(){
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
-        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,gradeKey:pc.grade,
+        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,
+        normVer:normVersion(),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;
     });
@@ -2118,6 +2126,48 @@ window.FT=(function(){
     return {added,dup,skipped};
   }
 
-  return {init, pick, ingest, tests:()=>TESTS, results:()=>allRes(), roster, classOf:clsName};
+  /* ============================================================
+     ממשק התקדמות
+     ------------------------------------------------------------
+     נבנה עבור פרופיל הכושר העתידי, כדי שהוא לא יכתוב מחדש את
+     הלוגיקה הזאת — וכדי שאף מסך עתידי לא ימציא גרסה משלו ל«האם
+     התלמיד השתפר». הוא עוטף את השכבה הטהורה ב-hm-data ומוסיף רק
+     את מה שדורש אחסון: קטלוג המבחנים, טבלת הנורמה ומצב הניקוד.
+
+     המדידות הגולמיות מוחזרות כמו שהן. אף פונקציה כאן לא כותבת.
+     ============================================================ */
+  const PROGRESS={
+    /* כל המדידות הגולמיות של תלמיד במבחן. בלי opts.cls — ההיסטוריה
+       המלאה, כולל מה שנמדד לפני שהוא עבר כיתה. */
+    measurements:(stud,testId,opts)=>DATA.measurementsOf(allRes(),stud,testId,opts),
+    /* השיא האישי, לפי כיוון המבחן */
+    personalBest:(stud,testId)=>{
+      const T=testById(testId); if(!T)return null;
+      return DATA.personalBest(allRes(),stud,testId,T.dir);
+    },
+    latest:(stud,testId,opts)=>DATA.latestOf(allRes(),stud,testId,opts),
+    first :(stud,testId,opts)=>DATA.firstOf(allRes(),stud,testId,opts),
+    /* התמונה המלאה: ראשון, אחרון, שיא, קודם, ושלוש ההשוואות */
+    progress:(stud,testId,opts)=>{
+      const T=testById(testId);
+      return DATA.progress(allRes(),stud,testId,T&&T.dir,opts);
+    },
+    /* ההערכה של מדידה בודדת, עם קוד סיבה כשאין ציון */
+    assess:(stud,testId,val,grade,measuredNormVersion)=>{
+      const T=testById(testId);
+      return DATA.assess({mode:scoreMode(),table:norms().table,rows:allRes(),
+        testId,sex:sexOf(stud),grade:grade||st.grade,val,
+        dir:T&&T.dir,cap:capOf(testId),
+        normVersion:normVersion(),measuredNormVersion});
+    },
+    /* ההערכה של מדידה קיימת — נושאת את חותמת הגרסה שלה */
+    assessOf:(stud,m)=>m?PROGRESS.assess(stud,m.test,m.val,m.gradeKey,m.normVer)
+                       :DATA.assess({}),
+    dirOf:testId=>{ const T=testById(testId); return T?T.dir:null; },
+    normVersion
+  };
+
+  return {init, pick, ingest, tests:()=>TESTS, results:()=>allRes(), roster,
+    classOf:clsName, progress:PROGRESS};
 })();
 })();

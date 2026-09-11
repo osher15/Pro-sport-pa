@@ -3415,6 +3415,200 @@ function bmiCategory(b){
 }
 
 /* ============================================================
+   5ג. מדידה ← הערכה ← התקדמות
+   ------------------------------------------------------------
+   שלוש שכבות שהיו עד עכשיו מעורבבות, וכל מסך חישב אותן מחדש בעצמו.
+
+   מדידה   — מה שנצפה בפועל. 5.42 שניות. 18 חזרות. גולמית, ולא
+             נדרסת לעולם על ידי הפרשנות שלה.
+   הערכה   — מה שהמספר הזה אומר. ציון 82. מקורו בטבלה או באחוזון,
+             והוא תלוי בגיל, בשכבה, במין ובגרסת הכללים.
+   התקדמות — מה שקרה בין שתי מדידות. וכאן הנקודה החשובה ביותר:
+             שינוי מספרי אינו שיפור. ב-60 מטר מינוס 0.38 שניות הוא
+             שיפור; בחזרות מינוס 4 הוא ירידה. הכיוון של המבחן הוא
+             שקובע, ולכן הוא חייב לעבור בכל חישוב.
+
+   כל הפונקציות כאן טהורות: מקבלות שורות, מחזירות אובייקט, ולא
+   נוגעות באחסון. זה מה שמאפשר לבדוק אותן, וזה מה שיאפשר לפרופיל
+   הכושר העתידי להישען עליהן בלי לכתוב את הלוגיקה מחדש.
+   ============================================================ */
+
+/* גרסת אלגוריתם ההערכה עצמו. עולה רק כשהחישוב משתנה — לא כשטבלת
+   נורמה מתחלפת, שזה ציר נפרד. */
+var ASSESS_VERSION=1;
+
+/* ---------- כיוון המבחן ---------- */
+/* «low» = נמוך יותר טוב יותר (זמני ריצה). ברירת המחדל היא «high»,
+   כי זה מה ש-TESTS עושה — אבל מבחן בלי כיוון מפורש הוא באג, ולכן
+   isBetter מחזיר null כשאין דרך להכריע. */
+function isBetter(dir,a,b){
+  if(!isNum(a)||!isNum(b))return null;
+  if(a===b)return false;
+  return dir==="low"?a<b:a>b;
+}
+function isNum(v){ return typeof v==="number"&&isFinite(v); }
+/* מדידה שמישהו יכול לנקד. הערך חייב להיות מספר סופי אי-שלילי —
+   null, undefined ו-NaN אינם «אפס», הם «לא נמדד». */
+function isValidMeasurement(r){
+  return !!r&&isNum(r.val)&&r.val>=0;
+}
+
+/* ---------- בחירת מדידות ---------- */
+/* כל המדידות הגולמיות של תלמיד במבחן אחד, לפי סדר זמן.
+   opts.cls מצמצם לכיתה אחת; בלעדיו מוחזרת ההיסטוריה המלאה — גם
+   ממה שנמדד בכיתה קודמת, וזה בכוונה: תלמיד שעבר כיתה לא איבד את
+   העבר שלו. */
+function measurementsOf(rows,stud,testId,opts){
+  opts=opts||{};
+  var k=opts.cls==null?null:clsKey(opts.cls);
+  return (rows||[]).filter(function(r){
+    if(!r||r.test!==testId)return false;
+    if(k!==null&&clsKey(r.cls)!==k)return false;
+    return sameStudent(r,stud);
+  }).sort(function(a,b){
+    return (String(a.d||"").localeCompare(String(b.d||"")))||((a.ts||0)-(b.ts||0));
+  });
+}
+/* הטובה ביותר מתוך רשימה, לפי כיוון המבחן */
+function bestOf(list,dir){
+  var ok=(list||[]).filter(isValidMeasurement);
+  if(!ok.length)return null;
+  return ok.reduce(function(a,b){ return isBetter(dir,b.val,a.val)?b:a; });
+}
+/* ---------- שיא אישי ----------
+   מספר גדול יותר אינו «טוב יותר» מעצמו. ב-60 מטר השיא הוא הזמן
+   הנמוך ביותר, בקפיצה לרוחק הוא המרחק הגדול ביותר. */
+function personalBest(rows,stud,testId,dir){
+  return bestOf(measurementsOf(rows,stud,testId),dir);
+}
+function latestOf(rows,stud,testId,opts){
+  var all=measurementsOf(rows,stud,testId,opts).filter(isValidMeasurement);
+  return all.length?all[all.length-1]:null;
+}
+function firstOf(rows,stud,testId,opts){
+  var all=measurementsOf(rows,stud,testId,opts).filter(isValidMeasurement);
+  return all.length?all[0]:null;
+}
+/* הטובה מבין הימים שלפני התאריך הנתון */
+function bestBefore(list,isoDate,dir){
+  return bestOf((list||[]).filter(function(r){
+    return isValidMeasurement(r)&&String(r.d||"")<String(isoDate||"");
+  }),dir);
+}
+function bestOnDay(list,isoDate,dir){
+  return bestOf((list||[]).filter(function(r){
+    return isValidMeasurement(r)&&String(r.d||"")===String(isoDate||"");
+  }),dir);
+}
+
+/* ---------- השוואה בין שתי מדידות ----------
+   מחזירה גם את השינוי הגולמי וגם את פרשנותו. הגולמי לעולם לא
+   מוסתר: מורה שרוצה לדעת כמה שניות ירדו יקבל את המספר. */
+function compare(now,then,dir){
+  if(!isValidMeasurement(now)||!isValidMeasurement(then))
+    return {rawDelta:null,improved:null,unchanged:null,declined:null};
+  var d=now.val-then.val;
+  var imp=isBetter(dir,now.val,then.val);
+  return {rawDelta:+d.toFixed(4),improved:imp,unchanged:d===0,
+          declined:!imp&&d!==0};
+}
+
+/* ---------- התקדמות ----------
+   שלוש תפיסות השוואה שונות כבר קיימות במוצר, וכל אחת נכונה למקום
+   שלה. עד עכשיו כל מסך חישב את שלו; כאן הן מוגדרות פעם אחת:
+
+     lastStep    — המדידה האחרונה מול הטובה שלפני אותו יום.
+                   זה מה שמופיע כחץ ▲/▼ ליד שם התלמיד במקצה.
+     sinceFirst  — השיא האישי מול הטוב ביום המדידה הראשון.
+                   זה «שיפור» בכרטיס התלמיד.
+     firstToLast — הטוב ביום האחרון מול הטוב ביום הראשון.
+                   זה מה שחלון ההיסטוריה מציג.
+   ============================================================ */
+var PROGRESS_NONE="no-measurements", PROGRESS_ONE="single-measurement";
+function progress(rows,stud,testId,dir,opts){
+  var all=measurementsOf(rows,stud,testId,opts);
+  var ok=all.filter(isValidMeasurement);
+  var out={dir:dir||"high",count:ok.length,rawCount:all.length,
+    invalid:all.length-ok.length,
+    first:null,latest:null,best:null,previous:null,
+    rawDelta:null,improved:null,unchanged:null,declined:null,
+    latestIsBest:null,
+    lastStep:null,sinceFirst:null,firstToLast:null,
+    days:0,reason:null};
+  if(!ok.length){ out.reason=PROGRESS_NONE; return out; }
+
+  var days=[]; ok.forEach(function(r){ var d=String(r.d||"");
+    if(days.indexOf(d)<0)days.push(d); });
+  days.sort();
+  out.days=days.length;
+
+  out.first =ok[0];
+  out.latest=ok[ok.length-1];
+  out.best  =bestOf(ok,dir);
+  out.latestIsBest=out.latest.id===out.best.id;
+  out.previous=bestBefore(ok,out.latest.d,dir);
+
+  /* מדידה אחת בלבד: אין עם מה להשוות. לא «אפס שיפור» ולא «ללא
+     שינוי» — פשוט אין תשובה, וזה מה שמוחזר. */
+  if(!out.previous&&days.length<2){ out.reason=PROGRESS_ONE; return out; }
+
+  out.lastStep   =compare(out.latest,out.previous,dir);
+  out.sinceFirst =compare(out.best,bestOnDay(ok,days[0],dir),dir);
+  out.firstToLast=compare(bestOnDay(ok,days[days.length-1],dir),
+                          bestOnDay(ok,days[0],dir),dir);
+
+  out.rawDelta =out.lastStep.rawDelta;
+  out.improved =out.lastStep.improved;
+  out.unchanged=out.lastStep.unchanged;
+  out.declined =out.lastStep.declined;
+  return out;
+}
+
+/* ============================================================
+   הערכה — נקודת כניסה אחת
+   ------------------------------------------------------------
+   scoreOne נשאר בדיוק כפי שהוא, כי הוא מחובר למסכים שעובדים.
+   assess עוטף אותו ומוסיף שלושה דברים שהשכבה העתידית צריכה:
+
+   1. שומר קלט. מדידה חסרה אינה אפס ואינה הציון הנמוך ביותר —
+      היא «לא נמדד». (ראו docs/PHASE_3_REPORT.md §4: null עובר את
+      השומר של scoreFromPoints ומקבל את תחתית הטבלה. כאן זה נחסם
+      לפני שהוא מגיע לשם, בלי לשנות את ההתנהגות הקיימת.)
+   2. קוד סיבה מפורש לכל מקרה שבו אין ציון. «null» לבדו לא מספר
+      למורה אם חסרה מדידה, חסרה טבלה, או שאין מספיק נתונים בשכבה.
+   3. גרסת הכללים שלפיהם חושב הציון.
+   ============================================================ */
+var ASSESS_REASON={
+  NONE:"no-measurement", INVALID:"invalid-measurement",
+  UNKNOWN_TEST:"unknown-test", NO_NORM:"no-norm", FEW_PEERS:"too-few-peers"
+};
+function assess(o){
+  o=o||{};
+  var out={v:null,src:null,capped:false,reason:null,
+    scoringVersion:ASSESS_VERSION,
+    normVersion:o.normVersion||"",
+    stale:false};
+  if(!o.testId){ out.reason=ASSESS_REASON.UNKNOWN_TEST; return out; }
+  if(o.val==null){ out.reason=ASSESS_REASON.NONE; return out; }
+  if(!isNum(o.val)||o.val<0){ out.reason=ASSESS_REASON.INVALID; return out; }
+
+  /* הערכה שחושבה בכללים אחרים מאלה שהיו בתוקף בזמן המדידה מסומנת.
+     אנחנו לא שומרים טבלאות היסטוריות, ולכן אי אפשר לשחזר את הציון
+     הישן — אבל אפשר, וצריך, לא לשקר שהוא אותו ציון. */
+  if(o.measuredNormVersion&&o.normVersion&&
+     o.measuredNormVersion!==o.normVersion)out.stale=true;
+
+  var r=scoreOne(o);
+  if(r.v!=null){ out.v=r.v; out.src=r.src; out.capped=!!r.capped; return out; }
+
+  /* אין ציון — למה? */
+  if(o.mode==="norm"&&normScore(o.table,o.testId,o.sex,o.grade,o.val)==null)
+    out.reason=ASSESS_REASON.NO_NORM;
+  else out.reason=ASSESS_REASON.FEW_PEERS;
+  return out;
+}
+
+/* ============================================================
    6. גיבוי
    ------------------------------------------------------------
    הגיבוי הישן אסף רק את localStorage. סרטוני השיאים יושבים
@@ -3523,6 +3717,12 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  ASSESS_VERSION:ASSESS_VERSION, ASSESS_REASON:ASSESS_REASON, assess:assess,
+  isBetter:isBetter, isNum:isNum, isValidMeasurement:isValidMeasurement,
+  measurementsOf:measurementsOf, bestOf:bestOf, personalBest:personalBest,
+  latestOf:latestOf, firstOf:firstOf, bestBefore:bestBefore, bestOnDay:bestOnDay,
+  compare:compare, progress:progress,
+  PROGRESS_NONE:PROGRESS_NONE, PROGRESS_ONE:PROGRESS_ONE,
   clamp100:clamp100, scoreFromPoints:scoreFromPoints, percentile:percentile,
   normScore:normScore, relScore:relScore, scoreOne:scoreOne, REL_MIN:REL_MIN,
   otTheory:otTheory, otScore:otScore, OT_MAX:OT_MAX, OT_PASS:OT_PASS, OT_CORE_MIN:OT_CORE_MIN,
@@ -11798,6 +11998,10 @@ window.FT=(function(){
       ts:Date.now(),d:today(),cls:c,cid:DATA.classId(c),test:testId,
       name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
+      /* גרסת כללי הניקוד שהיו בתוקף כשהמדידה נלקחה. הציון עצמו לא
+         נשמר — הוא נגזר בכל תצוגה — אבל בלי החותמת הזאת החלפת טבלת
+         נורמה הייתה משנה בשקט את הפרשנות של כל ההיסטוריה. */
+      normVer:normVersion(),
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
@@ -11823,6 +12027,9 @@ window.FT=(function(){
   const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
   const setNorms=n=>LS().set("ft.norms",n);
   const scoreMode=()=>LS().get("ft.scoreMode","rel");
+  /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
+     מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
+  const normVersion=()=>String(norms().version||"");
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
   /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
   const lapsFor   =tid=>Math.max(1,+((LS().get("ft.laps",{}))[tid]||1));
@@ -13614,7 +13821,8 @@ window.FT=(function(){
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
-        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,gradeKey:pc.grade,
+        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,
+        normVer:normVersion(),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;
     });
@@ -13622,7 +13830,49 @@ window.FT=(function(){
     return {added,dup,skipped};
   }
 
-  return {init, pick, ingest, tests:()=>TESTS, results:()=>allRes(), roster, classOf:clsName};
+  /* ============================================================
+     ממשק התקדמות
+     ------------------------------------------------------------
+     נבנה עבור פרופיל הכושר העתידי, כדי שהוא לא יכתוב מחדש את
+     הלוגיקה הזאת — וכדי שאף מסך עתידי לא ימציא גרסה משלו ל«האם
+     התלמיד השתפר». הוא עוטף את השכבה הטהורה ב-hm-data ומוסיף רק
+     את מה שדורש אחסון: קטלוג המבחנים, טבלת הנורמה ומצב הניקוד.
+
+     המדידות הגולמיות מוחזרות כמו שהן. אף פונקציה כאן לא כותבת.
+     ============================================================ */
+  const PROGRESS={
+    /* כל המדידות הגולמיות של תלמיד במבחן. בלי opts.cls — ההיסטוריה
+       המלאה, כולל מה שנמדד לפני שהוא עבר כיתה. */
+    measurements:(stud,testId,opts)=>DATA.measurementsOf(allRes(),stud,testId,opts),
+    /* השיא האישי, לפי כיוון המבחן */
+    personalBest:(stud,testId)=>{
+      const T=testById(testId); if(!T)return null;
+      return DATA.personalBest(allRes(),stud,testId,T.dir);
+    },
+    latest:(stud,testId,opts)=>DATA.latestOf(allRes(),stud,testId,opts),
+    first :(stud,testId,opts)=>DATA.firstOf(allRes(),stud,testId,opts),
+    /* התמונה המלאה: ראשון, אחרון, שיא, קודם, ושלוש ההשוואות */
+    progress:(stud,testId,opts)=>{
+      const T=testById(testId);
+      return DATA.progress(allRes(),stud,testId,T&&T.dir,opts);
+    },
+    /* ההערכה של מדידה בודדת, עם קוד סיבה כשאין ציון */
+    assess:(stud,testId,val,grade,measuredNormVersion)=>{
+      const T=testById(testId);
+      return DATA.assess({mode:scoreMode(),table:norms().table,rows:allRes(),
+        testId,sex:sexOf(stud),grade:grade||st.grade,val,
+        dir:T&&T.dir,cap:capOf(testId),
+        normVersion:normVersion(),measuredNormVersion});
+    },
+    /* ההערכה של מדידה קיימת — נושאת את חותמת הגרסה שלה */
+    assessOf:(stud,m)=>m?PROGRESS.assess(stud,m.test,m.val,m.gradeKey,m.normVer)
+                       :DATA.assess({}),
+    dirOf:testId=>{ const T=testById(testId); return T?T.dir:null; },
+    normVersion
+  };
+
+  return {init, pick, ingest, tests:()=>TESTS, results:()=>allRes(), roster,
+    classOf:clsName, progress:PROGRESS};
 })();
 })();
 
