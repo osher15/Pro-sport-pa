@@ -23,11 +23,14 @@ const today=()=>new Date().toISOString().slice(0,10);
 /* ============================================================
    1. שכבות וכיתות
    ============================================================ */
-const GRADES=[["ז","ז׳"],["ח","ח׳"],["ט","ט׳"],["י","י׳"],["יא","י״א"],["יב","י״ב"]];
-const NUMS=[1,2,3,4,5,6,7,8,9,10];
-const clsName=(g,n)=>((GRADES.find(x=>x[0]===g)||[,g])[1])+n;
+/* שכבות, מספרים ובניית שם כיתה חיים ב-hm-data.js. הם היו כאן,
+   ו-clsKey אף היה משוכפל בשני קבצים — שתי הגדרות של אותה השוואה
+   הן שתי הזדמנויות שהן ייפרדו. */
+const GRADES=window.HMDATA.GRADES;
+const NUMS=window.HMDATA.NUMS;
+const clsName=window.HMDATA.clsName;
 /* השוואת שם כיתה סלחנית — המורה מקליד «ט2», «ט׳2», «ט' 2» וכולם אותו דבר */
-const clsKey=s=>String(s||"").replace(/["'׳״\s\-־]/g,"").trim();
+const clsKey=window.HMDATA.clsKey;
 
 /* ============================================================
    2. קטלוג המבחנים
@@ -146,30 +149,12 @@ const catName=id=>(TCATS.find(c=>c[0]===id)||[,"—"])[1];
    ============================================================ */
 const NORM_EMPTY={version:"",source:"",table:{}};
 
-/* אינטרפולציה ליניארית בין נקודות הציון של טבלת הנורמה */
-function scoreFromPoints(pts,val){
-  if(!Array.isArray(pts)||pts.length<2||!(val>=0))return null;
-  const P=pts.slice().sort((a,b)=>a[0]-b[0]);
-  if(val<=P[0][0])return clamp100(P[0][1]);
-  if(val>=P[P.length-1][0])return clamp100(P[P.length-1][1]);
-  for(let i=0;i<P.length-1;i++){
-    const [x1,y1]=P[i],[x2,y2]=P[i+1];
-    if(val>=x1&&val<=x2){
-      if(x2===x1)return clamp100(y2);
-      return clamp100(y1+(y2-y1)*(val-x1)/(x2-x1));
-    }
-  }
-  return null;
-}
-const clamp100=v=>Math.max(0,Math.min(100,Math.round(v*10)/10));
-
-/* אחוזון: איזה חלק מהקבוצה התלמיד עקף. dir קובע מה נחשב «טוב יותר». */
-function percentile(vals,val,dir){
-  if(!vals.length)return null;
-  const worse=vals.filter(v=>dir==="low"?v>val:v<val).length;
-  const same =vals.filter(v=>v===val).length;
-  return clamp100((worse+same/2)/vals.length*100);
-}
+/* חישובי הניקוד עברו ל-hm-data.js בלי שינוי התנהגות. הם הלוגיקה
+   שקובעת ציון לתלמיד, והם היו עד עכשיו ללא בדיקה אחת — כאן אי אפשר
+   היה לבדוק אותם בלי דפדפן, ושם אפשר. */
+const scoreFromPoints=window.HMDATA.scoreFromPoints;
+const clamp100=window.HMDATA.clamp100;
+const percentile=window.HMDATA.percentile;
 
 /* ============================================================
    3. המודול
@@ -200,7 +185,16 @@ window.FT=(function(){
     if(Array.isArray(all[k]))return all[k];
     return [];
   }
-  function setRoster(c,list){ const all=rosters(); all[clsKey(c)]=list; setRosters(all); }
+  function setRoster(c,list){
+    const all=rosters(); all[clsKey(c)]=list; setRosters(all);
+    /* כיתה נכנסת לרישום ברגע שיש לה רשימה — זאת הנקודה היחידה שבה
+       כיתה «נוצרת» בפועל. registerClass לא כותב אם היא כבר רשומה,
+       ולכן זה לא מייקר שמירה חוזרת. */
+    registerCls(c);
+  }
+  /* הרישום דורש store בסגנון hm-data; עוטפים את LS פעם אחת. */
+  const clsStore={get:(k,d)=>LS().get(k,d===undefined?null:d),set:(k,v)=>LS().set(k,v)};
+  function registerCls(c){ try{ return DATA.registerClass(clsStore,c); }catch(e){ return null; } }
 
   function importFromStu(c){
     const stu=LS().get("stu.list",[]);
@@ -297,7 +291,8 @@ window.FT=(function(){
       if(cur)i=rs.findIndex(r=>r.id===cur.id);
     }
     const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,6),
-      ts:Date.now(),d:today(),cls:c,test:testId,name:stud.name,sid:DATA.studentKey(stud),
+      ts:Date.now(),d:today(),cls:c,cid:DATA.classId(c),test:testId,
+      name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
@@ -335,32 +330,21 @@ window.FT=(function(){
 
   /* ניקוד לפי טבלת נורמה — מחזיר null אם אין טבלה למבחן/מין/שכבה */
   function normScore(testId,sex,grade,val){
-    const T=norms().table[testId]; if(!T||!sex)return null;
-    const byGrade=T[sex]; if(!byGrade)return null;
-    return scoreFromPoints(byGrade[grade],val);
+    return DATA.normScore(norms().table,testId,sex,grade,val);
   }
   /* ניקוד יחסי — מול כל התוצאות באותו מבחן, באותה שכבה, ובאותו מין אם ידוע */
   function relScore(testId,sex,grade,val){
     const T=testById(testId); if(!T)return null;
-    const gk=String(grade);
-    const peers=allRes().filter(r=>r.test===testId&&r.gradeKey===gk&&(!sex||!r.sex||r.sex===sex));
-    const vals=peers.map(r=>r.val).filter(v=>v>0);
-    if(vals.length<3)return null;                 /* מתחת ל-3 תוצאות אחוזון הוא רעש */
-    return percentile(vals,val,T.dir);
+    return DATA.relScore(allRes(),testId,sex,grade,val,T.dir);
   }
   /* הציון הסופי לתוצאה בודדת + מאיפה הוא הגיע */
   /* מבחן חלופי נושא תקרת ציון: הוא מאפשר לעבור, אבל לא להגיע לציון
      של המבחן המלא — אחרת אין שום תמריץ לנסות את הקשה. */
   const capOf=tid=>{ const T=testById(tid); return T&&T.cap?T.cap:100; };
   function scoreOne(testId,stud,grade,val){
-    const sex=sexOf(stud), cap=capOf(testId);
-    if(scoreMode()==="norm"){
-      const n=normScore(testId,sex,grade,val);
-      if(n!=null)return {v:Math.min(cap,n),src:"norm",capped:cap<100};
-    }
-    const r=relScore(testId,sex,grade,val);
-    if(r!=null)return {v:Math.min(cap,r),src:"rel",capped:cap<100};
-    return {v:null,src:null};
+    const T=testById(testId);
+    return DATA.scoreOne({mode:scoreMode(),table:norms().table,rows:allRes(),
+      testId,sex:sexOf(stud),grade,val,dir:T&&T.dir,cap:capOf(testId)});
   }
   /* המדד המשוקלל של תלמיד: ממוצע הציונים על המבחנים שנבחרו */
   function indexFor(c,stud,grade){
@@ -417,6 +401,7 @@ window.FT=(function(){
           </div>`;}).join("")}</div></div>`;
     }).join("");
 
+    renderAmb();
     $$("#ft-grades [data-g]").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;persist();renderPicker();}));
     $$("#ft-nums [data-n]").forEach(b=>b.addEventListener("click",()=>{st.num=+b.dataset.n;persist();renderPicker();}));
     $$("#ft-tests [data-t]").forEach(b=>b.addEventListener("click",()=>openTest(b.dataset.t)));
@@ -1166,12 +1151,7 @@ window.FT=(function(){
     return "";
   }
   /* מפרק «ט׳3» לשכבה ומספר, כדי שהייבוא ייפול לאותן כיתות שהמודול מכיר */
-  function parseCls(raw){
-    const t=String(raw||"").replace(/["'׳״\s\-־]/g,"");
-    const mm=t.match(/^(יב|יא|י|ט|ח|ז)(\d{1,2})$/);
-    if(!mm)return null;
-    return {grade:mm[1],num:+mm[2]};
-  }
+  const parseCls=window.HMDATA.parseCls;
 
   /* ייצוא אמיתי מתחיל לא פעם בשורת כותרת של הדוח («חנ״ג בנים יב1»,
      שם בית ספר, תאריך) לפני שורת העמודות. במקום להניח ששורה 0 היא
@@ -1245,12 +1225,22 @@ window.FT=(function(){
     if(!built.length){H().toast("אין שורות לייבוא");return;}
     const alsoStu=H().$("#ft-impStu").checked;
     const all=rosters(); let added=0,updated=0;
+    /* מזהה אחד לכל תלמיד שנוצר בייבוא הזה.
+       עד עכשיו אותו ילד נכנס פעמיים — פעם לרשימת הכיתה עם מזהה
+       «f…» ופעם ל«התלמידים שלי» עם מזהה «s…» — וכך נוצרו שתי
+       זהויות לאדם אחד כבר ברגע הייבוא. */
+    const newId={};
+    const idFor=x=>{
+      const k=clsKey(x.cls)+"|"+x.name;
+      return (newId[k]=newId[k]||("f"+Date.now()+Math.random().toString(36).slice(2,6)));
+    };
     built.forEach(x=>{
       const k=clsKey(x.cls);
       const list=Array.isArray(all[k])?all[k]:(all[k]=[]);
       const ex=list.find(y=>y.name===x.name);
-      if(ex){ if(x.sex&&ex.sex!==x.sex){ex.sex=x.sex;updated++;} }
-      else { list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),name:x.name,sex:x.sex||null}); added++; }
+      if(ex){ if(x.sex&&ex.sex!==x.sex){ex.sex=x.sex;updated++;} newId[k+"|"+x.name]=ex.id; }
+      else { list.push({id:idFor(x),name:x.name,sex:x.sex||null}); added++; }
+      registerCls(x.cls);
     });
     setRosters(all);
     let stuAdded=0;
@@ -1258,9 +1248,9 @@ window.FT=(function(){
       const stu=LS().get("stu.list",[]);
       built.forEach(x=>{
         let s=stu.find(y=>y.name===x.name);
-        if(!s){ stu.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,6),name:x.name,cls:x.cls,
+        if(!s){ stu.push({id:idFor(x),name:x.name,cls:x.cls,cid:DATA.classId(x.cls),
           sex:x.sex||"boys",age:14,h:null,w:null,tests:[]}); stuAdded++; }
-        else { if(!s.cls)s.cls=x.cls; if(x.sex)s.sex=x.sex; }
+        else { if(!s.cls){s.cls=x.cls; s.cid=DATA.classId(x.cls);} if(x.sex)s.sex=x.sex; }
       });
       LS().set("stu.list",stu);
     }
@@ -1805,7 +1795,9 @@ window.FT=(function(){
      את ההספק כחלק מן ההערכה אלא לשם תיעוד ומעקב» — ולכן הרכיב הזה
      הוא עמידה בתקן ולא ביצוע. השכבות הן י–י״ב בלבד.
      ============================================================ */
-  const OT_MAX=40, OT_PASS=32, OT_CORE_MIN=12;
+  /* קבועי האות חיים ב-hm-data.js יחד עם החישוב שמשתמש בהם */
+  const OT_MAX=window.HMDATA.OT_MAX, OT_PASS=window.HMDATA.OT_PASS,
+        OT_CORE_MIN=window.HMDATA.OT_CORE_MIN;
   const OT_ITEMS=[
     {id:"aer",  em:"🫁", name:"מבדק אירובי",            max:9, kind:"three",
      d:"מאמץ אירובי רצוף 30 דק׳ (בכיתה י — 20–25 דק׳ בשני המועדים הראשונים), שלושה מועדים בשנה בהפרש 6 שבועות לפחות. 3 נק׳ לכל מועד שבו עמד בתקן."},
@@ -1831,25 +1823,8 @@ window.FT=(function(){
     all[k]=all[k]||{}; all[k][name]=rec; otSet(all);
   }
   /* ניקוד המבחן העיוני לפי הספים שבמסמך */
-  function otTheory(pct){
-    if(pct==null||pct==="")return 0;
-    const v=+pct;
-    if(v>=85)return 5; if(v>=75)return 4; if(v>=65)return 3; return 0;
-  }
-  function otScore(rec){
-    const per={
-      aer:(rec.aer||[]).filter(Boolean).length*3,
-      cir:(rec.cir||[]).filter(Boolean).length*3,
-      theory:otTheory(rec.theory),
-      part:rec.part?4:0,
-      club:rec.club?5:0,
-      event:Math.min(3,+rec.event||0),
-      diary:rec.diary?5:0
-    };
-    const total=Object.values(per).reduce((a,b)=>a+b,0);
-    const core=per.aer+per.cir;
-    return {per,total,core,ok:total>=OT_PASS&&core>=OT_CORE_MIN};
-  }
+  const otTheory=window.HMDATA.otTheory;
+  const otScore =window.HMDATA.otScore;
 
   const OT_GRADES=["י","יא","יב"];
 
@@ -1935,6 +1910,80 @@ window.FT=(function(){
     rows.forEach(r=>out.push([r.s.name,r.per.aer,r.per.cir,r.per.theory,r.per.part,r.per.club,r.per.event,r.per.diary,
       r.total,r.ok?"כן":"לא"]));
     H().dlCSV("אות-החינוך-הגופני-"+cls()+"-"+today()+".csv",out);
+  }
+
+  /* ============================================================
+     7ג. מדידות שממתינות להכרעה
+     ------------------------------------------------------------
+     ההסבה של שלב 2 סימנה ולא ניחשה, וזה היה נכון — אבל רשומה
+     מסומנת שאין לה מסלול הכרעה נשארת מסומנת לנצח. זה המסלול.
+
+     הכרטיס מופיע רק כשיש מה להכריע בכיתה הנוכחית. אין רשומות
+     כאלה — אין כרטיס, ואין למורה שום דבר חדש להתמודד איתו.
+     ============================================================ */
+  function ambFor(c){
+    const k=clsKey(c);
+    return DATA.ambiguousGroups(allRes()).filter(g=>clsKey(g.cls)===k);
+  }
+  const AMB_WHY={
+    "duplicate-name":"יש שני תלמידים בכיתה עם השם הזה",
+    "no-roster-match":"השם אינו ברשימת הכיתה"
+  };
+  function renderAmb(){
+    const {$, $$, esc}=H(), c=cls();
+    const card=$("#ft-ambCard"); if(!card)return;
+    const groups=ambFor(c);
+    if(!groups.length){ card.hidden=true; return; }
+    card.hidden=false;
+    const total=groups.reduce((a,g)=>a+g.ids.length,0);
+    $("#ft-ambHint").innerHTML=total+" מדידות בכיתה "+esc(c)+" לא שויכו לתלמיד בוודאות, ולכן הן לא נכנסות "+
+      "לכרטיס אף אחד ולא למדד. הן שמורות — צריך רק להגיד למי הן שייכות.";
+    $("#ft-ambList").innerHTML=groups.map(g=>
+      `<div class="arc-item">
+         <div class="grow"><div class="ttl">${esc(g.name)}</div>
+           <div class="sb">${g.ids.length} מדידות · ${esc(AMB_WHY[g.reason]||g.reason)}</div></div>
+         <button class="btn sm acc" data-amb="${esc(g.key)}">למי זה שייך?</button>
+       </div>`).join("");
+    $$("#ft-ambList [data-amb]").forEach(b=>b.addEventListener("click",()=>openAmb(b.dataset.amb)));
+  }
+  function openAmb(key){
+    const {$, $$, esc}=H(), c=cls();
+    const g=ambFor(c).find(x=>x.key===key); if(!g)return;
+    const cand=DATA.resolveCandidates(roster(c),g.name);
+    $("#ft-ambTitle").textContent="למי שייכות המדידות של «"+g.name+"»?";
+    const T=tid=>{ const t=testById(tid); return t?t.name:tid; };
+    $("#ft-ambBody").innerHTML=`
+      <div class="hint">${g.ids.length} מדידות · כיתה ${esc(c)} · ${esc(AMB_WHY[g.reason]||g.reason)}</div>
+      <div class="tblwrap" style="margin:10px 0"><table class="tbl"><thead>
+        <tr><th>תאריך</th><th>מבחן</th><th>תוצאה</th></tr></thead>
+        <tbody>${g.rows.slice(0,8).map(r=>`<tr><td>${esc(r.d||"")}</td>
+          <td>${esc(T(r.test))}</td><td class="mono">${esc(String(r.val))} ${esc(r.unit||"")}</td></tr>`).join("")}
+        </tbody></table></div>
+      ${g.rows.length>8?`<div class="hint">ועוד ${g.rows.length-8} מדידות</div>`:""}
+      ${cand.all.length
+        ? `<div class="field" style="margin-top:12px"><label>בחר תלמיד</label></div>
+           <div id="ft-ambCand">${cand.all.map(s=>
+             `<button class="btn" style="width:100%;margin-bottom:7px;justify-content:flex-start"
+                data-pick="${esc(refKey(s))}">${esc(s.name)}${
+                cand.exact.indexOf(s)>=0?' <span class="pill acc">שם תואם</span>':""}</button>`).join("")}</div>
+           <div class="hint">אם אף אחד מהם אינו הנכון — השאר את המדידות כמו שהן. הן לא ילכו לאיבוד.</div>`
+        : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.<br>
+             ייבא את הרשימה קודם, ואז אפשר יהיה לשייך.</div>`}`;
+    $$("#ft-ambBody [data-pick]").forEach(b=>b.addEventListener("click",()=>{
+      const stud=studByKey(c,b.dataset.pick);
+      const sid=DATA.studentKey(stud);
+      /* תלמיד בלי מזהה יציב אינו יעד חוקי — שיוך אליו רק היה מחליף
+         דו-משמעות אחת באחרת. */
+      if(!sid){ H().toast("לתלמיד הזה אין עדיין מזהה יציב"); return; }
+      if(!confirm("לשייך "+g.ids.length+" מדידות ל"+stud.name+"?"))return;
+      const res=DATA.resolveAmbiguous(allRes(),g.ids,sid);
+      if(!res.ok){ H().toast("לא בוצע שיוך"); return; }
+      setRes(res.rows);
+      H().modal("ft-ambModal",false);
+      H().toast("✓ "+res.changed+" מדידות שויכו ל"+stud.name);
+      renderAmb(); renderPicker();
+    }));
+    H().modal("ft-ambModal",true);
   }
 
   /* ============================================================
@@ -2061,7 +2110,7 @@ window.FT=(function(){
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
-        cls:c,test:testId,name:nm,sid:known?(known.id||null):null,gradeKey:pc.grade,
+        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;
     });

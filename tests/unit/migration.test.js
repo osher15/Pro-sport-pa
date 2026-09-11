@@ -12,6 +12,7 @@ test("זיהוי גרסה: מכשיר ריק נחשב עדכני, מכשיר ע�
   assert.equal(D.detectVersion(memStore()),D.SCHEMA_VERSION,"התקנה חדשה — אין מה להסב");
   assert.equal(D.detectVersion(memStore(legacyClass())),1);
   assert.equal(D.detectVersion(memStore({"schema.version":2})),2);
+  assert.equal(D.detectVersion(memStore({"schema.version":3})),3);
 });
 
 test("מיגרציה מקשרת כל מדידה למזהה של התלמיד",()=>{
@@ -20,8 +21,9 @@ test("מיגרציה מקשרת כל מדידה למזהה של התלמיד",()
   const rep=D.migrate(s);
 
   assert.equal(rep.ok,true,rep.error||"");
-  assert.deepEqual(rep.applied,["student-identity"]);
-  assert.equal(rep.from,1); assert.equal(rep.to,2);
+  /* מכשיר בגרסה 1 עובר את כל המיגרציות עד הנוכחית, לפי הסדר */
+  assert.deepEqual(rep.applied,["student-identity","class-identity"]);
+  assert.equal(rep.from,1); assert.equal(rep.to,D.SCHEMA_VERSION);
 
   const res=s.get("ft.results");
   assert.equal(res.length,before,"אף מדידה לא נמחקה ואף אחת לא נוספה");

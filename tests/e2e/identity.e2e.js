@@ -3,6 +3,7 @@
    בדיקות היחידה מוכיחות שהלוגיקה נכונה; כאן מוכיחים שהיא באמת
    מחוברת למסך שהמורה רואה. */
 const {check,eq,ok}=require("./harness.js");
+const D=require("../../hm-data.js");
 
 /* כיתה בסכמה הישנה: לרשומות אין sid ולתלמידים אין id */
 function legacy(n){
@@ -129,7 +130,9 @@ module.exports={title:"זהות תלמיד",tests:[
     eq(res[0].sid,"b","נשמרה על התלמיד השני ולא על הראשון");
   }),
 
-  check("הסבה שכבר רצה לא רצה שוב",Object.assign(legacy(3),{"schema.version":2}),async page=>{
+  /* גרסת הסכמה נלקחת מהקוד ולא ננעצת כאן: מכשיר «מעודכן» הוא
+     מכשיר בגרסה הנוכחית, מה שהיא לא תהיה. */
+  check("הסבה שכבר רצה לא רצה שוב",Object.assign(legacy(3),{"schema.version":D.SCHEMA_VERSION}),async page=>{
     const rep=await page.evaluate(()=>window.HM.migration());
     eq(rep.noop,true,"אין מה להסב במכשיר שכבר בגרסה הנוכחית");
     eq(rep.applied.length,0,"לא הוחלה אף מיגרציה");

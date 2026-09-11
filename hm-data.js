@@ -28,6 +28,65 @@
    ============================================================ */
 var clsKey=function(s){ return String(s==null?"":s).replace(/["'׳״\s\-־]/g,"").trim(); };
 
+/* שכבות הלימוד ותוויות התצוגה שלהן. היו עד עכשיו רק ב-hm-tests.js,
+   ולכן כל מי שרצה לבנות שם כיתה היה חייב לעבור דרך מודול המבחנים. */
+var GRADES=[["ז","ז׳"],["ח","ח׳"],["ט","ט׳"],["י","י׳"],["יא","י״א"],["יב","י״ב"]];
+var NUMS=[1,2,3,4,5,6,7,8,9,10];
+function clsName(g,n){
+  var hit=null;
+  for(var i=0;i<GRADES.length;i++)if(GRADES[i][0]===g){hit=GRADES[i][1];break;}
+  return (hit==null?g:hit)+n;
+}
+/* «ט׳3», «ט3», «ט' 3» — כולן אותה כיתה. מחזיר null למה שאינו שכבה+מספר. */
+function parseCls(raw){
+  var t=String(raw==null?"":raw).replace(/["'׳״\s\-־]/g,"");
+  var mm=t.match(/^(יב|יא|י|ט|ח|ז)(\d{1,2})$/);
+  if(!mm)return null;
+  return {grade:mm[1],num:+mm[2]};
+}
+
+/* ============================================================
+   זהות כיתה
+   ------------------------------------------------------------
+   עד עכשיו כיתה לא הייתה ישות בכלל. לא היה לה רישום, לא מזהה ולא
+   מקום אחד שבו היא קיימת — היא הייתה מחרוזת שנבנתה מחדש בכל מסך
+   («ט׳3»), ושלושה מודולים שמרו אותה בשלוש צורות שונות: ft.roster
+   לפי מפתח מנורמל, stu.list כטקסט חופשי שהמורה מקליד, וכל מדידה
+   נשאה עותק של התווית.
+
+   התוצאה: שם הכיתה היה הזהות שלה. כל עוד הוא נבנה מבורר קבוע
+   (שכבה × מספר) זה עבד — אבל ברגע שמישהו הקליד «ט3 בנים» בשדה
+   החופשי, הוא יצר כיתה חדשה בלי לדעת.
+
+   עכשיו יש מזהה. הוא נגזר מהתוכן ולכן דטרמיניסטי:
+     כיתה שנפרסת לשכבה+מספר →  "c:ט:3"
+     טקסט חופשי             →  "cn:" + המפתח המנורמל
+   השם נשאר תצוגה, והרישום ב-ft.classes הוא המקום היחיד שבו הוא חי.
+   ============================================================ */
+function classId(raw){
+  var t=String(raw==null?"":raw).trim();
+  if(!t)return null;
+  var pc=parseCls(t);
+  if(pc)return "c:"+pc.grade+":"+pc.num;
+  var k=clsKey(t);
+  return k?("cn:"+k):null;
+}
+/* רשומת כיתה מלאה מתוך תווית. grade/num הם null לכיתה שאינה
+   נפרסת — אנחנו לא ממציאים לה שכבה. */
+function classFrom(raw){
+  var t=String(raw==null?"":raw).trim();
+  var id=classId(t);
+  if(!id)return null;
+  var pc=parseCls(t);
+  return {id:id,name:pc?clsName(pc.grade,pc.num):t,
+          grade:pc?pc.grade:null,num:pc?pc.num:null,key:clsKey(t)};
+}
+/* שתי תוויות מצביעות על אותה כיתה? */
+function sameClass(a,b){
+  var x=classId(a),y=classId(b);
+  return !!x&&x===y;
+}
+
 /* ============================================================
    2. מזהים יציבים
    ------------------------------------------------------------
@@ -101,7 +160,7 @@ function attemptsOf(results,clsName,testId,stud){
    • לא הרסני — רק הוספת שדות. אף רשומה לא נמחקת ואף שדה קיים
      לא נדרס. מה שלא ניתן לזהות בוודאות מסומן, לא מנוחש.
    ============================================================ */
-var SCHEMA_VERSION=2;
+var SCHEMA_VERSION=3;
 var SCHEMA_KEY="schema.version";
 
 /* --- 1 → 2: זהות תלמיד ---------------------------------- */
@@ -115,9 +174,21 @@ function mig_studentIdentity(store,rep){
       var list=rosters[k];
       if(!Array.isArray(list))return;
       idByCls[clsKey(k)]=list;
+      /* שני תלמידים בשם «דן כהן» באותה כיתה הם שני תלמידים. מזהה
+         שנגזר משם בלבד היה נותן לשניהם את אותו מזהה — כלומר מאחד
+         אותם לזהות אחת, וזה בדיוק מה שבאנו למנוע.
+
+         המונה הוא לפי סדר ההופעה ברשימה השמורה, ולכן דטרמיניסטי:
+         אותה רשימה תיתן תמיד את אותם מזהים. הראשון שומר על הזרע
+         המקורי כדי שלא נשנה מזהים שכבר נגזרו בעבר. */
+      var ord={};
       list.forEach(function(s){
         if(!s||typeof s!=="object")return;
-        if(!s.id){ s.id=derivedId("s",clsKey(k)+"|"+String(s.name||"")); touched=true; rep.rosterIds++; }
+        var base=clsKey(k)+"|"+String(s.name||"");
+        var n=(ord[base]=(ord[base]||0)+1);
+        if(s.id)return;
+        s.id=derivedId("s",n>1?(base+"#"+n):base);
+        touched=true; rep.rosterIds++;
       });
     });
     if(touched)store.set("ft.roster",rosters);
@@ -126,10 +197,14 @@ function mig_studentIdentity(store,rep){
   /* ב. «התלמידים שלי» — אותו טיפול */
   var stu=store.get("stu.list",null);
   if(Array.isArray(stu)){
-    var t2=false;
+    var t2=false, ordS={};
     stu.forEach(function(s){
       if(!s||typeof s!=="object")return;
-      if(!s.id){ s.id=derivedId("s",clsKey(s.cls)+"|"+String(s.name||"")); t2=true; rep.stuIds++; }
+      var base=clsKey(s.cls)+"|"+String(s.name||"");
+      var n=(ordS[base]=(ordS[base]||0)+1);
+      if(s.id)return;
+      s.id=derivedId("s",n>1?(base+"#"+n):base);
+      rep.stuIds++; t2=true;
     });
     if(t2)store.set("stu.list",stu);
   }
@@ -161,8 +236,63 @@ function mig_studentIdentity(store,rep){
   if(changed)store.set("ft.results",res);
 }
 
+/* --- 2 → 3: זהות כיתה ---------------------------------- */
+function mig_classIdentity(store,rep){
+  var reg=store.get("ft.classes",null);
+  if(!reg||typeof reg!=="object"||Array.isArray(reg))reg={};
+  var touched=false;
+  /* רושמים כיתה פעם אחת. אם היא כבר רשומה — לא נוגעים בשם שלה,
+     כי ייתכן שהמורה כבר שינה אותו וזה בדיוק מה שהרישום נועד לשמר. */
+  function reg1(raw){
+    var c=classFrom(raw);
+    if(!c)return null;
+    if(!reg[c.id]){ reg[c.id]=c; touched=true; rep.classes++; }
+    return reg[c.id].id;
+  }
+
+  /* א. כל מפתח ב-ft.roster הוא כיתה שקיימת בפועל */
+  var rosters=store.get("ft.roster",null);
+  if(rosters&&typeof rosters==="object"&&!Array.isArray(rosters))
+    Object.keys(rosters).forEach(function(k){ if(Array.isArray(rosters[k]))reg1(k); });
+
+  /* ב. כל כיתה שמופיעה אצל תלמיד */
+  var stu=store.get("stu.list",null);
+  if(Array.isArray(stu)){
+    var t2=false;
+    stu.forEach(function(s){
+      if(!s||typeof s!=="object")return;
+      var id=reg1(s.cls);
+      if(id&&!s.cid){ s.cid=id; t2=true; rep.stuCids++; }
+    });
+    if(t2)store.set("stu.list",stu);
+  }
+
+  /* ג. כל כיתה שמופיעה על מדידה, והטבעת המזהה על המדידה עצמה */
+  var res=store.get("ft.results",null);
+  if(Array.isArray(res)){
+    var t3=false;
+    res.forEach(function(r){
+      if(!r||typeof r!=="object")return;
+      if(r.cid)return;
+      var id=reg1(r.cls);
+      /* מדידה בלי שדה כיתה נשארת כמו שהיא. אין דרך לדעת לאיזו כיתה
+         היא שייכת, וניחוש כאן שקול לניחוש זהות תלמיד. */
+      if(id){ r.cid=id; t3=true; rep.resCids++; }
+      else { r.cidAmbig="no-class"; t3=true; rep.resNoClass++; }
+    });
+    if(t3)store.set("ft.results",res);
+  }
+
+  /* ד. הכיתה שנטענה אחרונה לביפ טסט */
+  var heat=store.get("bt.heat",null);
+  if(heat&&typeof heat==="object"&&heat.cls)reg1(heat.cls);
+
+  if(touched||store.get("ft.classes",null)==null)store.set("ft.classes",reg);
+}
+
 var MIGRATIONS=[
-  {to:2,name:"student-identity",run:mig_studentIdentity}
+  {to:2,name:"student-identity",run:mig_studentIdentity},
+  {to:3,name:"class-identity",  run:mig_classIdentity}
 ];
 
 /* מזהה את גרסת הנתונים שעל המכשיר. התקנה חדשה לגמרי מסומנת מיד
@@ -170,14 +300,15 @@ var MIGRATIONS=[
 function detectVersion(store){
   var v=store.get(SCHEMA_KEY,null);
   if(typeof v==="number"&&v>0)return v;
-  var known=["ft.results","ft.roster","stu.list","bt.results","rec.sports","settings"];
+  var known=["ft.results","ft.roster","stu.list","bt.results","rec.sports","settings","ft.classes"];
   var any=known.some(function(k){ return store.get(k,null)!=null; });
   return any?1:SCHEMA_VERSION;
 }
 
 function migrate(store){
   var rep={from:0,to:SCHEMA_VERSION,applied:[],linked:0,ambiguous:0,unmatched:0,
-           rosterIds:0,stuIds:0,ok:true,error:null,noop:true};
+           rosterIds:0,stuIds:0,classes:0,stuCids:0,resCids:0,resNoClass:0,
+           ok:true,error:null,noop:true};
   try{
     var from=detectVersion(store);
     rep.from=from;
@@ -200,6 +331,46 @@ function migrate(store){
     rep.ok=false; rep.error=String(e&&e.message||e);
   }
   return rep;
+}
+
+/* פעולות הכיתה שנתמכות בשכבת הנתונים.
+   שינוי שם הוא הסיבה שהמזהה קיים: הרישום מחזיק את השם, המדידות
+   מחזיקות את המזהה, ולכן שינוי שם אינו נוגע באף מדידה. */
+function classes(store){
+  var reg=store.get("ft.classes",null);
+  return (reg&&typeof reg==="object"&&!Array.isArray(reg))?reg:{};
+}
+function classOf(store,cid){ return classes(store)[cid]||null; }
+/* מוצא כיתה לפי תווית — קודם ברישום, ואם אין, לפי המזהה הנגזר */
+function findClass(store,raw){
+  var id=classId(raw); if(!id)return null;
+  var reg=classes(store);
+  if(reg[id])return reg[id];
+  /* אולי הכיתה שונתה ולכן התווית כבר לא נגזרת למזהה שלה */
+  var keys=Object.keys(reg);
+  for(var i=0;i<keys.length;i++)
+    if(clsKey(reg[keys[i]].name)===clsKey(raw))return reg[keys[i]];
+  return null;
+}
+function registerClass(store,raw){
+  var c=classFrom(raw); if(!c)return null;
+  var reg=classes(store);
+  if(!reg[c.id]){ reg[c.id]=c; store.set("ft.classes",reg); }
+  return reg[c.id];
+}
+/* שינוי שם: נוגע ברישום בלבד. המזהה, המדידות והתלמידים לא זזים.
+   שתי כיתות רשאיות לשאת אותו שם — הן נשארות שתי כיתות. */
+function renameClass(store,cid,newName){
+  var reg=classes(store);
+  var c=reg[cid];
+  if(!c)return {ok:false,error:"no-such-class"};
+  var nm=String(newName==null?"":newName).trim();
+  if(!nm)return {ok:false,error:"empty-name"};
+  c.name=nm; c.key=clsKey(nm);
+  var pc=parseCls(nm);
+  c.grade=pc?pc.grade:null; c.num=pc?pc.num:null;
+  store.set("ft.classes",reg);
+  return {ok:true,cls:c};
 }
 
 /* ============================================================
@@ -247,6 +418,177 @@ function safeGet(backend,fullKey,def){
        שהמסך יעלה, אבל מדווחים — כי זה נתון של מורה שנפגם. */
     return {ok:false,code:ERR.SERIALIZE,value:def,raw:raw};
   }
+}
+
+/* ============================================================
+   מדידות שממתינות להכרעה
+   ------------------------------------------------------------
+   ההסבה מסמנת ולא מנחשת. זה היה הדבר הנכון לעשות — אבל רשומה
+   מסומנת שאין דרך להכריע בה נשארת מסומנת לנצח, ולכן צריך מסלול
+   ידני. הכלל היחיד שאסור להפר: ההכרעה מגיעה מהמורה. לא מהשם
+   הראשון שמתאים, לא מהמיקום במערך, ולא מדמיון מחרוזות.
+   ============================================================ */
+function ambiguous(results){
+  return (results||[]).filter(function(r){ return r&&r.sidAmbig&&!r.sid; });
+}
+/* מקבץ לפי (כיתה, שם) — למורה יש שאלה אחת לכל תלמיד, לא לכל מדידה */
+function ambiguousGroups(results){
+  var by={};
+  ambiguous(results).forEach(function(r){
+    var k=clsKey(r.cls)+"|"+String(r.name||"");
+    (by[k]=by[k]||{key:k,cls:r.cls,name:r.name||"",reason:r.sidAmbig,ids:[],rows:[]});
+    by[k].ids.push(r.id); by[k].rows.push(r);
+  });
+  return Object.keys(by).sort().map(function(k){ return by[k]; });
+}
+/* המועמדים שמוצגים למורה: תלמידי אותה כיתה בלבד, ובראשם מי ששמו
+   תואם. אנחנו לא בוחרים — רק מסדרים את מה שהוא רואה. */
+function resolveCandidates(roster,name){
+  var nm=String(name==null?"":name);
+  var list=(roster||[]).filter(function(s){ return s&&(s.id||s.name); });
+  var exact=list.filter(function(s){ return String(s.name||"")===nm; });
+  var rest =list.filter(function(s){ return String(s.name||"")!==nm; });
+  return {exact:exact,other:rest,all:exact.concat(rest)};
+}
+/* מבצע את ההכרעה. מחזיר מערך חדש — לא משנה את הקלט במקום.
+   הסימון יורד רק אחרי ששויך מזהה בפועל. */
+function resolveAmbiguous(results,ids,sid){
+  var want={}; (ids||[]).forEach(function(i){ want[i]=1; });
+  var target=String(sid==null?"":sid);
+  if(!target)return {ok:false,error:"no-sid",rows:results,changed:0};
+  var changed=0;
+  var out=(results||[]).map(function(r){
+    if(!r||!want[r.id])return r;
+    if(r.sid)return r;                       /* כבר מזוהה — לא נוגעים */
+    var c=Object.assign({},r);
+    c.sid=target; c.sidFrom="manual";
+    delete c.sidAmbig;
+    changed++;
+    return c;
+  });
+  return {ok:changed>0,rows:out,changed:changed};
+}
+
+/* ============================================================
+   5ב. ניקוד, נורמות ומדדי בריאות
+   ------------------------------------------------------------
+   הלוגיקה שקובעת ציון לתלמיד הייתה עד עכשיו ללא בדיקה אחת. היא גם
+   האזור שבו שגיאה שקטה עולה הכי ביוקר: ציון שגוי לא נראה שגוי, הוא
+   פשוט נראה כמו ציון.
+
+   הפונקציות כאן הועברו כמו שהן, בלי שינוי התנהגות. מה שדרש אחסון
+   («איזו טבלת נורמה שמורה», «אילו תוצאות קיימות בשכבה») הפך לפרמטר
+   במקום לקריאה מ-localStorage, וזה כל ההבדל.
+   ============================================================ */
+function clamp100(v){ return Math.max(0,Math.min(100,Math.round(v*10)/10)); }
+
+/* אינטרפולציה ליניארית בין נקודות הציון של טבלת הנורמה */
+function scoreFromPoints(pts,val){
+  if(!Array.isArray(pts)||pts.length<2||!(val>=0))return null;
+  var P=pts.slice().sort(function(a,b){ return a[0]-b[0]; });
+  if(val<=P[0][0])return clamp100(P[0][1]);
+  if(val>=P[P.length-1][0])return clamp100(P[P.length-1][1]);
+  for(var i=0;i<P.length-1;i++){
+    var x1=P[i][0],y1=P[i][1],x2=P[i+1][0],y2=P[i+1][1];
+    if(val>=x1&&val<=x2){
+      if(x2===x1)return clamp100(y2);
+      return clamp100(y1+(y2-y1)*(val-x1)/(x2-x1));
+    }
+  }
+  return null;
+}
+
+/* אחוזון: איזה חלק מהקבוצה התלמיד עקף. dir קובע מה «טוב יותר». */
+function percentile(vals,val,dir){
+  if(!vals.length)return null;
+  var worse=vals.filter(function(v){ return dir==="low"?v>val:v<val; }).length;
+  var same =vals.filter(function(v){ return v===val; }).length;
+  return clamp100((worse+same/2)/vals.length*100);
+}
+
+/* ניקוד לפי טבלת נורמה. table הוא ft.norms.table. */
+function normScore(table,testId,sex,grade,val){
+  if(!table||!sex)return null;
+  var T=table[testId]; if(!T)return null;
+  var byGrade=T[sex]; if(!byGrade)return null;
+  return scoreFromPoints(byGrade[grade],val);
+}
+
+/* ניקוד יחסי מול השכבה. rows הן כל המדידות הקיימות.
+   מתחת לשלוש תוצאות אחוזון הוא רעש, ולכן מוחזר null. */
+var REL_MIN=3;
+function relScore(rows,testId,sex,grade,val,dir){
+  var gk=String(grade);
+  var vals=(rows||[]).filter(function(r){
+    return r&&r.test===testId&&r.gradeKey===gk&&(!sex||!r.sex||r.sex===sex);
+  }).map(function(r){ return r.val; }).filter(function(v){ return v>0; });
+  if(vals.length<REL_MIN)return null;
+  return percentile(vals,val,dir);
+}
+
+/* הציון הסופי לתוצאה בודדת. mode הוא "norm" או "rel"; מבחן חלופי
+   נושא תקרה (cap) שמאפשרת לעבור אבל לא להגיע לציון המבחן המלא. */
+function scoreOne(o){
+  o=o||{};
+  var cap=o.cap==null?100:o.cap;
+  if(o.mode==="norm"){
+    var n=normScore(o.table,o.testId,o.sex,o.grade,o.val);
+    if(n!=null)return {v:Math.min(cap,n),src:"norm",capped:cap<100};
+  }
+  var r=relScore(o.rows,o.testId,o.sex,o.grade,o.val,o.dir);
+  if(r!=null)return {v:Math.min(cap,r),src:"rel",capped:cap<100};
+  return {v:null,src:null};
+}
+
+/* ---- אות החינוך הגופני ---- */
+var OT_MAX=40, OT_PASS=32, OT_CORE_MIN=12;
+function otTheory(pct){
+  if(pct==null||pct==="")return 0;
+  var v=+pct;
+  if(v>=85)return 5; if(v>=75)return 4; if(v>=65)return 3; return 0;
+}
+function otScore(rec){
+  rec=rec||{};
+  var per={
+    aer:(rec.aer||[]).filter(Boolean).length*3,
+    cir:(rec.cir||[]).filter(Boolean).length*3,
+    theory:otTheory(rec.theory),
+    part:rec.part?4:0,
+    club:rec.club?5:0,
+    event:Math.min(3,+rec.event||0),
+    diary:rec.diary?5:0
+  };
+  var total=Object.keys(per).reduce(function(a,k){ return a+per[k]; },0);
+  var core=per.aer+per.cir;
+  return {per:per,total:total,core:core,ok:total>=OT_PASS&&core>=OT_CORE_MIN};
+}
+
+/* ---- VO2max, אזור בריאות ו-BMI ---- */
+/* נוסחת Léger לריצת מעבורת: מהירות השלב וגיל התלמיד */
+function vo2max(speed,age){ return 31.025+3.238*speed-3.248*age+0.1536*age*speed; }
+/* אזורי FITNESSGRAM לפי גיל ומין: [גבול תחתון, אזור בריא] */
+var HFZ={
+  boys:{10:[37.3,40.2],11:[37.3,40.2],12:[37.6,40.3],13:[38.6,41.1],14:[39.6,42.5],
+        15:[40.6,43.6],16:[41.0,44.1],17:[41.2,44.2],18:[41.2,44.3]},
+  girls:{10:[37.3,40.2],11:[37.3,40.2],12:[37.0,40.1],13:[36.6,39.7],14:[36.3,39.4],
+         15:[36.0,39.1],16:[35.8,38.9],17:[35.7,38.8],18:[35.3,38.6]}
+};
+var HFZ_EXC=6.0;
+function healthZone(v,age,sex){
+  var a=Math.max(10,Math.min(18,Math.round(age||14)));
+  var s=HFZ[sex==="girls"?"girls":"boys"][a], R=s[0], H=s[1];
+  if(v>=H+HFZ_EXC)return {g:"מצוין",c:"#5cc8ff"};
+  if(v>=H)return {g:"אזור בריא",c:"#8fd96b"};
+  if(v>R)return {g:"טעון שיפור",c:"#ffd166"};
+  return {g:"סיכון בריאותי",c:"#ff6b81"};
+}
+function bmi(h,w){ if(!(h>0&&w>0))return null; return w/Math.pow(h/100,2); }
+function bmiCategory(b){
+  if(b==null)return null;
+  if(b<18.5)return {g:"תת־משקל",c:"#5cc8ff"};
+  if(b<25)  return {g:"תקין",c:"#8fd96b"};
+  if(b<30)  return {g:"עודף משקל",c:"#ffd166"};
+  return {g:"השמנה",c:"#ff6b81"};
 }
 
 /* ============================================================
@@ -348,10 +690,20 @@ function planRestore(snap,currentKeys){
 
 return {
   clsKey:clsKey, hash32:hash32, derivedId:derivedId,
+  GRADES:GRADES, NUMS:NUMS, clsName:clsName, parseCls:parseCls,
+  classId:classId, classFrom:classFrom, sameClass:sameClass,
+  classes:classes, classOf:classOf, findClass:findClass,
+  registerClass:registerClass, renameClass:renameClass,
   studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf,
   SCHEMA_VERSION:SCHEMA_VERSION, SCHEMA_KEY:SCHEMA_KEY, MIGRATIONS:MIGRATIONS,
   detectVersion:detectVersion, migrate:migrate,
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
+  ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
+  resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  clamp100:clamp100, scoreFromPoints:scoreFromPoints, percentile:percentile,
+  normScore:normScore, relScore:relScore, scoreOne:scoreOne, REL_MIN:REL_MIN,
+  otTheory:otTheory, otScore:otScore, OT_MAX:OT_MAX, OT_PASS:OT_PASS, OT_CORE_MIN:OT_CORE_MIN,
+  vo2max:vo2max, healthZone:healthZone, HFZ:HFZ, bmi:bmi, bmiCategory:bmiCategory,
   BK_APP:BK_APP, BK_V:BK_V, IDB_BUDGET:IDB_BUDGET,
   buildSnapshot:buildSnapshot, planMedia:planMedia, validateBackup:validateBackup, planRestore:planRestore
 };

@@ -4,12 +4,13 @@
    ולכן הם הדבר היחיד שהגיבוי הישן לא ראה. הבדיקות כאן נוגעות
    ב-IndexedDB אמיתי ולא בהדמיה שלו. */
 const {check,eq,ok}=require("./harness.js");
+const D=require("../../hm-data.js");
 
 const base={
   "ft.roster":{"ט3":[{id:"a",name:"דן אבירם",sex:"boys"}]},
   "ft.results":[{id:"r1",d:"2026-09-02",ts:1,cls:"ט׳3",test:"push",name:"דן אבירם",sid:"a",val:22,unit:"חזרות"}],
   "settings":{school:"מקיף גימל",theme:"dark",sound:true},
-  "schema.version":2,"pf.guideSeen":true};
+  "schema.version":D.SCHEMA_VERSION,"pf.guideSeen":true};
 
 /* כותב שיא עם «סרטון» (Blob קטן) ישירות ל-IndexedDB */
 async function seedRecord(page,id,bytes){
@@ -49,7 +50,7 @@ module.exports={title:"גיבוי ושחזור",tests:[
       return {val:window.HMDATA.validateBackup(s),schema:s.schema};
     });
     eq(v.val.ok,true,"קובץ תקין — "+JSON.stringify(v.val.errors));
-    eq(v.schema,2,"נושא את גרסת הסכמה כדי שידעו מה להסב");
+    eq(v.schema,D.SCHEMA_VERSION,"נושא את גרסת הסכמה כדי שידעו מה להסב");
   }),
 
   check("שחזור למכשיר ריק מחזיר גם את הנתונים וגם את הסרטונים",base,async page=>{

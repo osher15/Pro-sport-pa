@@ -3,19 +3,12 @@
 function H_LOC(){ return (window.HM&&window.HM.loc)?window.HM.loc():"he-IL"; }
 /* מודולים חדשים: שיעור מלא (LESSON) · תלמידים (STU) · תזונה (NUT) · תוספות בית/נעילה */
 (function(){
-const HFZ={
-  boys:{10:[37.3,40.2],11:[37.3,40.2],12:[37.6,40.3],13:[38.6,41.1],14:[39.6,42.5],15:[40.6,43.6],16:[41.0,44.1],17:[41.2,44.2],18:[41.2,44.3]},
-  girls:{10:[37.3,40.2],11:[37.3,40.2],12:[37.0,40.1],13:[36.6,39.7],14:[36.3,39.4],15:[36.0,39.1],16:[35.8,38.9],17:[35.7,38.8],18:[35.3,38.6]}
-};
-const EXC=6.0;
-function zoneOf(v,age,sex){
-  const a=Math.max(10,Math.min(18,Math.round(age||14))),s=HFZ[sex||"boys"][a],R=s[0],H=s[1];
-  if(v>=H+EXC)return{g:"מצוין",c:"#5cc8ff"};
-  if(v>=H)return{g:"אזור בריא",c:"#8fd96b"};
-  if(v>R)return{g:"טעון שיפור",c:"#ffd166"};
-  return{g:"סיכון בריאותי",c:"#ff6b81"};
-}
-const vo2f=(speed,age)=>31.025+3.238*speed-3.248*age+0.1536*age*speed;
+/* אזורי FITNESSGRAM ונוסחת Léger עברו ל-hm-data.js. הם מחשבים
+   מספר שמורה מציג לתלמיד כ«סיכון בריאותי» או «אזור בריא» — ולכן
+   הם חייבים להיות מכוסים בבדיקות, לא קבורים בתוך מודול DOM. */
+const HFZ=window.HMDATA.HFZ;
+const zoneOf=window.HMDATA.healthZone;
+const vo2f=window.HMDATA.vo2max;
 const today=()=>new Date().toISOString().slice(0,10);
 const H=()=>window.HM;
 
@@ -31,10 +24,8 @@ window.STU=(function(){
     const a=s.tests[s.tests.length-2].dist,b=s.tests[s.tests.length-1].dist;
     return b>a?1:(b<a?-1:0);
   }
-  function bmi(s){ if(!(s.h>0&&s.w>0))return null; return s.w/Math.pow(s.h/100,2); }
-  function bmiCat(b){ if(b==null)return null;
-    if(b<18.5)return{g:"תת־משקל",c:"#5cc8ff"}; if(b<25)return{g:"תקין",c:"#8fd96b"};
-    if(b<30)return{g:"עודף משקל",c:"#ffd166"}; return{g:"השמנה",c:"#ff6b81"}; }
+  const bmi=s=>window.HMDATA.bmi(s&&s.h,s&&s.w);
+  const bmiCat=window.HMDATA.bmiCategory;
   function render(){
     const {$, $$, esc}=H(); const list=load();
     const classes=[...new Set(list.map(s=>s.cls).filter(Boolean))].sort();
@@ -135,7 +126,11 @@ window.STU=(function(){
       </div>`;
     modal("stu-modal");
     $("#stu-fSave").addEventListener("click",()=>{
-      s.cls=$("#stu-fCls").value.trim(); s.sex=$("#stu-fSex").value;
+      s.cls=$("#stu-fCls").value.trim();
+      /* הכיתה היא טקסט חופשי, ולכן היא גם המקום היחיד שבו תלמיד
+         יכול «לעבור כיתה». המזהה נגזר מהתווית ונשמר לצידה. */
+      s.cid=window.HMDATA.classId(s.cls);
+      s.sex=$("#stu-fSex").value;
       s.age=+$("#stu-fAge").value||14; s.h=+$("#stu-fH").value||null; s.w=+$("#stu-fW").value||null;
       s.tests.forEach(t=>{ if(t.speed)t.vo2=vo2f(t.speed,s.age); if(t.vo2)t.zone=zoneOf(t.vo2,s.age,s.sex).g; });
       save(list); render(); profile(id); toast("נשמר ✓");
