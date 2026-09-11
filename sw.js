@@ -11,7 +11,7 @@
    יוצרת מטמון חדש והישן נמחק — במקום שגרסה ישנה תישאר תקועה על
    מכשיר בלי שאיש יידע.
    ============================================================ */
-const CACHE_VERSION = "c32bd9df";
+const CACHE_VERSION = "2b7f1112";
 const CACHE = "hamegrash-" + CACHE_VERSION;
 
 const SHELL = [
@@ -23,6 +23,7 @@ const SHELL = [
   "./icon-512.png",
   "./icon-maskable-512.png",
   "./hm-styles.css",
+  "./hm-data.js",
   "./hm-app.js",
   "./hm-qr.js",
   "./hm-howto.js",

@@ -12,9 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=2b6ba8f3">
+<link rel="stylesheet" href="hm-styles.css?v=f64d3180">
+<script src="hm-data.js?v=553fa359"></script>
 <script src="hm-i18n.js?v=b4951cd9"></script>
-<script src="hm-app.js?v=b05726a0"></script>
+<script src="hm-app.js?v=076f57ce"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -24,8 +25,8 @@
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=45abc322"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=a4320c3d"></script>
-<script src="hm-new.js?v=6cb3c9ad"></script>
+<script src="hm-tests.js?v=85d6fd0a"></script>
+<script src="hm-new.js?v=7b63da8b"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
@@ -1544,6 +1545,9 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div id="stWarn" hidden><span id="stWarnT"></span>
+  <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
+  <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
 <div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
   <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
 <div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>

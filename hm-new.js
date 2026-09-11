@@ -140,7 +140,19 @@ window.STU=(function(){
       s.tests.forEach(t=>{ if(t.speed)t.vo2=vo2f(t.speed,s.age); if(t.vo2)t.zone=zoneOf(t.vo2,s.age,s.sex).g; });
       save(list); render(); profile(id); toast("נשמר ✓");
     });
-    $("#stu-fDel").addEventListener("click",()=>{ if(confirm("למחוק את "+s.name+" וכל ההיסטוריה?")){save(list.filter(x=>x.id!==id));modal("stu-modal",false);render();} });
+    /* ההודעה הישנה אמרה «וכל ההיסטוריה», אבל מדידות מבחני הכושר
+       יושבות בכלל ב-ft.results ולא נמחקו — כלומר המורה קיבל הבטחה
+       שלא מומשה. עכשיו כתוב מה באמת קורה: התלמיד יורד מהרשימה,
+       והמדידות שלו נשארות מקושרות למזהה ויחזרו אם יוסיפו אותו שוב. */
+    $("#stu-fDel").addEventListener("click",()=>{
+      const kept=(()=>{ try{ return LS.get("ft.results",[]).filter(r=>r&&r.sid===id).length; }catch(e){ return 0; } })();
+      const msg="להסיר את "+s.name+" מהרשימה?\n\n"+
+        (s.tests&&s.tests.length?("• "+s.tests.length+" מבחני ריצה שבכרטיס יימחקו.\n"):"")+
+        (kept?("• "+kept+" מדידות במבחני הכושר יישארו שמורות ויחזרו אם תוסיף אותו שוב.\n"):"");
+      if(!confirm(msg))return;
+      save(list.filter(x=>x.id!==id)); modal("stu-modal",false); render();
+      toast(kept?("הוסר מהרשימה · "+kept+" מדידות נשמרו"):"הוסר מהרשימה");
+    });
     $("#stu-fCsv").addEventListener("click",()=>{
       const rows=[["תאריך","מבחן","מרחק (מ)","שלב","VO2max","אזור"]];
       s.tests.forEach(t=>rows.push([t.d,t.type,t.dist,t.level||"",t.vo2?t.vo2.toFixed(1):"",t.zone||""]));

@@ -5,10 +5,86 @@ function H_LOC(){ return (window.HM&&window.HM.loc)?window.HM.loc():"he-IL"; }
    המגרש PRO — ליבה משותפת: אחסון, שמע, קול, ניווט, עזרים
    ============================================================ */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+/* ============================================================
+   אחסון
+   ------------------------------------------------------------
+   עד עכשיו כאן היה `catch(e){}`. זה נראה תמים, אבל זאת הייתה
+   התקלה החמורה ביותר באפליקציה: מורה שמדד כיתה שלמה על מכשיר
+   שהאחסון בו מלא קיבל בדיוק את מה שמקבל מורה שהכול עבד לו —
+   שום דבר. המדידות פשוט לא נשמרו, בלי הודעה ובלי סימן, והוא
+   גילה את זה כשחיפש אותן שבוע אחר כך.
+
+   עכשיו כל כשל מסווג (מכסה / אחסון חסום / נתון פגום) ומדווח
+   למסך. הלוגיקה עצמה יושבת ב-hm-data.js כדי שאפשר יהיה לבדוק
+   אותה מול אחסון שנכשל לפי דרישה — דבר שמול localStorage אמיתי
+   פשוט לא ניתן לעשות.
+   ============================================================ */
+const DATA=window.HMDATA;
+/* בגלישה פרטית ובחלק מהדפדפנים עצם הגישה ל-localStorage זורקת,
+   ולא רק הכתיבה. במצב כזה עדיף ששיעור אחד יעבוד מהזיכרון ושהמורה
+   יֵדע שלא יישמר כלום, מאשר שהאפליקציה לא תעלה בכלל. */
+const MEMFALLBACK=(()=>{ const m=new Map(); return {
+  _mem:true, get length(){return m.size}, key(i){return [...m.keys()][i]},
+  getItem(k){return m.has(k)?m.get(k):null}, setItem(k,v){m.set(k,String(v))},
+  removeItem(k){m.delete(k)}, clear(){m.clear()} }; })();
+const STORE=(()=>{ try{ const s=window.localStorage; s.setItem("pehub.__probe","1"); s.removeItem("pehub.__probe"); return s; }
+                   catch(e){ return null; } })();
+const ST_HEALTH={ok:!!STORE,backend:STORE?"localStorage":"memory",fails:{},lastErr:null,writes:0,fails_n:0};
+function storageTrouble(res,op,key){
+  ST_HEALTH.ok=false; ST_HEALTH.fails_n++;
+  ST_HEALTH.fails[res.code]=(ST_HEALTH.fails[res.code]||0)+1;
+  ST_HEALTH.lastErr={code:res.code,op,key,at:Date.now()};
+  try{ console.error("[אחסון] "+op+" נכשל במפתח «"+key+"» — "+res.code,res.error||res.raw||""); }catch(e){}
+  showStorageWarn(res.code,key);
+}
 const LS={
-  get(k,d){try{const v=localStorage.getItem("pehub."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-  set(k,v){try{localStorage.setItem("pehub."+k,JSON.stringify(v))}catch(e){}}
+  get(k,d){
+    const r=DATA.safeGet(STORE||MEMFALLBACK,"pehub."+k,d);
+    if(!r.ok)storageTrouble(r,"קריאה",k);
+    return r.value;
+  },
+  set(k,v){
+    const r=DATA.safeSet(STORE||MEMFALLBACK,"pehub."+k,v);
+    if(r.ok){ ST_HEALTH.writes++; return true; }
+    storageTrouble(r,"כתיבה",k);
+    return false;
+  },
+  health(){ return Object.assign({},ST_HEALTH); }
 };
+
+/* ההודעה נשארת על המסך עד שמסירים אותה, ולא נעלמת כמו toast אחרי
+   שתי שניות. מורה באמצע מדידה לא מסתכל על המסך ברגע שההודעה
+   קופצת, ואם היא תיעלם הוא ימשיך למדוד לתוך שום מקום. */
+const ST_MSG={
+  quota:{t:"האחסון במכשיר מלא",
+    d:"המדידות האחרונות לא נשמרו. ייצא גיבוי עכשיו, ואז נקה מדידות ישנות מההגדרות."},
+  unavailable:{t:"אין הרשאת אחסון בדפדפן הזה",
+    d:"הכול יעבוד בשיעור הזה אבל שום דבר לא יישמר. זה קורה בגלישה פרטית. ייצא גיבוי לפני שתסגור."},
+  serialize:{t:"נמצא נתון פגום",
+    d:"חלק מהנתונים במכשיר אינם קריאים. ייצא גיבוי לפני כל פעולה נוספת."},
+  unknown:{t:"השמירה נכשלה",
+    d:"הנתון האחרון לא נשמר במכשיר. ייצא גיבוי כדי לא לאבד את מה שכן נשמר."}
+};
+let stWarnDismissed=null;
+function showStorageWarn(code,key){
+  const bar=document.getElementById("stWarn"); if(!bar)return;
+  if(stWarnDismissed===code&&bar.hidden)return;   /* המורה כבר סגר בדיוק את זה */
+  const m=ST_MSG[code]||ST_MSG.unknown;
+  const n=ST_HEALTH.fails_n;
+  const t=document.getElementById("stWarnT");
+  if(t)t.innerHTML="<b>⚠ "+m.t+"</b> — "+m.d+(n>1?" <span class=\"muted\">("+n+" כשלים)</span>":"");
+  stWarnDismissed=null; bar.hidden=false;
+}
+function wireStorageWarn(){
+  const bar=document.getElementById("stWarn"); if(!bar)return;
+  const x=document.getElementById("stWarnX");
+  if(x)x.addEventListener("click",()=>{ stWarnDismissed=ST_HEALTH.lastErr&&ST_HEALTH.lastErr.code; bar.hidden=true; });
+  const s=document.getElementById("stWarnSave");
+  /* מסלול ההצלה: הקובץ נבנה בזיכרון ויורד ישירות, בלי לכתוב
+     אף בית לאחסון שכבר הוכיח שהוא לא עובד. */
+  if(s)s.addEventListener("click",()=>{ try{ bkExport(); }catch(e){ toast("הייצוא נכשל: "+e.message); } });
+  if(!STORE)showStorageWarn("unavailable","");
+}
 const SET=Object.assign({school:"",sound:true,voice:true,wake:true,driveForm:"",driveFolder:"",theme:"dark",touch:false},LS.get("settings",{}));
 function saveSet(){LS.set("settings",SET);applySchool()}
 function applySchool(){ $("#schoolSub").textContent = SET.school ? SET.school+" · ערכת שטח לחנ״ג" : "ערכת שטח למורה לחינוך גופני"; }
@@ -302,7 +378,7 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
-  wireBackup(); wireAbout(); wirePurge();
+  wireBackup(); wireAbout(); wirePurge(); wireStorageWarn();
 }
 
 /* ============================================================
@@ -327,16 +403,32 @@ const BK_LABELS={"ft.results":"תוצאות מבחני כושר","ft.roster":"ר
 /* מפתחות שהם רישום מקומי על המכשיר עצמו ולא נתונים של המורה — אין
    טעם לשאת אותם בקובץ ולא להציג אותם בהשוואה. */
 const BK_SKIP={"bk.last":1};
-function bkKeys(){ const out=[]; try{
-    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+function bkKeys(){ const out=[]; const be=STORE||MEMFALLBACK; try{
+    for(let i=0;i<be.length;i++){ const k=be.key(i);
       if(!k||k.indexOf(BK_PREFIX)!==0)continue;
       const short=k.slice(BK_PREFIX.length);
       if(!BK_SKIP[short])out.push(short); }
   }catch(e){} return out.sort(); }
 function bkSnapshot(){
-  const data={}; bkKeys().forEach(k=>{ try{ data[k]=localStorage.getItem(BK_PREFIX+k); }catch(e){} });
-  return {app:"hamegrash-pro",kind:"backup",v:1,at:new Date().toISOString(),
-    school:SET.school||"",build:(typeof buildId==="function"?buildId():""),data};
+  const data={}; bkKeys().forEach(k=>{ try{ data[k]=(STORE||MEMFALLBACK).getItem(BK_PREFIX+k); }catch(e){} });
+  return DATA.buildSnapshot({data,school:SET.school||"",
+    build:(typeof buildId==="function"?buildId():""),schema:DATA.SCHEMA_VERSION});
+}
+/* הגיבוי המלא. עד עכשיו הגיבוי אסף רק את localStorage, ולכן סרטוני
+   השיאים — שיושבים ב-IndexedDB — פשוט לא היו בקובץ. הגרסה הזאת
+   אוספת גם אותם, ואם משהו מהם לא נכנס לתקציב זה כתוב בקובץ ומוצג
+   למורה, ולא נבלע. */
+async function bkSnapshotFull(budget){
+  const snap=bkSnapshot();
+  try{
+    if(typeof REC!=="undefined"&&REC.exportAll)snap.idb=await REC.exportAll(budget);
+  }catch(e){
+    /* IndexedDB לא נגיש (גלישה פרטית, הרשאה). הגיבוי עדיין שווה
+       הרבה — אבל הקובץ יגיד בפירוש שהמדיה לא בפנים. */
+    snap.idb={store:"rec",db:"pehub-records",count:0,items:[],omitted:[],
+      error:String(e&&e.message||e)};
+  }
+  return snap;
 }
 /* ספירה קריאה לאדם לכל מפתח — «57 תוצאות» ולא «4.2KB» */
 function bkCount(raw){
@@ -446,6 +538,10 @@ function bkSave(obj,enc){
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
 
+/* גיבוי מהיר וסינכרוני — מסלול ההצלה.
+   הוא מוותר בכוונה על הסרטונים: כשהאחסון כבר נכשל או כשהמורה
+   לוחץ «גיבוי ביטחון» רגע לפני שחזור, הדבר החשוב הוא שהקובץ ירד
+   עכשיו ובלי להמתין ל-IndexedDB. הגיבוי המלא הוא הכפתור בהגדרות. */
 function bkExport(){
   const snap=bkSnapshot(), keys=Object.keys(snap.data);
   if(!keys.length){ toast("אין עדיין נתונים לגיבוי"); return false; }
@@ -453,26 +549,42 @@ function bkExport(){
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=bkFileName();
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  /* אומרים בפירוש מה ירד. מורה שלא שם לב לתיבת הסימון צריך לדעת
-     שהקובץ שהוא עומד לשמור בדרייב קריא לכל מי שיפתח אותו. */
-  toast("✓ גובו "+keys.length+" קבוצות נתונים · הקובץ אינו מוצפן");
+  /* אומרים בפירוש מה ירד ומה לא. מורה שלא שם לב לתיבת הסימון צריך
+     לדעת שהקובץ שהוא עומד לשמור בדרייב קריא לכל מי שיפתח אותו —
+     ושסרטוני השיאים אינם בתוכו. */
+  toast("✓ גובו "+keys.length+" קבוצות נתונים · בלי סרטוני שיאים · הקובץ אינו מוצפן");
   bkStat(); return true;
 }
 function bkStat(){
   const el=$("#set-bkStat"); if(!el)return;
   const keys=bkKeys();
-  let bytes=0; keys.forEach(k=>{ try{ bytes+=(localStorage.getItem(BK_PREFIX+k)||"").length; }catch(e){} });
+  let bytes=0; keys.forEach(k=>{ try{ bytes+=((STORE||MEMFALLBACK).getItem(BK_PREFIX+k)||"").length; }catch(e){} });
   const last=LS.get("bk.last",null);
   el.innerHTML=keys.length
     ? keys.length+" קבוצות נתונים · "+(bytes/1024).toFixed(0)+"KB"+
       (last?" · גובה לאחרונה "+last:" · <b>עדיין לא גובה מעולם</b>")
     : "אין עדיין נתונים במכשיר.";
 }
-function bkApply(snap){
+async function bkApply(snap){
+  const be=STORE||MEMFALLBACK;
   /* מוחקים רק את המפתחות שלנו — מפתחות של אתרים אחרים באותו דומיין
      אינם שלנו למחוק, וגם דגלים שהאפליקציה תכתוב מחדש בעצמה. */
-  try{ bkKeys().forEach(k=>localStorage.removeItem(BK_PREFIX+k)); }catch(e){}
-  Object.keys(snap.data).forEach(k=>{ try{ localStorage.setItem(BK_PREFIX+k,snap.data[k]); }catch(e){} });
+  try{ bkKeys().forEach(k=>be.removeItem(BK_PREFIX+k)); }catch(e){}
+  let failed=0;
+  Object.keys(snap.data).forEach(k=>{
+    try{ be.setItem(BK_PREFIX+k,snap.data[k]); }
+    catch(e){ failed++; storageTrouble({code:DATA.classifyStorageError(e),error:e},"שחזור",k); }
+  });
+  /* השיאים מתווספים ולא מוחקים: רשומה עם אותו מזהה נדרסת, אבל
+     סרטון שקיים רק במכשיר ולא בקובץ נשאר במקומו. */
+  let media={added:0,failed:0};
+  if(snap.idb&&typeof REC!=="undefined"&&REC.importAll){
+    try{ media=await REC.importAll(snap.idb); }catch(e){ media.failed=-1; }
+  }
+  /* קובץ ישן נושא סכמה ישנה. ההסבה רצה עכשיו על מה ששוחזר, כדי
+     שהמכשיר לא יישאר בגרסה שהאפליקציה כבר לא מכירה. */
+  try{ runMigration(); }catch(e){}
+  return {keys:Object.keys(snap.data).length,failed,media};
 }
 function wireBackup(){
   if(!$("#set-bkExport"))return;
@@ -480,11 +592,17 @@ function wireBackup(){
   $("#set-bkEnc").checked=!!LS.get("bk.enc",false);
   $("#set-bkEnc").addEventListener("change",e=>LS.set("bk.enc",e.target.checked));
   $("#set-bkExport").addEventListener("click",async()=>{
-    const snap=bkSnapshot();
-    if(!Object.keys(snap.data).length){ toast("אין עדיין נתונים לגיבוי"); return; }
+    if(!bkKeys().length){ toast("אין עדיין נתונים לגיבוי"); return; }
+    toast("אוסף נתונים…");
+    const snap=await bkSnapshotFull();
+    const mediaNote=snap.idb&&snap.idb.count?(" · "+snap.idb.count+" שיאים"):"";
+    const omitNote=snap.idb&&snap.idb.omitted&&snap.idb.omitted.length
+      ? (" · "+snap.idb.omitted.length+" סרטונים לא נכנסו (גדולים מדי)"):"";
     if(!$("#set-bkEnc").checked){
-      if(bkExport())LS.set("bk.last",new Date().toLocaleDateString(H_LOC()));
-      bkStat(); return;
+      bkSave(snap,false);
+      LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); bkStat();
+      toast("✓ גובו "+Object.keys(snap.data).length+" קבוצות נתונים"+mediaNote+omitNote+" · הקובץ אינו מוצפן");
+      return;
     }
     if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בהצפנה — הסר את הסימון"); return; }
     const pass=await bkAskPass("new"); if(pass===null)return;
@@ -493,7 +611,7 @@ function wireBackup(){
       const enc=await bkEncrypt(snap,pass);
       bkSave(enc,true);
       LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); bkStat();
-      toast("🔐 גובה מוצפן — בלי הסיסמה אי אפשר לפתוח");
+      toast("🔐 גובה מוצפן"+mediaNote+omitNote+" — בלי הסיסמה אי אפשר לפתוח");
     }catch(err){ toast("ההצפנה נכשלה: "+err.message); }
   });
   $("#set-bkImport").addEventListener("click",()=>$("#set-bkFile").click());
@@ -504,8 +622,12 @@ function wireBackup(){
     r.onload=()=>{
       let snap;
       try{ snap=JSON.parse(r.result); }catch(err){ toast("הקובץ אינו קובץ גיבוי תקין"); return; }
-      if(!snap||snap.app!=="hamegrash-pro"){ toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
-      if(snap.kind==="backup-encrypted"){
+      /* ולידציה לפני שנוגעים במשהו. קובץ שנחתך באמצע ההורדה, קובץ
+         מגרסה חדשה יותר וקובץ של אפליקציה אחרת נראים דומים מספיק
+         כדי שהקוד הישן היה מנסה לשחזר מהם — ולמחוק את מה שיש. */
+      const v=DATA.validateBackup(snap);
+      if(!v.ok){ toast(bkErrMsg(v.errors[0])); return; }
+      if(v.kind==="backup-encrypted"){
         (async()=>{
           if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בפענוח"); return; }
           /* שלוש הזדמנויות ואז עצירה — הקצב איטי ממילא בגלל ה-KDF,
@@ -515,7 +637,8 @@ function wireBackup(){
             toast("מפענח…");
             try{
               const inner=await bkDecrypt(snap,pass);
-              if(!inner||!inner.data){ toast("הקובץ פוענח אבל תוכנו אינו גיבוי"); return; }
+              const iv=DATA.validateBackup(inner);
+              if(!iv.ok){ toast("הקובץ פוענח אבל תוכנו אינו גיבוי — "+bkErrMsg(iv.errors[0])); return; }
               bkPreview(inner); return;
             }catch(err){
               toast(tryN<3?("סיסמה שגויה — נותרו "+(3-tryN)+" ניסיונות"):"סיסמה שגויה. הקובץ לא נפתח.");
@@ -524,7 +647,7 @@ function wireBackup(){
         })();
         return;
       }
-      if(!snap.data||typeof snap.data!=="object"){ toast("הקובץ אינו גיבוי של המגרש PRO"); return; }
+      if(v.warnings.length){ try{ console.warn("[גיבוי] אזהרות:",v.warnings); }catch(e){} }
       bkPreview(snap);
     };
     r.onerror=()=>toast("לא הצלחתי לקרוא את הקובץ");
@@ -592,6 +715,28 @@ function wirePurge(){
   });
 }
 
+/* קוד שגיאה אחד למשפט אחד. «הקובץ פגום» לא עוזר למורה להבין אם
+   כדאי לנסות להוריד שוב או שהקובץ הזה אבוד. */
+const BK_ERRMSG={
+  "not-an-object":"הקובץ אינו קובץ גיבוי תקין",
+  "not-hamegrash":"הקובץ אינו גיבוי של המגרש PRO",
+  "unknown-kind":"הקובץ אינו גיבוי של המגרש PRO",
+  "bad-version":"הקובץ פגום — חסרה בו גרסת הגיבוי",
+  "newer-file":"הגיבוי נוצר בגרסה חדשה יותר של האפליקציה. עדכן ואז נסה שוב.",
+  "newer-schema":"הגיבוי נוצר בגרסה חדשה יותר של האפליקציה. עדכן ואז נסה שוב.",
+  "missing-data":"הקובץ פגום — אין בו נתונים",
+  "bad-idb":"הקובץ פגום — מקטע השיאים אינו תקין",
+  "bad-idb-items":"הקובץ פגום — מקטע השיאים אינו תקין",
+  "missing-salt":"הקובץ המוצפן חסר או נחתך",
+  "missing-iv":"הקובץ המוצפן חסר או נחתך",
+  "missing-ct":"הקובץ המוצפן חסר או נחתך",
+  "unknown-alg":"הקובץ מוצפן בשיטה שאיננו מכירים"
+};
+function bkErrMsg(code){
+  if(code&&code.indexOf("value-not-string:")===0)
+    return "הקובץ פגום בקטע «"+code.slice(17)+"»";
+  return BK_ERRMSG[code]||"הקובץ אינו קובץ גיבוי תקין";
+}
 function bkPreview(snap){
   const inFile=Object.keys(snap.data), here=bkKeys();
   const all=[...new Set(inFile.concat(here))].sort((a,b)=>{
@@ -599,26 +744,42 @@ function bkPreview(snap){
     return ia-ib || a.localeCompare(b);
   });
   const when=(()=>{ try{ return new Date(snap.at).toLocaleString(H_LOC()); }catch(e){ return snap.at||"—"; } })();
+  const plan=DATA.planRestore(snap,here);
   $("#bk-meta").innerHTML="<span>נוצר: "+esc(when)+"</span>"+
     (snap.school?"<span>בית ספר: "+esc(snap.school)+"</span>":"")+
-    "<span>"+inFile.length+" קבוצות נתונים</span>";
+    "<span>"+inFile.length+" קבוצות נתונים</span>"+
+    (plan.media?"<span>"+plan.media+" שיאים</span>":"")+
+    (snap.v<DATA.BK_V?"<span>גיבוי בפורמט ישן</span>":"");
   $("#bk-diff").innerHTML=all.map(k=>{
     const fv=snap.data[k]!=null?bkCount(snap.data[k]):"—";
-    const hv=here.includes(k)?bkCount(localStorage.getItem(BK_PREFIX+k)):"—";
+    const hv=here.includes(k)?bkCount((STORE||MEMFALLBACK).getItem(BK_PREFIX+k)):"—";
     const gone=snap.data[k]==null&&here.includes(k);
     return '<tr'+(gone?' class="gone"':"")+"><td>"+esc(BK_LABELS[k]||k)+"</td><td>"+fv+"</td><td>"+hv+"</td></tr>";
   }).join("");
   const lost=all.filter(k=>snap.data[k]==null&&here.includes(k)).map(k=>BK_LABELS[k]||k);
+  /* אומרים גם מה חסר בצד המדיה. גיבוי שמחזיר רשימת שיאים בלי
+     הסרטונים שמוכיחים אותם הוא בדיוק סוג ההפתעה שבאנו למנוע. */
+  const notes=[];
+  if(lost.length)notes.push("⚠️ הקובץ לא מכיל: "+lost.join(" · ")+" — הנתונים האלה יימחקו מהמכשיר.");
+  if(plan.mediaOmitted)notes.push("⚠️ "+plan.mediaOmitted+" סרטוני שיא לא נכנסו לקובץ (חריגה מהתקציב) — הם יישארו רק במכשיר המקורי.");
+  if(snap.v>=2&&!snap.idb)notes.push("⚠️ הקובץ הזה נוצר בלי מקטע מדיה — סרטוני השיאים לא ישוחזרו ממנו.");
   const w=$("#bk-warn");
-  w.style.display=lost.length?"block":"none";
-  if(lost.length)w.textContent="⚠️ הקובץ לא מכיל: "+lost.join(" · ")+" — הנתונים האלה יימחקו מהמכשיר.";
+  w.style.display=notes.length?"block":"none";
+  if(notes.length)w.textContent=notes.join("  ");
   $("#bk-safety").onclick=()=>{ if(bkExport())LS.set("bk.last",new Date().toLocaleDateString(H_LOC())); };
-  $("#bk-go").onclick=()=>{
+  $("#bk-go").onclick=async()=>{
     if(!confirm("לשחזר? כל הנתונים שבמכשיר יוחלפו בנתונים שבקובץ."))return;
-    bkApply(snap);
+    $("#bk-go").disabled=true;
+    toast("משחזר…");
+    let r;
+    try{ r=await bkApply(snap); }
+    catch(e){ $("#bk-go").disabled=false; toast("השחזור נכשל: "+e.message); return; }
     modal("bk-modal",false);
-    toast("✓ שוחזר — טוען מחדש");
-    setTimeout(()=>location.reload(),700);
+    /* מדווחים בדיוק מה נכנס. «שוחזר» סתמי הוא מה שאפשר למורה
+       לחשוב שיש לו סרטונים שאין לו. */
+    toast(r.failed?("שוחזר חלקית — "+r.failed+" קבוצות נתונים לא נכתבו")
+      :("✓ שוחזר "+r.keys+" קבוצות נתונים"+(r.media.added?" · "+r.media.added+" שיאים":"")+" — טוען מחדש"));
+    setTimeout(()=>location.reload(),r.failed?2500:900);
   };
   /* חלון ההגדרות נפתח לפני זה ויושב אחריו ב-DOM, ולכן הוא היה מכסה
      את התצוגה המקדימה. סוגרים אותו — וממילא אחרי שחזור הדף נטען מחדש. */
@@ -2742,7 +2903,69 @@ const REC=(function(){
     });
     applyRoleRec();
   }
+  /* ============================================================
+     גשר לגיבוי
+     ------------------------------------------------------------
+     השיאים חיים ב-IndexedDB ולא ב-localStorage, ולכן הגיבוי פשוט
+     לא ראה אותם. מורה ששחזר למכשיר חדש קיבל רשימת שיאים בלי
+     הסרטונים שמוכיחים אותם — ולא ידע שחסר לו משהו, כי שום דבר
+     לא אמר לו.
+
+     סרטון הוא מגה-בייטים, ולכן יש תקציב. מה שלא נכנס מדווח בשם
+     ובגודל בתוך הקובץ עצמו, כדי ששחזור לא ישקר על מה שיש בו.
+     ============================================================ */
+  const blobB64=b=>new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(",")[1]||"");
+    fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b);
+  });
+  const b64Blob=(b64,type)=>{
+    const bin=atob(b64), u=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    return new Blob([u],{type:type||"video/mp4"});
+  };
+  async function exportAll(budget){
+    if(!db)await openDB();
+    const all=await dbAll();
+    const plan=window.HMDATA.planMedia(
+      all.map(r=>({id:r.id,name:(r.name||"")+" · "+(r.sport||""),ts:r.ts||0,
+                   bytes:r.video?(r.video.size||0):0})),budget);
+    const keep=new Set(plan.keep);
+    const items=[];
+    for(const r of all){
+      const meta=Object.assign({},r); delete meta.video;
+      /* הרשומה עצמה תמיד נוסעת — גם כשהסרטון שלה לא נכנס לתקציב.
+         שיא בלי וידאו עדיף על שיא שנעלם. */
+      if(r.video&&keep.has(r.id)){
+        try{ meta.video={type:r.video.type||"video/mp4",name:r.video.name||"",
+                         size:r.video.size||0,b64:await blobB64(r.video)}; }
+        catch(e){ meta.video=null; meta.videoFailed=true; }
+      }else if(r.video){ meta.video=null; meta.videoOmitted=true; }
+      else meta.video=null;
+      items.push(meta);
+    }
+    return {store:"rec",db:"pehub-records",count:items.length,
+            items,omitted:plan.omit,bytes:plan.bytes,budget:plan.budget};
+  }
+  /* שחזור מוסיף ולא מוחק: רשומה קיימת עם אותו מזהה נדרסת, אבל
+     שיא שקיים רק במכשיר ולא בקובץ נשאר. */
+  async function importAll(idb){
+    if(!idb||!Array.isArray(idb.items))return {added:0,failed:0};
+    if(!db)await openDB();
+    let added=0,failed=0;
+    for(const it of idb.items){
+      try{
+        const r=Object.assign({},it);
+        r.video=(it.video&&it.video.b64)?b64Blob(it.video.b64,it.video.type):null;
+        delete r.videoOmitted; delete r.videoFailed;
+        await dbPut(r,{silent:true}); added++;
+      }catch(e){ failed++; }
+    }
+    try{ await refresh(); }catch(e){}
+    return {added,failed};
+  }
   return {init,countApproved,applyRole:applyRoleRec,hasPass,setPass,syncNow,
+    exportAll,importAll,
     _test:{SPORTS:()=>SPORTS,showVal:(id,v)=>showVal(sportById(id),v),pct:(id,v,w)=>pct(sportById(id),v,w)}};
 })();
 
@@ -3070,8 +3293,42 @@ const FIT=(function(){
 /* ===== bridge for new modules ===== */
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
-  setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX};
+  setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
+  storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
+  /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
+     שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
+     ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
+  backupTest:{snapshot:bkSnapshot,snapshotFull:bkSnapshotFull,apply:bkApply,
+    encrypt:bkEncrypt,decrypt:bkDecrypt,keys:bkKeys,fileName:bkFileName}};
+/* ============================================================
+   הסבת נתונים בעלייה
+   ------------------------------------------------------------
+   רצה פעם אחת, לפני שמודול כלשהו קרא נתון. היא לא מוחקת ולא
+   ממזגת — רק מוסיפה מזהים ומסמנת מה שלא ניתן לזהות בוודאות.
+   ריצה חוזרת לא משנה כלום, ולכן אין נזק אם היא תרוץ שוב.
+   ============================================================ */
+let MIG_REPORT=null;
+function runMigration(){
+  const store={
+    get:(k,d)=>LS.get(k,d===undefined?null:d),
+    set:(k,v)=>LS.set(k,v),
+    del:k=>{ try{ (STORE||MEMFALLBACK).removeItem("pehub."+k); }catch(e){} },
+    keys:()=>bkKeys()
+  };
+  MIG_REPORT=DATA.migrate(store);
+  if(!MIG_REPORT.ok&&MIG_REPORT.error==="newer-schema"){
+    /* הנתונים במכשיר נוצרו בגרסה חדשה יותר. הסבה לאחור לא מוגדרת,
+       ולכן לא נגענו בכלום — אבל אסור להמשיך בשקט. */
+    setTimeout(()=>toast("⚠ הנתונים במכשיר נוצרו בגרסה חדשה יותר. עדכן את האפליקציה."),900);
+  }else if(MIG_REPORT.applied.length){
+    try{ console.info("[הסבה] "+MIG_REPORT.applied.join(", ")+
+      " · קושרו "+MIG_REPORT.linked+" מדידות · דו-משמעיות "+
+      (MIG_REPORT.ambiguous+MIG_REPORT.unmatched)); }catch(e){}
+  }
+  return MIG_REPORT;
+}
 window.HMBoot=function(){
+  runMigration();
   if(window.I18N)window.I18N.init();
   applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole(); wireLang();
   wireTipPop();

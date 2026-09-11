@@ -1,0 +1,72 @@
+# הבדיקות של המגרש PRO.
+#
+# עד היום ה-CI בדק רק שהקובץ הבודד מסונכרן עם המקור. זה שימושי, אבל
+# זה לא בדיקה של ההתנהגות: אפשר היה לשבור את זהות התלמיד, את הגיבוי
+# או את שמירת המדידות, והכול היה עובר בירוק.
+#
+# שתי שכבות, בכוונה:
+#   unit — לוגיקת הנתונים (hm-data.js) בלי דפדפן ובלי תלויות. שנייה
+#          אחת, רצה בכל push, ואין שום סיבה לדלג עליה.
+#   e2e  — מול Hamegrash.html אמיתי בכרומיום, כי localStorage,
+#          IndexedDB ו-DOM אי אפשר לזייף בצורה שתוכיח משהו.
+#
+# שתיהן חוסמות. בדיקה שנכשלת ולא עוצרת merge היא בדיקה שאיש לא יתקן.
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: בדיקות יחידה
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # אין תלויות כלל — node:test מובנה. אין npm install ואין lockfile
+      # שיכול להיסחף, ולכן הריצה זהה בכל מכונה ובכל תאריך.
+      - name: הרצת בדיקות היחידה
+        run: npm test
+
+      # הקובץ הבודד חייב להיות זהה למקור שממנו נבנה.
+      - name: אימות שהבנייה מסונכרנת
+        run: |
+          node build-standalone.js
+          if ! git diff --quiet -- Hamegrash.html index.html sw.js; then
+            echo "::error::הבנייה אינה מעודכנת. הרץ: node build-standalone.js ובצע commit"
+            git diff --stat -- Hamegrash.html index.html sw.js
+            exit 1
+          fi
+          echo "הבנייה מסונכרנת ✓"
+
+  e2e:
+    name: בדיקות דפדפן
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # גרסה נעוצה: עדכון שקט של playwright הוא בדיוק מה שהופך
+      # כישלון אמיתי ל«כנראה הסביבה».
+      - name: התקנת playwright
+        run: |
+          npm i --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: בניית הקובץ הבודד
+        run: node build-standalone.js
+
+      - name: הרצת בדיקות הדפדפן
+        run: npm run test:e2e

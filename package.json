@@ -1,0 +1,13 @@
+{
+  "name": "hamegrash-pro",
+  "version": "2.0.0",
+  "private": true,
+  "description": "המגרש PRO — ערכת שטח למורה לחינוך גופני",
+  "scripts": {
+    "test": "node --test \"tests/unit/*.test.js\"",
+    "test:e2e": "node tests/e2e/run.js",
+    "build": "node build-standalone.js",
+    "verify": "npm run build && npm test"
+  },
+  "engines": { "node": ">=18" }
+}

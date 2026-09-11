@@ -1226,3 +1226,15 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
    (letterlike symbol), ולכן כותרת שמתחילה בו נפתרה כ-LTR והפכה את
    השם. אמוג׳י לעומת זאת ניטרלי, ולכן שאר הכותרות היו תקינות. */
 .topbar .ttl{unicode-bidi:isolate;white-space:nowrap}
+
+/* ===== אזהרת אחסון =====
+   צבע הסכנה ולא צבע האזהרה: מדידה שלא נשמרה היא אובדן, לא הערה.
+   הפס נשאר דבוק לראש המסך עד שסוגרים אותו ביד. */
+#stWarn{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;background:color-mix(in srgb,var(--stop) 20%,var(--bg2));border-bottom:1px solid var(--stop);
+  color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
+#stWarn[hidden]{display:none!important}
+#stWarn b{color:var(--stop)}
+#stWarn .muted{color:var(--muted);font-weight:400}
+#stWarn .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
+body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
