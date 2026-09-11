@@ -1218,4 +1218,11 @@ body[data-dir="ltr"] input,
 body[data-dir="ltr"] textarea{unicode-bidi:normal}
 /* שם המותג הוא שם עברי ולא טקסט ממשק — הוא נשאר RTL בכל שפה,
    אחרת «המגרש PRO» מתהפך ל-«PRO המגרש». */
-.topbar .ttl{direction:rtl;unicode-bidi:isolate}
+/* שם המותג הוא יחידה אחת. בעברית «המגרש PRO», ובכל שפה אחרת
+   «Hamigresh PRO» — לטינית מלאה, ולכן אין בה מה להתהפך. dir=auto
+   על המיכל מחליט לפי המילה שנבחרה בפועל.
+
+   הערה שעלתה מהבדיקה: «ℹ» אינו תו ניטרלי אלא תו חזק משמאל־לימין
+   (letterlike symbol), ולכן כותרת שמתחילה בו נפתרה כ-LTR והפכה את
+   השם. אמוג׳י לעומת זאת ניטרלי, ולכן שאר הכותרות היו תקינות. */
+.topbar .ttl{unicode-bidi:isolate;white-space:nowrap}
