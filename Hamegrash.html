@@ -2266,10 +2266,12 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <button data-ft="idx">📊 מדד הכושר</button>
     <button data-ft="ot">🏅 אות החינוך הגופני</button>
     <button data-ft="cov">📋 מה חסר לכיתה</button>
+    <button data-ft="prog">📈 תובנות התקדמות</button>
   </div>
   <div id="ft-idx" style="display:none"></div>
   <div id="ft-ot" style="display:none"></div>
   <div id="ft-cov" style="display:none"></div>
+  <div id="ft-prog" style="display:none"></div>
   <!-- ----- בחירת כיתה ומבחן ----- -->
   <div id="ft-pick">
     <div class="card">
@@ -3977,6 +3979,50 @@ function classCoverage(rows,roster,testDefs,opts){
   return {tests:tests,students:students};
 }
 
+/* שלב 11 — תובנות התקדמות לכיתה: לכל מבחן שהכיתה נמדדה בו, כמה
+   תלמידים משתפרים, נסוגים, או עדיין בלי שינוי מדיד. בונה ישירות
+   על classCoverage (אותו "מבחן שנמדד" ואותו "השלים", כדי שהמורה
+   לא יראה שתי הגדרות שונות ל"נמדד" בין שני מסכי הכיתה) ועל
+   progress() הקיימת — לא נכתב כלל השוואה חדש.
+
+   "השתפר"/"נסוג" הם firstToLast.improved/declined של progress():
+   הטוב ביום האחרון שנמדד מול הטוב ביום הראשון — בדיוק מה שחלון
+   ההיסטוריה של התלמיד כבר מציג. **לא** sinceFirst: זה משווה את
+   השיא האישי מול היום הראשון, ומכיוון שהשיא לעולם אינו גרוע
+   מהמדידה הראשונה הוא כמעט לעולם לא יכול להראות "נסיגה" — שדה
+   שתמיד אפס אינו שימושי לתמונת כיתה. firstToLast כן סימטרי.
+   "בלי שינוי מדיד" הוא דלי משותף ומכוון לשני מצבים שאין להם תשובה
+   שונה בפועל: תוצאה זהה (firstToLast.unchanged), ותלמיד שנמדד פעם
+   אחת בלבד ולכן אין עם מה להשוות (progress().reason). שתי סיבות,
+   מסקנה אחת כנה: אין עדיין שינוי הניתן למדידה — לא "אפס" מומצא.
+   completed הוא תמיד improved+declined+noChange, ותמיד שווה למספר
+   ה-done של אותו מבחן ב-classCoverage — חלוקה נקייה, בלי לספור אף
+   תלמיד פעמיים או להשמיט אותו. */
+function classProgress(rows,roster,testDefs,opts){
+  opts=opts||{};
+  var rs=Array.isArray(rows)?rows:[];
+  var defs=(Array.isArray(testDefs)?testDefs:[]).filter(function(t){ return t&&t.id; });
+  var byId={}; defs.forEach(function(t){ byId[t.id]=t; });
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var scope=cid?{cid:cid}:(opts.cls?{cls:opts.cls}:null);
+  var cov=classCoverage(rs,roster,defs,opts);
+  var tests=cov.tests.map(function(tid){
+    var T=byId[tid];
+    var improved=0,declined=0,noChange=0;
+    cov.students.forEach(function(row){
+      if(!row.done[tid])return;                 /* לא נמדד — לא נספר בשום דלי */
+      var pr=progress(rs,row.stud,tid,T&&T.dir,scope);
+      var ftl=pr.firstToLast;
+      if(ftl&&ftl.improved)improved++;
+      else if(ftl&&ftl.declined)declined++;
+      else noChange++;                          /* ללא שינוי, או עדיין אין עם מה להשוות */
+    });
+    return {testId:tid,name:T?T.name:tid,def:T||null,
+      completed:improved+declined+noChange,improved:improved,declined:declined,noChange:noChange};
+  });
+  return {tests:tests};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -4214,7 +4260,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
-  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage,
+  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage, classProgress:classProgress,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
@@ -14145,6 +14191,55 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     4ג. «תובנות התקדמות» — כמה תלמידים משתפרים בכל מבחן, קריאה בלבד
+     ------------------------------------------------------------
+     שכבת תצוגה דקה מעל DATA.classProgress() (hm-data.js), שבעצמה
+     בנויה על classCoverage() (אותה הגדרה בדיוק ל"נמדד" כמו בלשונית
+     «מה חסר לכיתה») ועל progress() הקיימת. אין כאן חישוב חדש, אין
+     ניקוד חוצה-מבחנים ואין גרף — טבלה אחת, מבחן בשורה.
+     ============================================================ */
+  function renderInsights(){
+    const {$, esc}=H();
+    const c=cls(), rst=roster(c);
+    const prog=DATA.classProgress(allRes(),rst,TESTS,{cid:cidOf(c)});
+    const totalImproved=prog.tests.reduce((a,t)=>a+t.improved,0);
+    const totalDeclined=prog.tests.reduce((a,t)=>a+t.declined,0);
+
+    let body;
+    if(!rst.length){
+      body=`<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.</div>`;
+    }else if(!prog.tests.length){
+      body=`<div class="empty-state"><div class="big">📈</div>עדיין לא נמדד אף מבחן בכיתה ${esc(disp(c))}.<br>
+        מדדו מבחן אחד בלשונית «מבחנים» — תובנות ההתקדמות יופיעו אחרי שתי מדידות לפחות לתלמיד.</div>`;
+    }else{
+      body=`<div class="tblwrap" style="margin-top:11px"><table class="tbl">
+        <thead><tr><th>מבחן</th><th>נמדדו</th><th>משתפרים</th><th>נסוגים</th><th>בלי שינוי מדיד</th></tr></thead>
+        <tbody>${prog.tests.map(t=>`<tr>
+          <td><b>${esc((t.def&&t.def.em?t.def.em+" ":"")+t.name)}</b></td>
+          <td class="mono" style="text-align:center">${t.completed}</td>
+          <td class="mono" style="text-align:center;color:var(--acc)">${t.improved}</td>
+          <td class="mono" style="text-align:center;color:var(--stop)">${t.declined}</td>
+          <td class="mono" style="text-align:center;color:var(--muted)">${t.noChange}</td>
+        </tr>`).join("")}</tbody></table></div>
+        <div class="hint" style="margin-top:7px">«משתפרים»/«נסוגים» משווים את הטוב ביום המדידה האחרון מול הטוב ביום הראשון —
+          אותה השוואה שחלון ההיסטוריה של התלמיד כבר מציג. «בלי שינוי מדיד» כולל גם תוצאה זהה
+          וגם תלמיד שנמדד יום אחד בלבד ועדיין אין עם מה להשוות — שני מצבים, אותה מסקנה כנה: אין עדיין מגמה.</div>`;
+    }
+
+    $("#ft-prog").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> תובנות התקדמות — ${esc(disp(c))}</h2>
+        <div class="hint">מי משתפר, מי נסוג, ולמי עדיין אין מספיק מדידות כדי לדעת — לפי מבחן.</div>
+        ${prog.tests.length?`<div class="ft-idxsum">
+          <div><span class="k">מבחנים במעקב</span><span class="v">${prog.tests.length}</span></div>
+          <div><span class="k">שיפורים</span><span class="v">${totalImproved}</span></div>
+          <div><span class="k">נסיגות</span><span class="v">${totalDeclined}</span></div>
+        </div>`:""}
+      </div>
+      <div class="card">${body}</div>`;
+  }
+
+  /* ============================================================
      דוחות להדפסה / PDF
      ------------------------------------------------------------
      מורה שמראה למנהל דוח מודפס הוא מורה שמצדיק את הכלי — ובלי דוח,
@@ -14773,12 +14868,13 @@ window.FT=(function(){
   function renderTab(){
     const {$, $$}=H();
     $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
-    const idx=st.tab==="idx", ot=st.tab==="ot", cov=st.tab==="cov";
+    const idx=st.tab==="idx", ot=st.tab==="ot", cov=st.tab==="cov", prog=st.tab==="prog";
     $("#ft-idx").style.display=idx?"":"none";
     $("#ft-ot").style.display=ot?"":"none";
     $("#ft-cov").style.display=cov?"":"none";
-    if(idx||ot||cov){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
-      if(idx)renderIndex(); else if(ot)renderOt(); else renderCoverage(); }
+    $("#ft-prog").style.display=prog?"":"none";
+    if(idx||ot||cov||prog){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
+      if(idx)renderIndex(); else if(ot)renderOt(); else if(cov)renderCoverage(); else renderInsights(); }
     else if(st.test)renderRun();
     else renderPicker();
   }

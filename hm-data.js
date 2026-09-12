@@ -1105,6 +1105,50 @@ function classCoverage(rows,roster,testDefs,opts){
   return {tests:tests,students:students};
 }
 
+/* שלב 11 — תובנות התקדמות לכיתה: לכל מבחן שהכיתה נמדדה בו, כמה
+   תלמידים משתפרים, נסוגים, או עדיין בלי שינוי מדיד. בונה ישירות
+   על classCoverage (אותו "מבחן שנמדד" ואותו "השלים", כדי שהמורה
+   לא יראה שתי הגדרות שונות ל"נמדד" בין שני מסכי הכיתה) ועל
+   progress() הקיימת — לא נכתב כלל השוואה חדש.
+
+   "השתפר"/"נסוג" הם firstToLast.improved/declined של progress():
+   הטוב ביום האחרון שנמדד מול הטוב ביום הראשון — בדיוק מה שחלון
+   ההיסטוריה של התלמיד כבר מציג. **לא** sinceFirst: זה משווה את
+   השיא האישי מול היום הראשון, ומכיוון שהשיא לעולם אינו גרוע
+   מהמדידה הראשונה הוא כמעט לעולם לא יכול להראות "נסיגה" — שדה
+   שתמיד אפס אינו שימושי לתמונת כיתה. firstToLast כן סימטרי.
+   "בלי שינוי מדיד" הוא דלי משותף ומכוון לשני מצבים שאין להם תשובה
+   שונה בפועל: תוצאה זהה (firstToLast.unchanged), ותלמיד שנמדד פעם
+   אחת בלבד ולכן אין עם מה להשוות (progress().reason). שתי סיבות,
+   מסקנה אחת כנה: אין עדיין שינוי הניתן למדידה — לא "אפס" מומצא.
+   completed הוא תמיד improved+declined+noChange, ותמיד שווה למספר
+   ה-done של אותו מבחן ב-classCoverage — חלוקה נקייה, בלי לספור אף
+   תלמיד פעמיים או להשמיט אותו. */
+function classProgress(rows,roster,testDefs,opts){
+  opts=opts||{};
+  var rs=Array.isArray(rows)?rows:[];
+  var defs=(Array.isArray(testDefs)?testDefs:[]).filter(function(t){ return t&&t.id; });
+  var byId={}; defs.forEach(function(t){ byId[t.id]=t; });
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var scope=cid?{cid:cid}:(opts.cls?{cls:opts.cls}:null);
+  var cov=classCoverage(rs,roster,defs,opts);
+  var tests=cov.tests.map(function(tid){
+    var T=byId[tid];
+    var improved=0,declined=0,noChange=0;
+    cov.students.forEach(function(row){
+      if(!row.done[tid])return;                 /* לא נמדד — לא נספר בשום דלי */
+      var pr=progress(rs,row.stud,tid,T&&T.dir,scope);
+      var ftl=pr.firstToLast;
+      if(ftl&&ftl.improved)improved++;
+      else if(ftl&&ftl.declined)declined++;
+      else noChange++;                          /* ללא שינוי, או עדיין אין עם מה להשוות */
+    });
+    return {testId:tid,name:T?T.name:tid,def:T||null,
+      completed:improved+declined+noChange,improved:improved,declined:declined,noChange:noChange};
+  });
+  return {tests:tests};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -1342,7 +1386,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
-  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage,
+  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage, classProgress:classProgress,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,

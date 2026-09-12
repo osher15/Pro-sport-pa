@@ -1544,6 +1544,55 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     4ג. «תובנות התקדמות» — כמה תלמידים משתפרים בכל מבחן, קריאה בלבד
+     ------------------------------------------------------------
+     שכבת תצוגה דקה מעל DATA.classProgress() (hm-data.js), שבעצמה
+     בנויה על classCoverage() (אותה הגדרה בדיוק ל"נמדד" כמו בלשונית
+     «מה חסר לכיתה») ועל progress() הקיימת. אין כאן חישוב חדש, אין
+     ניקוד חוצה-מבחנים ואין גרף — טבלה אחת, מבחן בשורה.
+     ============================================================ */
+  function renderInsights(){
+    const {$, esc}=H();
+    const c=cls(), rst=roster(c);
+    const prog=DATA.classProgress(allRes(),rst,TESTS,{cid:cidOf(c)});
+    const totalImproved=prog.tests.reduce((a,t)=>a+t.improved,0);
+    const totalDeclined=prog.tests.reduce((a,t)=>a+t.declined,0);
+
+    let body;
+    if(!rst.length){
+      body=`<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.</div>`;
+    }else if(!prog.tests.length){
+      body=`<div class="empty-state"><div class="big">📈</div>עדיין לא נמדד אף מבחן בכיתה ${esc(disp(c))}.<br>
+        מדדו מבחן אחד בלשונית «מבחנים» — תובנות ההתקדמות יופיעו אחרי שתי מדידות לפחות לתלמיד.</div>`;
+    }else{
+      body=`<div class="tblwrap" style="margin-top:11px"><table class="tbl">
+        <thead><tr><th>מבחן</th><th>נמדדו</th><th>משתפרים</th><th>נסוגים</th><th>בלי שינוי מדיד</th></tr></thead>
+        <tbody>${prog.tests.map(t=>`<tr>
+          <td><b>${esc((t.def&&t.def.em?t.def.em+" ":"")+t.name)}</b></td>
+          <td class="mono" style="text-align:center">${t.completed}</td>
+          <td class="mono" style="text-align:center;color:var(--acc)">${t.improved}</td>
+          <td class="mono" style="text-align:center;color:var(--stop)">${t.declined}</td>
+          <td class="mono" style="text-align:center;color:var(--muted)">${t.noChange}</td>
+        </tr>`).join("")}</tbody></table></div>
+        <div class="hint" style="margin-top:7px">«משתפרים»/«נסוגים» משווים את הטוב ביום המדידה האחרון מול הטוב ביום הראשון —
+          אותה השוואה שחלון ההיסטוריה של התלמיד כבר מציג. «בלי שינוי מדיד» כולל גם תוצאה זהה
+          וגם תלמיד שנמדד יום אחד בלבד ועדיין אין עם מה להשוות — שני מצבים, אותה מסקנה כנה: אין עדיין מגמה.</div>`;
+    }
+
+    $("#ft-prog").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> תובנות התקדמות — ${esc(disp(c))}</h2>
+        <div class="hint">מי משתפר, מי נסוג, ולמי עדיין אין מספיק מדידות כדי לדעת — לפי מבחן.</div>
+        ${prog.tests.length?`<div class="ft-idxsum">
+          <div><span class="k">מבחנים במעקב</span><span class="v">${prog.tests.length}</span></div>
+          <div><span class="k">שיפורים</span><span class="v">${totalImproved}</span></div>
+          <div><span class="k">נסיגות</span><span class="v">${totalDeclined}</span></div>
+        </div>`:""}
+      </div>
+      <div class="card">${body}</div>`;
+  }
+
+  /* ============================================================
      דוחות להדפסה / PDF
      ------------------------------------------------------------
      מורה שמראה למנהל דוח מודפס הוא מורה שמצדיק את הכלי — ובלי דוח,
@@ -2172,12 +2221,13 @@ window.FT=(function(){
   function renderTab(){
     const {$, $$}=H();
     $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
-    const idx=st.tab==="idx", ot=st.tab==="ot", cov=st.tab==="cov";
+    const idx=st.tab==="idx", ot=st.tab==="ot", cov=st.tab==="cov", prog=st.tab==="prog";
     $("#ft-idx").style.display=idx?"":"none";
     $("#ft-ot").style.display=ot?"":"none";
     $("#ft-cov").style.display=cov?"":"none";
-    if(idx||ot||cov){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
-      if(idx)renderIndex(); else if(ot)renderOt(); else renderCoverage(); }
+    $("#ft-prog").style.display=prog?"":"none";
+    if(idx||ot||cov||prog){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
+      if(idx)renderIndex(); else if(ot)renderOt(); else if(cov)renderCoverage(); else renderInsights(); }
     else if(st.test)renderRun();
     else renderPicker();
   }
