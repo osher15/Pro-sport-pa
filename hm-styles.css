@@ -38,9 +38,13 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;
   background:linear-gradient(135deg,var(--acc),#0a5c38);box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:21px}
-.brand .ttl{font-family:'Inter';font-size:19px;line-height:1.05;white-space:nowrap}
+/* עוטפת את הכותרת והתת־כותרת — בלי min-width:0 כאן, ה-flex item הזה לא
+   מצטמצם מתחת לרוחב הטקסט, והכותרת גולשת ומכסה את שעון השעון בסרגל
+   העליון בכל מסך שבו כפתור «חזרה» תופס מקום (כל מודול חוץ מהבית). */
+.brand>div{min-width:0}
+.brand .ttl{font-family:'Inter';font-size:19px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand .sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
-.sboard{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.sboard{margin-inline-start:auto;display:flex;align-items:center;gap:10px;flex:none}
 .sboard .clock{font-family:'Share Tech Mono';font-size:20px;letter-spacing:1px;color:var(--acc);
   background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:5px 11px}
 .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
