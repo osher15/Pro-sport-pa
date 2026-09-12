@@ -338,7 +338,9 @@ window.STU=(function(){
     $("#gr-empty").style.display=view.length?"none":"block";
     /* אין מה להציע כשקטגוריית ההשתתפות כבויה (משקל 0) — אותו תנאי
        בדיוק שכבר מסתיר את העמודה עצמה. */
-    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=(weights.part||0)>0?"":"none";
+    const partOn=(weights.part||0)>0;
+    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=partOn?"":"none";
+    const fillHint=$("#gr-fillAttHint"); if(fillHint)fillHint.style.display=partOn?"":"none";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const L=loadLabels();
     /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */

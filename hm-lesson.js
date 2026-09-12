@@ -455,17 +455,37 @@ window.LESSON=(function(){
     b.onclick=()=>H().openSesHist();
   }
 
+  /* מורה שנכנס ל«שיעור» בלי לעבור קודם דרך «מבחני כושר» לא כתב
+     עדיין ל-ft.last, ולכן הכיתה חסרה והכפתור נעול על "בחר כיתה
+     קודם" בלי שום דרך לתקן זאת מהמסך הזה. הפתרון אינו בורר כיתה
+     שני: FT.pick כבר קיים בדיוק לשם כך (אותו בורר שביפ טסט
+     ופוטו־פיניש משתמשים בו), והוא כותב ל-ft.last בעצמו — מספיק
+     לפתוח אותו ולצייר מחדש. */
   function wireStartFromPlan(){
-    const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
+    const {$}=H(), b=$("#ls-startLesson"), pickBtn=$("#ls-pickCls");
+    if(!b)return;
     const S=H().session;
-    if(!S||!window.FT){ b.hidden=true; return; }
+    if(!S||!window.FT){ b.hidden=true; if(pickBtn)pickBtn.hidden=true; return; }
     const last=H().LS.get("ft.last",{});
     const c=(window.FT.classOf&&last.grade)?window.FT.classOf(last.grade,last.num||1):"";
     const cid=window.HMDATA.classId(c);
     const act=S.active();
     b.hidden=false;
-    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; return; }
-    if(!cid){ b.textContent="▶ בחר כיתה קודם"; b.disabled=true; return; }
+    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; if(pickBtn)pickBtn.hidden=true; return; }
+    if(!cid){
+      b.textContent="▶ בחר כיתה קודם"; b.disabled=true;
+      if(pickBtn){
+        pickBtn.hidden=false;
+        pickBtn.onclick=()=>{
+          if(!window.FT||!window.FT.pick){ H().toast("בורר הכיתה לא זמין"); return; }
+          window.FT.pick({title:"בחירת כיתה לשיעור",
+            note:"הכיתה הזאת תשמש כהקשר השיעור — אותה בחירה שמבחני הכושר משתמשים בה.",
+            onPick:()=>{ wireStartFromPlan(); }});
+        };
+      }
+      return;
+    }
+    if(pickBtn)pickBtn.hidden=true;
     b.disabled=false;
     b.textContent="▶ התחל שיעור · "+c;
     b.onclick=()=>{

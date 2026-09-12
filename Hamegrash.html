@@ -2021,6 +2021,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <button class="btn sm ghost" id="gr-csv" style="margin-top:18px">⬇ CSV</button>
         <button class="btn sm ghost" id="gr-fillAtt" style="margin-top:18px" title="ממלא רק שדות ריקים — לא דורס ציון שכבר הוזן">⬇ מלא לפי נוכחות</button>
       </div>
+      <div class="hint" id="gr-fillAttHint" style="margin-top:6px">⬇ מלא לפי נוכחות ממלא רק שדות השתתפות ריקים לפי אחוז הנוכחות בפועל — לא דורס ציון שכבר הוזן, ולא ממציא ציון לתלמיד בלי נתוני נוכחות.</div>
       <div class="tblwrap" style="margin-top:13px"><table class="tbl" id="gr-table"></table></div>
       <div class="empty-state" id="gr-empty" style="display:none"><div class="big">📊</div>אין עדיין תלמידים בכיתה הזו. הוסף תלמידים בלשונית «רשימת תלמידים».</div>
     </div>
@@ -2202,6 +2203,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <div class="row" style="justify-content:space-between">
       <h2 style="margin:0"><span class="dot"></span> המערך</h2>
       <div class="row">
+        <button class="btn sm ghost" id="ls-pickCls" style="display:none">🏷 בחר כיתה</button>
         <button class="btn sm acc" id="ls-startLesson">▶ התחל שיעור</button>
         <button class="btn sm" id="ls-save">💾 שמור</button>
         <button class="btn sm ghost" id="ls-print">🖨 הדפס</button>
@@ -10987,17 +10989,37 @@ window.LESSON=(function(){
     b.onclick=()=>H().openSesHist();
   }
 
+  /* מורה שנכנס ל«שיעור» בלי לעבור קודם דרך «מבחני כושר» לא כתב
+     עדיין ל-ft.last, ולכן הכיתה חסרה והכפתור נעול על "בחר כיתה
+     קודם" בלי שום דרך לתקן זאת מהמסך הזה. הפתרון אינו בורר כיתה
+     שני: FT.pick כבר קיים בדיוק לשם כך (אותו בורר שביפ טסט
+     ופוטו־פיניש משתמשים בו), והוא כותב ל-ft.last בעצמו — מספיק
+     לפתוח אותו ולצייר מחדש. */
   function wireStartFromPlan(){
-    const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
+    const {$}=H(), b=$("#ls-startLesson"), pickBtn=$("#ls-pickCls");
+    if(!b)return;
     const S=H().session;
-    if(!S||!window.FT){ b.hidden=true; return; }
+    if(!S||!window.FT){ b.hidden=true; if(pickBtn)pickBtn.hidden=true; return; }
     const last=H().LS.get("ft.last",{});
     const c=(window.FT.classOf&&last.grade)?window.FT.classOf(last.grade,last.num||1):"";
     const cid=window.HMDATA.classId(c);
     const act=S.active();
     b.hidden=false;
-    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; return; }
-    if(!cid){ b.textContent="▶ בחר כיתה קודם"; b.disabled=true; return; }
+    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; if(pickBtn)pickBtn.hidden=true; return; }
+    if(!cid){
+      b.textContent="▶ בחר כיתה קודם"; b.disabled=true;
+      if(pickBtn){
+        pickBtn.hidden=false;
+        pickBtn.onclick=()=>{
+          if(!window.FT||!window.FT.pick){ H().toast("בורר הכיתה לא זמין"); return; }
+          window.FT.pick({title:"בחירת כיתה לשיעור",
+            note:"הכיתה הזאת תשמש כהקשר השיעור — אותה בחירה שמבחני הכושר משתמשים בה.",
+            onPick:()=>{ wireStartFromPlan(); }});
+        };
+      }
+      return;
+    }
+    if(pickBtn)pickBtn.hidden=true;
     b.disabled=false;
     b.textContent="▶ התחל שיעור · "+c;
     b.onclick=()=>{
@@ -15453,7 +15475,9 @@ window.STU=(function(){
     $("#gr-empty").style.display=view.length?"none":"block";
     /* אין מה להציע כשקטגוריית ההשתתפות כבויה (משקל 0) — אותו תנאי
        בדיוק שכבר מסתיר את העמודה עצמה. */
-    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=(weights.part||0)>0?"":"none";
+    const partOn=(weights.part||0)>0;
+    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=partOn?"":"none";
+    const fillHint=$("#gr-fillAttHint"); if(fillHint)fillHint.style.display=partOn?"":"none";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const L=loadLabels();
     /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */
