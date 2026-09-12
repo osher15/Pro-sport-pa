@@ -9,6 +9,26 @@ const H=()=>window.HM;
 const today=()=>new Date().toISOString().slice(0,10);
 const students=()=>H().LS.get("stu.list",[]);
 const classesOf=l=>[...new Set(l.map(s=>s.cls).filter(Boolean))].sort();
+/* ============================================================
+   זהות כיתה — cid הוא הזהות, cls הוא ההקשר
+   ------------------------------------------------------------
+   הבוררים מציגים שמות, אבל הסינון הוא לפי מזהה: תלמיד שכתוב עליו
+   «ט3» ותלמיד שכתוב עליו «ט׳3» הם באותה כיתה, וכיתה ששמה שונה
+   ברישום נשארת כיתה אחת. תלמיד בלי כיתה (cid:null) מופיע רק
+   ב«כל הכיתות» — כמו קודם.
+   ============================================================ */
+const store={get:(k,d)=>H().LS.get(k,d===undefined?null:d),set:(k,v)=>H().LS.set(k,v)};
+const cidOf=s=>window.HMDATA.cidOfStudent(s,store);
+const cidOfLabel=c=>c?window.HMDATA.resolveClassId(store,c):null;
+const inClass=(s,cid)=>!cid||cidOf(s)===cid;
+/* הכיתות לבוררים שנושאים מזהה: [{cid,name}], השם מהרישום כשיש */
+const classOptions=l=>{
+  const by={};
+  l.forEach(s=>{ const cid=cidOf(s); if(!cid||by[cid])return;
+    const reg=window.HMDATA.classOf(store,cid); by[cid]={cid,name:(reg&&reg.name)||s.cls||cid}; });
+  return Object.values(by).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+};
+const labelOf=cid=>{ const c=classOptions(students()).find(x=>x.cid===cid); return c?c.name:(cid||""); };
 /* השוואת כיתה סלחנית, כמו במבחני הכושר. בלעדיה כיתת השיעור «ט׳3»
    לא תואמת ל«ט3» שהמורה הקליד בכרטיס התלמיד, וההקשר מהשיעור פשוט
    לא היה מוצא אף תלמיד. */
@@ -35,7 +55,7 @@ window.TOOLS=(function(){
   let teams=[], teamCls="", teamN=4, teamMode="balanced";
   function pool(){
     const l=students();
-    return teamCls?l.filter(s=>s.cls===teamCls):l;
+    return l.filter(s=>inClass(s,teamCls));
   }
   function makeTeams(){
     const {toast}=H();
@@ -93,7 +113,7 @@ window.TOOLS=(function(){
       .t{border:2px solid #1f7a4d;border-radius:9px;padding:10px 13px;break-inside:avoid}
       .t b{color:#1f7a4d;font-size:15px}ol{margin:6px 0 0;padding-inline-start:20px;line-height:1.75}
       </style></head><body>
-      <h1>חלוקה לקבוצות</h1><div class="meta">${school}${teamCls?"כיתה "+esc(teamCls)+" · ":""}${today()}</div>
+      <h1>חלוקה לקבוצות</h1><div class="meta">${school}${teamCls?"כיתה "+esc(labelOf(teamCls))+" · ":""}${today()}</div>
       <div class="g">${teams.map((t,i)=>`<div class="t"><b>קבוצה ${i+1}</b>
         <ol>${t.map(e=>"<li>"+esc(e.s.name)+"</li>").join("")}</ol></div>`).join("")}</div>
       <script>print()<\/script></body></html>`);
@@ -106,7 +126,7 @@ window.TOOLS=(function(){
   let pickCls="", picked=[], lastPick=null;
   function pickPool(){
     const l=students();
-    return (pickCls?l.filter(s=>s.cls===pickCls):l);
+    return l.filter(s=>inClass(s,pickCls));
   }
   function drawStudent(){
     const {$, esc, toast, beep, confetti}=H();
@@ -143,17 +163,20 @@ window.TOOLS=(function(){
   const attKey=(d,c)=>d+"|"+(c||"all");
   const MARKS=[["p","מלאה","#34d399"],["h","חלקית","#fbbf24"],["e","פטור","#38bdf8"],["a","נעדר","#f87171"]];
   let attCls="", attDate=today();
+  /* הנוכחות: הבורר נושא את שם הכיתה (tools.att ממופתח תאריך|שם, וזה
+     לא משתנה), אבל מי נחשב «בכיתה» נקבע לפי cid. */
+  const attPool=()=>{ const cid=cidOfLabel(attCls); return students().filter(s=>inClass(s,cid)); };
   function renderAtt(){
     const {$, $$, esc}=H();
     /* אומרים למורה למה המסך נפתח על הכיתה והתאריך האלה */
     const ctx=$("#tl-attCtx"), a=lessonCtx();
     if(ctx){
-      const on=!!(a&&sameCls(attCls,a.clsSnapshot)&&attDate===a.date);
+      const on=!!(a&&(a.cid?cidOfLabel(attCls)===a.cid:sameCls(attCls,a.clsSnapshot))&&attDate===a.date);
       ctx.hidden=!on;
       if(on)ctx.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot)+" · "+esc(a.date)+
         " — הנוכחות נפתחה עליו. אפשר לשנות כיתה או תאריך.";
     }
-    const l=students().filter(s=>sameCls(s.cls,attCls));
+    const l=attPool();
     const all=ATT(), rec=all[attKey(attDate,attCls)]||{};
     const cnt={p:0,h:0,e:0,a:0};
     l.forEach(s=>{ if(rec[s.id])cnt[rec[s.id]]=(cnt[rec[s.id]]||0)+1; });
@@ -175,7 +198,7 @@ window.TOOLS=(function(){
   }
   function attSummary(){
     const {esc}=H();
-    const all=ATT(), l=students().filter(s=>sameCls(s.cls,attCls));
+    const all=ATT(), l=attPool();
     const per={};
     Object.keys(all).forEach(k=>{
       const [d,c]=k.split("|");
@@ -216,7 +239,7 @@ window.TOOLS=(function(){
       list.map(r=>`<option value="${r.id}" ${curRub===r.id?"selected":""}>${esc(r.name)}</option>`).join("");
     const r=list.find(x=>x.id===curRub);
     if(!r){ $("#tl-rubBody").innerHTML='<div class="hint">בחר מחוון קיים או צור חדש מתבנית.</div>'; return; }
-    const l=students().filter(s=>!rubCls||s.cls===rubCls);
+    const l=students().filter(s=>inClass(s,rubCls));
     const sc=SC();
     $("#tl-rubBody").innerHTML=`
       <div class="hint" style="margin-bottom:10px">${r.crit.length} קריטריונים · סולם 1–4 · הציון הוא ממוצע הקריטריונים.</div>
@@ -259,7 +282,7 @@ window.TOOLS=(function(){
   }
   function rubCsv(){
     const r=RUB().find(x=>x.id===curRub); if(!r){H().toast("בחר מחוון");return;}
-    const l=students().filter(s=>!rubCls||s.cls===rubCls), sc=SC();
+    const l=students().filter(s=>inClass(s,rubCls)), sc=SC();
     const rows=[["שם","כיתה",...r.crit,"ממוצע"]];
     l.forEach(s=>{
       const mine=sc[r.id+"|"+s.id]||{};
@@ -274,11 +297,15 @@ window.TOOLS=(function(){
      אתחול
      ============================================================ */
   function fillClassSelects(){
-    const {$}=H(); const cs=classesOf(students());
-    const opts=v=>'<option value="">כל הכיתות</option>'+cs.map(c=>`<option ${c===v?"selected":""}>${c}</option>`).join("");
+    const {$, esc}=H(); const l=students();
+    /* קבוצות, הגרלה ומחוונים: הערך הוא cid והתווית היא השם.
+       נוכחות: הערך נשאר שם הכיתה, כי tools.att ממופתח תאריך|שם —
+       והמבנה הזה לא משתנה בשלב 8. הסינון עצמו כבר לפי cid. */
+    const co=classOptions(l), cs=classesOf(l);
+    const opts=v=>'<option value="">כל הכיתות</option>'+co.map(c=>`<option value="${esc(c.cid)}" ${c.cid===v?"selected":""}>${esc(c.name)}</option>`).join("");
     $("#tl-teamCls").innerHTML=opts(teamCls);
     $("#tl-pickCls").innerHTML=opts(pickCls);
-    $("#tl-attCls").innerHTML=opts(attCls);
+    $("#tl-attCls").innerHTML='<option value="">כל הכיתות</option>'+cs.map(c=>`<option ${c===attCls?"selected":""}>${esc(c)}</option>`).join("");
     $("#tl-rubCls").innerHTML=opts(rubCls);
   }
   /* ============================================================
@@ -294,12 +321,21 @@ window.TOOLS=(function(){
   function lessonCtx(){
     try{
       const a=H().session&&H().session.active();
-      return (a&&a.clsSnapshot)?a:null;
+      return (a&&(a.cid||a.clsSnapshot))?a:null;
     }catch(e){ return null; }
   }
+  /* הזהות קודם: כיתת השיעור לפי cid. הבורר נושא תווית (כי tools.att
+     ממופתח לפיה), ולכן בוחרים תווית של אותה כיתה — עדיף זו שזהה
+     לצילום השם של השיעור. נפילה אחורה לשם — לשיעור ישן בלי cid.
+     תלמיד בלי cid אבל עם כיתה עדיין נמצא (cidOfStudent נגזר מהתווית),
+     ולכן הנוכחות לא נפתחת ריקה. */
   function applyLessonCtx(){
     const a=lessonCtx(); if(!a)return false;
-    const hit=classesOf(students()).find(c=>sameCls(c,a.clsSnapshot));
+    const labels=classesOf(students());
+    const hit=labels.find(c=>c===a.clsSnapshot)
+      ||(a.cid&&(labels.find(c=>cidOfLabel(c)===a.cid&&sameCls(c,a.clsSnapshot))
+                ||labels.find(c=>cidOfLabel(c)===a.cid)))
+      ||labels.find(c=>sameCls(c,a.clsSnapshot));
     if(hit)attCls=hit;
     attDate=a.date||attDate;
     return !!hit;
@@ -331,7 +367,7 @@ window.TOOLS=(function(){
     $("#tl-attDate").addEventListener("change",e=>{attDate=e.target.value||today();renderAtt();});
     $("#tl-attCls").addEventListener("change",e=>{attCls=e.target.value;renderAtt();});
     $("#tl-attAll").addEventListener("click",()=>{
-      const l=students().filter(s=>sameCls(s.cls,attCls));
+      const l=attPool();
       const a=ATT(), key=attKey(attDate,attCls); a[key]=a[key]||{};
       l.forEach(s=>{ if(!a[key][s.id])a[key][s.id]="p"; });
       H().LS.set("tools.att",a); renderAtt(); H().toast("כל מי שלא סומן — השתתפות מלאה");

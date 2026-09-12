@@ -72,7 +72,7 @@ test("מיגרציה רושמת כל כיתה שמופיעה במכשיר",()=>{
   });
   const rep=D.migrate(s);
   assert.equal(rep.ok,true,rep.error||"");
-  assert.deepEqual(rep.applied,["class-identity"],"רק המיגרציה החדשה רצה");
+  assert.deepEqual(rep.applied,["class-identity","student-class-closure"],"רק המיגרציות שמעל גרסה 2 רצות");
 
   const reg=s.get("ft.classes");
   assert.deepEqual(Object.keys(reg).sort(),["c:ט:3","c:י:1","cn:נבחרת"].sort());

@@ -195,17 +195,20 @@ window.FT=(function(){
   /* הרישום דורש store בסגנון hm-data; עוטפים את LS פעם אחת. */
   const clsStore={get:(k,d)=>LS().get(k,d===undefined?null:d),set:(k,v)=>LS().set(k,v)};
   function registerCls(c){ try{ return DATA.registerClass(clsStore,c); }catch(e){ return null; } }
+  /* תווית → זהות, דרך הרישום: כיתה ששמה שונה שומרת על המזהה שלה.
+     כשהיא לא רשומה — נגזר מהתווית, כמו קודם. */
+  const cidOf=c=>DATA.resolveClassId(clsStore,c);
 
+  /* מייבא מ«התלמידים שלי» את תלמידי הכיתה — לפי זהות הכיתה (cid), ולא
+     לפי שם; והמיזוג לרשימה לפי מזהה תלמיד, כך ששני «דן כהן» עם שני
+     sid נשארים שניים (ראו DATA.mergeRoster). */
   function importFromStu(c){
     const stu=LS().get("stu.list",[]);
-    const k=clsKey(c);
-    const hits=stu.filter(s=>clsKey(s.cls)===k);
+    const cid=cidOf(c);
+    const hits=stu.filter(s=>s&&cid&&DATA.cidOfStudent(s,clsStore)===cid);
     if(!hits.length)return 0;
-    const cur=roster(c), have=new Set(cur.map(x=>x.name));
-    let n=0;
-    hits.forEach(s=>{ if(have.has(s.name))return;
-      cur.push({id:s.id,name:s.name,sex:s.sex||null}); have.add(s.name); n++; });
-    setRoster(c,cur); return n;
+    const m=DATA.mergeRoster(roster(c),hits);
+    setRoster(c,m.list); return m.added;
   }
 
   /* ============================================================
@@ -249,16 +252,19 @@ window.FT=(function(){
   }
 
   /* ---------- תוצאות ---------- */
-  const resultsFor=(c,testId)=>allRes().filter(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId);
+  /* «מדידה של הכיתה הזאת» — לפי cid (מדידה ישנה בלי cid נמדדת לפי
+     התווית שעליה, ראו DATA.rowInClass). */
+  const inCls=(r,c)=>DATA.rowInClass(r,cidOf(c));
+  const resultsFor=(c,testId)=>allRes().filter(r=>inCls(r,c)&&r.test===testId);
   /* כל המדידות של תלמיד אחד בכיתה אחת ובמבחן אחד */
-  const resultsOf=(c,who)=>{ const s=asStud(c,who), k=clsKey(c);
-    return allRes().filter(r=>clsKey(r.cls)===k&&DATA.sameStudent(r,s)); };
+  const resultsOf=(c,who)=>{ const s=asStud(c,who);
+    return allRes().filter(r=>inCls(r,c)&&DATA.sameStudent(r,s)); };
   /* ---------- ניסיונות ----------
      כל מדידה נשמרת כרשומה נפרדת, ולא דורסת את הקודמת. תלמיד יכול
      לנסות שוב באותו שיעור וגם בשיעור אחר, וההיסטוריה נשמרת כדי
      שאפשר יהיה לראות התקדמות. התוצאה שנחשבת היא תמיד הטובה ביותר. */
   function attempts(c,testId,who){
-    return DATA.attemptsOf(allRes(),c,testId,asStud(c,who));
+    return DATA.attemptsOf(allRes(),c,testId,asStud(c,who),{cid:cidOf(c)});
   }
   function bestOf(T,list){
     if(!list||!list.length)return null;
@@ -291,7 +297,7 @@ window.FT=(function(){
       if(cur)i=rs.findIndex(r=>r.id===cur.id);
     }
     const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,6),
-      ts:Date.now(),d:today(),cls:c,cid:DATA.classId(c),test:testId,
+      ts:Date.now(),d:today(),cls:c,cid:cidOf(c),test:testId,
       name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
       /* גרסת כללי הניקוד שהיו בתוקף כשהמדידה נלקחה. הציון עצמו לא
@@ -308,8 +314,8 @@ window.FT=(function(){
   }
   function delAttempt(id){ setRes(allRes().filter(r=>r.id!==id)); }
   function clearVal(c,testId,who){
-    const s=asStud(c,who), k=clsKey(c);
-    setRes(allRes().filter(r=>!(clsKey(r.cls)===k&&r.test===testId&&DATA.sameStudent(r,s)&&r.d===today())));
+    const s=asStud(c,who);
+    setRes(allRes().filter(r=>!(inCls(r,c)&&r.test===testId&&DATA.sameStudent(r,s)&&r.d===today())));
   }
   /* «better» מוגדר למטה יחד עם fmtVal — כאן רק מפנים אליו */
 
@@ -343,7 +349,7 @@ window.FT=(function(){
   function sessionFor(c){
     try{
       const a=H().session&&H().session.active();
-      return (a&&a.cid===DATA.classId(c))?a.id:null;
+      return (a&&a.cid===cidOf(c))?a.id:null;
     }catch(e){ return null; }
   }
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
@@ -411,7 +417,7 @@ window.FT=(function(){
       ? rst.length+" תלמידים ברשימה"
       : "אין עדיין רשימה לכיתה הזו — אפשר לייבא, להדביק או להוסיף ידנית";
 
-    const rs=allRes().filter(r=>clsKey(r.cls)===clsKey(c));
+    const rs=allRes().filter(r=>inCls(r,c));
     $("#ft-tests").innerHTML=TCATS.map(([cid,cnm,cem])=>{
       const items=TESTS.filter(t=>t.cat===cid);
       if(!items.length)return "";
@@ -1331,10 +1337,13 @@ window.FT=(function(){
     if(alsoStu){
       const stu=LS().get("stu.list",[]);
       built.forEach(x=>{
-        let s=stu.find(y=>y.name===x.name);
-        if(!s){ stu.push({id:idFor(x),name:x.name,cls:x.cls,cid:DATA.classId(x.cls),
+        /* התאמה לפי שם + זהות כיתה. «דן כהן» מט׳3 ו«דן כהן» מי׳1 הם
+           שני תלמידים; תלמיד באותו שם בלי כיתה מאמץ את הכיתה. */
+        const xc=cidOf(x.cls);
+        let s=DATA.findStudent(stu,x.name,xc,clsStore);
+        if(!s){ stu.push({id:idFor(x),name:x.name,cls:x.cls,cid:xc,
           sex:x.sex||"boys",age:14,h:null,w:null,tests:[]}); stuAdded++; }
-        else { if(!s.cls){s.cls=x.cls; s.cid=DATA.classId(x.cls);} if(x.sex)s.sex=x.sex; }
+        else { if(!s.cls){s.cls=x.cls; s.cid=xc; if(s.cidAmbig)delete s.cidAmbig;} if(x.sex)s.sex=x.sex; }
       });
       LS().set("stu.list",stu);
     }
@@ -2079,7 +2088,7 @@ window.FT=(function(){
   function wireStartLesson(){
     const {$}=H(), b=$("#ft-startLesson"); if(!b)return;
     const S=H().session; if(!S){ b.hidden=true; return; }
-    const c=cls(), cid=DATA.classId(c), act=S.active();
+    const c=cls(), cid=cidOf(c), act=S.active();
     b.hidden=false;
     if(act&&act.cid===cid){ b.textContent="▶ השיעור בכיתה הזאת פתוח"; b.disabled=true; return; }
     b.disabled=false;
@@ -2217,14 +2226,18 @@ window.FT=(function(){
      מבחן, אותו ערך ואותו יום נחשב לאותה מדידה, כך שלחיצה כפולה על
      «שלח למבחני כושר» לא מכפילה לו את ההיסטוריה.
      ============================================================ */
-  function ingest(cls,testId,rows,src){
+  /* opts.cid — זהות הכיתה כשהקורא כבר מחזיק אותה (שיעור פעיל).
+     בלעדיו הזהות נפתרת מהתווית דרך הרישום. התווית עצמה נשארת
+     ההקשר על המדידה ומפתח הרשימה. */
+  function ingest(cls,testId,rows,src,opts){
     const T=testById(testId), pc=parseCls(cls);
     if(!T||!pc||!Array.isArray(rows))return {added:0,dup:0,skipped:0};
     const c=clsName(pc.grade,pc.num), rs=allRes();
+    const cid=(opts&&DATA.isCid(opts.cid))?opts.cid:cidOf(c);
     /* מפתח הכפילות הוא הזהות ולא השם: שני תלמידים בשם «דן כהן»
        שרצו את אותו זמן הם שתי מדידות, לא אחת. */
     const idOf=r=>r.sid?("id:"+r.sid):("nm:"+String(r.name||""));
-    const seen=new Set(rs.filter(r=>clsKey(r.cls)===clsKey(c)&&r.test===testId&&r.d===today())
+    const seen=new Set(rs.filter(r=>DATA.rowInClass(r,cid)&&r.test===testId&&r.d===today())
       .map(r=>idOf(r)+"|"+(+r.val).toFixed(2)));
     let added=0,dup=0,skipped=0;
     rows.forEach(row=>{
@@ -2237,7 +2250,7 @@ window.FT=(function(){
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
-        cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,
+        cls:c,cid:cid,test:testId,name:nm,sid:known?(known.id||null):null,
         normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;

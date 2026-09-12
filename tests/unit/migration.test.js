@@ -22,7 +22,7 @@ test("מיגרציה מקשרת כל מדידה למזהה של התלמיד",()
 
   assert.equal(rep.ok,true,rep.error||"");
   /* מכשיר בגרסה 1 עובר את כל המיגרציות עד הנוכחית, לפי הסדר */
-  assert.deepEqual(rep.applied,["student-identity","class-identity"]);
+  assert.deepEqual(rep.applied,["student-identity","class-identity","student-class-closure"]);
   assert.equal(rep.from,1); assert.equal(rep.to,D.SCHEMA_VERSION);
 
   const res=s.get("ft.results");

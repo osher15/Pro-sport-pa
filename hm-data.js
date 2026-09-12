@@ -138,10 +138,21 @@ function sameStudent(rec,stud){
   /* לרשומה יש מזהה ולתלמיד אין — אין בסיס להתאמה. */
   return false;
 }
-function attemptsOf(results,clsName,testId,stud){
+/* מדידה שייכת לכיתה? לפי cid כשהוא כתוב עליה. מדידה ישנה בלי cid
+   נבחנת לפי התווית שנשמרה עליה — נגזרת מהתוכן, לא מנוחשת. */
+function rowInClass(r,cid){
+  if(!r||!isCid(cid))return false;
+  if(isCid(r.cid))return r.cid===cid;
+  return classId(r.cls)===cid;
+}
+/* opts.cid מצמצם לפי זהות; בלעדיו — לפי תווית הכיתה, כמו תמיד. */
+function attemptsOf(results,clsName,testId,stud,opts){
+  var cid=(opts&&isCid(opts.cid))?opts.cid:null;
   var k=clsKey(clsName);
   return (results||[]).filter(function(r){
-    return r&&clsKey(r.cls)===k&&r.test===testId&&sameStudent(r,stud);
+    if(!r||r.test!==testId)return false;
+    if(cid?!rowInClass(r,cid):clsKey(r.cls)!==k)return false;
+    return sameStudent(r,stud);
   }).sort(function(a,b){
     return (String(a.d||"").localeCompare(String(b.d||"")))||((a.ts||0)-(b.ts||0));
   });
@@ -160,7 +171,7 @@ function attemptsOf(results,clsName,testId,stud){
    • לא הרסני — רק הוספת שדות. אף רשומה לא נמחקת ואף שדה קיים
      לא נדרס. מה שלא ניתן לזהות בוודאות מסומן, לא מנוחש.
    ============================================================ */
-var SCHEMA_VERSION=3;
+var SCHEMA_VERSION=4;
 var SCHEMA_KEY="schema.version";
 
 /* --- 1 → 2: זהות תלמיד ---------------------------------- */
@@ -290,9 +301,50 @@ function mig_classIdentity(store,rep){
   if(touched||store.get("ft.classes",null)==null)store.set("ft.classes",reg);
 }
 
+/* --- 3 → 4: סגירת זהות הכיתה על התלמיד ---------------------
+   מיגרציה 2→3 הטביעה cid על כל תלמיד שהיה במכשיר באותו רגע — אבל
+   שלושה מסלולי יצירה המשיכו להוסיף תלמידים בלי cid, ולכן אחרי
+   חודש stu.list היה תערובת. כאן משלימים: מי שיש לו cid — לא נוגעים;
+   מי שאין לו — נגזר דרך הרישום (שעומד בשינוי שם), ומי שאין לו כיתה
+   בכלל מסומן cidAmbig:"no-class" עם cid:null. לא מנחשים.
+
+   נוגעת במפתח אחד בלבד: stu.list. המדידות, הרשימות והשיעורים לא
+   נקראים ולא נכתבים. cls נשאר בדיוק כפי שהוקלד — הוא ההקשר. */
+function mig_studentClassClosure(store,rep){
+  var stu=store.get("stu.list",null);
+  if(!Array.isArray(stu))return;
+  var reg=store.get("ft.classes",null);
+  if(!reg||typeof reg!=="object"||Array.isArray(reg))reg={};
+  var regTouched=false, touched=false;
+  stu.forEach(function(s){
+    if(!s||typeof s!=="object")return;
+    if(isCid(s.cid)){ rep.stuKept++; return; }        /* הזהות הקיימת מנצחת */
+    var id=null;
+    var hit=findClass(store,s.cls);
+    if(hit)id=hit.id;
+    else{
+      /* כמו ב-2→3: כיתה שמופיעה אצל תלמיד נרשמת. זה המסלול הקנוני
+         היחיד שבו כיתה «נוצרת», ולכן זה לא רישום שקט של משהו חדש. */
+      var c=classFrom(s.cls);
+      if(c){ if(!reg[c.id]){ reg[c.id]=c; regTouched=true; rep.classes++; } id=c.id; }
+    }
+    if(id){
+      s.cid=id; if(s.cidAmbig)delete s.cidAmbig;
+      touched=true; rep.stuClosed++;
+    }else{
+      var empty=!String(s.cls==null?"":s.cls).trim();
+      if(s.cid!==null||s.cidAmbig!=="no-class"){ s.cid=null; s.cidAmbig="no-class"; touched=true; }
+      if(empty)rep.stuNoClass++; else rep.stuUnresolved++;
+    }
+  });
+  if(regTouched)store.set("ft.classes",reg);
+  if(touched)store.set("stu.list",stu);
+}
+
 var MIGRATIONS=[
   {to:2,name:"student-identity",run:mig_studentIdentity},
-  {to:3,name:"class-identity",  run:mig_classIdentity}
+  {to:3,name:"class-identity",  run:mig_classIdentity},
+  {to:4,name:"student-class-closure",run:mig_studentClassClosure}
 ];
 
 /* מזהה את גרסת הנתונים שעל המכשיר. התקנה חדשה לגמרי מסומנת מיד
@@ -308,6 +360,7 @@ function detectVersion(store){
 function migrate(store){
   var rep={from:0,to:SCHEMA_VERSION,applied:[],linked:0,ambiguous:0,unmatched:0,
            rosterIds:0,stuIds:0,classes:0,stuCids:0,resCids:0,resNoClass:0,
+           stuKept:0,stuClosed:0,stuNoClass:0,stuUnresolved:0,
            ok:true,error:null,noop:true};
   try{
     var from=detectVersion(store);
@@ -371,6 +424,87 @@ function renameClass(store,cid,newName){
   c.grade=pc?pc.grade:null; c.num=pc?pc.num:null;
   store.set("ft.classes",reg);
   return {ok:true,cls:c};
+}
+
+/* ============================================================
+   זהות הכיתה של תלמיד
+   ------------------------------------------------------------
+   הכלל: cid הוא הזהות, cls הוא ההקשר. עד עכשיו כמעט כל מסלול
+   קריאה שאל «s.cls===X», כלומר זיהה כיתה לפי שם התצוגה. העוזר
+   הזה הוא הנקודה האחת שבה תלמיד הופך למזהה כיתה:
+
+     1. s.cid קיים ותקף        → הוא הזהות. לא מחשבים מחדש.
+     2. הרישום מכיר את s.cls   → המזהה הרשום (עומד בשינוי שם).
+     3. נפילה אחורה            → classId(s.cls), כמו היום.
+     4. אין כיתה               → null. תלמיד בלי כיתה הוא מצב חוקי.
+
+   טהור: לא כותב ל-store, לא משנה את התלמיד, לא רושם כיתה.
+   ============================================================ */
+function isCid(v){ return typeof v==="string"&&!!v.trim(); }
+function cidOfStudent(stud,store){
+  if(!stud||typeof stud!=="object")return null;
+  if(isCid(stud.cid))return stud.cid;
+  var raw=stud.cls;
+  if(store){ var hit=findClass(store,raw); if(hit)return hit.id; }
+  return classId(raw);
+}
+/* תווית → מזהה, דרך הרישום. בשונה מ-classId, תווית שהיא השם החדש
+   של כיתה שהוחלף שמה מחזירה את המזהה המקורי ולא ממציאה כיתה שנייה.
+   register=true רושם כיתה שאינה מוכרת — למסלולי יצירה בלבד. */
+function resolveClassId(store,raw,register){
+  var hit=store?findClass(store,raw):null;
+  if(hit)return hit.id;
+  if(register&&store){ var c=registerClass(store,raw); return c?c.id:null; }
+  return classId(raw);
+}
+
+/* ============================================================
+   מיזוג לרשימת כיתה והתאמת תלמיד — לפי זהות, לא לפי שם
+   ------------------------------------------------------------
+   שני באגים שהביקורת מצאה, שניהם ממזגים שני אנשים לאחד:
+   importFromStu ביטל כפילויות לפי שם, וייבוא ה-CSV התאים ל-stu.list
+   לפי שם בלי כיתה. שני תלמידים בשם «דן כהן» הם שני תלמידים.
+   ============================================================ */
+/* מוסיף לרשימת הכיתה את מי שחסר בה. מחזיר {list,added}; הקלט לא
+   משתנה. הכלל:
+     • אותו מזהה כבר ברשימה           → אותו אדם, מדלגים.
+     • ברשימה יש רשומה באותו שם שאינה מקושרת לאף אחד מהנכנסים
+       (מזהה אחר, למשל מהדבקה ידנית) → מניחים שזה אותו אדם עם מזהה
+       ישן — ההנחה שהייתה כאן תמיד — אבל פעם אחת לכל רשומה כזאת.
+     • מעבר לזה — נכנסים. שני «דן כהן» עם שני sid נשארים שניים. */
+function mergeRoster(cur,hits){
+  var list=(cur||[]).slice(), added=0;
+  var ids={}; list.forEach(function(x){ if(x&&x.id)ids[x.id]=1; });
+  var hitIds={}; (hits||[]).forEach(function(s){ if(s&&s.id)hitIds[s.id]=1; });
+  var free={};
+  list.forEach(function(x){
+    if(!x||(x.id&&hitIds[x.id]))return;
+    var nm=String(x.name||""); free[nm]=(free[nm]||0)+1;
+  });
+  (hits||[]).forEach(function(s){
+    if(!s||!s.name)return;
+    if(s.id&&ids[s.id])return;
+    var nm=String(s.name);
+    if(free[nm]>0){ free[nm]--; return; }
+    list.push({id:s.id,name:s.name,sex:s.sex||null});
+    if(s.id)ids[s.id]=1;
+    added++;
+  });
+  return {list:list,added:added};
+}
+/* מוצא ב-stu.list תלמיד לפי שם + זהות כיתה. שם לבדו לעולם לא מספיק:
+   «דן כהן» מט׳3 ו«דן כהן» מי׳1 הם שני אנשים. תלמיד באותו שם שאין לו
+   כיתה כלל כן נחשב התאמה — הוא מאמץ את הכיתה (ההתנהגות הקיימת). */
+function findStudent(list,name,cid,store){
+  var nm=String(name==null?"":name).trim(); if(!nm)return null;
+  var same=null, orphan=null;
+  (list||[]).forEach(function(s){
+    if(!s||String(s.name||"").trim()!==nm)return;
+    var c=cidOfStudent(s,store);
+    if(c){ if(isCid(cid)&&c===cid&&!same)same=s; }
+    else if(!orphan)orphan=s;
+  });
+  return same||orphan;
 }
 
 /* ============================================================
@@ -642,14 +776,17 @@ function isValidMeasurement(r,dir){
 
 /* ---------- בחירת מדידות ---------- */
 /* כל המדידות הגולמיות של תלמיד במבחן אחד, לפי סדר זמן.
-   opts.cls מצמצם לכיתה אחת; בלעדיו מוחזרת ההיסטוריה המלאה — גם
-   ממה שנמדד בכיתה קודמת, וזה בכוונה: תלמיד שעבר כיתה לא איבד את
-   העבר שלו. */
+   opts.cid מצמצם לכיתה אחת לפי זהות — עומד בשינוי שם. opts.cls
+   מצמצם לפי תווית, כמו קודם, ונשאר לקוראים שטרם עברו. כשיש cid
+   הוא קובע. בלי שניהם מוחזרת ההיסטוריה המלאה — גם ממה שנמדד
+   בכיתה קודמת, וזה בכוונה: תלמיד שעבר כיתה לא איבד את העבר שלו. */
 function measurementsOf(rows,stud,testId,opts){
   opts=opts||{};
-  var k=opts.cls==null?null:clsKey(opts.cls);
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(cid||opts.cls==null)?null:clsKey(opts.cls);
   return (rows||[]).filter(function(r){
     if(!r||r.test!==testId)return false;
+    if(cid&&!rowInClass(r,cid))return false;
     if(k!==null&&clsKey(r.cls)!==k)return false;
     return sameStudent(r,stud);
   }).sort(function(a,b){
@@ -851,9 +988,12 @@ function profileOf(rows,stud,testDefs,opts){
 
   /* המבחנים שלתלמיד יש בהם מדידה — בסדר שבו הקטלוג מגדיר אותם,
      כדי שהפרופיל ייראה אותו דבר בכל פתיחה. */
+  /* צמצום לכיתה: cid קובע; cls נשאר לקוראים הישנים */
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var scope=cid?{cid:cid}:(opts.cls?{cls:opts.cls}:null);
   var mine=(rows||[]).filter(function(r){
     return r&&byId[r.test]&&sameStudent(r,stud)&&
-      (!opts.cls||clsKey(r.cls)===clsKey(opts.cls));
+      (cid?rowInClass(r,cid):(!opts.cls||clsKey(r.cls)===clsKey(opts.cls)));
   });
   var seen={}, order=[];
   defs.forEach(function(t){
@@ -874,7 +1014,7 @@ function profileOf(rows,stud,testDefs,opts){
   var scores=[];
   order.forEach(function(tid){
     var T=byId[tid];
-    var pr=progress(rows,stud,tid,T.dir,opts.cls?{cls:opts.cls}:null);
+    var pr=progress(rows,stud,tid,T.dir,scope);
     var best=pr.best;
     var a=assess({mode:opts.mode,table:opts.table,rows:rows,archive:opts.archive,
       testId:tid,sex:(stud&&stud.sex)||null,grade:opts.grade,
@@ -882,7 +1022,7 @@ function profileOf(rows,stud,testDefs,opts){
       normVersion:opts.normVersion,
       measuredNormVersion:best?best.normVer:null});
     if(a.v!=null)scores.push(a.v);
-    var list=measurementsOf(rows,stud,tid,opts.cls?{cls:opts.cls}:null);
+    var list=measurementsOf(rows,stud,tid,scope);
     var days=[]; list.forEach(function(r){
       var d=String(r.d||""); if(d&&days.indexOf(d)<0)days.push(d); });
     days.sort();
@@ -909,10 +1049,12 @@ function profileOf(rows,stud,testDefs,opts){
 function missingTests(rows,stud,testDefs,opts){
   opts=opts||{};
   var byId={}; (testDefs||[]).forEach(function(t){ if(t&&t.id)byId[t.id]=t; });
-  var k=opts.cls?clsKey(opts.cls):null;
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(!cid&&opts.cls)?clsKey(opts.cls):null;
   var classTests=[], mineTests={};
   (rows||[]).forEach(function(r){
     if(!r||!byId[r.test])return;
+    if(cid&&!rowInClass(r,cid))return;
     if(k&&clsKey(r.cls)!==k)return;
     if(classTests.indexOf(r.test)<0)classTests.push(r.test);
   });
@@ -1154,7 +1296,9 @@ return {
   classId:classId, classFrom:classFrom, sameClass:sameClass,
   classes:classes, classOf:classOf, findClass:findClass,
   registerClass:registerClass, renameClass:renameClass,
-  studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf,
+  isCid:isCid, cidOfStudent:cidOfStudent, resolveClassId:resolveClassId,
+  mergeRoster:mergeRoster, findStudent:findStudent,
+  studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf, rowInClass:rowInClass,
   SCHEMA_VERSION:SCHEMA_VERSION, SCHEMA_KEY:SCHEMA_KEY, MIGRATIONS:MIGRATIONS,
   detectVersion:detectVersion, migrate:migrate,
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,

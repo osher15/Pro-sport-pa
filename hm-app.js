@@ -1257,11 +1257,12 @@ const BT=(function(){
     $("#bt-toFt").addEventListener("click",()=>{
       if(!results.length){toast("אין רישומים");return;}
       if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
-      const send=cls=>{
+      /* cid — זהות הכיתה כשהיא ידועה (שיעור פעיל); התווית היא ההקשר */
+      const send=(cls,cid)=>{
         const rows=results.filter(r=>r.dist>0).map(r=>({name:r.name,val:r.dist,
           sex:classSex==="girls"?"girls":"boys"}));
         if(!rows.length){toast("אין תוצאה עם מרחק");return;}
-        const res=window.FT.ingest(cls,"beep",rows,"ביפ טסט");
+        const res=window.FT.ingest(cls,"beep",rows,"ביפ טסט",cid?{cid}:null);
         toast(res.added?("✓ נשלחו "+res.added+" תוצאות ל"+cls+(res.dup?" · "+res.dup+" כבר היו":"")) 
                        :(res.dup?"כל התוצאות כבר נשלחו":"לא נשלח דבר"));
       };
@@ -1270,7 +1271,7 @@ const BT=(function(){
          חסרים הבורר נפתח. */
       const act=SESSION.active();
       if(heat.cls)send(heat.cls);
-      else if(act&&act.clsSnapshot)send(act.clsSnapshot);
+      else if(act&&act.clsSnapshot)send(act.clsSnapshot,act.cid);
       else window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"התוצאות ייכנסו למבחן «ביפ טסט» של הכיתה הזאת.",
         onPick:(names,cls)=>send(cls)});
@@ -2170,15 +2171,15 @@ const PF=(function(){
       if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
       const tid=PF_DIST_TEST[+META.dist];
       if(!tid){ toast("אין מבחן ל-"+META.dist+" מ׳ — שנה את המרחק בהגדרות המירוץ"); return; }
-      const send=cls=>{
+      const send=(cls,cid)=>{
         const rows=list.map(l=>({name:l.name,val:l.time}));
-        const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
+        const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש",cid?{cid}:null);
         toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
                        :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
       };
       /* שיעור פתוח הופך את «לאיזו כיתה» לשאלה מיותרת */
       const act=SESSION.active();
-      if(act&&act.clsSnapshot){ send(act.clsSnapshot); return; }
+      if(act&&act.clsSnapshot){ send(act.clsSnapshot,act.cid); return; }
       window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"‎"+list.length+"‎ זמנים ייכנסו למבחן «"+META.dist+" מטר» של הכיתה.",
         onPick:(names,cls)=>send(cls)});

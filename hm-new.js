@@ -17,6 +17,31 @@ window.STU=(function(){
   let inited=false;
   const load=()=>H().LS.get("stu.list",[]);
   const save=l=>H().LS.set("stu.list",l);
+  /* ============================================================
+     זהות כיתה
+     ------------------------------------------------------------
+     cid הוא הזהות, cls הוא ההקשר והתצוגה. הרישום (ft.classes) דורש
+     store בסגנון hm-data, ולכן עוטפים את LS פעם אחת.
+       cidOf(s)  — הזהות של תלמיד: cid קיים, ואם אין — דרך הרישום.
+       cidFor(c) — תווית שהמורה הקליד → מזהה, בזמן יצירה או עריכה.
+                   כיתה מוכרת מחזירה את המזהה הרשום גם אם שמה השתנה;
+                   כיתה חדשה נרשמת; תווית ריקה → null (תלמיד בלי כיתה).
+     ============================================================ */
+  const store={get:(k,d)=>H().LS.get(k,d===undefined?null:d),set:(k,v)=>H().LS.set(k,v)};
+  const cidOf=s=>window.HMDATA.cidOfStudent(s,store);
+  const cidFor=c=>window.HMDATA.resolveClassId(store,c,true);
+  /* הכיתות שברשימה, לפי זהות: [{cid,name,n}] ממוין לפי שם. השם מגיע
+     מהרישום כשהכיתה רשומה, אחרת מהתווית שעל התלמיד הראשון. כך «ט3»
+     ו«ט׳3» הם כיתה אחת, וכיתה ששמה שונה נשארת כיתה אחת. */
+  function classList(list){
+    const by={};
+    list.forEach(s=>{
+      const cid=cidOf(s); if(!cid)return;
+      if(!by[cid]){ const reg=window.HMDATA.classOf(store,cid); by[cid]={cid,name:(reg&&reg.name)||s.cls||cid,n:0}; }
+      by[cid].n++;
+    });
+    return Object.values(by).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+  }
   let q="",clsF="",sortBy=H().LS.get("stu.sort","name");
   function latest(s){return s.tests.length?s.tests[s.tests.length-1]:null;}
   function trend(s){
@@ -28,9 +53,10 @@ window.STU=(function(){
   const bmiCat=window.HMDATA.bmiCategory;
   function render(){
     const {$, $$, esc}=H(); const list=load();
-    const classes=[...new Set(list.map(s=>s.cls).filter(Boolean))].sort();
-    $("#stu-classSel").innerHTML='<option value="">כל הכיתות</option>'+classes.map(c=>`<option ${c===clsF?"selected":""}>${esc(c)}</option>`).join("");
-    let view=list.filter(s=>(!q||s.name.includes(q))&&(!clsF||s.cls===clsF));
+    /* הבורר מציג שמות אבל נושא מזהים: הערך הוא cid, התווית היא השם. */
+    const classes=classList(list);
+    $("#stu-classSel").innerHTML='<option value="">כל הכיתות</option>'+classes.map(c=>`<option value="${esc(c.cid)}" ${c.cid===clsF?"selected":""}>${esc(c.name)}</option>`).join("");
+    let view=list.filter(s=>(!q||s.name.includes(q))&&(!clsF||cidOf(s)===clsF));
     const withT=list.filter(s=>s.tests.length);
     const avg=withT.length?withT.reduce((a,s)=>a+(latest(s).vo2||0),0)/withT.length:0;
     const below=withT.filter(s=>latest(s).zone==="סיכון בריאותי").length;
@@ -46,8 +72,8 @@ window.STU=(function(){
     if(chips){
       chips.innerHTML=classes.length>1
         ? '<button data-c=""'+(clsF?"":' class="on"')+">כל הכיתות <i>"+list.length+"</i></button>"+
-          classes.map(c=>'<button data-c="'+esc(c)+'"'+(clsF===c?' class="on"':"")+">"+esc(c)+
-            " <i>"+list.filter(x=>x.cls===c).length+"</i></button>").join("")
+          classes.map(c=>'<button data-c="'+esc(c.cid)+'"'+(clsF===c.cid?' class="on"':"")+">"+esc(c.name)+
+            " <i>"+c.n+"</i></button>").join("")
         : "";
       H().$$("#stu-chips button").forEach(b=>b.addEventListener("click",()=>{
         clsF=b.dataset.c; render(); }));
@@ -128,8 +154,9 @@ window.STU=(function(){
     $("#stu-fSave").addEventListener("click",()=>{
       s.cls=$("#stu-fCls").value.trim();
       /* הכיתה היא טקסט חופשי, ולכן היא גם המקום היחיד שבו תלמיד
-         יכול «לעבור כיתה». המזהה נגזר מהתווית ונשמר לצידה. */
-      s.cid=window.HMDATA.classId(s.cls);
+         יכול «לעבור כיתה». המזהה נפתר דרך הרישום — כיתה ששמה שונה
+         שומרת על המזהה שלה, ולא נוצרת כיתה שנייה בגלל תווית חדשה. */
+      s.cid=cidFor(s.cls);
       s.sex=$("#stu-fSex").value;
       s.age=+$("#stu-fAge").value||14; s.h=+$("#stu-fH").value||null; s.w=+$("#stu-fW").value||null;
       s.tests.forEach(t=>{ if(t.speed)t.vo2=vo2f(t.speed,s.age); if(t.vo2)t.zone=zoneOf(t.vo2,s.age,s.sex).g; });
@@ -167,7 +194,8 @@ window.STU=(function(){
       if(!(r.dist>0))return;
       const nm=r.name.trim(); if(!nm||/^תלמיד \d+$/.test(nm))return;
       let s=list.find(x=>x.name===nm);
-      if(!s){ s={id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name:nm,cls:"",sex,age,h:null,w:null,tests:[]}; list.push(s); }
+      /* לוח הביפ לא מכיר כיתה. תלמיד בלי כיתה הוא מצב חוקי: cid:null. */
+      if(!s){ s={id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name:nm,cls:"",cid:null,sex,age,h:null,w:null,tests:[]}; list.push(s); }
       if(s.tests.some(t=>t.d===today()&&t.type==="ביפ"&&t.dist===r.dist))return;
       const v=vo2f(r.speed,s.age||age);
       s.tests.push({d:today(),type:"ביפ",dist:r.dist,level:r.level+"·"+r.sh,speed:r.speed,vo2:v>0?v:null,zone:v>0?zoneOf(v,s.age||age,s.sex||sex).g:""});
@@ -296,15 +324,15 @@ window.STU=(function(){
   function renderGrades(){
     const {$, $$, esc}=H();
     const list=load();
-    const classes=[...new Set(list.map(s=>s.cls).filter(Boolean))].sort();
-    $("#gr-classSel").innerHTML='<option value="">כל הכיתות</option>'+classes.map(c=>`<option ${c===grClsF?"selected":""}>${esc(c)}</option>`).join("");
+    const classes=classList(list);
+    $("#gr-classSel").innerHTML='<option value="">כל הכיתות</option>'+classes.map(c=>`<option value="${esc(c.cid)}" ${c.cid===grClsF?"selected":""}>${esc(c.name)}</option>`).join("");
     const periods=loadPeriods();
     if(!periods.includes(grPeriod))grPeriod=periods[0];
     $("#gr-period").innerHTML=periods.map(p=>`<option ${p===grPeriod?"selected":""}>${esc(p)}</option>`).join("");
     renderWeightsHint();
     const weights=loadWeights();
     const examCols=examColsFor(grPeriod);
-    const view=list.filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    const view=list.filter(s=>!grClsF||cidOf(s)===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     $("#gr-empty").style.display=view.length?"none":"block";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const L=loadLabels();
@@ -393,7 +421,7 @@ window.STU=(function(){
     grPeriod=periods[0]; renderGrades();
   }
   function exportGradesCsv(){
-    const list=load().filter(s=>!grClsF||s.cls===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
+    const list=load().filter(s=>!grClsF||cidOf(s)===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     if(!list.length){H().toast("אין תלמידים");return;}
     const weights=loadWeights(), examCols=examColsFor(grPeriod);
     const rows=[["שם","כיתה","השתתפות ורצינות",...examCols,"ממוצע מבחנים","שיפור והתמדה","עבודת צוות","ציון סופי"]];
@@ -617,7 +645,8 @@ window.STU=(function(){
       lines.forEach(l=>{
         const [name,cls]=l.split(",").map(x=>(x||"").trim());
         if(!name||/^(שם|name)$/i.test(name)||list.some(s=>s.name===name))return;
-        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:cls||defCls||"",sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
+        const c=cls||defCls||"";
+        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:c,cid:cidFor(c),sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
       });
       save(list); return n;
     }
@@ -807,16 +836,19 @@ window.HMBootNew=function(){
     return n("ft.results")+n("stu.list")+n("rec.list")+n("ft.roster")+n("bt.results")>0;
   }
   function seedDemo(){
-    const cls="ט׳3", key="ט3";
+    const cls="ט׳3", key="ט3", cid=window.HMDATA.classId(cls);
+    /* כיתת ההדגמה נרשמת כמו כל כיתה אחרת — כדי שההדגמה תדגים את
+       המודל האמיתי: מזהה על התלמיד, על המדידה וברישום. */
+    try{ window.HMDATA.registerClass({get:(k,d)=>LS.get(k,d===undefined?null:d),set:(k,v)=>LS.set(k,v)},cls); }catch(e){}
     const kids=[["דן אבירם","boys"],["איתי כהן","boys"],["רון לוי","boys"],["עומר בר","boys"],
                 ["יהב שני","boys"],["ניר גל","boys"],["אלון מור","boys"],["גיא פרץ","boys"]];
     LS.set("ft.roster",{[key]:kids.map((k,i)=>({id:"demo"+i,name:k[0],sex:k[1]}))});
-    LS.set("stu.list",kids.map((k,i)=>({id:"demo"+i,name:k[0],cls,sex:k[1]})));
+    LS.set("stu.list",kids.map((k,i)=>({id:"demo"+i,name:k[0],cls,cid,sex:k[1]})));
     LS.set("ft.last",{grade:"ט",num:3,sort:"todo"});
     const day=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
     const res=[]; let id=0;
     const put=(t,unit,vals,d)=>kids.forEach((k,i)=>{ if(vals[i]==null)return;
-      res.push({id:"dm"+(id++),ts:Date.now()-id*1000,d,cls,test:t,name:k[0],sid:"demo"+i,
+      res.push({id:"dm"+(id++),ts:Date.now()-id*1000,d,cls,cid,test:t,name:k[0],sid:"demo"+i,
         gradeKey:"ט",sex:k[1],val:vals[i],unit}); });
     /* שתי מדידות לאותם מבחנים בהפרש חודשיים — כך «שיפור», «ניסיונות»
        ו«הטוב ביותר» מציגים משהו אמיתי ולא עמודה ריקה. */

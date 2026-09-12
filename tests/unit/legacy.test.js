@@ -50,7 +50,7 @@ test("מכשיר ישן: אפס אובדן בכל הספירות",()=>{
 
   assert.equal(rep.ok,true,rep.error||"");
   assert.equal(rep.from,1,"זוהה כגרסה 1");
-  assert.deepEqual(rep.applied,["student-identity","class-identity"]);
+  assert.deepEqual(rep.applied,["student-identity","class-identity","student-class-closure"]);
 
   assert.equal(after.roster,before.roster,"תלמידי רשימות הכיתה");
   assert.equal(after.stu,   before.stu,   "«התלמידים שלי»");
@@ -169,7 +169,7 @@ test("מכשיר שכבר בגרסה 2 מקבל רק את מיגרציית הכ�
   const seed=legacyDevice(); seed["schema.version"]=2;
   const s=memStore(seed);
   const rep=D.migrate(s);
-  assert.deepEqual(rep.applied,["class-identity"]);
+  assert.deepEqual(rep.applied,["class-identity","student-class-closure"]);
   assert.equal(rep.linked,0,"זהות התלמידים לא נגעה");
   assert.ok(rep.classes>0,"והכיתות כן נרשמו");
 });
