@@ -14,7 +14,8 @@ const suites=[
   require("./rename9.e2e.js"),
   require("./coverage10.e2e.js"),
   require("./polish10_5.e2e.js"),
-  require("./progress11.e2e.js")
+  require("./progress11.e2e.js"),
+  require("./attendgrade12.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });

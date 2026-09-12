@@ -336,6 +336,9 @@ window.STU=(function(){
     const examCols=examColsFor(grPeriod);
     const view=list.filter(s=>!grClsF||cidOf(s)===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     $("#gr-empty").style.display=view.length?"none":"block";
+    /* אין מה להציע כשקטגוריית ההשתתפות כבויה (משקל 0) — אותו תנאי
+       בדיוק שכבר מסתיר את העמודה עצמה. */
+    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=(weights.part||0)>0?"":"none";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const L=loadLabels();
     /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */
@@ -432,6 +435,31 @@ window.STU=(function(){
       rows.push([s.name,s.cls||"",g.part??"",...examCols.map(c=>(g.exams&&g.exams[c])??""),examsAvg!=null?examsAvg.toFixed(1):"",g.improve??"",g.team??"",total!=null?total.toFixed(1):""]);
     });
     H().dlCSV("ציונים_"+grPeriod+".csv",rows);
+  }
+
+  /* ============================================================
+     שלב 12 — מילוי הצעת ציון הגעה/השתתפות מנתוני הנוכחות
+     ------------------------------------------------------------
+     עוזר, לא מחליט: ממלא רק שדה שריק לגמרי, לעולם לא דורס ציון
+     שכבר הוזן — ואם אין נתוני נוכחות לתלמיד, לא ממציא כלום.
+     הנוסחה היא attendanceRateOf() ב-hm-data.js, שהיא בדיוק הנוסחה
+     של attSummary() ב-hm-tools.js. tools.att לא נקרא כאן פעם
+     נוספת בצורה חדשה — נקרא ישירות מהמפתח הקיים, כמו כל מקום אחר. */
+  function fillFromAttendance(){
+    const list=load().filter(s=>!grClsF||cidOf(s)===grClsF);
+    if(!list.length){ H().toast("אין תלמידים"); return; }
+    const att=H().LS.get("tools.att",{});
+    let filled=0;
+    list.forEach(s=>{
+      const g=gradeOf(s,grPeriod);
+      if(g.part!=null)return;                       /* יש כבר ציון — לא נוגעים */
+      const cid=cidOf(s);
+      const rate=cid?window.HMDATA.attendanceRateOf(att,s,store,{cid}):null;
+      if(!rate)return;                               /* אין נתוני נוכחות — לא ממציאים */
+      g.part=rate.pct; filled++;
+    });
+    if(filled){ save(list); renderGrades(); H().toast("✓ נמלאו "+filled+" ציונים לפי נוכחות"); }
+    else H().toast("אין שדות ריקים למלא — או שאין עדיין נתוני נוכחות לתלמידים האלה");
   }
 
   /* ============================ הערכת עמיתים קבוצתית (PBL) ============================
@@ -694,6 +722,7 @@ window.STU=(function(){
     $("#gr-classSel").addEventListener("change",e=>{grClsF=e.target.value;renderGrades();});
     $("#gr-examAdd").addEventListener("click",addExamCol);
     $("#gr-csv").addEventListener("click",exportGradesCsv);
+    $("#gr-fillAtt").addEventListener("click",fillFromAttendance);
     /* ---------- הערכת עמיתים ---------- */
     paDraft=newDraft();
     $("#pa-critBtn").addEventListener("click",openPCritModal);

@@ -1149,6 +1149,43 @@ function classProgress(rows,roster,testDefs,opts){
   return {tests:tests};
 }
 
+/* שלב 12 — אחוז נוכחות לתלמיד, לצורך הצעת מילוי בציון ההשתתפות.
+   הנוסחה זהה, בית אחר בית, ל-attSummary() הקיימת ב-hm-tools.js:
+   Math.round((p + h*0.5) / days * 100). לא נכתב כלל חדש.
+
+   ההבדל היחיד, והכרחי: תלמיד בלי אף רשומת נוכחות מחזיר null ולא
+   "0%" — attSummary מחזירה 0 שם כי זו עמודה בדוח CSV שחייבת תמיד
+   ערך; כאן ה-0 היה משקר: "אין נתון" ו"נוכח באפס אחוז" הם שני
+   מצבים שונים, וכתיבה שקטה של 0 לתוך ציון הייתה בדיוק הניחוש
+   שהמוצר הזה נמנע ממנו בכל שכבה אחרת (ראו sidAmbig/cidAmbig).
+
+   tools.att ממופתח "תאריך|תווית" בכוונה (החלטת שלב 7/9, לא
+   משתנה כאן). הצמצום לתלמיד מסוים הוא לפי cid: כל מפתח שהתווית
+   שלו נפתרת (resolveClassId) לאותו cid נספר, בלי קשר לאיזו כיתה
+   הייתה מסומנת כרגע בלשונית הנוכחות ובלי קשר לשינויי שם — בדיוק
+   כמו rowInClass על מדידה. */
+function attendanceRateOf(att,stud,store,opts){
+  opts=opts||{};
+  var sid=studentKey(stud);
+  if(!sid||!att||typeof att!=="object"||Array.isArray(att))return null;
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(!cid&&opts.cls)?clsKey(opts.cls):null;
+  var p=0,h=0,days=0;
+  Object.keys(att).forEach(function(key){
+    var i=String(key).indexOf("|"); if(i<0)return;
+    var label=key.slice(i+1);
+    if(cid){ if(resolveClassId(store,label)!==cid)return; }
+    else if(k){ if(clsKey(label)!==k)return; }
+    var rec=att[key];
+    if(!rec||typeof rec!=="object"||Array.isArray(rec))return;
+    var mark=rec[sid]; if(!mark)return;
+    days++;
+    if(mark==="p")p++; else if(mark==="h")h++;
+  });
+  if(!days)return null;
+  return {days:days,p:p,h:h,pct:Math.round((p+h*0.5)/days*100)};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -1387,6 +1424,7 @@ return {
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
   profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage, classProgress:classProgress,
+  attendanceRateOf:attendanceRateOf,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,

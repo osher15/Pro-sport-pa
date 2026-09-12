@@ -2019,6 +2019,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <div class="field" style="width:150px"><label>כיתה</label><select id="gr-classSel"></select></div>
         <button class="btn sm" id="gr-examAdd" style="margin-top:18px">+ עמודת מבחן</button>
         <button class="btn sm ghost" id="gr-csv" style="margin-top:18px">⬇ CSV</button>
+        <button class="btn sm ghost" id="gr-fillAtt" style="margin-top:18px" title="ממלא רק שדות ריקים — לא דורס ציון שכבר הוזן">⬇ מלא לפי נוכחות</button>
       </div>
       <div class="tblwrap" style="margin-top:13px"><table class="tbl" id="gr-table"></table></div>
       <div class="empty-state" id="gr-empty" style="display:none"><div class="big">📊</div>אין עדיין תלמידים בכיתה הזו. הוסף תלמידים בלשונית «רשימת תלמידים».</div>
@@ -4023,6 +4024,43 @@ function classProgress(rows,roster,testDefs,opts){
   return {tests:tests};
 }
 
+/* שלב 12 — אחוז נוכחות לתלמיד, לצורך הצעת מילוי בציון ההשתתפות.
+   הנוסחה זהה, בית אחר בית, ל-attSummary() הקיימת ב-hm-tools.js:
+   Math.round((p + h*0.5) / days * 100). לא נכתב כלל חדש.
+
+   ההבדל היחיד, והכרחי: תלמיד בלי אף רשומת נוכחות מחזיר null ולא
+   "0%" — attSummary מחזירה 0 שם כי זו עמודה בדוח CSV שחייבת תמיד
+   ערך; כאן ה-0 היה משקר: "אין נתון" ו"נוכח באפס אחוז" הם שני
+   מצבים שונים, וכתיבה שקטה של 0 לתוך ציון הייתה בדיוק הניחוש
+   שהמוצר הזה נמנע ממנו בכל שכבה אחרת (ראו sidAmbig/cidAmbig).
+
+   tools.att ממופתח "תאריך|תווית" בכוונה (החלטת שלב 7/9, לא
+   משתנה כאן). הצמצום לתלמיד מסוים הוא לפי cid: כל מפתח שהתווית
+   שלו נפתרת (resolveClassId) לאותו cid נספר, בלי קשר לאיזו כיתה
+   הייתה מסומנת כרגע בלשונית הנוכחות ובלי קשר לשינויי שם — בדיוק
+   כמו rowInClass על מדידה. */
+function attendanceRateOf(att,stud,store,opts){
+  opts=opts||{};
+  var sid=studentKey(stud);
+  if(!sid||!att||typeof att!=="object"||Array.isArray(att))return null;
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(!cid&&opts.cls)?clsKey(opts.cls):null;
+  var p=0,h=0,days=0;
+  Object.keys(att).forEach(function(key){
+    var i=String(key).indexOf("|"); if(i<0)return;
+    var label=key.slice(i+1);
+    if(cid){ if(resolveClassId(store,label)!==cid)return; }
+    else if(k){ if(clsKey(label)!==k)return; }
+    var rec=att[key];
+    if(!rec||typeof rec!=="object"||Array.isArray(rec))return;
+    var mark=rec[sid]; if(!mark)return;
+    days++;
+    if(mark==="p")p++; else if(mark==="h")h++;
+  });
+  if(!days)return null;
+  return {days:days,p:p,h:h,pct:Math.round((p+h*0.5)/days*100)};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -4261,6 +4299,7 @@ return {
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
   profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage, classProgress:classProgress,
+  attendanceRateOf:attendanceRateOf,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
@@ -15412,6 +15451,9 @@ window.STU=(function(){
     const examCols=examColsFor(grPeriod);
     const view=list.filter(s=>!grClsF||cidOf(s)===grClsF).sort((a,b)=>a.name.localeCompare(b.name,"he"));
     $("#gr-empty").style.display=view.length?"none":"block";
+    /* אין מה להציע כשקטגוריית ההשתתפות כבויה (משקל 0) — אותו תנאי
+       בדיוק שכבר מסתיר את העמודה עצמה. */
+    const fillBtn=$("#gr-fillAtt"); if(fillBtn)fillBtn.style.display=(weights.part||0)>0?"":"none";
     if(!view.length){ $("#gr-table").innerHTML=""; return; }
     const L=loadLabels();
     /* קטגוריה במשקל 0 לא מוצגת — כך הטבלה נשארת צרה ומהירה למילוי */
@@ -15508,6 +15550,31 @@ window.STU=(function(){
       rows.push([s.name,s.cls||"",g.part??"",...examCols.map(c=>(g.exams&&g.exams[c])??""),examsAvg!=null?examsAvg.toFixed(1):"",g.improve??"",g.team??"",total!=null?total.toFixed(1):""]);
     });
     H().dlCSV("ציונים_"+grPeriod+".csv",rows);
+  }
+
+  /* ============================================================
+     שלב 12 — מילוי הצעת ציון הגעה/השתתפות מנתוני הנוכחות
+     ------------------------------------------------------------
+     עוזר, לא מחליט: ממלא רק שדה שריק לגמרי, לעולם לא דורס ציון
+     שכבר הוזן — ואם אין נתוני נוכחות לתלמיד, לא ממציא כלום.
+     הנוסחה היא attendanceRateOf() ב-hm-data.js, שהיא בדיוק הנוסחה
+     של attSummary() ב-hm-tools.js. tools.att לא נקרא כאן פעם
+     נוספת בצורה חדשה — נקרא ישירות מהמפתח הקיים, כמו כל מקום אחר. */
+  function fillFromAttendance(){
+    const list=load().filter(s=>!grClsF||cidOf(s)===grClsF);
+    if(!list.length){ H().toast("אין תלמידים"); return; }
+    const att=H().LS.get("tools.att",{});
+    let filled=0;
+    list.forEach(s=>{
+      const g=gradeOf(s,grPeriod);
+      if(g.part!=null)return;                       /* יש כבר ציון — לא נוגעים */
+      const cid=cidOf(s);
+      const rate=cid?window.HMDATA.attendanceRateOf(att,s,store,{cid}):null;
+      if(!rate)return;                               /* אין נתוני נוכחות — לא ממציאים */
+      g.part=rate.pct; filled++;
+    });
+    if(filled){ save(list); renderGrades(); H().toast("✓ נמלאו "+filled+" ציונים לפי נוכחות"); }
+    else H().toast("אין שדות ריקים למלא — או שאין עדיין נתוני נוכחות לתלמידים האלה");
   }
 
   /* ============================ הערכת עמיתים קבוצתית (PBL) ============================
@@ -15770,6 +15837,7 @@ window.STU=(function(){
     $("#gr-classSel").addEventListener("change",e=>{grClsF=e.target.value;renderGrades();});
     $("#gr-examAdd").addEventListener("click",addExamCol);
     $("#gr-csv").addEventListener("click",exportGradesCsv);
+    $("#gr-fillAtt").addEventListener("click",fillFromAttendance);
     /* ---------- הערכת עמיתים ---------- */
     paDraft=newDraft();
     $("#pa-critBtn").addEventListener("click",openPCritModal);
