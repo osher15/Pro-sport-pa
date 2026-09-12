@@ -81,6 +81,13 @@ function classFrom(raw){
   return {id:id,name:pc?clsName(pc.grade,pc.num):t,
           grade:pc?pc.grade:null,num:pc?pc.num:null,key:clsKey(t)};
 }
+/* שכבה ומספר מתוך מזהה כיתה שנפרסה («c:ט:3» → {grade:"ט",num:3}).
+   המזהה עצמו מקודד את הכיתה כפי שנוצרה, ולכן זה מקור יציב לבורר
+   שכבה/מספר גם אחרי שהשם ברישום השתנה. כיתה חופשית → null. */
+function cidParts(cid){
+  var m=String(cid==null?"":cid).match(/^c:(יב|יא|י|ט|ח|ז):(\d{1,2})$/);
+  return m?{grade:m[1],num:+m[2]}:null;
+}
 /* שתי תוויות מצביעות על אותה כיתה? */
 function sameClass(a,b){
   var x=classId(a),y=classId(b);
@@ -1293,7 +1300,7 @@ function planRestore(snap,currentKeys){
 return {
   clsKey:clsKey, hash32:hash32, derivedId:derivedId,
   GRADES:GRADES, NUMS:NUMS, clsName:clsName, parseCls:parseCls,
-  classId:classId, classFrom:classFrom, sameClass:sameClass,
+  classId:classId, classFrom:classFrom, sameClass:sameClass, cidParts:cidParts,
   classes:classes, classOf:classOf, findClass:findClass,
   registerClass:registerClass, renameClass:renameClass,
   isCid:isCid, cidOfStudent:cidOfStudent, resolveClassId:resolveClassId,

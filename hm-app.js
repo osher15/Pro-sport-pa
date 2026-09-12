@@ -372,7 +372,7 @@ $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi
   $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||"";
-  bkStat(); modal("setModal"); });
+  bkStat(); paintClassRename(); modal("setModal"); });
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
@@ -449,6 +449,7 @@ function renderSesHist(openId){
     const open=a.id===openId;
     return '<div class="arc-item'+(a.status===DATA.SESSION_ACTIVE?" on":"")+'">'+
       '<div class="grow"><div class="ttl">'+esc(a.clsSnapshot||a.cid)+
+      (sesName(a)&&sesName(a)!==(a.clsSnapshot||a.cid)?' <span class="pill">היום: '+esc(sesName(a))+'</span>':"")+
         (a.status===DATA.SESSION_ACTIVE?' <span class="pill acc">פעיל</span>':"")+'</div>'+
       '<div class="sb">'+esc(a.date)+' · '+esc(sesDuration(a))+
         (a.planTitle?" · "+esc(a.planTitle):"")+
@@ -471,12 +472,97 @@ function renderSesHist(openId){
 function openSesHist(){ renderSesHist(null); modal("lsHistModal",true); }
 
 /* הפס. מכוון להיות שקט: שורה אחת, לא מסך. */
+/* ============================================================
+   שינוי שם כיתה — ממשק מעל renameClass()
+   ------------------------------------------------------------
+   הרישום (ft.classes) הוא מקור האמת לשם; cid הוא הזהות. שינוי שם
+   נוגע ברישום בלבד — אף תלמיד, מדידה או שיעור לא נכתב מחדש, כולם
+   מצביעים על cid והשם מגיע דרכו. חוזה הרישום מתיר שתי כיתות באותו
+   שם, ולכן כאן מזהירים ולא חוסמים.
+   ============================================================ */
+const REGSTORE={get:(k,d)=>LS.get(k,d===undefined?null:d),set:(k,v)=>LS.set(k,v)};
+/* התווית שבה הכיתה נוצרה («ט׳3» עבור c:ט:3) — להבחנה בין שתי כיתות
+   שנושאות היום אותו שם */
+function clsOrigin(cid){ const p=DATA.cidParts(cid); return p?DATA.clsName(p.grade,p.num):""; }
+function clsRenameList(){
+  const reg=DATA.classes(REGSTORE);
+  const stu=LS.get("stu.list",[]), res=LS.get("ft.results",[]);
+  return Object.keys(reg).map(cid=>{
+    const c=reg[cid]||{};
+    return {cid,name:c.name||cid,origin:clsOrigin(cid),
+      students:(Array.isArray(stu)?stu:[]).filter(s=>DATA.cidOfStudent(s,REGSTORE)===cid).length,
+      results:(Array.isArray(res)?res:[]).filter(r=>DATA.rowInClass(r,cid)).length};
+  }).sort((a,b)=>a.name.localeCompare(b.name,"he")||a.cid.localeCompare(b.cid));
+}
+function paintClassRename(keepCid){
+  const sel=$("#set-clsSel"); if(!sel)return;
+  const list=clsRenameList();
+  const dup={}; list.forEach(x=>{ dup[x.name]=(dup[x.name]||0)+1; });
+  sel.innerHTML=list.length
+    ? list.map(x=>'<option value="'+esc(x.cid)+'">'+esc(x.name)+
+        ((dup[x.name]>1&&x.origin&&x.origin!==x.name)?" (נוצרה כ-"+esc(x.origin)+")":"")+
+        " · "+x.students+" תלמידים</option>").join("")
+    : '<option value="">אין עדיין כיתות רשומות</option>';
+  if(keepCid&&list.some(x=>x.cid===keepCid))sel.value=keepCid;
+  paintClassRenameCur();
+}
+function paintClassRenameCur(){
+  const sel=$("#set-clsSel"), cur=$("#set-clsCur"), inp=$("#set-clsNew"), btn=$("#set-clsRename"), info=$("#set-clsInfo");
+  if(!sel||!cur)return;
+  const c=sel.value?DATA.classOf(REGSTORE,sel.value):null;
+  cur.textContent=c?c.name:"—";
+  if(inp){ inp.value=""; inp.disabled=!c; }
+  if(btn)btn.disabled=!c;
+  if(info){ const x=c?clsRenameList().find(y=>y.cid===sel.value):null;
+    info.textContent=x?(x.students+" תלמידים · "+x.results+" מדידות"+(x.origin&&x.origin!==x.name?" · נוצרה כ-"+x.origin:"")):""; }
+}
+function renameClassFromUi(){
+  const sel=$("#set-clsSel"), inp=$("#set-clsNew"); if(!sel||!inp)return;
+  const cid=sel.value, nm=inp.value.trim();
+  const c=cid?DATA.classOf(REGSTORE,cid):null;
+  if(!c){ toast("בחר כיתה קודם"); return; }
+  if(!nm){ toast("הקלד שם חדש לכיתה"); return; }
+  if(nm===c.name){ toast("זה כבר השם של הכיתה"); return; }
+  const reg=DATA.classes(REGSTORE);
+  const twin=Object.keys(reg).find(k=>k!==cid&&reg[k]&&DATA.clsKey(reg[k].name)===DATA.clsKey(nm));
+  if(twin&&!confirm("כיתה אחרת כבר נקראת «"+reg[twin].name+"».\n\nשתי הכיתות יישארו נפרדות, אבל בבוררים ובדוחות יהיה קשה להבחין ביניהן.\nלהמשיך בכל זאת?"))return;
+  const pc=DATA.parseCls(nm);
+  if(!twin&&pc&&DATA.classId(nm)!==cid&&!confirm("השם «"+nm+"» נראה כמו כיתה אחרת ("+DATA.clsName(pc.grade,pc.num)+").\n\nהזהות של הכיתה לא תשתנה — רק השם. להמשיך?"))return;
+  const r=DATA.renameClass(REGSTORE,cid,nm);
+  if(!r.ok){ toast(r.error==="empty-name"?"השם ריק":"שינוי השם נכשל"); return; }
+  toast("✓ הכיתה נקראת עכשיו «"+nm+"»");
+  paintClassRename(cid);
+  paintSessionBar();
+  /* המסך שמתחת למודאל מציג את השם דרך הרישום — מציירים מחדש */
+  const mod=document.body.dataset.mod;
+  const again={ft:()=>window.FT&&window.FT.init(),stu:()=>window.STU&&window.STU.init(),tools:()=>window.TOOLS&&window.TOOLS.init()}[mod];
+  if(again&&inited[mod]){ try{ again(); }catch(e){} }
+}
+/* פתיחת ההגדרות על כיתה מסוימת — קיצור מבורר הכיתה במבחני הכושר */
+function openClassRename(cid){
+  const b=$("#btnSettings"); if(b)b.click();
+  paintClassRename(cid);
+  const inp=$("#set-clsNew"); if(inp&&!inp.disabled)setTimeout(()=>inp.focus(),60);
+}
+function wireClassRename(){
+  const sel=$("#set-clsSel"); if(!sel)return;
+  sel.addEventListener("change",paintClassRenameCur);
+  $("#set-clsRename").addEventListener("click",renameClassFromUi);
+  $("#set-clsNew").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); renameClassFromUi(); } });
+}
+
+/* שם הכיתה של שיעור: הרישום קודם (דרך cid), הצילום כנפילה אחורה.
+   בהיסטוריה הצילום הוא ההקשר ונשאר; בפס הפעיל מציגים את השם הנוכחי. */
+function sesName(a){
+  try{ const c=a&&a.cid?DATA.classOf(REGSTORE,a.cid):null; if(c&&c.name)return c.name; }catch(e){}
+  return (a&&(a.clsSnapshot||a.cid))||"";
+}
 function paintSessionBar(){
   const bar=document.getElementById("lsBar"); if(!bar)return;
   const a=SESSION.active();
   if(!a){ bar.hidden=true; return; }
   const t=document.getElementById("lsBarT");
-  if(t)t.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot||a.cid)+
+  if(t)t.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(sesName(a))+
     (a.planTitle?" · "+esc(a.planTitle):"");
   bar.hidden=false;
 }
@@ -488,7 +574,7 @@ function wireSessionBar(){
   if(end)end.addEventListener("click",()=>{
     const a=SESSION.active(); if(!a)return;
     const n=SESSION.measurements(a.id).length;
-    if(!confirm("לסיים את השיעור בכיתה "+(a.clsSnapshot||"")+"?\n\n"+
+    if(!confirm("לסיים את השיעור בכיתה "+sesName(a)+"?\n\n"+
       (n?"• "+n+" מדידות נלקחו בשיעור והן נשמרות.\n":"• לא נלקחו מדידות בשיעור.\n")+
       "• השיעור יישאר בהיסטוריה."))return;
     const r=SESSION.complete(a.id);
@@ -3419,6 +3505,7 @@ const FIT=(function(){
 window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
+  openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
   session:SESSION,paintSessionBar,openSesHist,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
@@ -3456,7 +3543,7 @@ function runMigration(){
 window.HMBoot=function(){
   runMigration();
   if(window.I18N)window.I18N.init();
-  applyTheme(); wireModals(); wireNav(); wireSettings(); applySchool(); applyRole(); wireLang();
+  applyTheme(); wireModals(); wireNav(); wireSettings(); wireClassRename(); applySchool(); applyRole(); wireLang();
   wireTipPop();
   /* מסכים שמציירים טקסט בעצמם (תאריך, סטטיסטיקות, רשימות) לא מתעדכנים
      מ-applyDom, ולכן החלפת שפה מציירת אותם מחדש. */

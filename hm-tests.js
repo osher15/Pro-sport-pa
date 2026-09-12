@@ -198,6 +198,12 @@ window.FT=(function(){
   /* תווית → זהות, דרך הרישום: כיתה ששמה שונה שומרת על המזהה שלה.
      כשהיא לא רשומה — נגזר מהתווית, כמו קודם. */
   const cidOf=c=>DATA.resolveClassId(clsStore,c);
+  /* שם הכיתה לתצוגה: הרישום הוא מקור האמת. התווית c (שכבה+מספר)
+     נשארת מפתח הרשימה ונקודת הפתרון לזהות; מה שהמורה רואה הוא השם
+     הרשום — וכיתה שאינה רשומה מוצגת בתווית עצמה. */
+  const disp=c=>{ try{ const r=DATA.classOf(clsStore,cidOf(c)); return (r&&r.name)||c; }catch(e){ return c; } };
+  const sesName=a=>{ try{ const r=a&&a.cid?DATA.classOf(clsStore,a.cid):null; return (r&&r.name)||(a&&a.clsSnapshot)||""; }catch(e){ return (a&&a.clsSnapshot)||""; } };
+  const fname=s=>String(s==null?"":s).replace(/[\\/:*?"<>|]/g,"").trim();
 
   /* מייבא מ«התלמידים שלי» את תלמידי הכיתה — לפי זהות הכיתה (cid), ולא
      לפי שם; והמיזוג לרשימה לפי מזהה תלמיד, כך ששני «דן כהן» עם שני
@@ -412,7 +418,7 @@ window.FT=(function(){
       `<button data-g="${g}" class="${st.grade===g?"on":""}">${lbl}</button>`).join("");
     $("#ft-nums").innerHTML=NUMS.map(n=>
       `<button data-n="${n}" class="${st.num===n?"on":""}">${n}</button>`).join("");
-    $("#ft-clsName").textContent=c;
+    $("#ft-clsName").textContent=disp(c);
     $("#ft-clsInfo").textContent=rst.length
       ? rst.length+" תלמידים ברשימה"
       : "אין עדיין רשימה לכיתה הזו — אפשר לייבא, להדביק או להוסיף ידנית";
@@ -436,6 +442,9 @@ window.FT=(function(){
 
     renderAmb();
     wireStartLesson();
+    /* שינוי שם — דרך הרישום, בהגדרות. הכיתה נרשמת קודם כדי שיהיה מה לשנות. */
+    const rb=$("#ft-clsRename");
+    if(rb)rb.onclick=()=>{ registerCls(c); if(H().openClassRename)H().openClassRename(cidOf(c)); };
     $$("#ft-grades [data-g]").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;persist();renderPicker();}));
     $$("#ft-nums [data-n]").forEach(b=>b.addEventListener("click",()=>{st.num=+b.dataset.n;persist();renderPicker();}));
     $$("#ft-tests [data-t]").forEach(b=>b.addEventListener("click",()=>openTest(b.dataset.t)));
@@ -486,7 +495,7 @@ window.FT=(function(){
       <div class="ft-rh">
         <button class="btn sm ghost" id="ft-back">→ חזרה</button>
         <div class="grow"><b>${T.em} ${esc(T.name)}</b>
-          <div class="sb">כיתה ${esc(c)} · ${done.length}/${rst.length} נמדדו${
+          <div class="sb">כיתה ${esc(disp(c))} · ${done.length}/${rst.length} נמדדו${
             avg!=null?` · ממוצע ${fmtVal(T,avg)} ${esc(T.unit)}`:""}${
             best!=null?` · הטוב ${fmtVal(T,best)}`:""}</div></div>
       </div>
@@ -577,7 +586,7 @@ window.FT=(function(){
         ${pendingNew[k]?'<span class="pill acc">ניסיון חדש</span>':""}
         ${r?`<button class="btn sm stop" data-del="${esc(k)}">✕</button>`:""}
       </div>`;}).join("")
-      : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.<br>
+      : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.<br>
          לחץ «👥 רשימה» כדי לייבא מ«התלמידים שלי», להדביק רשימה, או להוסיף ידנית.</div>`;
 
     wireRun();
@@ -649,7 +658,7 @@ window.FT=(function(){
     const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
     const best=vals.length?(T.dir==="low"?Math.min(...vals):Math.max(...vals)):null;
     const sb=$("#ft-runHead").querySelector(".sb");
-    if(sb)sb.textContent=`כיתה ${c} · ${vals.length}/${rst.length} נמדדו`
+    if(sb)sb.textContent=`כיתה ${disp(c)} · ${vals.length}/${rst.length} נמדדו`
       +(avg!=null?` · ממוצע ${fmtVal(T,avg)} ${T.unit}`:"")
       +(best!=null?` · הטוב ${fmtVal(T,best)}`:"");
   }
@@ -733,7 +742,7 @@ window.FT=(function(){
     /* הכיתות שבהן הוא נמדד — מוצג רק כשיש יותר מאחת */
     const multiCls=prof.classes.length>1;
 
-    $("#ft-cardTitle").textContent="👤 "+name+" · כיתה "+c;
+    $("#ft-cardTitle").textContent="👤 "+name+" · כיתה "+disp(c);
     $("#ft-cardBody").innerHTML=`
       <div class="ft-idxsum">
         <div><span class="k">מבחנים שנמדדו</span><span class="v">${mineTests.length}</span></div>
@@ -771,7 +780,7 @@ window.FT=(function(){
       const out=[["מבחן","הטוב","יחידה","ציון","ניסיונות","נמדד לאחרונה","ימי מדידה"]];
       rows.forEach(r=>out.push([r.T.name,r.bst.val,r.T.unit,r.sc.v!=null?r.sc.v.toFixed(0):"",
         r.list.length,r.dates[r.dates.length-1],r.dates.length]));
-      H().dlCSV("כרטיס-"+name+"-"+c+"-"+today()+".csv",out);
+      H().dlCSV("כרטיס-"+name+"-"+fname(disp(c))+"-"+today()+".csv",out);
     };
   }
 
@@ -1008,18 +1017,18 @@ window.FT=(function(){
     const c=cls(), list=roster(c);
     if(list.some(x=>x.name===nm.trim())){H().toast("השם כבר ברשימה");return;}
     list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5),name:nm.trim()});
-    setRoster(c,list); renderRun(); H().toast("נוסף לכיתה "+c);
+    setRoster(c,list); renderRun(); H().toast("נוסף לכיתה "+disp(c));
   }
   function openRoster(){
     const {$, esc}=H(), c=cls();
-    $("#ft-rosTitle").textContent="👥 רשימת כיתה "+c;
+    $("#ft-rosTitle").textContent="👥 רשימת כיתה "+disp(c);
     renderRosterList();
     H().modal("ft-rosModal");
     $("#ft-rosFile").onclick=()=>{ H().modal("ft-rosModal",false); openImport(); };
     $("#ft-rosImport").onclick=()=>{
       const n=importFromStu(c);
       if(n)H().toast("יובאו "+n+" תלמידים מ«התלמידים שלי»");
-      else H().toast("לא נמצאו תלמידים עם הכיתה «"+c+"» ב«התלמידים שלי»");
+      else H().toast("לא נמצאו תלמידים עם הכיתה «"+disp(c)+"» ב«התלמידים שלי»");
       renderRosterList();
     };
     $("#ft-rosPaste").onclick=()=>{
@@ -1394,7 +1403,7 @@ window.FT=(function(){
     if(!rs.length){H().toast("אין עדיין תוצאות במבחן הזה");return;}
     const rows=[["תאריך","כיתה","שם","מבחן","תוצאה","יחידה"]];
     rs.forEach(r=>rows.push([r.d,r.cls,r.name,T.name,r.val,r.unit]));
-    H().dlCSV("מבחן-"+T.name+"-"+c+"-"+today()+".csv",rows);
+    H().dlCSV("מבחן-"+T.name+"-"+fname(disp(c))+"-"+today()+".csv",rows);
   }
 
   /* ============================================================
@@ -1415,7 +1424,7 @@ window.FT=(function(){
 
     $("#ft-idx").innerHTML=`
       <div class="card">
-        <h2><span class="dot"></span> מדד הכושר הגופני — כיתה ${esc(c)}</h2>
+        <h2><span class="dot"></span> מדד הכושר הגופני — כיתה ${esc(disp(c))}</h2>
         <div class="hint">ציון 0–100 ליכולת בלבד. זה לא ציון התעודה — זה הרכיב שאתה משקלל
           לתוכו את ההגעה, ההשתתפות, השיפור והבונוסים.</div>
 
@@ -1473,7 +1482,7 @@ window.FT=(function(){
             הוסף תוצאות, סמן מין לתלמידים ב«👥 רשימה», או עבור לטבלת נורמה.</div>`:""}
           <div class="hint" style="margin-top:7px">«שלח לציונים» כותב את המדד לעמודת «מדד כושר» בלשונית הציונים,
             בקטגוריית היכולת, לתקופת ההערכה הפעילה. התאמה לפי שם.</div>`
-          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.</div>`}
       </div>`;
 
     $$("#ft-modeSeg button").forEach(b=>b.addEventListener("click",()=>{setScoreMode(b.dataset.m);renderIndex();}));
@@ -1576,7 +1585,7 @@ window.FT=(function(){
       ' מבחנים שהכיתה עשתה ולתלמיד אין בהם תוצאה:</b><br>'+
       missing.map(t=>esc(testById(t).name)).join(" · ")+'</div>':"";
     rptOpen("דוח תלמיד — "+name,
-      rptHead("דוח כושר אישי",name+" · כיתה "+c)+kpi+table+histBlock+missBlock+
+      rptHead("דוח כושר אישי",name+" · כיתה "+disp(c))+kpi+table+histBlock+missBlock+
       '<div class="note">הציון מחושב מהתוצאה הטובה ביותר בכל מבחן, לפי '+
       (scoreMode()==="norm"?"טבלת הנורמה הבית־ספרית":"ניקוד יחסי לשכבה")+
       '. «שיפור» הוא ההפרש בין יום המדידה הראשון לתוצאה הטובה ביותר. '+
@@ -1614,7 +1623,7 @@ window.FT=(function(){
     }).filter(Boolean).join("");
     const gapBlock=gaps?'<h2>מי עוד לא נמדד</h2><table><thead><tr><th style="width:24%">מבחן</th><th style="width:8%">חסרים</th><th>תלמידים</th></tr></thead><tbody>'+gaps+'</tbody></table>':"";
     rptOpen("דוח כיתה — "+c,
-      rptHead("דוח כושר כיתתי","כיתה "+c+" · "+(scoreMode()==="norm"?"ניקוד לפי טבלת נורמה":"ניקוד יחסי לשכבה"))+
+      rptHead("דוח כושר כיתתי","כיתה "+disp(c)+" · "+(scoreMode()==="norm"?"ניקוד לפי טבלת נורמה":"ניקוד יחסי לשכבה"))+
       kpi+'<h2>ציוני יכולת</h2><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>'+gapBlock+
       '<div class="note">כל ציון מחושב מהתוצאה הטובה ביותר של התלמיד באותו מבחן. '+
       'הדוח משקף יכולת גופנית בלבד — הציון בתעודה מורכב גם מהשתתפות, שיפור והתמדה, ואינו זהה למדד הזה. '+
@@ -1631,7 +1640,7 @@ window.FT=(function(){
       out.push([r.s.name,r.s.sex==="girls"?"בת":r.s.sex==="boys"?"בן":"",
         ...usedTests.map(t=>by[t]?by[t].sc.toFixed(0):""),r.idx!=null?r.idx.toFixed(1):""]);
     });
-    H().dlCSV("מדד-כושר-"+cls()+"-"+today()+".csv",out);
+    H().dlCSV("מדד-כושר-"+fname(disp(cls()))+"-"+today()+".csv",out);
   }
 
   /* כתיבת המדד לעמודת «מדד כושר» בלשונית הציונים */
@@ -1930,7 +1939,7 @@ window.FT=(function(){
 
     $("#ft-ot").innerHTML=`
       <div class="card">
-        <h2><span class="dot"></span> אות החינוך הגופני — כיתה ${esc(c)}</h2>
+        <h2><span class="dot"></span> אות החינוך הגופני — כיתה ${esc(disp(c))}</h2>
         <div class="hint">צבירת נקודות לפי «אות החינוך הגופני — סטנדרטים להערכת הישגי התלמידים»,
           משרד החינוך, המזכירות הפדגוגית, תשס״ח/2007. <b>${OT_MAX}</b> נקודות אפשריות;
           זכאות ל<b>אות</b> מ-<b>${OT_PASS}</b> נקודות ומעלה, מהן <b>${OT_CORE_MIN}</b> לפחות
@@ -1980,7 +1989,7 @@ window.FT=(function(){
           <div class="hint" style="margin-top:8px">מקישים על ספרות המועד כדי לסמן עמידה בתקן באותו מבדק ·
             «🎽» מתקדם ב-1 בכל הקשה עד 3 · «חסר ליבה» = יש מספיק נקודות בסך הכול, אבל פחות מ-${OT_CORE_MIN}
             במבדק האירובי ובאימון המחזורי יחד.</div>`
-          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.</div>`}
+          : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.</div>`}
       </div>`;
 
     const upd=(name,fn)=>{ const rec=otRec(c,name); fn(rec); otSave(c,name,rec); renderOt(); };
@@ -2002,7 +2011,7 @@ window.FT=(function(){
     const out=[["שם","אירובי","מחזורי","עיוני","השתתפות","פעילות קבועה","חד־פעמית","יומן","סה״כ","זכאי לאות"]];
     rows.forEach(r=>out.push([r.s.name,r.per.aer,r.per.cir,r.per.theory,r.per.part,r.per.club,r.per.event,r.per.diary,
       r.total,r.ok?"כן":"לא"]));
-    H().dlCSV("אות-החינוך-הגופני-"+cls()+"-"+today()+".csv",out);
+    H().dlCSV("אות-החינוך-הגופני-"+fname(disp(cls()))+"-"+today()+".csv",out);
   }
 
   /* ============================================================
@@ -2029,7 +2038,7 @@ window.FT=(function(){
     if(!groups.length){ card.hidden=true; return; }
     card.hidden=false;
     const total=groups.reduce((a,g)=>a+g.ids.length,0);
-    $("#ft-ambHint").innerHTML=total+" מדידות בכיתה "+esc(c)+" לא שויכו לתלמיד בוודאות, ולכן הן לא נכנסות "+
+    $("#ft-ambHint").innerHTML=total+" מדידות בכיתה "+esc(disp(c))+" לא שויכו לתלמיד בוודאות, ולכן הן לא נכנסות "+
       "לכרטיס אף אחד ולא למדד. הן שמורות — צריך רק להגיד למי הן שייכות.";
     $("#ft-ambList").innerHTML=groups.map(g=>
       `<div class="arc-item">
@@ -2046,7 +2055,7 @@ window.FT=(function(){
     $("#ft-ambTitle").textContent="למי שייכות המדידות של «"+g.name+"»?";
     const T=tid=>{ const t=testById(tid); return t?t.name:tid; };
     $("#ft-ambBody").innerHTML=`
-      <div class="hint">${g.ids.length} מדידות · כיתה ${esc(c)} · ${esc(AMB_WHY[g.reason]||g.reason)}</div>
+      <div class="hint">${g.ids.length} מדידות · כיתה ${esc(disp(c))} · ${esc(AMB_WHY[g.reason]||g.reason)}</div>
       <div class="tblwrap" style="margin:10px 0"><table class="tbl"><thead>
         <tr><th>תאריך</th><th>מבחן</th><th>תוצאה</th></tr></thead>
         <tbody>${g.rows.slice(0,8).map(r=>`<tr><td>${esc(r.d||"")}</td>
@@ -2060,7 +2069,7 @@ window.FT=(function(){
                 data-pick="${esc(refKey(s))}">${esc(s.name)}${
                 cand.exact.indexOf(s)>=0?' <span class="pill acc">שם תואם</span>':""}</button>`).join("")}</div>
            <div class="hint">אם אף אחד מהם אינו הנכון — השאר את המדידות כמו שהן. הן לא ילכו לאיבוד.</div>`
-        : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(c)}.<br>
+        : `<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.<br>
              ייבא את הרשימה קודם, ואז אפשר יהיה לשייך.</div>`}`;
     $$("#ft-ambBody [data-pick]").forEach(b=>b.addEventListener("click",()=>{
       const stud=studByKey(c,b.dataset.pick);
@@ -2097,12 +2106,12 @@ window.FT=(function(){
       registerCls(c);
       const r=S.start({cid,clsSnapshot:c,date:today()});
       if(r.outcome==="blocked"){
-        H().toast("כבר פתוח שיעור בכיתה "+(r.active.clsSnapshot||"")+" — סיים אותו קודם");
+        H().toast("כבר פתוח שיעור בכיתה "+sesName(r.active)+" — סיים אותו קודם");
         return;
       }
       if(!r.ok){ H().toast("לא ניתן לפתוח שיעור"); return; }
       H().paintSessionBar();
-      H().toast(r.outcome==="resumed"?"השיעור בכיתה "+c+" כבר פתוח":"▶ השיעור בכיתה "+c+" התחיל");
+      H().toast(r.outcome==="resumed"?"השיעור בכיתה "+disp(c)+" כבר פתוח":"▶ השיעור בכיתה "+disp(c)+" התחיל");
       renderPicker();
     };
   }
@@ -2159,7 +2168,8 @@ window.FT=(function(){
        מחדש. זה בדיוק מה שההקשר נועד למנוע.
        ============================================================ */
     const act=(H().session&&H().session.active())||null;
-    const actCls=act?DATA.parseCls(act.clsSnapshot):null;
+    /* הזהות קודם: שכבה/מספר מתוך cid השיעור; הצילום — נפילה אחורה */
+    const actCls=act?(DATA.cidParts(act.cid)||DATA.parseCls(act.clsSnapshot)):null;
     let g=(actCls&&actCls.grade)||last.grade||"ט";
     let num=(actCls&&actCls.num)||+last.num||1;
     let sel=null;
@@ -2167,7 +2177,7 @@ window.FT=(function(){
     host("cp-title").querySelector("span").textContent=o.title||"טעינת כיתה";
     /* אומרים למורה למה הבורר פתוח דווקא כאן */
     host("cp-note").textContent=(act&&actCls)
-      ? ("שיעור פעיל בכיתה "+act.clsSnapshot+" — הבורר נפתח עליה. "+(o.note||""))
+      ? ("שיעור פעיל בכיתה "+sesName(act)+" — הבורר נפתח עליה. "+(o.note||""))
       : (o.note||"");
     host("cp-grades").innerHTML=GRADES.map(([k,lbl])=>
       `<button data-g="${k}"${k===g?' class="on"':""}>${lbl}</button>`).join("");
@@ -2184,7 +2194,7 @@ window.FT=(function(){
       if(o.max&&list.length>o.max) sel=new Set(list.slice(0,o.max).map(x=>x.name));
       host("cp-list").innerHTML=list.length
         ? list.map(x=>`<label class="cp-item"><input type="checkbox" value="${H().esc(x.name)}"${sel.has(x.name)?" checked":""}><span>${H().esc(x.name)}</span></label>`).join("")
-        : `<div class="empty-state" style="margin:0"><div class="big">👥</div>אין עדיין רשימה לכיתה ${c}.<br>
+        : `<div class="empty-state" style="margin:0"><div class="big">👥</div>אין עדיין רשימה לכיתה ${disp(c)}.<br>
            פתח «🏅 מבחני כושר» ← הכיתה הזאת ← «👥 רשימה» וייבא אותה פעם אחת — ומאז היא זמינה בכל המודולים.</div>`;
       $$("#cp-list input").forEach(i=>i.addEventListener("change",()=>{
         if(i.checked)sel.add(i.value); else sel.delete(i.value);
@@ -2245,12 +2255,16 @@ window.FT=(function(){
       if(!nm||!(v>0)){ skipped++; return; }
       /* מודולים אחרים (ביפ טסט, פוטו-פיניש) מכירים שם בלבד, ולכן
          כאן עדיין מתרגמים שם למזהה — אבל רק כאן, בנקודת הכניסה. */
-      const known=roster(c).find(x=>x.name===nm);
+      /* התאמה יחידה בלבד. שני תלמידים באותו שם ברשימה — לא מנחשים:
+         המדידה נשמרת בלי sid ומסומנת להכרעה, כמו במיגרציה. */
+      const same=roster(c).filter(x=>x.name===nm);
+      const known=same.length===1?same[0]:null;
       const key=(known&&known.id?("id:"+known.id):("nm:"+nm))+"|"+v.toFixed(2);
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
         cls:c,cid:cid,test:testId,name:nm,sid:known?(known.id||null):null,
+        ...(same.length>1?{sidAmbig:"duplicate-name"}:{}),
         normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;

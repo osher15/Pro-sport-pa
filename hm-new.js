@@ -157,6 +157,8 @@ window.STU=(function(){
          יכול «לעבור כיתה». המזהה נפתר דרך הרישום — כיתה ששמה שונה
          שומרת על המזהה שלה, ולא נוצרת כיתה שנייה בגלל תווית חדשה. */
       s.cid=cidFor(s.cls);
+      /* הסימון «אין כיתה» חייב להסכים עם cid: נמחק כשיש כיתה, נכתב כשאין */
+      if(s.cid){ if(s.cidAmbig)delete s.cidAmbig; } else s.cidAmbig="no-class";
       s.sex=$("#stu-fSex").value;
       s.age=+$("#stu-fAge").value||14; s.h=+$("#stu-fH").value||null; s.w=+$("#stu-fW").value||null;
       s.tests.forEach(t=>{ if(t.speed)t.vo2=vo2f(t.speed,s.age); if(t.vo2)t.zone=zoneOf(t.vo2,s.age,s.sex).g; });
