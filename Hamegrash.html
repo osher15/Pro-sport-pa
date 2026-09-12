@@ -1063,6 +1063,9 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-card td .u{display:block}
 .ft-card .dim{color:var(--muted)}
 .ft-card .up{color:var(--green)}
+/* ירידה בביצוע. קודם כל מה שאינו שיפור הופיע כמקף, כלומר תלמיד
+   שנסוג נראה בדיוק כמו תלמיד שלא נמדד פעמיים. */
+.ft-card .down{color:var(--stop)}
 .ft-card .cap{display:block;font-size:10.5px;color:var(--warn);font-weight:400}
 
 
@@ -3664,6 +3667,106 @@ function archiveNorm(archive,N){
 }
 
 /* ============================================================
+   5ה. פרופיל התלמיד
+   ------------------------------------------------------------
+   התמונה המלאה של תלמיד אחד, על פני כל המבחנים שנמדד בהם. זו
+   השכבה שכרטיס התלמיד נשען עליה, ושכל מסך עתידי יישען עליה —
+   כדי שלא תהיה גרסה שנייה ל«כמה התלמיד הזה שווה».
+
+   שלוש החלטות שקובעות את ההתנהגות:
+
+   1. ההיסטוריה חוצה כיתות. תלמיד שעבר מ-ט׳3 ל-י׳1 לא איבד את
+      העבר שלו, וכל מדידה זוכרת באיזו כיתה נלקחה. צמצום לכיתה
+      אחת אפשרי דרך opts.cls, אבל הוא אינו ברירת המחדל.
+
+   2. הציון נגזר מהתוצאה הטובה ביותר — כפי שהיה תמיד. הפרופיל
+      אינו משנה את כללי הניקוד, הוא רק מציג אותם שלמים.
+
+   3. אין חישוב התקדמות משלו. הוא קורא ל-progress() ול-assess()
+      שכבר קיימות.
+   ============================================================ */
+function profileOf(rows,stud,testDefs,opts){
+  opts=opts||{};
+  var defs=testDefs||[];
+  var byId={}; defs.forEach(function(t){ if(t&&t.id)byId[t.id]=t; });
+
+  /* המבחנים שלתלמיד יש בהם מדידה — בסדר שבו הקטלוג מגדיר אותם,
+     כדי שהפרופיל ייראה אותו דבר בכל פתיחה. */
+  var mine=(rows||[]).filter(function(r){
+    return r&&byId[r.test]&&sameStudent(r,stud)&&
+      (!opts.cls||clsKey(r.cls)===clsKey(opts.cls));
+  });
+  var seen={}, order=[];
+  defs.forEach(function(t){
+    if(mine.some(function(r){ return r.test===t.id; })&&!seen[t.id]){
+      seen[t.id]=1; order.push(t.id);
+    }
+  });
+
+  var out={tests:[],measured:order.length,classes:[],
+           index:{v:null,from:0,of:0},stud:{sid:studentKey(stud),name:(stud&&stud.name)||""}};
+
+  /* הכיתות שבהן התלמיד נמדד — הקשר, לא זהות */
+  mine.forEach(function(r){
+    var c=r.cid||("cls:"+clsKey(r.cls));
+    if(c&&out.classes.indexOf(c)<0)out.classes.push(c);
+  });
+
+  var scores=[];
+  order.forEach(function(tid){
+    var T=byId[tid];
+    var pr=progress(rows,stud,tid,T.dir,opts.cls?{cls:opts.cls}:null);
+    var best=pr.best;
+    var a=assess({mode:opts.mode,table:opts.table,rows:rows,archive:opts.archive,
+      testId:tid,sex:(stud&&stud.sex)||null,grade:opts.grade,
+      val:best?best.val:null,dir:T.dir,cap:T.cap==null?100:T.cap,
+      normVersion:opts.normVersion,
+      measuredNormVersion:best?best.normVer:null});
+    if(a.v!=null)scores.push(a.v);
+    var list=measurementsOf(rows,stud,tid,opts.cls?{cls:opts.cls}:null);
+    var days=[]; list.forEach(function(r){
+      var d=String(r.d||""); if(d&&days.indexOf(d)<0)days.push(d); });
+    days.sort();
+    out.tests.push({testId:tid,def:T,dir:T.dir,unit:T.unit,cap:T.cap||null,
+      count:pr.count,days:pr.days,invalid:pr.invalid,
+      list:list,dates:days,
+      first:pr.first,latest:pr.latest,best:best,previous:pr.previous,
+      latestIsBest:pr.latestIsBest,progress:pr,assessment:a,
+      /* «שיפור» בסמנטיקה של הכרטיס הקיים: השיא מול הטוב ביום
+         הראשון, וגודל ההפרש רק כשהוא שיפור. נשמר כדי שדוח ה-PDF
+         ימשיך להציג בדיוק את מה שהציג. */
+      imp:(pr.sinceFirst&&pr.sinceFirst.improved)?Math.abs(pr.sinceFirst.rawDelta):null});
+  });
+
+  /* מדד הכושר: ממוצע הציונים שיש להם ציון. זהה לחישוב הקיים. */
+  if(scores.length){
+    var sum=scores.reduce(function(a,b){ return a+b; },0);
+    out.index={v:Math.round(sum/scores.length*10)/10,from:scores.length,of:order.length};
+  }else out.index={v:null,from:0,of:order.length};
+  return out;
+}
+
+/* מה חסר לתלמיד: מבחנים שהכיתה כבר עשתה ולו אין בהם תוצאה. */
+function missingTests(rows,stud,testDefs,opts){
+  opts=opts||{};
+  var byId={}; (testDefs||[]).forEach(function(t){ if(t&&t.id)byId[t.id]=t; });
+  var k=opts.cls?clsKey(opts.cls):null;
+  var classTests=[], mineTests={};
+  (rows||[]).forEach(function(r){
+    if(!r||!byId[r.test])return;
+    if(k&&clsKey(r.cls)!==k)return;
+    if(classTests.indexOf(r.test)<0)classTests.push(r.test);
+  });
+  (rows||[]).forEach(function(r){
+    if(r&&byId[r.test]&&sameStudent(r,stud))mineTests[r.test]=1;
+  });
+  (opts.want||[]).forEach(function(t){
+    if(byId[t]&&classTests.indexOf(t)<0)classTests.push(t);
+  });
+  return classTests.filter(function(t){ return !mineTests[t]; });
+}
+
+/* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
    באפליקציה כבר היה «מערך שיעור»: תוכן שמור, שאפשר לטעון ולהציג.
@@ -3898,6 +4001,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  profileOf:profileOf, missingTests:missingTests,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
@@ -12649,28 +12753,80 @@ window.FT=(function(){
      עונה על שתי שאלות בבת אחת — מה כבר נמדד ומה עדיין חסר. «חסר»
      מוגדר כמבחן שהכיתה כבר עשתה ולתלמיד הזה אין בו תוצאה, ולא כ-30
      המבחנים שבקטלוג, כי אחרת הרשימה חסרת משמעות. */
+  /* ============================================================
+     תאי הפרופיל
+     ------------------------------------------------------------
+     שלושה דברים שהכרטיס לא ידע להגיד עד עכשיו:
+
+     • «אחרון» לצד «שיא אישי». תלמיד ששיאו 5.42 והזמן האחרון שלו
+       5.90 נמצא בירידה — ובלי שתי העמודות זה לא נראה בכלל.
+     • ירידה מוצגת כירידה. קודם כל מה שאינו שיפור הופיע כמקף,
+       כלומר תלמיד שנסוג נראה בדיוק כמו תלמיד שלא נמדד פעמיים.
+     • «למה אין ציון». מקף אחד לא מבחין בין «אין טבלת נורמה»,
+       «אין מספיק תוצאות בשכבה» ו«לא נמדד».
+     ============================================================ */
+  const NO_SCORE={
+    "no-norm":"אין טבלת נורמה למבחן הזה בשכבה",
+    "too-few-peers":"פחות מ-3 תוצאות בשכבה — אחוזון עוד לא אמין",
+    "no-measurement":"לא נמדד",
+    "invalid-measurement":"המדידה פגומה",
+    "unknown-test":"מבחן לא מוכר"
+  };
+  function scoreCell(r){
+    const {esc}=H(), a=r.sc;
+    if(a.v!=null)
+      return `<td class="mono">${a.v.toFixed(0)}${
+        a.src==="rel"&&scoreMode()==="norm"?"<b>~</b>":""}${
+        a.stale?'<span class="u">כללים חדשים</span>':""}</td>`;
+    const why=NO_SCORE[a.reason]||"אין ציון";
+    return `<td class="mono dim" title="${esc(why)}">—<span class="u">${esc(why)}</span></td>`;
+  }
+  function lastCell(r){
+    const {esc}=H();
+    if(!r.P.latest)return '<td class="mono dim">—</td>';
+    if(r.P.latestIsBest)
+      return `<td class="mono dim">${fmtVal(r.T,r.P.latest.val)}<span class="u">= השיא</span></td>`;
+    return `<td class="mono">${fmtVal(r.T,r.P.latest.val)} <span class="u">${esc(r.T.unit)}</span></td>`;
+  }
+  /* המגמה היא הצעד האחרון: המדידה האחרונה מול הטובה שלפני אותו יום. */
+  function trendCell(r){
+    const st2=r.P.progress;
+    if(!st2||!st2.lastStep)
+      return `<td class="mono dim">${st2&&st2.reason===DATA.PROGRESS_ONE?"מדידה אחת":""}</td>`;
+    const s2=st2.lastStep;
+    if(s2.unchanged)return '<td class="mono dim">ללא שינוי</td>';
+    const d=fmtVal(r.T,Math.abs(s2.rawDelta));
+    return s2.improved
+      ? `<td class="mono"><span class="up">▲ ${d}</span></td>`
+      : `<td class="mono"><span class="down">▼ ${d}</span></td>`;
+  }
+
   function openCard(key){
     const {$, $$, esc}=H(), c=cls();
     const stud=asStud(c,key), name=stud.name;
-    const mine=resultsOf(c,stud);
-    /* מבחנים שנמדדו בכיתה בכלל */
-    const classTests=[...new Set(allRes().filter(r=>clsKey(r.cls)===clsKey(c)).map(r=>r.test))];
+    /* ============================================================
+       הפרופיל נבנה בשכבה הטהורה ולא כאן.
+       ------------------------------------------------------------
+       עד עכשיו הכרטיס חישב לעצמו «האם השתפר», והסתכל רק על
+       הכיתה הנוכחית — כלומר תלמיד שעבר כיתה איבד את כל העבר שלו
+       ברגע המעבר. עכשיו הוא מקבל את התמונה המלאה, חוצת הכיתות,
+       מאותן progress() ו-assess() שכל שאר המוצר משתמש בהן.
+       ============================================================ */
+    const prof=PROGRESS.profile(stud);
     const want=idxTests();
-    const mineTests=[...new Set(mine.map(r=>r.test))];
-    const missing=[...new Set([].concat(classTests,want))].filter(t=>!mineTests.includes(t)&&testById(t));
+    const missing=PROGRESS.missing(stud,{cls:c}).filter(t=>testById(t));
 
-    const rows=mineTests.map(tid=>{
-      const T=testById(tid); if(!T)return null;
-      const list=attempts(c,tid,stud), bst=bestOf(T,list);
-      const sc=scoreOne(tid,stud,st.grade,bst.val);
-      const dates=[...new Set(list.map(r=>r.d))].sort();
-      const first=bestOf(T,list.filter(r=>r.d===dates[0]));
-      const imp=dates.length>1?(better(T,bst.val,first.val)?Math.abs(bst.val-first.val):null):null;
-      return {T,bst,list,sc,dates,imp};
-    }).filter(Boolean).sort((a,b)=>a.T.cat.localeCompare(b.T.cat));
+    /* שמות השדות נשמרים כפי שהיו: דוח ה-PDF וייצוא ה-CSV צורכים
+       אותם, ואין סיבה לשבור אותם כדי לשנות תצוגה. */
+    const rows=prof.tests.map(t=>({T:t.def,bst:t.best,list:t.list,sc:t.assessment,
+      dates:t.dates,imp:t.imp,P:t})).filter(r=>r.bst)
+      .sort((a,b)=>a.T.cat.localeCompare(b.T.cat));
 
     const scored=rows.filter(r=>r.sc.v!=null);
-    const idx=scored.length?scored.reduce((a,b)=>a+b.sc.v,0)/scored.length:null;
+    const idx=prof.index.v;
+    const mineTests=rows.map(r=>r.T.id);
+    /* הכיתות שבהן הוא נמדד — מוצג רק כשיש יותר מאחת */
+    const multiCls=prof.classes.length>1;
 
     $("#ft-cardTitle").textContent="👤 "+name+" · כיתה "+c;
     $("#ft-cardBody").innerHTML=`
@@ -12680,16 +12836,19 @@ window.FT=(function(){
           <span class="k">${scored.length?"מ-"+scored.length+" מבחנים":"אין ציון"}</span></div>
         <div><span class="k">חסרים</span><span class="v">${missing.length}</span></div>
       </div>
+      ${multiCls?`<div class="hint" style="margin-top:9px">📚 הפרופיל כולל
+        <b>${prof.classes.length} כיתות</b> — כל ההיסטוריה של התלמיד, גם ממה שנמדד לפני שעבר כיתה.</div>`:""}
 
       ${rows.length?`<div class="tblwrap" style="margin-top:12px"><table class="tbl ft-card">
-        <thead><tr><th>מבחן</th><th>⭐ הטוב</th><th>ציון</th><th>ניסיונות</th><th>נמדד</th><th>שיפור</th></tr></thead>
+        <thead><tr><th>מבחן</th><th>⭐ שיא אישי</th><th>אחרון</th><th>ציון</th><th>ניסיונות</th><th>נמדד</th><th>מגמה</th></tr></thead>
         <tbody>${rows.map(r=>`<tr>
           <td><b>${r.T.em} ${esc(r.T.name)}</b>${r.T.cap?`<span class="cap">תקרה ${r.T.cap}</span>`:""}</td>
           <td class="mono gold">${fmtVal(r.T,r.bst.val)} <span class="u">${esc(r.T.unit)}</span></td>
-          <td class="mono">${r.sc.v!=null?r.sc.v.toFixed(0)+(r.sc.src==="rel"&&scoreMode()==="norm"?"<b>~</b>":""):"—"}</td>
+          ${lastCell(r)}
+          ${scoreCell(r)}
           <td class="mono">${r.list.length}</td>
           <td class="mono dim">${r.dates[r.dates.length-1]}${r.dates.length>1?`<span class="u">${r.dates.length} ימים</span>`:""}</td>
-          <td class="mono">${r.imp!=null?`<span class="up">▲ ${fmtVal(r.T,r.imp)}</span>`:r.dates.length>1?"—":""}</td>
+          ${trendCell(r)}
         </tr>`).join("")}</tbody></table></div>`
         :'<div class="empty-state"><div class="big">📋</div>אין עדיין תוצאות לתלמיד הזה.</div>'}
 
@@ -12699,7 +12858,8 @@ window.FT=(function(){
 
       <div class="hint" style="margin-top:11px">הציון מחושב מ<b>התוצאה הטובה ביותר</b> בכל מבחן, לפי
         ${scoreMode()==="norm"?"טבלת הנורמה":"ניקוד יחסי לשכבה"}${want.length?` · המדד מורכב מ-${want.length} מבחנים שנבחרו`:" · המדד מורכב מכל מבחן שיש לו תוצאה"}.
-        «שיפור» הוא ההפרש בין יום המדידה הראשון לתוצאה הטובה.</div>`;
+        «מגמה» היא המדידה האחרונה מול הטובה שלפני אותו יום — ולכן היא
+        מראה גם ירידה, לא רק שיפור.</div>`;
     H().modal("ft-cardModal");
     $("#ft-cardPdf").onclick=()=>studentReport(name,c,rows,idx,scored,missing);
     $("#ft-cardCsv").onclick=()=>{
@@ -14210,6 +14370,13 @@ window.FT=(function(){
     assessOf:(stud,m)=>m?PROGRESS.assess(stud,m.test,m.val,m.gradeKey,m.normVer)
                        :DATA.assess({}),
     dirOf:testId=>{ const T=testById(testId); return T?T.dir:null; },
+    /* התמונה המלאה של תלמיד אחד. ברירת המחדל היא כל ההיסטוריה,
+       חוצת כיתות; opts.cls מצמצם. */
+    profile:(stud,opts)=>DATA.profileOf(allRes(),stud,TESTS,Object.assign(
+      {mode:scoreMode(),table:norms().table,archive:normArchive(),
+       normVersion:normVersion(),grade:st.grade},opts||{})),
+    missing:(stud,opts)=>DATA.missingTests(allRes(),stud,TESTS,
+      Object.assign({want:idxTests()},opts||{})),
     normVersion
   };
 

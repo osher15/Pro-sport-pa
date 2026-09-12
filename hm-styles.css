@@ -1052,6 +1052,9 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-card td .u{display:block}
 .ft-card .dim{color:var(--muted)}
 .ft-card .up{color:var(--green)}
+/* ירידה בביצוע. קודם כל מה שאינו שיפור הופיע כמקף, כלומר תלמיד
+   שנסוג נראה בדיוק כמו תלמיד שלא נמדד פעמיים. */
+.ft-card .down{color:var(--stop)}
 .ft-card .cap{display:block;font-size:10.5px;color:var(--warn);font-weight:400}
 
 

@@ -826,6 +826,106 @@ function archiveNorm(archive,N){
 }
 
 /* ============================================================
+   5ה. פרופיל התלמיד
+   ------------------------------------------------------------
+   התמונה המלאה של תלמיד אחד, על פני כל המבחנים שנמדד בהם. זו
+   השכבה שכרטיס התלמיד נשען עליה, ושכל מסך עתידי יישען עליה —
+   כדי שלא תהיה גרסה שנייה ל«כמה התלמיד הזה שווה».
+
+   שלוש החלטות שקובעות את ההתנהגות:
+
+   1. ההיסטוריה חוצה כיתות. תלמיד שעבר מ-ט׳3 ל-י׳1 לא איבד את
+      העבר שלו, וכל מדידה זוכרת באיזו כיתה נלקחה. צמצום לכיתה
+      אחת אפשרי דרך opts.cls, אבל הוא אינו ברירת המחדל.
+
+   2. הציון נגזר מהתוצאה הטובה ביותר — כפי שהיה תמיד. הפרופיל
+      אינו משנה את כללי הניקוד, הוא רק מציג אותם שלמים.
+
+   3. אין חישוב התקדמות משלו. הוא קורא ל-progress() ול-assess()
+      שכבר קיימות.
+   ============================================================ */
+function profileOf(rows,stud,testDefs,opts){
+  opts=opts||{};
+  var defs=testDefs||[];
+  var byId={}; defs.forEach(function(t){ if(t&&t.id)byId[t.id]=t; });
+
+  /* המבחנים שלתלמיד יש בהם מדידה — בסדר שבו הקטלוג מגדיר אותם,
+     כדי שהפרופיל ייראה אותו דבר בכל פתיחה. */
+  var mine=(rows||[]).filter(function(r){
+    return r&&byId[r.test]&&sameStudent(r,stud)&&
+      (!opts.cls||clsKey(r.cls)===clsKey(opts.cls));
+  });
+  var seen={}, order=[];
+  defs.forEach(function(t){
+    if(mine.some(function(r){ return r.test===t.id; })&&!seen[t.id]){
+      seen[t.id]=1; order.push(t.id);
+    }
+  });
+
+  var out={tests:[],measured:order.length,classes:[],
+           index:{v:null,from:0,of:0},stud:{sid:studentKey(stud),name:(stud&&stud.name)||""}};
+
+  /* הכיתות שבהן התלמיד נמדד — הקשר, לא זהות */
+  mine.forEach(function(r){
+    var c=r.cid||("cls:"+clsKey(r.cls));
+    if(c&&out.classes.indexOf(c)<0)out.classes.push(c);
+  });
+
+  var scores=[];
+  order.forEach(function(tid){
+    var T=byId[tid];
+    var pr=progress(rows,stud,tid,T.dir,opts.cls?{cls:opts.cls}:null);
+    var best=pr.best;
+    var a=assess({mode:opts.mode,table:opts.table,rows:rows,archive:opts.archive,
+      testId:tid,sex:(stud&&stud.sex)||null,grade:opts.grade,
+      val:best?best.val:null,dir:T.dir,cap:T.cap==null?100:T.cap,
+      normVersion:opts.normVersion,
+      measuredNormVersion:best?best.normVer:null});
+    if(a.v!=null)scores.push(a.v);
+    var list=measurementsOf(rows,stud,tid,opts.cls?{cls:opts.cls}:null);
+    var days=[]; list.forEach(function(r){
+      var d=String(r.d||""); if(d&&days.indexOf(d)<0)days.push(d); });
+    days.sort();
+    out.tests.push({testId:tid,def:T,dir:T.dir,unit:T.unit,cap:T.cap||null,
+      count:pr.count,days:pr.days,invalid:pr.invalid,
+      list:list,dates:days,
+      first:pr.first,latest:pr.latest,best:best,previous:pr.previous,
+      latestIsBest:pr.latestIsBest,progress:pr,assessment:a,
+      /* «שיפור» בסמנטיקה של הכרטיס הקיים: השיא מול הטוב ביום
+         הראשון, וגודל ההפרש רק כשהוא שיפור. נשמר כדי שדוח ה-PDF
+         ימשיך להציג בדיוק את מה שהציג. */
+      imp:(pr.sinceFirst&&pr.sinceFirst.improved)?Math.abs(pr.sinceFirst.rawDelta):null});
+  });
+
+  /* מדד הכושר: ממוצע הציונים שיש להם ציון. זהה לחישוב הקיים. */
+  if(scores.length){
+    var sum=scores.reduce(function(a,b){ return a+b; },0);
+    out.index={v:Math.round(sum/scores.length*10)/10,from:scores.length,of:order.length};
+  }else out.index={v:null,from:0,of:order.length};
+  return out;
+}
+
+/* מה חסר לתלמיד: מבחנים שהכיתה כבר עשתה ולו אין בהם תוצאה. */
+function missingTests(rows,stud,testDefs,opts){
+  opts=opts||{};
+  var byId={}; (testDefs||[]).forEach(function(t){ if(t&&t.id)byId[t.id]=t; });
+  var k=opts.cls?clsKey(opts.cls):null;
+  var classTests=[], mineTests={};
+  (rows||[]).forEach(function(r){
+    if(!r||!byId[r.test])return;
+    if(k&&clsKey(r.cls)!==k)return;
+    if(classTests.indexOf(r.test)<0)classTests.push(r.test);
+  });
+  (rows||[]).forEach(function(r){
+    if(r&&byId[r.test]&&sameStudent(r,stud))mineTests[r.test]=1;
+  });
+  (opts.want||[]).forEach(function(t){
+    if(byId[t]&&classTests.indexOf(t)<0)classTests.push(t);
+  });
+  return classTests.filter(function(t){ return !mineTests[t]; });
+}
+
+/* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
    באפליקציה כבר היה «מערך שיעור»: תוכן שמור, שאפשר לטעון ולהציג.
@@ -1060,6 +1160,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  profileOf:profileOf, missingTests:missingTests,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,

@@ -7,7 +7,8 @@ const suites=[
   require("./classes.e2e.js"),
   require("./progress.e2e.js"),
   require("./corrective.e2e.js"),
-  require("./session.e2e.js")
+  require("./session.e2e.js"),
+  require("./profile.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });

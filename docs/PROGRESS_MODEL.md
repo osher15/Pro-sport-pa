@@ -215,7 +215,39 @@ ft.normArchive = {
 
 ---
 
-## 7. הממשק
+## 7. פרופיל התלמיד
+
+התמונה המלאה של תלמיד אחד על פני כל המבחנים שנמדד בהם.
+
+```js
+profileOf(rows, stud, testDefs, opts) -> {
+  tests: [ { testId, def, dir, unit, cap,
+             count, days, invalid, list, dates,
+             first, latest, best, previous, latestIsBest,
+             progress, assessment, imp } ],
+  measured, classes, index:{v, from, of}, stud:{sid, name}
+}
+missingTests(rows, stud, testDefs, {cls, want}) -> [testId]
+```
+
+שלוש החלטות שקובעות את ההתנהגות:
+
+1. **ההיסטוריה חוצה כיתות.** תלמיד שעבר מ-ט׳3 ל-י׳1 לא איבד את
+   העבר שלו, וכל מדידה זוכרת באיזו כיתה נלקחה. `opts.cls` מצמצם
+   לכיתה אחת, אבל זו אינה ברירת המחדל.
+2. **הציון נגזר מהתוצאה הטובה ביותר** — כפי שהיה תמיד. הפרופיל
+   אינו משנה כללי ניקוד, רק מציג אותם שלמים.
+3. **אין חישוב משלו.** הוא קורא ל-`progress()` ול-`assess()`.
+
+`index` הוא מדד הכושר: ממוצע הציונים שיש להם ציון. `from` אומר
+מכמה מבחנים הוא הורכב ו-`of` בכמה נמדד — כלומר עד כמה הוא שלם.
+
+`imp` נשמר בסמנטיקה הישנה (השיא מול הטוב ביום הראשון, רק כשהוא
+שיפור) כדי שדוח ה-PDF ימשיך להציג בדיוק את מה שהציג.
+
+---
+
+## 8. הממשק
 
 השכבה הטהורה ב-`hm-data.js`, בלי `window` ובלי אחסון:
 
@@ -240,6 +272,8 @@ FT.progress.progress(stud, testId, opts)
 FT.progress.assess(stud, testId, val, grade, measuredNormVersion)
 FT.progress.assessOf(stud, measurement)
 FT.progress.dirOf(testId)
+FT.progress.profile(stud, opts)
+FT.progress.missing(stud, opts)
 ```
 
 העטיפה מוסיפה רק את מה שדורש אחסון: קטלוג המבחנים (ומכאן `dir`
@@ -251,7 +285,7 @@ FT.progress.dirOf(testId)
 
 ---
 
-## 8. ביצועים
+## 9. ביצועים
 
 האפליקציה מקומית, וכל המדידות יושבות במערך אחד ב-`localStorage`.
 
