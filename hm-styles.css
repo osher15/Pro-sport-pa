@@ -476,6 +476,16 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
 
+/* ===== איסוף פרטי קשר, פעם אחת ===== */
+/* z-index גבוה מ-#lockOv כדי לחסום אותו עד שהמורה שולח או מדלג —
+   כך לוגיקת הנעילה הקיימת ממשיכה לרוץ בלי שינוי, והמסך הזה רק יושב מעליה. */
+#leadOv{position:fixed;inset:0;z-index:410;display:none;place-items:center;padding:22px;
+  background:radial-gradient(700px 480px at 50% 8%,rgba(167,139,250,.18),transparent 60%),#07080f}
+#leadOv.on{display:grid}
+#leadOv .box{width:min(380px,100%);text-align:center}
+#leadOv .field{text-align:right}
+#leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
+
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד
    ============================================================ */

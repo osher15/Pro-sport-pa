@@ -729,8 +729,57 @@ window.NUT=(function(){
   return {init,daily};
 })();
 
+/* ============================ איסוף פרטי קשר, פעם אחת בפתיחה ============================
+   כדי לדעת מי קיבל את האפליקציה ולשלוח לו שאלון בהמשך, מסך אחד־פעמי
+   מבקש מהמורה (לא מהתלמיד!) שם ודרך יצירת קשר, ושולח אותם בשקט לטופס
+   Google Forms קיים — בלי שרת משלנו ובלי לגעת בנתוני התלמידים, שנשארים
+   במכשיר בדיוק כמו קודם.
+
+   הגדרה (חובה למלא לפני שהמסך שולח בפועל):
+   1. פתח formResponse — צור טופס חדש ב-Google Forms עם שלוש שאלות
+      מסוג "תשובה קצרה": שם פרטי / שם משפחה / אימייל או נייד.
+   2. בתצוגה המקדימה של הטופס, פתח כלי מפתחים (F12) ← Network, שלח
+      תשובת בדיקה, ומצא את הבקשה אל .../formResponse. שם השדות
+      (entry.XXXXXXXXX) נמצא שם לכל שאלה.
+   3. הדבק כאן את כתובת ה-formResponse ואת שלושת מזהי ה-entry.
+   כל עוד action נשאר ריק — המסך עדיין מוצג ונשמר במכשיר שהוא נענה,
+   אבל שום דבר לא נשלח לשום מקום. */
+const LEAD_FORM={
+  action:"",   // למשל: "https://docs.google.com/forms/d/e/1FAIpQLSf.../formResponse"
+  first:"",    // למשל: "entry.123456789"
+  last:"",
+  contact:""
+};
+function initLeadCapture(){
+  const {$, LS, toast}=H();
+  const ov=$("#leadOv"); if(!ov)return;
+  if(LS.get("hx.leadDone",false))return;
+  ov.classList.add("on");
+  const close=()=>ov.classList.remove("on");
+  const submitToForm=(first,last,contact)=>{
+    if(!LEAD_FORM.action)return;
+    try{
+      const f=document.createElement("form");
+      f.action=LEAD_FORM.action; f.method="POST"; f.target="lead-frame"; f.style.display="none";
+      const add=(name,val)=>{ if(!name)return; const i=document.createElement("input"); i.name=name; i.value=val; f.appendChild(i); };
+      add(LEAD_FORM.first,first); add(LEAD_FORM.last,last); add(LEAD_FORM.contact,contact);
+      document.body.appendChild(f); f.submit(); f.remove();
+    }catch(e){ console.error("lead submit",e); }
+  };
+  $("#lead-send").addEventListener("click",()=>{
+    const first=$("#lead-first").value.trim(), last=$("#lead-last").value.trim(), contact=$("#lead-contact").value.trim();
+    if(!first||!contact){ toast("שם פרטי ודרך יצירת קשר — שדה חובה"); return; }
+    LS.set("hx.leadDone",true);
+    submitToForm(first,last,contact);
+    toast("תודה! ממשיכים 👋");
+    close();
+  });
+  $("#lead-skip").addEventListener("click",()=>{ LS.set("hx.leadDone",true); close(); });
+}
+
 /* ============================ HOME extras + נעילת מורה ============================ */
 window.HMBootNew=function(){
+  initLeadCapture();
   const {$, LS, toast, esc}=H();
   /* ---------- מסך כניסה: מורה (קוד) או תלמיד (בלי קוד) ----------
      מורה  — קוד נכון פותח את כל האפליקציה.
