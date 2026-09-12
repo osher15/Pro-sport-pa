@@ -26,7 +26,7 @@ npm run test:e2e
 ```
 tests/
 ├─ helpers/memstore.js      אחסון מזויף שנכשל לפי דרישה
-├─ unit/                    node:test · 198 בדיקות
+├─ unit/                    node:test · 271 בדיקות
 │  ├─ identity.test.js      התאמת מדידה לתלמיד          10
 │  ├─ migration.test.js     הסבת סכמה                   15
 │  ├─ storage.test.js       סיווג כשלי אחסון            11
@@ -36,16 +36,25 @@ tests/
 │  ├─ scoring.test.js       ניקוד, נורמות, VO2max, BMI  49
 │  ├─ legacy.test.js        תאימות לאחור ואפס אובדן     12
 │  ├─ progress.test.js      שיא אישי והתקדמות           31
-│  └─ assessment.test.js    הערכה, נתון חסר, גרסאות     17
-└─ e2e/                     playwright · 47 בדיקות
+│  ├─ assessment.test.js    הערכה, נתון חסר, גרסאות     17
+│  ├─ corrective.test.js    אפס כשיא, ארכיון נורמות     18
+│  ├─ session.test.js       מחזור חיי שיעור             28
+│  └─ profile.test.js       פרופיל כושר ומה חסר         27
+└─ e2e/                     playwright · 92 בדיקות
    ├─ harness.js            שרת סטטי + הרצה + אסרציות
    ├─ run.js                נקודת הכניסה
    ├─ identity.e2e.js        9
    ├─ storage.e2e.js         7
    ├─ backup.e2e.js         10
    ├─ classes.e2e.js         9
-   └─ progress.e2e.js       12
+   ├─ progress.e2e.js       12
+   ├─ corrective.e2e.js      7
+   ├─ session.e2e.js        14
+   ├─ profile.e2e.js        10
+   └─ teach.e2e.js          14
 ```
+
+סה״כ ‎363‎ בדיקות. המספרים כאן הם מהרצה בפועל — לא הערכה.
 
 ## שתי שכבות, ולמה
 

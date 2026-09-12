@@ -2246,6 +2246,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 style="margin:0"><span class="dot"></span> ספריית המערכים</h2>
       <div class="row">
+        <button class="btn sm ghost" id="ls-histBtn">📖 שיעורים שהתקיימו</button>
         <label class="btn sm acc" style="cursor:pointer">📥 ייבוא<input type="file" id="ls-libImport" accept=".json,application/json" multiple style="display:none"></label>
         <button class="btn sm" id="ls-libExport">⬇ ייצוא</button>
       </div>
@@ -2472,6 +2473,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <button class="btn sm acc" id="tl-attAll" style="margin-top:18px">✓ סמן את כולם</button>
         <button class="btn sm" id="tl-attCsv" style="margin-top:18px">⬇ דוח CSV</button>
       </div>
+      <div class="hint" id="tl-attCtx" hidden style="margin-top:9px"></div>
       <div class="stu-stats" id="tl-attStats" style="margin-top:12px"></div>
     </div>
     <div class="card"><div id="tl-attList"></div></div>
@@ -2797,7 +2799,13 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div class="modal" id="lsHistModal"><div class="box" style="max-width:640px">
+  <h3>📖 <span>היסטוריית שיעורים</span><button class="x" data-close="lsHistModal">✕</button></h3>
+  <div id="lsHistBody"></div>
+</div></div>
+
 <div id="lsBar" hidden><span id="lsBarT"></span>
+  <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
   <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
 <div id="stWarn" hidden><span id="stWarnT"></span>
   <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
@@ -4940,6 +4948,53 @@ const SESSION={
   measurements:sessionId=>DATA.sessionMeasurements(LS.get("ft.results",[]),sessionId)
 };
 
+/* ============================================================
+   היסטוריית שיעורים
+   ------------------------------------------------------------
+   «מה עשינו בשיעור של יום שלישי» — השאלה שבגללה ההבחנה בין מערך
+   לשיעור נבנתה מלכתחילה. קריאה בלבד: אין כאן עריכה, אין מחיקה,
+   ואין דשבורד. רשימה, ולחיצה פותחת את המדידות של אותו שיעור.
+   ============================================================ */
+function sesDuration(a){
+  if(!a.endedAt)return "פתוח";
+  const min=Math.round((a.endedAt-a.startedAt)/60000);
+  if(min<1)return "פחות מדקה";
+  return min<60?min+" דק׳":(Math.floor(min/60)+":"+String(min%60).padStart(2,"0")+" שע׳");
+}
+function renderSesHist(openId){
+  const body=document.getElementById("lsHistBody"); if(!body)return;
+  const all=SESSION.list();
+  if(!all.length){
+    body.innerHTML='<div class="empty-state"><div class="big">📖</div>'+
+      'עדיין לא התקיים שיעור.<br>פתח שיעור מבורר הכיתה במבחני הכושר, או מתוך מערך שיעור.</div>';
+    return;
+  }
+  const rows=all.map(a=>{
+    const ms=SESSION.measurements(a.id);
+    const open=a.id===openId;
+    return '<div class="arc-item'+(a.status===DATA.SESSION_ACTIVE?" on":"")+'">'+
+      '<div class="grow"><div class="ttl">'+esc(a.clsSnapshot||a.cid)+
+        (a.status===DATA.SESSION_ACTIVE?' <span class="pill acc">פעיל</span>':"")+'</div>'+
+      '<div class="sb">'+esc(a.date)+' · '+esc(sesDuration(a))+
+        (a.planTitle?" · "+esc(a.planTitle):"")+
+        ' · '+(ms.length?ms.length+" מדידות":"בלי מדידות")+'</div></div>'+
+      (ms.length?'<button class="btn sm ghost" data-ses="'+esc(a.id)+'">'+
+        (open?"הסתר":"פירוט")+'</button>':"")+
+      '</div>'+
+      (open&&ms.length?'<div class="tblwrap" style="margin:2px 0 10px"><table class="tbl"><thead>'+
+        '<tr><th>תלמיד</th><th>מבחן</th><th>תוצאה</th></tr></thead><tbody>'+
+        ms.map(m=>{
+          const T=window.FT&&window.FT.tests().find(t=>t.id===m.test);
+          return '<tr><td>'+esc(m.name||"")+'</td><td>'+esc(T?T.name:m.test)+
+            '</td><td class="mono">'+esc(String(m.val))+' '+esc(m.unit||"")+'</td></tr>';
+        }).join("")+'</tbody></table></div>':"");
+  }).join("");
+  body.innerHTML='<div class="hint">'+all.length+' שיעורים · הרשימה מהחדש לישן.</div>'+rows;
+  $$("#lsHistBody [data-ses]").forEach(b=>b.addEventListener("click",()=>
+    renderSesHist(b.dataset.ses===openId?null:b.dataset.ses)));
+}
+function openSesHist(){ renderSesHist(null); modal("lsHistModal",true); }
+
 /* הפס. מכוון להיות שקט: שורה אחת, לא מסך. */
 function paintSessionBar(){
   const bar=document.getElementById("lsBar"); if(!bar)return;
@@ -4952,6 +5007,8 @@ function paintSessionBar(){
 }
 function wireSessionBar(){
   const bar=document.getElementById("lsBar"); if(!bar)return;
+  const hb=document.getElementById("lsBarHist");
+  if(hb)hb.addEventListener("click",openSesHist);
   const end=document.getElementById("lsBarEnd");
   if(end)end.addEventListener("click",()=>{
     const a=SESSION.active(); if(!a)return;
@@ -5733,8 +5790,12 @@ const BT=(function(){
         toast(res.added?("✓ נשלחו "+res.added+" תוצאות ל"+cls+(res.dup?" · "+res.dup+" כבר היו":"")) 
                        :(res.dup?"כל התוצאות כבר נשלחו":"לא נשלח דבר"));
       };
-      /* אם נטענה כיתה למקצה — היא היעד המובן מאליו; אחרת שואלים. */
+      /* אם נטענה כיתה למקצה — היא היעד המובן מאליו. אם לא, אבל יש
+         שיעור פתוח — גם זה מובן מאליו, ואין מה לשאול. רק כששניהם
+         חסרים הבורר נפתח. */
+      const act=SESSION.active();
       if(heat.cls)send(heat.cls);
+      else if(act&&act.clsSnapshot)send(act.clsSnapshot);
       else window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"התוצאות ייכנסו למבחן «ביפ טסט» של הכיתה הזאת.",
         onPick:(names,cls)=>send(cls)});
@@ -6634,14 +6695,18 @@ const PF=(function(){
       if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
       const tid=PF_DIST_TEST[+META.dist];
       if(!tid){ toast("אין מבחן ל-"+META.dist+" מ׳ — שנה את המרחק בהגדרות המירוץ"); return; }
+      const send=cls=>{
+        const rows=list.map(l=>({name:l.name,val:l.time}));
+        const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
+        toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
+                       :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
+      };
+      /* שיעור פתוח הופך את «לאיזו כיתה» לשאלה מיותרת */
+      const act=SESSION.active();
+      if(act&&act.clsSnapshot){ send(act.clsSnapshot); return; }
       window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"‎"+list.length+"‎ זמנים ייכנסו למבחן «"+META.dist+" מטר» של הכיתה.",
-        onPick:(names,cls)=>{
-          const rows=list.map(l=>({name:l.name,val:l.time}));
-          const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
-          toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
-                         :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
-        }});
+        onPick:(names,cls)=>send(cls)});
     });
     /* ---------- הדרכת פתיחה ----------
        פוטו־פיניש הוא המודול שהכי קל לתפעל לא נכון, והתוצאה של תפעול
@@ -7879,7 +7944,7 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
-  session:SESSION,paintSessionBar,
+  session:SESSION,paintSessionBar,openSesHist,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -9560,6 +9625,10 @@ const H=()=>window.HM;
 const today=()=>new Date().toISOString().slice(0,10);
 const students=()=>H().LS.get("stu.list",[]);
 const classesOf=l=>[...new Set(l.map(s=>s.cls).filter(Boolean))].sort();
+/* השוואת כיתה סלחנית, כמו במבחני הכושר. בלעדיה כיתת השיעור «ט׳3»
+   לא תואמת ל«ט3» שהמורה הקליד בכרטיס התלמיד, וההקשר מהשיעור פשוט
+   לא היה מוצא אף תלמיד. */
+const sameCls=(a,b)=>!b||(window.HMDATA?window.HMDATA.clsKey(a)===window.HMDATA.clsKey(b):a===b);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* דירוג יכולת לצורך איזון: המרחק במבחן האחרון. תלמיד בלי מבחן מקבל חציון. */
@@ -9692,7 +9761,15 @@ window.TOOLS=(function(){
   let attCls="", attDate=today();
   function renderAtt(){
     const {$, $$, esc}=H();
-    const l=students().filter(s=>!attCls||s.cls===attCls);
+    /* אומרים למורה למה המסך נפתח על הכיתה והתאריך האלה */
+    const ctx=$("#tl-attCtx"), a=lessonCtx();
+    if(ctx){
+      const on=!!(a&&sameCls(attCls,a.clsSnapshot)&&attDate===a.date);
+      ctx.hidden=!on;
+      if(on)ctx.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot)+" · "+esc(a.date)+
+        " — הנוכחות נפתחה עליו. אפשר לשנות כיתה או תאריך.";
+    }
+    const l=students().filter(s=>sameCls(s.cls,attCls));
     const all=ATT(), rec=all[attKey(attDate,attCls)]||{};
     const cnt={p:0,h:0,e:0,a:0};
     l.forEach(s=>{ if(rec[s.id])cnt[rec[s.id]]=(cnt[rec[s.id]]||0)+1; });
@@ -9714,7 +9791,7 @@ window.TOOLS=(function(){
   }
   function attSummary(){
     const {esc}=H();
-    const all=ATT(), l=students().filter(s=>!attCls||s.cls===attCls);
+    const all=ATT(), l=students().filter(s=>sameCls(s.cls,attCls));
     const per={};
     Object.keys(all).forEach(k=>{
       const [d,c]=k.split("|");
@@ -9820,9 +9897,34 @@ window.TOOLS=(function(){
     $("#tl-attCls").innerHTML=opts(attCls);
     $("#tl-rubCls").innerHTML=opts(rubCls);
   }
+  /* ============================================================
+     הקשר מהשיעור הפעיל
+     ------------------------------------------------------------
+     מורה שפתח שיעור ב-ט׳3 ונכנס לנוכחות לא צריך לבחור שוב כיתה
+     ולא צריך לבדוק שהתאריך נכון. אם הוא כן רוצה כיתה אחרת —
+     הבוררים נשארים שם, והבחירה שלו גוברת.
+
+     הנוכחות עצמה נשמרת כמו קודם, לפי תאריך וכיתה. היא לא נקשרת
+     למזהה השיעור: זה היה יוצר מקור אמת שני לאותה נוכחות.
+     ============================================================ */
+  function lessonCtx(){
+    try{
+      const a=H().session&&H().session.active();
+      return (a&&a.clsSnapshot)?a:null;
+    }catch(e){ return null; }
+  }
+  function applyLessonCtx(){
+    const a=lessonCtx(); if(!a)return false;
+    const hit=classesOf(students()).find(c=>sameCls(c,a.clsSnapshot));
+    if(hit)attCls=hit;
+    attDate=a.date||attDate;
+    return !!hit;
+  }
   function init(){
     const {$, $$}=H();
-    if(inited){ fillClassSelects(); renderAtt(); renderRub(); renderPicked(); return; }
+    applyLessonCtx();
+    if(inited){ fillClassSelects(); const d=H().$("#tl-attDate"); if(d)d.value=attDate;
+      renderAtt(); renderRub(); renderPicked(); return; }
     inited=true;
     $$("#tl-tabs [data-tt]").forEach(b=>b.addEventListener("click",()=>{
       tab=b.dataset.tt;
@@ -9845,7 +9947,7 @@ window.TOOLS=(function(){
     $("#tl-attDate").addEventListener("change",e=>{attDate=e.target.value||today();renderAtt();});
     $("#tl-attCls").addEventListener("change",e=>{attCls=e.target.value;renderAtt();});
     $("#tl-attAll").addEventListener("click",()=>{
-      const l=students().filter(s=>!attCls||s.cls===attCls);
+      const l=students().filter(s=>sameCls(s.cls,attCls));
       const a=ATT(), key=attKey(attDate,attCls); a[key]=a[key]||{};
       l.forEach(s=>{ if(!a[key][s.id])a[key][s.id]="p"; });
       H().LS.set("tools.att",a); renderAtt(); H().toast("כל מי שלא סומן — השתתפות מלאה");
@@ -10403,6 +10505,15 @@ window.LESSON=(function(){
      הכיתה חייבת להיבחר קודם במבחני הכושר: שם חיה רשימת הכיתה
      ושם נקבע המזהה היציב. בלי זה אין לשיעור למה להתחבר.
      ============================================================ */
+  /* ההיסטוריה נגישה תמיד, לא רק כששיעור פתוח: הפס נעלם עם סיום
+     השיעור, ובלי כניסה קבועה אי אפשר היה לראות שיעורי עבר בכלל. */
+  function wireLessonHist(){
+    const b=H().$("#ls-histBtn"); if(!b)return;
+    if(!H().openSesHist){ b.hidden=true; return; }
+    b.hidden=false;
+    b.onclick=()=>H().openSesHist();
+  }
+
   function wireStartFromPlan(){
     const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
     const S=H().session;
@@ -10605,6 +10716,7 @@ window.LESSON=(function(){
   function findEntry(id){ return allLib().find(x=>String(x.id)===String(id)); }
 
   function renderLib(){
+    wireLessonHist();
     const {$, $$, esc}=H();
     const saved=H().LS.get("ls.lib",[]), bi=builtIn(), lib=bi.concat(saved);
     $("#ls-libEmpty").style.display=lib.length?"none":"block";
@@ -14242,10 +14354,25 @@ window.FT=(function(){
   function pick(opts){
     const o=opts||{}, $=H().$, $$=H().$$;
     const last=LS().get("ft.last",{grade:"ט",num:1});
-    let g=last.grade||"ט", num=+last.num||1, sel=null;
+    /* ============================================================
+       השיעור הפעיל קובע את ברירת המחדל.
+       ------------------------------------------------------------
+       שלב 5 בנה «שיעור פעיל», אבל הבורר עדיין נפתח על הכיתה
+       האחרונה שנבחרה במבחני הכושר — כלומר המורה שפתח שיעור ב-ט׳3
+       ועבר לביפ טסט קיבל בורר שפתוח על כיתה אחרת, וצריך לבחור
+       מחדש. זה בדיוק מה שההקשר נועד למנוע.
+       ============================================================ */
+    const act=(H().session&&H().session.active())||null;
+    const actCls=act?DATA.parseCls(act.clsSnapshot):null;
+    let g=(actCls&&actCls.grade)||last.grade||"ט";
+    let num=(actCls&&actCls.num)||+last.num||1;
+    let sel=null;
     const host=id=>$("#"+id);
     host("cp-title").querySelector("span").textContent=o.title||"טעינת כיתה";
-    host("cp-note").textContent=o.note||"";
+    /* אומרים למורה למה הבורר פתוח דווקא כאן */
+    host("cp-note").textContent=(act&&actCls)
+      ? ("שיעור פעיל בכיתה "+act.clsSnapshot+" — הבורר נפתח עליה. "+(o.note||""))
+      : (o.note||"");
     host("cp-grades").innerHTML=GRADES.map(([k,lbl])=>
       `<button data-g="${k}"${k===g?' class="on"':""}>${lbl}</button>`).join("");
     host("cp-nums").innerHTML=NUMS.map(n=>

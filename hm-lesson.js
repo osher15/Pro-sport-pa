@@ -446,6 +446,15 @@ window.LESSON=(function(){
      הכיתה חייבת להיבחר קודם במבחני הכושר: שם חיה רשימת הכיתה
      ושם נקבע המזהה היציב. בלי זה אין לשיעור למה להתחבר.
      ============================================================ */
+  /* ההיסטוריה נגישה תמיד, לא רק כששיעור פתוח: הפס נעלם עם סיום
+     השיעור, ובלי כניסה קבועה אי אפשר היה לראות שיעורי עבר בכלל. */
+  function wireLessonHist(){
+    const b=H().$("#ls-histBtn"); if(!b)return;
+    if(!H().openSesHist){ b.hidden=true; return; }
+    b.hidden=false;
+    b.onclick=()=>H().openSesHist();
+  }
+
   function wireStartFromPlan(){
     const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
     const S=H().session;
@@ -648,6 +657,7 @@ window.LESSON=(function(){
   function findEntry(id){ return allLib().find(x=>String(x.id)===String(id)); }
 
   function renderLib(){
+    wireLessonHist();
     const {$, $$, esc}=H();
     const saved=H().LS.get("ls.lib",[]), bi=builtIn(), lib=bi.concat(saved);
     $("#ls-libEmpty").style.display=lib.length?"none":"block";

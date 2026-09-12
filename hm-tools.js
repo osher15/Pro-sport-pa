@@ -9,6 +9,10 @@ const H=()=>window.HM;
 const today=()=>new Date().toISOString().slice(0,10);
 const students=()=>H().LS.get("stu.list",[]);
 const classesOf=l=>[...new Set(l.map(s=>s.cls).filter(Boolean))].sort();
+/* השוואת כיתה סלחנית, כמו במבחני הכושר. בלעדיה כיתת השיעור «ט׳3»
+   לא תואמת ל«ט3» שהמורה הקליד בכרטיס התלמיד, וההקשר מהשיעור פשוט
+   לא היה מוצא אף תלמיד. */
+const sameCls=(a,b)=>!b||(window.HMDATA?window.HMDATA.clsKey(a)===window.HMDATA.clsKey(b):a===b);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* דירוג יכולת לצורך איזון: המרחק במבחן האחרון. תלמיד בלי מבחן מקבל חציון. */
@@ -141,7 +145,15 @@ window.TOOLS=(function(){
   let attCls="", attDate=today();
   function renderAtt(){
     const {$, $$, esc}=H();
-    const l=students().filter(s=>!attCls||s.cls===attCls);
+    /* אומרים למורה למה המסך נפתח על הכיתה והתאריך האלה */
+    const ctx=$("#tl-attCtx"), a=lessonCtx();
+    if(ctx){
+      const on=!!(a&&sameCls(attCls,a.clsSnapshot)&&attDate===a.date);
+      ctx.hidden=!on;
+      if(on)ctx.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot)+" · "+esc(a.date)+
+        " — הנוכחות נפתחה עליו. אפשר לשנות כיתה או תאריך.";
+    }
+    const l=students().filter(s=>sameCls(s.cls,attCls));
     const all=ATT(), rec=all[attKey(attDate,attCls)]||{};
     const cnt={p:0,h:0,e:0,a:0};
     l.forEach(s=>{ if(rec[s.id])cnt[rec[s.id]]=(cnt[rec[s.id]]||0)+1; });
@@ -163,7 +175,7 @@ window.TOOLS=(function(){
   }
   function attSummary(){
     const {esc}=H();
-    const all=ATT(), l=students().filter(s=>!attCls||s.cls===attCls);
+    const all=ATT(), l=students().filter(s=>sameCls(s.cls,attCls));
     const per={};
     Object.keys(all).forEach(k=>{
       const [d,c]=k.split("|");
@@ -269,9 +281,34 @@ window.TOOLS=(function(){
     $("#tl-attCls").innerHTML=opts(attCls);
     $("#tl-rubCls").innerHTML=opts(rubCls);
   }
+  /* ============================================================
+     הקשר מהשיעור הפעיל
+     ------------------------------------------------------------
+     מורה שפתח שיעור ב-ט׳3 ונכנס לנוכחות לא צריך לבחור שוב כיתה
+     ולא צריך לבדוק שהתאריך נכון. אם הוא כן רוצה כיתה אחרת —
+     הבוררים נשארים שם, והבחירה שלו גוברת.
+
+     הנוכחות עצמה נשמרת כמו קודם, לפי תאריך וכיתה. היא לא נקשרת
+     למזהה השיעור: זה היה יוצר מקור אמת שני לאותה נוכחות.
+     ============================================================ */
+  function lessonCtx(){
+    try{
+      const a=H().session&&H().session.active();
+      return (a&&a.clsSnapshot)?a:null;
+    }catch(e){ return null; }
+  }
+  function applyLessonCtx(){
+    const a=lessonCtx(); if(!a)return false;
+    const hit=classesOf(students()).find(c=>sameCls(c,a.clsSnapshot));
+    if(hit)attCls=hit;
+    attDate=a.date||attDate;
+    return !!hit;
+  }
   function init(){
     const {$, $$}=H();
-    if(inited){ fillClassSelects(); renderAtt(); renderRub(); renderPicked(); return; }
+    applyLessonCtx();
+    if(inited){ fillClassSelects(); const d=H().$("#tl-attDate"); if(d)d.value=attDate;
+      renderAtt(); renderRub(); renderPicked(); return; }
     inited=true;
     $$("#tl-tabs [data-tt]").forEach(b=>b.addEventListener("click",()=>{
       tab=b.dataset.tt;
@@ -294,7 +331,7 @@ window.TOOLS=(function(){
     $("#tl-attDate").addEventListener("change",e=>{attDate=e.target.value||today();renderAtt();});
     $("#tl-attCls").addEventListener("change",e=>{attCls=e.target.value;renderAtt();});
     $("#tl-attAll").addEventListener("click",()=>{
-      const l=students().filter(s=>!attCls||s.cls===attCls);
+      const l=students().filter(s=>sameCls(s.cls,attCls));
       const a=ATT(), key=attKey(attDate,attCls); a[key]=a[key]||{};
       l.forEach(s=>{ if(!a[key][s.id])a[key][s.id]="p"; });
       H().LS.set("tools.att",a); renderAtt(); H().toast("כל מי שלא סומן — השתתפות מלאה");

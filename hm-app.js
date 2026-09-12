@@ -423,6 +423,53 @@ const SESSION={
   measurements:sessionId=>DATA.sessionMeasurements(LS.get("ft.results",[]),sessionId)
 };
 
+/* ============================================================
+   היסטוריית שיעורים
+   ------------------------------------------------------------
+   «מה עשינו בשיעור של יום שלישי» — השאלה שבגללה ההבחנה בין מערך
+   לשיעור נבנתה מלכתחילה. קריאה בלבד: אין כאן עריכה, אין מחיקה,
+   ואין דשבורד. רשימה, ולחיצה פותחת את המדידות של אותו שיעור.
+   ============================================================ */
+function sesDuration(a){
+  if(!a.endedAt)return "פתוח";
+  const min=Math.round((a.endedAt-a.startedAt)/60000);
+  if(min<1)return "פחות מדקה";
+  return min<60?min+" דק׳":(Math.floor(min/60)+":"+String(min%60).padStart(2,"0")+" שע׳");
+}
+function renderSesHist(openId){
+  const body=document.getElementById("lsHistBody"); if(!body)return;
+  const all=SESSION.list();
+  if(!all.length){
+    body.innerHTML='<div class="empty-state"><div class="big">📖</div>'+
+      'עדיין לא התקיים שיעור.<br>פתח שיעור מבורר הכיתה במבחני הכושר, או מתוך מערך שיעור.</div>';
+    return;
+  }
+  const rows=all.map(a=>{
+    const ms=SESSION.measurements(a.id);
+    const open=a.id===openId;
+    return '<div class="arc-item'+(a.status===DATA.SESSION_ACTIVE?" on":"")+'">'+
+      '<div class="grow"><div class="ttl">'+esc(a.clsSnapshot||a.cid)+
+        (a.status===DATA.SESSION_ACTIVE?' <span class="pill acc">פעיל</span>':"")+'</div>'+
+      '<div class="sb">'+esc(a.date)+' · '+esc(sesDuration(a))+
+        (a.planTitle?" · "+esc(a.planTitle):"")+
+        ' · '+(ms.length?ms.length+" מדידות":"בלי מדידות")+'</div></div>'+
+      (ms.length?'<button class="btn sm ghost" data-ses="'+esc(a.id)+'">'+
+        (open?"הסתר":"פירוט")+'</button>':"")+
+      '</div>'+
+      (open&&ms.length?'<div class="tblwrap" style="margin:2px 0 10px"><table class="tbl"><thead>'+
+        '<tr><th>תלמיד</th><th>מבחן</th><th>תוצאה</th></tr></thead><tbody>'+
+        ms.map(m=>{
+          const T=window.FT&&window.FT.tests().find(t=>t.id===m.test);
+          return '<tr><td>'+esc(m.name||"")+'</td><td>'+esc(T?T.name:m.test)+
+            '</td><td class="mono">'+esc(String(m.val))+' '+esc(m.unit||"")+'</td></tr>';
+        }).join("")+'</tbody></table></div>':"");
+  }).join("");
+  body.innerHTML='<div class="hint">'+all.length+' שיעורים · הרשימה מהחדש לישן.</div>'+rows;
+  $$("#lsHistBody [data-ses]").forEach(b=>b.addEventListener("click",()=>
+    renderSesHist(b.dataset.ses===openId?null:b.dataset.ses)));
+}
+function openSesHist(){ renderSesHist(null); modal("lsHistModal",true); }
+
 /* הפס. מכוון להיות שקט: שורה אחת, לא מסך. */
 function paintSessionBar(){
   const bar=document.getElementById("lsBar"); if(!bar)return;
@@ -435,6 +482,8 @@ function paintSessionBar(){
 }
 function wireSessionBar(){
   const bar=document.getElementById("lsBar"); if(!bar)return;
+  const hb=document.getElementById("lsBarHist");
+  if(hb)hb.addEventListener("click",openSesHist);
   const end=document.getElementById("lsBarEnd");
   if(end)end.addEventListener("click",()=>{
     const a=SESSION.active(); if(!a)return;
@@ -1216,8 +1265,12 @@ const BT=(function(){
         toast(res.added?("✓ נשלחו "+res.added+" תוצאות ל"+cls+(res.dup?" · "+res.dup+" כבר היו":"")) 
                        :(res.dup?"כל התוצאות כבר נשלחו":"לא נשלח דבר"));
       };
-      /* אם נטענה כיתה למקצה — היא היעד המובן מאליו; אחרת שואלים. */
+      /* אם נטענה כיתה למקצה — היא היעד המובן מאליו. אם לא, אבל יש
+         שיעור פתוח — גם זה מובן מאליו, ואין מה לשאול. רק כששניהם
+         חסרים הבורר נפתח. */
+      const act=SESSION.active();
       if(heat.cls)send(heat.cls);
+      else if(act&&act.clsSnapshot)send(act.clsSnapshot);
       else window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"התוצאות ייכנסו למבחן «ביפ טסט» של הכיתה הזאת.",
         onPick:(names,cls)=>send(cls)});
@@ -2117,14 +2170,18 @@ const PF=(function(){
       if(!window.FT||!window.FT.ingest){toast("מודול המבחנים לא זמין");return;}
       const tid=PF_DIST_TEST[+META.dist];
       if(!tid){ toast("אין מבחן ל-"+META.dist+" מ׳ — שנה את המרחק בהגדרות המירוץ"); return; }
+      const send=cls=>{
+        const rows=list.map(l=>({name:l.name,val:l.time}));
+        const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
+        toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
+                       :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
+      };
+      /* שיעור פתוח הופך את «לאיזו כיתה» לשאלה מיותרת */
+      const act=SESSION.active();
+      if(act&&act.clsSnapshot){ send(act.clsSnapshot); return; }
       window.FT.pick({title:"לאיזו כיתה לשלוח?",
         note:"‎"+list.length+"‎ זמנים ייכנסו למבחן «"+META.dist+" מטר» של הכיתה.",
-        onPick:(names,cls)=>{
-          const rows=list.map(l=>({name:l.name,val:l.time}));
-          const res=window.FT.ingest(cls,tid,rows,"פוטו־פיניש");
-          toast(res.added?("✓ נשלחו "+res.added+" זמנים ל"+cls+(res.dup?" · "+res.dup+" כבר היו":""))
-                         :(res.dup?"כל הזמנים כבר נשלחו":"לא נשלח דבר"));
-        }});
+        onPick:(names,cls)=>send(cls)});
     });
     /* ---------- הדרכת פתיחה ----------
        פוטו־פיניש הוא המודול שהכי קל לתפעל לא נכון, והתוצאה של תפעול
@@ -3362,7 +3419,7 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
-  session:SESSION,paintSessionBar,
+  session:SESSION,paintSessionBar,openSesHist,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */

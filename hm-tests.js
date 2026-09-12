@@ -2141,10 +2141,25 @@ window.FT=(function(){
   function pick(opts){
     const o=opts||{}, $=H().$, $$=H().$$;
     const last=LS().get("ft.last",{grade:"ט",num:1});
-    let g=last.grade||"ט", num=+last.num||1, sel=null;
+    /* ============================================================
+       השיעור הפעיל קובע את ברירת המחדל.
+       ------------------------------------------------------------
+       שלב 5 בנה «שיעור פעיל», אבל הבורר עדיין נפתח על הכיתה
+       האחרונה שנבחרה במבחני הכושר — כלומר המורה שפתח שיעור ב-ט׳3
+       ועבר לביפ טסט קיבל בורר שפתוח על כיתה אחרת, וצריך לבחור
+       מחדש. זה בדיוק מה שההקשר נועד למנוע.
+       ============================================================ */
+    const act=(H().session&&H().session.active())||null;
+    const actCls=act?DATA.parseCls(act.clsSnapshot):null;
+    let g=(actCls&&actCls.grade)||last.grade||"ט";
+    let num=(actCls&&actCls.num)||+last.num||1;
+    let sel=null;
     const host=id=>$("#"+id);
     host("cp-title").querySelector("span").textContent=o.title||"טעינת כיתה";
-    host("cp-note").textContent=o.note||"";
+    /* אומרים למורה למה הבורר פתוח דווקא כאן */
+    host("cp-note").textContent=(act&&actCls)
+      ? ("שיעור פעיל בכיתה "+act.clsSnapshot+" — הבורר נפתח עליה. "+(o.note||""))
+      : (o.note||"");
     host("cp-grades").innerHTML=GRADES.map(([k,lbl])=>
       `<button data-g="${k}"${k===g?' class="on"':""}>${lbl}</button>`).join("");
     host("cp-nums").innerHTML=NUMS.map(n=>

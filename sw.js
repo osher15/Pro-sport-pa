@@ -11,7 +11,7 @@
    יוצרת מטמון חדש והישן נמחק — במקום שגרסה ישנה תישאר תקועה על
    מכשיר בלי שאיש יידע.
    ============================================================ */
-const CACHE_VERSION = "35bc55f9";
+const CACHE_VERSION = "6626eb69";
 const CACHE = "hamegrash-" + CACHE_VERSION;
 
 const SHELL = [
