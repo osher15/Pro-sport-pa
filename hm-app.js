@@ -381,6 +381,34 @@ function wireSettings(){
 $$("#set-theme .thm").forEach(b=>b.addEventListener("click",()=>{
   SET.theme=b.dataset.t; saveSet(); applyTheme(); }));
 $("#set-touch").addEventListener("change",e=>{ SET.touch=e.target.checked; saveSet(); applyTheme(); });
+/* ============================================================
+   דף המידע
+   ------------------------------------------------------------
+   נפתח אך ורק בלחיצה על ℹ. אין כאן מפתח «כבר ראית» ואין פתיחה
+   אוטומטית בכניסה הראשונה — חלון שקופץ מעצמו נסגר בלי להיקרא,
+   ומורה שכבר יודע מה הוא עושה לא צריך לסגור אותו בכל פעם.
+
+   הקטע שנפתח הוא של המסך שממנו לחצו: מי שלוחץ ℹ בתוך «ציונים»
+   שואל על ציונים, לא על התפריט כולו. שאר הקטעים נשארים סגורים
+   מתחת, פתוחים לעיון.
+   ============================================================ */
+function openInfo(){
+  const box=$("#infoModal"); if(!box)return;
+  const mod=document.body.dataset.mod||"home";
+  const secs=$$("#infoModal details");
+  const cur=secs.find(d=>d.dataset.info===mod)||secs.find(d=>d.dataset.info==="home");
+  secs.forEach(d=>{ d.open=(d===cur); });
+  modal("infoModal",true);
+  /* הגלילה אחרי הציור, אחרת המיקום מחושב על חלון שעדיין display:none.
+     גוללים רק כשהקטע באמת נמוך מדי — אחרת הכותרת וכפתור הסגירה
+     נדחפים מעל לקצה המסך, והמורה נשאר עם טקסט בלי דרך לצאת. */
+  if(cur)requestAnimationFrame(()=>{
+    const bx=cur.closest(".box"); if(!bx)return;
+    const off=cur.getBoundingClientRect().top-bx.getBoundingClientRect().top;
+    if(off>bx.clientHeight*0.4)bx.scrollTop+=off-10;
+  });
+}
+$("#btnInfo").addEventListener("click",()=>{ ac(); openInfo(); });
 $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi)bi.textContent="גרסה "+buildId();
   $("#set-school").value=SET.school; $("#set-sound").checked=SET.sound; $("#set-voice").checked=SET.voice; $("#set-wake").checked=SET.wake; $("#set-touch").checked=!!SET.touch; applyTheme();
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";

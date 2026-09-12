@@ -16,7 +16,8 @@ const suites=[
   require("./polish10_5.e2e.js"),
   require("./progress11.e2e.js"),
   require("./attendgrade12.e2e.js"),
-  require("./pilotpolish13.e2e.js")
+  require("./pilotpolish13.e2e.js"),
+  require("./info14.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });

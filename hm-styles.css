@@ -1131,6 +1131,30 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ab-sec{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
 .ab-sec>b{font-size:14px}
 
+/* ===== דף המידע (ℹ) ===== */
+/* הכותרת נשארת דבוקה: קטע עמוק ברשימה גולל את ה-✕ אל מחוץ למסך,
+   ומורה באמצע שיעור צריך דרך יציאה מיידית ולא גלילה חזרה למעלה. */
+#infoModal .box h3{position:sticky;top:-18px;z-index:2;margin:-18px -18px 12px;
+  padding:18px 18px 11px;background:var(--panel);border-bottom:1px solid var(--line)}
+.info-top{font-size:13.5px;line-height:1.75;color:var(--muted);padding:12px;
+  border:1px solid var(--line);border-radius:13px;background:var(--inset)}
+.info-top b{color:var(--ink)}
+.info-sec{margin-top:9px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);overflow:hidden}
+.info-sec>summary{cursor:pointer;list-style:none;padding:11px 13px;font-size:15px;font-weight:600;
+  display:flex;align-items:center;gap:8px}
+.info-sec>summary::-webkit-details-marker{display:none}
+.info-sec>summary::after{content:"▾";margin-inline-start:auto;color:var(--faint);font-size:13px;transition:.15s}
+.info-sec[open]>summary{color:var(--acc);border-bottom:1px solid var(--line)}
+.info-sec[open]>summary::after{transform:rotate(180deg)}
+.info-sec>summary:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.info-w{margin:11px 13px 0;font-size:13.5px;line-height:1.7;color:var(--ink)}
+.info-l{margin:8px 13px 12px;padding:0;list-style:none}
+.info-l li{position:relative;margin-top:7px;font-size:13.5px;line-height:1.7;color:var(--muted);
+  padding-inline-start:14px}
+.info-l li::before{content:"";position:absolute;inset-inline-start:0;top:10px;width:5px;height:5px;
+  border-radius:50%;background:var(--acc);opacity:.55}
+.info-l li b{color:var(--ink);font-weight:600}
+
 /* ===== הדרכת פוטו־פיניש ===== */
 .pfg{min-height:210px}
 .pfg .step{display:flex;flex-direction:column;gap:9px}

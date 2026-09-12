@@ -197,6 +197,7 @@ en:{
   "ui.sun":"Bright-sun mode — high contrast for daylight",
   "ui.sunOff":"Back to the normal theme",
   "ui.settings":"Settings",
+  "ui.info":"Quick guide — what this screen does",
   "ui.demoBar":"Demo mode", "ui.demoNote":"— the data here is a sample",
   "ui.demoClear":"Clear demo data",
   "ui.explain":"Explanation"
@@ -322,6 +323,7 @@ ar:{
   "ui.sun":"وضع الشمس — تباين عالٍ لضوء النهار",
   "ui.sunOff":"العودة إلى السِمة العادية",
   "ui.settings":"الإعدادات",
+  "ui.info":"دليل سريع — ماذا تفعل هذه الشاشة",
   "ui.demoBar":"وضع العرض التوضيحي", "ui.demoNote":"— البيانات هنا نموذجية",
   "ui.demoClear":"مسح بيانات العرض",
   "ui.explain":"شرح"
@@ -454,6 +456,7 @@ ru:{
   "ui.sun":"Режим солнца — высокий контраст для дневного света",
   "ui.sunOff":"Вернуться к обычной теме",
   "ui.settings":"Настройки",
+  "ui.info":"Краткое руководство — что делает этот экран",
   "ui.demoBar":"Демо-режим", "ui.demoNote":"— данные здесь учебные",
   "ui.demoClear":"Очистить демо-данные",
   "ui.explain":"Пояснение"

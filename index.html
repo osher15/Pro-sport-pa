@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=5094c7ef">
+<link rel="stylesheet" href="hm-styles.css?v=b7639e5d">
 <script src="hm-data.js?v=bf751979"></script>
-<script src="hm-i18n.js?v=49d413e7"></script>
-<script src="hm-app.js?v=29cda7fa"></script>
+<script src="hm-i18n.js?v=c087873a"></script>
+<script src="hm-app.js?v=a4cce2b2"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -38,6 +38,7 @@
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
     <span class="clock" id="topClock">--:--</span>
     <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button>
+    <button class="iconbtn" id="btnInfo" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info">ℹ</button>
     <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
 </div>
 <section class="view" id="view-home">
@@ -1369,6 +1370,135 @@
 </div></div>
 
 <!-- ----- אודות ----- -->
+<!-- ============================================================
+     דף המידע — נפתח רק בלחיצה על ℹ בסרגל העליון.
+     לעולם לא קופץ מעצמו: מורה שיודע מה הוא עושה לא אמור לסגור
+     חלון בכל כניסה. הוא נפתח על הקטע של המסך שממנו לחצו, כדי
+     שהתשובה תהיה לשאלה שנשאלה ולא לתפריט שלם.
+     ============================================================ -->
+<div class="modal" id="infoModal"><div class="box" style="max-width:600px">
+  <h3><span>ℹ️ מדריך מהיר</span><button class="x" data-close="infoModal">✕</button></h3>
+  <div class="info-top">
+    ערכת שטח אחת: מבחני כושר, ביפ טסט, פוטו־פיניש, מערכי שיעור, שיאים, נוכחות וציונים.
+    עובדת גם בלי קליטה, וכל הנתונים שמורים <b>במכשיר הזה בלבד</b> — לכן כדאי לגבות לקובץ מדי פעם
+    (⚙ הגדרות ← «גבה הכל לקובץ»).
+  </div>
+
+  <details class="info-sec" data-info="home"><summary>🚀 מאיפה מתחילים</summary>
+    <p class="info-w">שלושה צעדים, פעם אחת, ואפשר לעבוד.</p>
+    <ul class="info-l">
+      <li><b>קוד מורה</b> נקבע בכניסה הראשונה, ושומר על אזור המורה כשהטלפון עובר בין ידיים.</li>
+      <li><b>🎬 מצב הדגמה</b> במסך הכניסה — כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות בלחיצה.</li>
+      <li><b>כיתה אחת אמיתית</b> — «מבחני כושר» ← בוחרים שכבה ומספר ← «👥 רשימה». מרגע זה אותה רשימה זמינה בכל שאר המסכים.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="ft"><summary>🏅 מבחני כושר</summary>
+    <p class="info-w">הלב של האפליקציה: 30 מבחנים עם שעון ומונה. בוחרים כיתה ומבחן, ומזינים תוצאה לכל תלמיד.</p>
+    <ul class="info-l">
+      <li><b>🏅 מבחנים</b> המסך שבו מודדים בפועל. כל תוצאה נשמרת לתלמיד ולא נמחקת.</li>
+      <li><b>📊 מדד הכושר</b> ציון כושר כולל לכל תלמיד מול הנורמות.</li>
+      <li><b>🏅 אות החינוך הגופני</b> מי עומד בדרישות ומה חסר לו.</li>
+      <li><b>📋 מה חסר לכיתה</b> מי כבר נמדד בכל מבחן ומי עוד לא — במקום לחפש ברשימות.</li>
+      <li><b>📈 תובנות התקדמות</b> לכל מבחן: כמה השתפרו, כמה נסוגו, כמה ללא שינוי.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="lesson"><summary>📋 מערכי שיעור</summary>
+    <p class="info-w">מערך מלא — חימום, תחנות, משחק וסיום — בלחיצה אחת או בבנייה ידנית.</p>
+    <ul class="info-l">
+      <li><b>⚡ מהיר</b> בוחרים נושא, שכבה, אורך ומקום — והמערך נבנה לבד, מקושר לסטנדרטים.</li>
+      <li><b>🧩 בונה ידני</b> מרכיבים את השיעור בעצמכם משלבים מוכנים.</li>
+      <li><b>▶ התחל שיעור</b> פותח «שיעור פעיל», וכל מדידה מכאן נרשמת אליו. אם הכפתור מבקש כיתה — «🏷 בחר כיתה» לידו.</li>
+      <li><b>💾 שמור · 🖨 הדפס</b> המערך נשמר בספרייה לשימוש חוזר בשנה הבאה.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="fit"><summary>⏱ כושר</summary>
+    <p class="info-w">הכלים שמפעילים את השיעור עצמו, בלי להכין כלום מראש.</p>
+    <ul class="info-l">
+      <li><b>⏱ טיימר אינטרוולים</b> עבודה/מנוחה עם כריזה קולית.</li>
+      <li><b>🔁 תחנות לכיתה</b> סבב תחנות מוכן להקרנה.</li>
+      <li><b>📖 ספריית תרגילים · 🎲 קוביית הכושר</b> תרגיל לפי צורך, או הגרלה כשצריך לגוון.</li>
+      <li><b>🏋️ תוכנית חדר כושר</b> לשכבות הבוגרות.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="games"><summary>🎮 משחקים</summary>
+    <p class="info-w">משחקים לשעות פנאי ולסוף שיעור — עם מטרה, וריאציות ודגשי בטיחות.</p>
+    <ul class="info-l">
+      <li>מחפשים לפי שם, ציוד או מטרה.</li>
+      <li>אפשר לקחת כל משחק ישירות לתוך מערך שיעור.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="beep"><summary>🎵 ביפ טסט</summary>
+    <p class="info-w">מריץ את מבחן הביפ בדיוק שעון אודיו, מחשב VO₂max ומשווה לנורמות FITNESSGRAM.</p>
+    <ul class="info-l">
+      <li><b>טעינת כיתה</b> שולפת את הרשימה שכבר הזנתם — בלי להקליד שמות מחדש.</li>
+      <li><b>רישום נשירה</b> לוחצים על התלמיד ברגע שעצר, והשלב נרשם לו.</li>
+      <li><b>שליחה למבחני כושר</b> התוצאה נכנסת לכרטיס התלמיד ולמדד הכושר.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="photo"><summary>📷 פוטו־פיניש</summary>
+    <p class="info-w">מודד זמני ריצה מהמצלמה של הטלפון, ומראה בתמונה מי עבר ראשון.</p>
+    <ul class="info-l">
+      <li><b>🎯 מסלול חי</b> מכוונים את המצלמה לקו הסיום ומתחילים מקצה.</li>
+      <li><b>🎞 תמונת סיום · 🏁 תוצאות</b> רגע החצייה והזמנים המדויקים לכל מסלול.</li>
+      <li><b>🔄 הקפות · 🗄 ארכיון</b> מקצים ארוכים, ומקצים קודמים לחזרה אליהם.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="rec"><summary>🏆 אלופי בית הספר</summary>
+    <p class="info-w">לוח שיאים בית־ספרי מול שיא ישראל והעולם.</p>
+    <ul class="info-l">
+      <li>תלמיד שולח שיא עם סרטון הוכחה — והוא עולה ללוח <b>רק אחרי אישור שלך</b>.</li>
+      <li><b>📺 מצב טלוויזיה</b> למסך בכניסה לאולם · <b>🔗 קישור / QR</b> לשיתוף עם התלמידים.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="stu"><summary>👥 תלמידים וציונים</summary>
+    <p class="info-w">רשימת התלמידים, טבלת ציונים לפי תקופות הערכה, והערכת עמיתים.</p>
+    <ul class="info-l">
+      <li><b>⬇ מלא לפי נוכחות</b> ממלא את ציון ההשתתפות מנתוני הנוכחות — רק בשדות ריקים, בלי לדרוס ציון שהזנת.</li>
+      <li><b>⬇ CSV</b> מוציא את הטבלה לגיליון.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="tools"><summary>🧰 כלי כיתה</summary>
+    <p class="info-w">ארבעה כלים לרגעים שחוזרים בכל שיעור.</p>
+    <ul class="info-l">
+      <li><b>👥 קבוצות</b> חלוקה מאוזנת לפי התוצאה האחרונה — בלי קבוצה שאין לה סיכוי.</li>
+      <li><b>🎯 הגרלה</b> בוחר תלמיד אקראי.</li>
+      <li><b>✅ נוכחות</b> רישום יומי — וממנו נמלא ציון ההשתתפות.</li>
+      <li><b>📋 מחוונים</b> הערכה לפי קריטריונים.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="know"><summary>📚 ידע</summary>
+    <p class="info-w">גיבוי מקצועי להחלטות — מקורות, תוכניות ומספרים.</p>
+    <ul class="info-l">
+      <li><b>📚 מקורות רשמיים</b> כל פריט מקושר למסמך החי.</li>
+      <li><b>🏋️ תוכניות מוערכות · 📌 מספרים שכדאי לזכור</b> לרגע שצריך לגבות החלטה מול הורה או מנהל.</li>
+    </ul>
+  </details>
+
+  <details class="info-sec" data-info="nut"><summary>🥗 פינת תזונה</summary>
+    <p class="info-w">טיפ יומי קצר להקראה לכיתה, ומאגר טיפים לפי נושא.</p>
+  </details>
+
+  <details class="info-sec" data-info="data"><summary>💾 הנתונים שלך</summary>
+    <p class="info-w">אין שרת ואין חשבון — וזה גם היתרון וגם האחריות.</p>
+    <ul class="info-l">
+      <li><b>גיבוי</b> ⚙ הגדרות ← «⬇ גבה הכל לקובץ». «⬆ שחזר מקובץ» מחזיר הכול במכשיר חדש.</li>
+      <li><b>הצפנה</b> אפשר להצפין את הגיבוי בסיסמה — אבל אין שחזור סיסמה. אבדה הסיסמה, אבד הקובץ.</li>
+      <li><b>שם כיתה שגוי?</b> ⚙ הגדרות ← «🏷 שמות הכיתות». שינוי השם לא מנתק אף תלמיד ואף מדידה.</li>
+      <li><b>קשה לקרוא בשמש?</b> ☀ בסרגל העליון, ובהגדרות «כפתורים גדולים» להפעלה ביד אחת.</li>
+    </ul>
+  </details>
+</div></div>
+
 <div class="modal" id="aboutModal"><div class="box" style="max-width:540px">
   <h3><span dir="auto" data-i18n="about.title">📘 אודות המגרש PRO</span><button class="x" data-close="aboutModal">✕</button></h3>
   <div class="ab-hero"><div class="lg">🏟️</div>
