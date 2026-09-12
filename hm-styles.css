@@ -35,12 +35,19 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .topbar{position:sticky;top:0;z-index:60;margin:0 -14px 14px;padding:9px 14px;
   background:linear-gradient(180deg,rgba(var(--bar),.97),rgba(var(--bar),.82));backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0}
+/* הסרגל צר, והתוכן שבו לא מתכווץ. בלי ההגנות האלה תוספת של כפתור
+   אחד דוחפת את השם והשעון זה על זה — חפיפה ולא גלישה, כי .ttl הוא
+   nowrap. הכפתורים לא נסוגים (הם פעולות), והשם נחתך לפני שהוא מתנגש. */
+.brand{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
+/* בלי זה העטיפה של השם והכותרת נעצרת על רוחב התוכן שלה (רצפת
+   min-content של flex), וההגנה למטה לא מגיעה לידי ביטוי בכלל. */
+.brand>div{min-width:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;
   background:linear-gradient(135deg,var(--acc),#0a5c38);box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:21px}
-.brand .ttl{font-family:'Inter';font-size:19px;line-height:1.05;white-space:nowrap}
+.brand .ttl{font-family:'Inter';font-size:19px;line-height:1.05;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .brand .sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
-.sboard{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.sboard{margin-inline-start:auto;display:flex;align-items:center;gap:10px;flex:none}
 .sboard .clock{font-family:'Share Tech Mono';font-size:20px;letter-spacing:1px;color:var(--acc);
   background:var(--inset);border:1px solid var(--line);border-radius:10px;padding:5px 11px}
 .iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
@@ -1098,6 +1105,21 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .backbtn:active{transform:scale(.94)}
 .backbtn:hover{border-color:var(--acc);color:var(--acc)}
 @media(max-width:430px){.backbtn span{display:none}.backbtn{padding:8px 11px}}
+/* במסך צר עם כפתור «חזרה» הסרגל מגיע לקצה התקציב. מכווצים את
+   לוח המחוונים במקום לוותר על אחד מרכיביו — השעון והפעולות
+   נשארים, רק צפופים יותר. */
+@media(max-width:430px){
+  .sboard{gap:7px}
+  .sboard .clock{font-size:16px;padding:4px 7px;letter-spacing:0}
+  .iconbtn{width:34px;height:34px;font-size:15px}
+}
+/* מתחת ל-400 גם הכיווץ לא מספיק כשכפתור «חזרה» נוכח. השעון הוא
+   הרכיב היחיד בסרגל שאינו פעולה, והטלפון ממילא מציג שעה — ולכן
+   הוא זה שנסוג, ורק במסכים שבהם יש כפתור חזרה. בדפדפן בלי :has
+   ההגנה למעלה עדיין חוסמת חפיפה, במחיר קיצור קל של השם. */
+@media(max-width:400px){
+  .topbar:has(.backbtn:not([hidden])) .sboard .clock{display:none}
+}
 
 /* ===== מצב הדגמה ===== */
 #demoBar{position:sticky;top:0;z-index:120;display:flex;align-items:center;justify-content:center;gap:10px;
