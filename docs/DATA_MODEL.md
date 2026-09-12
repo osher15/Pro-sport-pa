@@ -52,6 +52,7 @@ Class  ──<  Student  ──<  Measurement  ──>  Assessment
 | מפתח | טיפוס | תוכן |
 |---|---|---|
 | `ft.classes` | `{[cid]: Class}` | רישום הכיתות — המקום היחיד שבו שם כיתה חי |
+| `ft.normArchive` | `{[version]: NormTable}` | טבלאות נורמה לפי גרסה, לשחזור ציון היסטורי |
 | `stu.list` | `Student[]` | «התלמידים שלי» — הרשימה האישית של המורה |
 | `ft.roster` | `{[clsKey]: RosterEntry[]}` | רשימת הכיתה לכל כיתה במבחני הכושר |
 | `ft.results` | `Measurement[]` | כל מדידה שנמדדה אי פעם |

@@ -3448,9 +3448,19 @@ function isBetter(dir,a,b){
 }
 function isNum(v){ return typeof v==="number"&&isFinite(v); }
 /* מדידה שמישהו יכול לנקד. הערך חייב להיות מספר סופי אי-שלילי —
-   null, undefined ו-NaN אינם «אפס», הם «לא נמדד». */
-function isValidMeasurement(r){
-  return !!r&&isNum(r.val)&&r.val>=0;
+   null, undefined ו-NaN אינם «אפס», הם «לא נמדד».
+
+   אפס תלוי בסמנטיקה של המבחן, ולכן ב-dir:
+     גבוה יותר טוב יותר → 0 חזרות הוא תוצאה אמיתית. תקף.
+     נמוך יותר טוב יותר → 0 שניות אינו זמן. נתון פגום.
+
+   בלי ההבחנה הזאת, רשומה פגומה אחת עם val:0 הופכת לשיא האישי
+   בריצת 60 מטר — ונקראת כשיפור של 5.42 שניות. האפליקציה עצמה
+   לא שומרת אפס, אבל שחזור מגיבוי פגום כן יכול להכניס אותו. */
+function isValidMeasurement(r,dir){
+  if(!r||!isNum(r.val)||r.val<0)return false;
+  if(dir==="low"&&r.val===0)return false;
+  return true;
 }
 
 /* ---------- בחירת מדידות ---------- */
@@ -3471,7 +3481,7 @@ function measurementsOf(rows,stud,testId,opts){
 }
 /* הטובה ביותר מתוך רשימה, לפי כיוון המבחן */
 function bestOf(list,dir){
-  var ok=(list||[]).filter(isValidMeasurement);
+  var ok=(list||[]).filter(function(r){ return isValidMeasurement(r,dir); });
   if(!ok.length)return null;
   return ok.reduce(function(a,b){ return isBetter(dir,b.val,a.val)?b:a; });
 }
@@ -3481,23 +3491,23 @@ function bestOf(list,dir){
 function personalBest(rows,stud,testId,dir){
   return bestOf(measurementsOf(rows,stud,testId),dir);
 }
-function latestOf(rows,stud,testId,opts){
-  var all=measurementsOf(rows,stud,testId,opts).filter(isValidMeasurement);
+function latestOf(rows,stud,testId,opts,dir){
+  var all=measurementsOf(rows,stud,testId,opts).filter(function(r){ return isValidMeasurement(r,dir); });
   return all.length?all[all.length-1]:null;
 }
-function firstOf(rows,stud,testId,opts){
-  var all=measurementsOf(rows,stud,testId,opts).filter(isValidMeasurement);
+function firstOf(rows,stud,testId,opts,dir){
+  var all=measurementsOf(rows,stud,testId,opts).filter(function(r){ return isValidMeasurement(r,dir); });
   return all.length?all[0]:null;
 }
 /* הטובה מבין הימים שלפני התאריך הנתון */
 function bestBefore(list,isoDate,dir){
   return bestOf((list||[]).filter(function(r){
-    return isValidMeasurement(r)&&String(r.d||"")<String(isoDate||"");
+    return isValidMeasurement(r,dir)&&String(r.d||"")<String(isoDate||"");
   }),dir);
 }
 function bestOnDay(list,isoDate,dir){
   return bestOf((list||[]).filter(function(r){
-    return isValidMeasurement(r)&&String(r.d||"")===String(isoDate||"");
+    return isValidMeasurement(r,dir)&&String(r.d||"")===String(isoDate||"");
   }),dir);
 }
 
@@ -3505,7 +3515,7 @@ function bestOnDay(list,isoDate,dir){
    מחזירה גם את השינוי הגולמי וגם את פרשנותו. הגולמי לעולם לא
    מוסתר: מורה שרוצה לדעת כמה שניות ירדו יקבל את המספר. */
 function compare(now,then,dir){
-  if(!isValidMeasurement(now)||!isValidMeasurement(then))
+  if(!isValidMeasurement(now,dir)||!isValidMeasurement(then,dir))
     return {rawDelta:null,improved:null,unchanged:null,declined:null};
   var d=now.val-then.val;
   var imp=isBetter(dir,now.val,then.val);
@@ -3527,7 +3537,7 @@ function compare(now,then,dir){
 var PROGRESS_NONE="no-measurements", PROGRESS_ONE="single-measurement";
 function progress(rows,stud,testId,dir,opts){
   var all=measurementsOf(rows,stud,testId,opts);
-  var ok=all.filter(isValidMeasurement);
+  var ok=all.filter(function(r){ return isValidMeasurement(r,dir); });
   var out={dir:dir||"high",count:ok.length,rawCount:all.length,
     invalid:all.length-ok.length,
     first:null,latest:null,best:null,previous:null,
@@ -3587,24 +3597,54 @@ function assess(o){
   var out={v:null,src:null,capped:false,reason:null,
     scoringVersion:ASSESS_VERSION,
     normVersion:o.normVersion||"",
-    stale:false};
+    stale:false,reproduced:false};
   if(!o.testId){ out.reason=ASSESS_REASON.UNKNOWN_TEST; return out; }
   if(o.val==null){ out.reason=ASSESS_REASON.NONE; return out; }
-  if(!isNum(o.val)||o.val<0){ out.reason=ASSESS_REASON.INVALID; return out; }
+  if(!isValidMeasurement({val:o.val},o.dir)){ out.reason=ASSESS_REASON.INVALID; return out; }
 
-  /* הערכה שחושבה בכללים אחרים מאלה שהיו בתוקף בזמן המדידה מסומנת.
-     אנחנו לא שומרים טבלאות היסטוריות, ולכן אי אפשר לשחזר את הציון
-     הישן — אבל אפשר, וצריך, לא לשקר שהוא אותו ציון. */
-  if(o.measuredNormVersion&&o.normVersion&&
-     o.measuredNormVersion!==o.normVersion)out.stale=true;
+  /* ============================================================
+     שחזור ההערכה ההיסטורית
+     ------------------------------------------------------------
+     מדידה שנלקחה בתשפ״ו נמדדה מול טבלת תשפ״ו. אם המורה טען מאז
+     טבלה חדשה, ניקוד מחדש בכללים של היום נותן מספר אחר לאותה
+     ריצה בדיוק — ודוח התקדמות היה מראה «שיפור» שלא קרה.
 
-  var r=scoreOne(o);
+     הארכיון שומר כל טבלה שנשמרה תחת שם גרסה. כשהיא זמינה, ההערכה
+     מחושבת מול הטבלה שהייתה בתוקף בזמן המדידה, והציון ההיסטורי
+     יוצא זהה לזה שהיה אז.
+
+     כשאין ארכיון לגרסה הזאת — למשל גיבוי ישן שנוצר לפני שהארכיון
+     היה קיים — נופלים לכללי היום ומסמנים stale. לא משקרים. */
+  var table=o.table, archived=null;
+  if(o.measuredNormVersion&&o.archive)archived=o.archive[o.measuredNormVersion];
+  if(archived&&archived.table){
+    table=archived.table;
+    out.normVersion=o.measuredNormVersion;
+    out.reproduced=true;
+  }else if(o.measuredNormVersion&&o.normVersion&&
+           o.measuredNormVersion!==o.normVersion){
+    out.stale=true;
+  }
+
+  var r=scoreOne(Object.assign({},o,{table:table}));
   if(r.v!=null){ out.v=r.v; out.src=r.src; out.capped=!!r.capped; return out; }
 
   /* אין ציון — למה? */
-  if(o.mode==="norm"&&normScore(o.table,o.testId,o.sex,o.grade,o.val)==null)
+  if(o.mode==="norm"&&normScore(table,o.testId,o.sex,o.grade,o.val)==null)
     out.reason=ASSESS_REASON.NO_NORM;
   else out.reason=ASSESS_REASON.FEW_PEERS;
+  return out;
+}
+
+/* ---------- ארכיון טבלאות הנורמה ----------
+   מבנה מינימלי בכוונה: מפה משם גרסה לטבלה שנשמרה תחתיה. לא
+   מערכת ניהול גרסאות — רק מספיק כדי שציון היסטורי יישאר אותו
+   ציון. טבלה בלי שם גרסה אינה נכנסת, כי אין דרך להפנות אליה. */
+function archiveNorm(archive,N){
+  var out=Object.assign({},archive||{});
+  if(!N||!N.version)return out;
+  out[N.version]={version:N.version,source:N.source||"",
+    table:N.table||{},at:new Date().toISOString()};
   return out;
 }
 
@@ -3718,6 +3758,7 @@ return {
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
   ASSESS_VERSION:ASSESS_VERSION, ASSESS_REASON:ASSESS_REASON, assess:assess,
+  archiveNorm:archiveNorm,
   isBetter:isBetter, isNum:isNum, isValidMeasurement:isValidMeasurement,
   measurementsOf:measurementsOf, bestOf:bestOf, personalBest:personalBest,
   latestOf:latestOf, firstOf:firstOf, bestBefore:bestBefore, bestOnDay:bestOnDay,
@@ -12025,7 +12066,15 @@ window.FT=(function(){
      3ב. מדד הכושר — נתונים וחישוב
      ============================================================ */
   const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
-  const setNorms=n=>LS().set("ft.norms",n);
+  /* ארכיון הטבלאות: כל טבלה שנשמרה תחת שם גרסה נשמרת גם כאן, כדי
+     שמדידה ישנה תמשיך להיות מנוקדת מול הכללים שהיו בתוקף כשנלקחה.
+     בלי זה, טעינת טבלה חדשה הייתה משנה למפרע את הציון של כל
+     ההיסטוריה — ודוח התקדמות היה מראה שיפור שלא קרה. */
+  const normArchive=()=>LS().get("ft.normArchive",{})||{};
+  const setNorms=n=>{
+    LS().set("ft.normArchive",DATA.archiveNorm(normArchive(),n));
+    LS().set("ft.norms",n);
+  };
   const scoreMode=()=>LS().get("ft.scoreMode","rel");
   /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
      מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
@@ -13862,7 +13911,7 @@ window.FT=(function(){
       return DATA.assess({mode:scoreMode(),table:norms().table,rows:allRes(),
         testId,sex:sexOf(stud),grade:grade||st.grade,val,
         dir:T&&T.dir,cap:capOf(testId),
-        normVersion:normVersion(),measuredNormVersion});
+        normVersion:normVersion(),measuredNormVersion,archive:normArchive()});
     },
     /* ההערכה של מדידה קיימת — נושאת את חותמת הגרסה שלה */
     assessOf:(stud,m)=>m?PROGRESS.assess(stud,m.test,m.val,m.gradeKey,m.normVer)

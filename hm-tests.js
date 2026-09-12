@@ -321,7 +321,15 @@ window.FT=(function(){
      3ב. מדד הכושר — נתונים וחישוב
      ============================================================ */
   const norms   =()=>Object.assign({},NORM_EMPTY,LS().get("ft.norms",{}));
-  const setNorms=n=>LS().set("ft.norms",n);
+  /* ארכיון הטבלאות: כל טבלה שנשמרה תחת שם גרסה נשמרת גם כאן, כדי
+     שמדידה ישנה תמשיך להיות מנוקדת מול הכללים שהיו בתוקף כשנלקחה.
+     בלי זה, טעינת טבלה חדשה הייתה משנה למפרע את הציון של כל
+     ההיסטוריה — ודוח התקדמות היה מראה שיפור שלא קרה. */
+  const normArchive=()=>LS().get("ft.normArchive",{})||{};
+  const setNorms=n=>{
+    LS().set("ft.normArchive",DATA.archiveNorm(normArchive(),n));
+    LS().set("ft.norms",n);
+  };
   const scoreMode=()=>LS().get("ft.scoreMode","rel");
   /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
      מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
@@ -2158,7 +2166,7 @@ window.FT=(function(){
       return DATA.assess({mode:scoreMode(),table:norms().table,rows:allRes(),
         testId,sex:sexOf(stud),grade:grade||st.grade,val,
         dir:T&&T.dir,cap:capOf(testId),
-        normVersion:normVersion(),measuredNormVersion});
+        normVersion:normVersion(),measuredNormVersion,archive:normArchive()});
     },
     /* ההערכה של מדידה קיימת — נושאת את חותמת הגרסה שלה */
     assessOf:(stud,m)=>m?PROGRESS.assess(stud,m.test,m.val,m.gradeKey,m.normVer)
