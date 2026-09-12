@@ -11,7 +11,8 @@ const suites=[
   require("./profile.e2e.js"),
   require("./teach.e2e.js"),
   require("./identity8.e2e.js"),
-  require("./rename9.e2e.js")
+  require("./rename9.e2e.js"),
+  require("./coverage10.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });

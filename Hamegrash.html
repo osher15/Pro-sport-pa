@@ -2261,9 +2261,11 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <button data-ft="tests" class="on">🏅 מבחנים</button>
     <button data-ft="idx">📊 מדד הכושר</button>
     <button data-ft="ot">🏅 אות החינוך הגופני</button>
+    <button data-ft="cov">📋 מה חסר לכיתה</button>
   </div>
   <div id="ft-idx" style="display:none"></div>
   <div id="ft-ot" style="display:none"></div>
+  <div id="ft-cov" style="display:none"></div>
   <!-- ----- בחירת כיתה ומבחן ----- -->
   <div id="ft-pick">
     <div class="card">
@@ -3937,6 +3939,37 @@ function missingTests(rows,stud,testDefs,opts){
   return classTests.filter(function(t){ return !mineTests[t]; });
 }
 
+/* מטריצת כיסוי לכיתה שלמה: אילו מבחנים כל תלמיד ברשימה השלים,
+   מתוך המבחנים שהכיתה כבר נמדדה בהם. לא כלל זהות חדש — משתמשת
+   ב-missingTests לכל תלמיד ולא כותבת מחדש את ההכרעה "מי שייך למי".
+   רק "אילו מבחנים הכיתה נמדדה בהם" נגזר כאן ישירות מ-rowInClass/
+   clsKey, באותם שני תנאים בדיוק שמשתמשת בהם missingTests. טהורה,
+   בלי DOM — כך שאפשר לבדוק אותה בנפרד מהמסך שמציג אותה. */
+function classCoverage(rows,roster,testDefs,opts){
+  opts=opts||{};
+  var rs=Array.isArray(rows)?rows:[];
+  var rst=Array.isArray(roster)?roster:[];
+  var defs=(Array.isArray(testDefs)?testDefs:[]).filter(function(t){ return t&&t.id; });
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(!cid&&opts.cls)?clsKey(opts.cls):null;
+  var inScope=function(r){
+    if(!r)return false;
+    if(cid)return rowInClass(r,cid);
+    if(k)return clsKey(r.cls)===k;
+    return true;
+  };
+  /* סדר העמודות = סדר הקטלוג, ורק מבחנים שיש להם בפועל מדידה בכיתה */
+  var tests=defs.filter(function(t){
+    return rs.some(function(r){ return r&&r.test===t.id&&inScope(r); });
+  }).map(function(t){ return t.id; });
+  var students=rst.filter(function(s){ return s&&(s.id||s.name); }).map(function(s){
+    var miss={}; missingTests(rs,s,defs,{cid:cid,cls:opts.cls}).forEach(function(t){ miss[t]=1; });
+    var done={}; tests.forEach(function(t){ done[t]=!miss[t]; });
+    return {stud:s,done:done};
+  });
+  return {tests:tests,students:students};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -4174,7 +4207,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
-  profileOf:profileOf, missingTests:missingTests,
+  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
@@ -13997,6 +14030,55 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     4ב. «מה חסר לכיתה» — מטריצת כיסוי, קריאה בלבד
+     ------------------------------------------------------------
+     שכבת תצוגה דקה מעל DATA.classCoverage() (hm-data.js), שעצמה
+     עוטפת את missingTests() הקיימת ולא מכריעה זהות מחדש. הכיתה
+     והרשימה מגיעות מאותם roster(c)/cidOf(c) שכל שאר המסך משתמש
+     בהם, והשם המוצג מגיע מהרישום (disp) — בדיוק כמו בכל לשונית
+     אחרת. אין כאן עריכה: לחיצה על תא לא משנה כלום.
+     ============================================================ */
+  function renderCoverage(){
+    const {$, esc}=H();
+    const c=cls(), rst=roster(c);
+    const cov=DATA.classCoverage(allRes(),rst,TESTS,{cid:cidOf(c)});
+    const total=cov.students.length;
+    const allDone=s=>cov.tests.length>0&&cov.tests.every(t=>s.done[t]);
+    const fullyDone=cov.students.filter(allDone).length;
+
+    let body;
+    if(!rst.length){
+      body=`<div class="empty-state"><div class="big">👥</div>אין תלמידים ברשימת כיתה ${esc(disp(c))}.</div>`;
+    }else if(!cov.tests.length){
+      body=`<div class="empty-state"><div class="big">🏅</div>עדיין לא נמדד אף מבחן בכיתה ${esc(disp(c))}.<br>
+        מדדו מבחן אחד בלשונית «מבחנים» — «מה חסר» יתחיל להראות מי עדיין צריך אותו.</div>`;
+    }else{
+      body=`<div class="tblwrap" style="margin-top:11px"><table class="tbl">
+        <thead><tr><th>שם</th>${cov.tests.map(t=>`<th>${esc(testById(t).em+" "+testById(t).name)}</th>`).join("")}</tr></thead>
+        <tbody>${cov.students.map(s=>`<tr><td><b>${esc(s.stud.name||"")}</b></td>
+          ${cov.tests.map(t=>s.done[t]
+            ?`<td class="mono" style="text-align:center;color:var(--acc)" title="הושלם">✓</td>`
+            :`<td class="mono" style="text-align:center;color:var(--stop)" title="עדיין חסר">✕</td>`).join("")}</tr>`).join("")}
+        </tbody></table></div>
+        ${fullyDone===total?`<div class="hint" style="margin-top:9px;color:var(--acc);font-weight:700">
+          ✓ כל התלמידים השלימו את כל המבחנים שנמדדו בכיתה הזו.</div>`:""}`;
+    }
+
+    $("#ft-cov").innerHTML=`
+      <div class="card">
+        <h2><span class="dot"></span> מה חסר לכיתה — ${esc(disp(c))}</h2>
+        <div class="hint">כל תלמיד מול כל מבחן שהכיתה כבר נמדדה בו — ✓ הושלם, ✕ עדיין חסר.
+          מבחן שאף אחד בכיתה עדיין לא ניגש אליו לא מופיע כאן.</div>
+        ${cov.tests.length&&total?`<div class="ft-idxsum">
+          <div><span class="k">תלמידים</span><span class="v">${total}</span></div>
+          <div><span class="k">מבחנים במעקב</span><span class="v">${cov.tests.length}</span></div>
+          <div><span class="k">סיימו הכול</span><span class="v">${fullyDone}/${total}</span></div>
+        </div>`:""}
+      </div>
+      <div class="card">${body}</div>`;
+  }
+
+  /* ============================================================
      דוחות להדפסה / PDF
      ------------------------------------------------------------
      מורה שמראה למנהל דוח מודפס הוא מורה שמצדיק את הכלי — ובלי דוח,
@@ -14625,11 +14707,12 @@ window.FT=(function(){
   function renderTab(){
     const {$, $$}=H();
     $$("#ft-tabs button").forEach(b=>b.classList.toggle("on",b.dataset.ft===st.tab));
-    const idx=st.tab==="idx", ot=st.tab==="ot";
+    const idx=st.tab==="idx", ot=st.tab==="ot", cov=st.tab==="cov";
     $("#ft-idx").style.display=idx?"":"none";
     $("#ft-ot").style.display=ot?"":"none";
-    if(idx||ot){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
-      if(idx)renderIndex(); else renderOt(); }
+    $("#ft-cov").style.display=cov?"":"none";
+    if(idx||ot||cov){ $("#ft-pick").style.display="none"; $("#ft-run").style.display="none"; stopClock(true); stopCd();
+      if(idx)renderIndex(); else if(ot)renderOt(); else renderCoverage(); }
     else if(st.test)renderRun();
     else renderPicker();
   }

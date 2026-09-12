@@ -1074,6 +1074,37 @@ function missingTests(rows,stud,testDefs,opts){
   return classTests.filter(function(t){ return !mineTests[t]; });
 }
 
+/* מטריצת כיסוי לכיתה שלמה: אילו מבחנים כל תלמיד ברשימה השלים,
+   מתוך המבחנים שהכיתה כבר נמדדה בהם. לא כלל זהות חדש — משתמשת
+   ב-missingTests לכל תלמיד ולא כותבת מחדש את ההכרעה "מי שייך למי".
+   רק "אילו מבחנים הכיתה נמדדה בהם" נגזר כאן ישירות מ-rowInClass/
+   clsKey, באותם שני תנאים בדיוק שמשתמשת בהם missingTests. טהורה,
+   בלי DOM — כך שאפשר לבדוק אותה בנפרד מהמסך שמציג אותה. */
+function classCoverage(rows,roster,testDefs,opts){
+  opts=opts||{};
+  var rs=Array.isArray(rows)?rows:[];
+  var rst=Array.isArray(roster)?roster:[];
+  var defs=(Array.isArray(testDefs)?testDefs:[]).filter(function(t){ return t&&t.id; });
+  var cid=isCid(opts.cid)?opts.cid:null;
+  var k=(!cid&&opts.cls)?clsKey(opts.cls):null;
+  var inScope=function(r){
+    if(!r)return false;
+    if(cid)return rowInClass(r,cid);
+    if(k)return clsKey(r.cls)===k;
+    return true;
+  };
+  /* סדר העמודות = סדר הקטלוג, ורק מבחנים שיש להם בפועל מדידה בכיתה */
+  var tests=defs.filter(function(t){
+    return rs.some(function(r){ return r&&r.test===t.id&&inScope(r); });
+  }).map(function(t){ return t.id; });
+  var students=rst.filter(function(s){ return s&&(s.id||s.name); }).map(function(s){
+    var miss={}; missingTests(rs,s,defs,{cid:cid,cls:opts.cls}).forEach(function(t){ miss[t]=1; });
+    var done={}; tests.forEach(function(t){ done[t]=!miss[t]; });
+    return {stud:s,done:done};
+  });
+  return {tests:tests,students:students};
+}
+
 /* ============================================================
    5ד. שיעור פעיל — LessonSession
    ------------------------------------------------------------
@@ -1311,7 +1342,7 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
-  profileOf:profileOf, missingTests:missingTests,
+  profileOf:profileOf, missingTests:missingTests, classCoverage:classCoverage,
   SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
