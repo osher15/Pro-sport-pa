@@ -237,7 +237,20 @@ const TIPS=[
  "מסך הטלפון לא יכבה באמצע פעילות — מניעת כיבוי המסך פעילה כשטיימר רץ (אפשר לכבות בהגדרות).",
  "אפשר להתקין את האפליקציה למסך הבית — תפריט הדפדפן ואז ׳הוספה למסך הבית׳."
 ];
-function homeInit(){ $("#fieldTip").textContent=TIPS[Math.floor(Math.random()*TIPS.length)]; }
+/* מכשיר ריק לגמרי — מורה שנכנס בפעם הראשונה. אין לו עדיין תלמידים,
+   רשימת כיתה, תוצאה או שיא, ולכן זאת בדיוק הנקודה שבה "טיפ שטח"
+   אקראי (טריקים לשימוש שוטף) פחות שימושי מהצעד הראשון בפועל.
+   ברגע שיש נתון כלשהו — חוזרים לבריכת הטיפים הרגילה. בלי מסך חדש,
+   בלי מפתח אחסון חדש: אותו widget, רק ברירת המחדל שלו משתנה. */
+function hasAnyData(){
+  const n=k=>{ const v=LS.get(k,null);
+    return Array.isArray(v)?v.length:(v&&typeof v==="object"?Object.keys(v).length:0); };
+  return n("ft.results")+n("stu.list")+n("rec.list")+n("ft.roster")+n("bt.results")>0;
+}
+const ONBOARD_TIP="חדשים כאן? לחצו 🎬 «מצב הדגמה» במסך הכניסה — כיתה לדוגמה עם תוצאות אמיתיות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים.";
+function homeInit(){
+  $("#fieldTip").textContent=hasAnyData()?TIPS[Math.floor(Math.random()*TIPS.length)]:ONBOARD_TIP;
+}
 function homeStats(){
   $("#qsRuns").textContent=LS.get("pf.totalRaces",0);
   const bb=LS.get("bt.best",null); $("#qsBeep").textContent=bb?bb+" מ׳":"—";
@@ -376,7 +389,7 @@ $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
-  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  saveSet(); modal("setModal",false); toast(t("set.saved","ההגדרות נשמרו"));
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
   wireBackup(); wireAbout(); wirePurge(); wireStorageWarn();
 }
@@ -697,10 +710,13 @@ async function bkDecrypt(file,pass){
 function bkAskPass(mode){
   return new Promise(resolve=>{
     const two=mode==="new";
-    $("#bkPassTitle").textContent=two?"🔐 סיסמה לגיבוי":"🔐 הקובץ מוצפן";
+    /* הטקסטים כאן נכתבים בזמן ריצה (לא data-i18n סטטי), ולכן חייבים
+       לעבור דרך t() בעצמם — אחרת חלון הסיסמה תמיד היה בעברית, גם
+       כשכל שאר המסך באנגלית. */
+    $("#bkPassTitle").textContent=two?t("bk.passTitleNew","🔐 סיסמה לגיבוי"):t("bk.passTitleOpen","🔐 הקובץ מוצפן");
     $("#bkPassHint").innerHTML=two
-      ? "בחר סיסמה. <b>אין דרך לשחזר אותה</b> — שמור אותה במקום שאתה זוכר, אחרת הקובץ אבוד."
-      : "הקובץ הזה מוצפן. הזן את הסיסמה שאיתה נוצר.";
+      ? t("bk.passHintNew","בחר סיסמה. <b>אין דרך לשחזר אותה</b> — שמור אותה במקום שאתה זוכר, אחרת הקובץ אבוד.")
+      : t("bk.passHintOpen","הקובץ הזה מוצפן. הזן את הסיסמה שאיתה נוצר.");
     $("#bk-pass2Wrap").style.display=two?"":"none";
     $("#bk-pass1").value=""; $("#bk-pass2").value="";
     $("#bk-passWarn").style.display="none";
@@ -708,8 +724,8 @@ function bkAskPass(mode){
     const go=()=>{
       const a=$("#bk-pass1").value, b=$("#bk-pass2").value;
       const warn=m=>{ const w=$("#bk-passWarn"); w.textContent=m; w.style.display="block"; };
-      if(a.length<8)return warn("סיסמה של 8 תווים לפחות.");
-      if(two&&a!==b)return warn("שתי הסיסמאות אינן זהות.");
+      if(a.length<8)return warn(t("bk.passShort","סיסמה של 8 תווים לפחות."));
+      if(two&&a!==b)return warn(t("bk.passMismatch","שתי הסיסמאות אינן זהות."));
       done(a);
     };
     const onKey=e=>{ if(e.key==="Enter"){e.preventDefault();go();} };
@@ -843,7 +859,8 @@ function wireBackup(){
               if(!iv.ok){ toast("הקובץ פוענח אבל תוכנו אינו גיבוי — "+bkErrMsg(iv.errors[0])); return; }
               bkPreview(inner); return;
             }catch(err){
-              toast(tryN<3?("סיסמה שגויה — נותרו "+(3-tryN)+" ניסיונות"):"סיסמה שגויה. הקובץ לא נפתח.");
+              toast(tryN<3?t("bk.passWrongLeft","סיסמה שגויה — נותרו {n} ניסיונות").replace("{n}",3-tryN)
+                          :t("bk.passWrongFinal","סיסמה שגויה. הקובץ לא נפתח."));
             }
           }
         })();

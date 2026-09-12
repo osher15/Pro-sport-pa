@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=6ba6c50b">
+<link rel="stylesheet" href="hm-styles.css?v=5094c7ef">
 <script src="hm-data.js?v=5bdec16a"></script>
-<script src="hm-i18n.js?v=b4951cd9"></script>
-<script src="hm-app.js?v=2181cf9b"></script>
+<script src="hm-i18n.js?v=49d413e7"></script>
+<script src="hm-app.js?v=29cda7fa"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -1538,28 +1538,31 @@
     <div class="hint" style="margin-top:5px" data-i18n="bk.body">כל הנתונים — תלמידים, תוצאות, שיאים, ציונים, נורמות והגדרות — שמורים <b>במכשיר הזה בלבד</b>.
       מכשיר שנשבר או ניקוי נתוני אתר = הכול נעלם, בלי שחזור. קובץ גיבוי אחד פותר גם את זה וגם העברה למכשיר חדש
       או למורה נוסף.</div>
+    <!-- הבחירה מוצפן/רגיל מוצגת לפני כפתור הגיבוי, לא אחריו — כדי
+         שהמורה יחליט לפני שהוא לוחץ, ולא יגלה אחרי מה בעצם ירד. -->
+    <label class="check" style="margin-top:10px"><input type="checkbox" id="set-bkEnc">
+      <span data-i18n="bk.encrypt">🔐 הצפן את הגיבוי בסיסמה</span></label>
+    <div class="hint" data-i18n="bk.encryptHint" style="margin-top:4px">קובץ מוצפן אפשר לשמור בדרייב או לשלוח במייל בלי שהתוכן יהיה קריא לאף אחד — גם לא לשירות שמאחסן אותו.
+      <b>אין שחזור סיסמה:</b> אבדה הסיסמה, אבד הקובץ. זו המשמעות של הצפנה אמיתית.
+      בלי הסימון — קובץ רגיל, לא מוצפן, שכל תוכנה שיודעת לקרוא JSON יכולה לפתוח.</div>
     <div class="row" style="margin-top:10px;gap:8px">
       <button class="btn sm acc" id="set-bkExport" data-i18n="bk.export">⬇ גבה הכל לקובץ</button>
       <button class="btn sm" id="set-bkImport" data-i18n="bk.import">⬆ שחזר מקובץ</button>
       <input type="file" id="set-bkFile" accept=".json,.hmg,application/json" style="display:none">
     </div>
-    <label class="check" style="margin-top:10px"><input type="checkbox" id="set-bkEnc">
-      <span data-i18n="bk.encrypt">🔐 הצפן את הגיבוי בסיסמה</span></label>
-    <div class="hint" data-i18n="bk.encryptHint" style="margin-top:4px">קובץ מוצפן אפשר לשמור בדרייב או לשלוח במייל בלי שהתוכן יהיה קריא לאף אחד — גם לא לשירות שמאחסן אותו.
-      <b>אין שחזור סיסמה:</b> אבדה הסיסמה, אבד הקובץ. זו המשמעות של הצפנה אמיתית.</div>
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
   </div>
   <div class="bk-card" id="set-clsCard">
-    <b>🏷 שמות הכיתות</b>
-    <div class="hint" style="margin-top:5px">שינוי שם נוגע רק לשם. התלמידים, המדידות והשיעורים של הכיתה נשארים שלה — הם מזוהים לפי מזהה קבוע, לא לפי השם.</div>
+    <b data-i18n="set.clsTitle">🏷 שמות הכיתות</b>
+    <div class="hint" style="margin-top:5px" data-i18n="set.clsHint">שינוי שם נוגע רק לשם. התלמידים, המדידות והשיעורים של הכיתה נשארים שלה — הם מזוהים לפי מזהה קבוע, לא לפי השם.</div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
-      <div class="field grow"><label>כיתה</label><select id="set-clsSel"></select></div>
-      <div class="field" style="min-width:120px"><label>שם נוכחי</label><div id="set-clsCur" style="font-weight:700;padding:6px 0">—</div></div>
+      <div class="field grow"><label data-i18n="set.clsPick">כיתה</label><select id="set-clsSel"></select></div>
+      <div class="field" style="min-width:120px"><label data-i18n="set.clsCurLbl">שם נוכחי</label><div id="set-clsCur" style="font-weight:700;padding:6px 0">—</div></div>
     </div>
     <div class="hint" id="set-clsInfo"></div>
     <div class="row" style="margin-top:8px;gap:8px;align-items:flex-end">
-      <div class="field grow"><label>שם חדש</label><input type="text" id="set-clsNew" placeholder="למשל: ט׳3 מצטיינים" disabled></div>
-      <button class="btn sm acc" id="set-clsRename" disabled>שמירה</button>
+      <div class="field grow"><label data-i18n="set.clsNewLbl">שם חדש</label><input type="text" id="set-clsNew" data-i18n-placeholder="set.clsNewPh" placeholder="למשל: ט׳3 מצטיינים" disabled></div>
+      <button class="btn sm acc" id="set-clsRename" data-i18n="set.clsSaveBtn" disabled>שמירה</button>
     </div>
   </div>
   <button class="btn acc big" id="set-save" style="margin-top:13px" data-i18n="set.save">שמור</button>
@@ -1609,7 +1612,7 @@
 </div></div>
 <div id="lockOv"><div class="box">
   <div class="lg">🔐</div>
-  <h1 dir="auto" data-i18n="brand.full">המגרש PRO</h1>
+  <h1 dir="auto"><span data-i18n="brand.word">המגרש</span> <b style="color:var(--acc)">PRO</b></h1>
   <p data-i18n="lock.sub">אזור מורה — הזן קוד כדי להיכנס</p>
   <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
   <button class="btn acc big" id="lock-enter" style="margin-top:14px" data-i18n="lock.enter">כניסת מורה</button>

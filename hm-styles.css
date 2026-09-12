@@ -468,7 +468,11 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #lockOv .box{width:min(380px,100%);text-align:center}
 #lockOv .lg{width:70px;height:70px;margin:0 auto 16px;border-radius:20px;display:grid;place-items:center;font-size:34px;
   background:linear-gradient(135deg,var(--acc),#5b4bb8);box-shadow:0 12px 40px rgba(167,139,250,.4)}
-#lockOv h1{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:24px;margin:0 0 4px}
+/* אותו מבנה כמו שם המותג בכותרת העליונה (.topbar .ttl): המילה
+   העברית מתורגמת, «PRO» קבוע ומבודד — ולא מחרוזת מעורבת אחת
+   שדפדפן צריך לנחש את כיוונה. ראו ההערה על תו «ℹ» למעלה. */
+#lockOv h1{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:24px;margin:0 0 4px;
+  unicode-bidi:isolate;white-space:nowrap}
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
 

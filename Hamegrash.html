@@ -479,7 +479,11 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #lockOv .box{width:min(380px,100%);text-align:center}
 #lockOv .lg{width:70px;height:70px;margin:0 auto 16px;border-radius:20px;display:grid;place-items:center;font-size:34px;
   background:linear-gradient(135deg,var(--acc),#5b4bb8);box-shadow:0 12px 40px rgba(167,139,250,.4)}
-#lockOv h1{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:24px;margin:0 0 4px}
+/* אותו מבנה כמו שם המותג בכותרת העליונה (.topbar .ttl): המילה
+   העברית מתורגמת, «PRO» קבוע ומבודד — ולא מחרוזת מעורבת אחת
+   שדפדפן צריך לנחש את כיוונה. ראו ההערה על תו «ℹ» למעלה. */
+#lockOv h1{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:24px;margin:0 0 4px;
+  unicode-bidi:isolate;white-space:nowrap}
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
 
@@ -2777,28 +2781,31 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <div class="hint" style="margin-top:5px" data-i18n="bk.body">כל הנתונים — תלמידים, תוצאות, שיאים, ציונים, נורמות והגדרות — שמורים <b>במכשיר הזה בלבד</b>.
       מכשיר שנשבר או ניקוי נתוני אתר = הכול נעלם, בלי שחזור. קובץ גיבוי אחד פותר גם את זה וגם העברה למכשיר חדש
       או למורה נוסף.</div>
+    <!-- הבחירה מוצפן/רגיל מוצגת לפני כפתור הגיבוי, לא אחריו — כדי
+         שהמורה יחליט לפני שהוא לוחץ, ולא יגלה אחרי מה בעצם ירד. -->
+    <label class="check" style="margin-top:10px"><input type="checkbox" id="set-bkEnc">
+      <span data-i18n="bk.encrypt">🔐 הצפן את הגיבוי בסיסמה</span></label>
+    <div class="hint" data-i18n="bk.encryptHint" style="margin-top:4px">קובץ מוצפן אפשר לשמור בדרייב או לשלוח במייל בלי שהתוכן יהיה קריא לאף אחד — גם לא לשירות שמאחסן אותו.
+      <b>אין שחזור סיסמה:</b> אבדה הסיסמה, אבד הקובץ. זו המשמעות של הצפנה אמיתית.
+      בלי הסימון — קובץ רגיל, לא מוצפן, שכל תוכנה שיודעת לקרוא JSON יכולה לפתוח.</div>
     <div class="row" style="margin-top:10px;gap:8px">
       <button class="btn sm acc" id="set-bkExport" data-i18n="bk.export">⬇ גבה הכל לקובץ</button>
       <button class="btn sm" id="set-bkImport" data-i18n="bk.import">⬆ שחזר מקובץ</button>
       <input type="file" id="set-bkFile" accept=".json,.hmg,application/json" style="display:none">
     </div>
-    <label class="check" style="margin-top:10px"><input type="checkbox" id="set-bkEnc">
-      <span data-i18n="bk.encrypt">🔐 הצפן את הגיבוי בסיסמה</span></label>
-    <div class="hint" data-i18n="bk.encryptHint" style="margin-top:4px">קובץ מוצפן אפשר לשמור בדרייב או לשלוח במייל בלי שהתוכן יהיה קריא לאף אחד — גם לא לשירות שמאחסן אותו.
-      <b>אין שחזור סיסמה:</b> אבדה הסיסמה, אבד הקובץ. זו המשמעות של הצפנה אמיתית.</div>
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
   </div>
   <div class="bk-card" id="set-clsCard">
-    <b>🏷 שמות הכיתות</b>
-    <div class="hint" style="margin-top:5px">שינוי שם נוגע רק לשם. התלמידים, המדידות והשיעורים של הכיתה נשארים שלה — הם מזוהים לפי מזהה קבוע, לא לפי השם.</div>
+    <b data-i18n="set.clsTitle">🏷 שמות הכיתות</b>
+    <div class="hint" style="margin-top:5px" data-i18n="set.clsHint">שינוי שם נוגע רק לשם. התלמידים, המדידות והשיעורים של הכיתה נשארים שלה — הם מזוהים לפי מזהה קבוע, לא לפי השם.</div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
-      <div class="field grow"><label>כיתה</label><select id="set-clsSel"></select></div>
-      <div class="field" style="min-width:120px"><label>שם נוכחי</label><div id="set-clsCur" style="font-weight:700;padding:6px 0">—</div></div>
+      <div class="field grow"><label data-i18n="set.clsPick">כיתה</label><select id="set-clsSel"></select></div>
+      <div class="field" style="min-width:120px"><label data-i18n="set.clsCurLbl">שם נוכחי</label><div id="set-clsCur" style="font-weight:700;padding:6px 0">—</div></div>
     </div>
     <div class="hint" id="set-clsInfo"></div>
     <div class="row" style="margin-top:8px;gap:8px;align-items:flex-end">
-      <div class="field grow"><label>שם חדש</label><input type="text" id="set-clsNew" placeholder="למשל: ט׳3 מצטיינים" disabled></div>
-      <button class="btn sm acc" id="set-clsRename" disabled>שמירה</button>
+      <div class="field grow"><label data-i18n="set.clsNewLbl">שם חדש</label><input type="text" id="set-clsNew" data-i18n-placeholder="set.clsNewPh" placeholder="למשל: ט׳3 מצטיינים" disabled></div>
+      <button class="btn sm acc" id="set-clsRename" data-i18n="set.clsSaveBtn" disabled>שמירה</button>
     </div>
   </div>
   <button class="btn acc big" id="set-save" style="margin-top:13px" data-i18n="set.save">שמור</button>
@@ -2848,7 +2855,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
 </div></div>
 <div id="lockOv"><div class="box">
   <div class="lg">🔐</div>
-  <h1 dir="auto" data-i18n="brand.full">המגרש PRO</h1>
+  <h1 dir="auto"><span data-i18n="brand.word">המגרש</span> <b style="color:var(--acc)">PRO</b></h1>
   <p data-i18n="lock.sub">אזור מורה — הזן קוד כדי להיכנס</p>
   <div class="field"><input type="password" id="lock-pass" placeholder="••••" inputmode="numeric"></div>
   <button class="btn acc big" id="lock-enter" style="margin-top:14px" data-i18n="lock.enter">כניסת מורה</button>
@@ -4379,6 +4386,10 @@ en:{
   "set.lock":"Lock the teacher area on entry",
   "set.touch":"Large buttons (one-handed use during a lesson)",
   "set.save":"Save", "set.saved":"Settings saved",
+  "set.clsTitle":"🏷 Class names",
+  "set.clsHint":"Renaming only changes the name. Students, measurements and lessons of the class stay with it — they are identified by a fixed id, not by the name.",
+  "set.clsPick":"Class", "set.clsCurLbl":"Current name", "set.clsNewLbl":"New name",
+  "set.clsNewPh":"e.g. 9th grade, section 3 — Honors", "set.clsSaveBtn":"Save",
   "set.lang":"Language", "set.langHint":"The interface changes language immediately. Professional content (games, lesson plans, knowledge base) is still Hebrew and is being translated gradually.",
   "set.about":"📘 About, version and credits",
   "set.purge":"🧹 Clear old data",
@@ -4389,6 +4400,16 @@ en:{
   "bk.body":"All your data — students, results, records, grades, norms and settings — is stored <b>on this device only</b>. A broken device or clearing site data means it is gone, with no way back. One backup file solves that, and also moves everything to a new device or another teacher.",
   "bk.export":"⬇ Back up everything to a file",
   "bk.import":"⬆ Restore from a file",
+  "bk.encrypt":"🔐 Encrypt the backup with a password",
+  "bk.encryptHint":"An encrypted file can be kept in Drive or sent by email without anyone — not even the storage service — being able to read it. <b>No password recovery:</b> lose the password, lose the file. That is what real encryption means. Without this checkbox — a plain, unencrypted file that any JSON-reading tool can open.",
+  "bk.pass":"Password", "bk.passAgain":"Again, to confirm",
+  "bk.passTitleNew":"🔐 Backup password", "bk.passTitleOpen":"🔐 This file is encrypted",
+  "bk.passHintNew":"Choose a password. <b>There is no way to recover it</b> — save it somewhere you will remember, or the file is lost.",
+  "bk.passHintOpen":"This file is encrypted. Enter the password it was created with.",
+  "bk.passShort":"Password must be at least 8 characters.",
+  "bk.passMismatch":"The two passwords do not match.",
+  "bk.passWrongLeft":"Wrong password — {n} attempts left",
+  "bk.passWrongFinal":"Wrong password. The file was not opened.",
   "bk.never":"never backed up",
   "bk.lastAt":"last backup",
   "bk.groups":"data groups",
@@ -4492,6 +4513,10 @@ ar:{
   "set.lock":"قفل منطقة المعلّم عند الدخول",
   "set.touch":"أزرار كبيرة (استخدام بيد واحدة أثناء الدرس)",
   "set.save":"حفظ", "set.saved":"تم حفظ الإعدادات",
+  "set.clsTitle":"🏷 أسماء الصفوف",
+  "set.clsHint":"تغيير الاسم يغيّر الاسم فقط. الطلاب والقياسات والحصص الخاصة بالصف يبقون معه — يُعرَّفون بمعرّف ثابت، لا بالاسم.",
+  "set.clsPick":"الصف", "set.clsCurLbl":"الاسم الحالي", "set.clsNewLbl":"اسم جديد",
+  "set.clsNewPh":"مثال: تاسع 3 — متفوقين", "set.clsSaveBtn":"حفظ",
   "set.lang":"اللغة", "set.langHint":"تتغيّر لغة الواجهة فورًا. المحتوى المهني (الألعاب، خطط الدروس، قاعدة المعرفة) ما زال بالعبرية ويُترجم تدريجيًا.",
   "set.about":"📘 حول، الإصدار والاعتمادات",
   "set.purge":"🧹 مسح البيانات القديمة",
@@ -4501,6 +4526,16 @@ ar:{
   "bk.body":"كل بياناتك — الطلاب، النتائج، الأرقام القياسية، العلامات، المعايير والإعدادات — محفوظة <b>على هذا الجهاز فقط</b>. جهاز يتعطّل أو مسح بيانات الموقع يعني ضياع كل شيء بلا رجعة. ملف نسخ احتياطي واحد يحلّ ذلك، وينقل كل شيء إلى جهاز جديد أو إلى معلّم آخر.",
   "bk.export":"⬇ انسخ كل شيء إلى ملف",
   "bk.import":"⬆ استعادة من ملف",
+  "bk.encrypt":"🔐 تشفير النسخة الاحتياطية بكلمة مرور",
+  "bk.encryptHint":"يمكن حفظ الملف المشفّر في درايف أو إرساله بالبريد دون أن يتمكن أحد — ولا حتى خدمة التخزين — من قراءة محتواه. <b>لا استعادة لكلمة المرور:</b> إن ضاعت كلمة المرور ضاع الملف. هذا هو معنى التشفير الحقيقي. بدون تحديد هذا المربع — ملف عادي غير مشفّر يمكن لأي أداة تقرأ JSON فتحه.",
+  "bk.pass":"كلمة المرور", "bk.passAgain":"مرة أخرى للتأكيد",
+  "bk.passTitleNew":"🔐 كلمة مرور النسخة الاحتياطية", "bk.passTitleOpen":"🔐 هذا الملف مشفّر",
+  "bk.passHintNew":"اختر كلمة مرور. <b>لا توجد طريقة لاستعادتها</b> — احفظها في مكان تتذكره، وإلا فُقد الملف.",
+  "bk.passHintOpen":"هذا الملف مشفّر. أدخل كلمة المرور التي أُنشئ بها.",
+  "bk.passShort":"كلمة المرور يجب أن تكون 8 أحرف على الأقل.",
+  "bk.passMismatch":"كلمتا المرور غير متطابقتين.",
+  "bk.passWrongLeft":"كلمة مرور خاطئة — تبقّت {n} محاولات",
+  "bk.passWrongFinal":"كلمة مرور خاطئة. لم يُفتح الملف.",
   "bk.never":"لم يُنسخ احتياطيًا قط",
   "bk.lastAt":"آخر نسخة",
   "bk.groups":"مجموعات بيانات",
@@ -4610,6 +4645,10 @@ ru:{
   "set.lock":"Блокировать зону учителя при входе",
   "set.touch":"Крупные кнопки (управление одной рукой во время урока)",
   "set.save":"Сохранить", "set.saved":"Настройки сохранены",
+  "set.clsTitle":"🏷 Названия классов",
+  "set.clsHint":"Переименование меняет только название. Ученики, измерения и уроки класса остаются с ним — они определяются по постоянному id, а не по названию.",
+  "set.clsPick":"Класс", "set.clsCurLbl":"Текущее название", "set.clsNewLbl":"Новое название",
+  "set.clsNewPh":"например: 9 класс, группа 3 — с углублённым изучением", "set.clsSaveBtn":"Сохранить",
   "set.lang":"Язык", "set.langHint":"Язык интерфейса меняется сразу. Профессиональный контент (игры, планы уроков, база знаний) пока на иврите и переводится постепенно.",
   "set.about":"📘 О программе, версия и благодарности",
   "set.purge":"🧹 Очистить старые данные",
@@ -4619,6 +4658,16 @@ ru:{
   "bk.body":"Все ваши данные — ученики, результаты, рекорды, оценки, нормы и настройки — хранятся <b>только на этом устройстве</b>. Сломанное устройство или очистка данных сайта — и всё пропало без возврата. Один файл копии решает это, а заодно переносит всё на новое устройство или другому учителю.",
   "bk.export":"⬇ Сохранить всё в файл",
   "bk.import":"⬆ Восстановить из файла",
+  "bk.encrypt":"🔐 Зашифровать копию паролем",
+  "bk.encryptHint":"Зашифрованный файл можно хранить на Диске или отправлять по почте — никто, даже сам сервис хранения, не прочитает содержимое. <b>Восстановить пароль нельзя:</b> забыли пароль — потеряли файл. В этом смысл настоящего шифрования. Без этой галочки — обычный незашифрованный файл, который откроет любая программа, читающая JSON.",
+  "bk.pass":"Пароль", "bk.passAgain":"Ещё раз, для проверки",
+  "bk.passTitleNew":"🔐 Пароль для копии", "bk.passTitleOpen":"🔐 Этот файл зашифрован",
+  "bk.passHintNew":"Выберите пароль. <b>Восстановить его нельзя</b> — сохраните там, где не забудете, иначе файл будет потерян.",
+  "bk.passHintOpen":"Этот файл зашифрован. Введите пароль, с которым он был создан.",
+  "bk.passShort":"Пароль должен быть не короче 8 символов.",
+  "bk.passMismatch":"Пароли не совпадают.",
+  "bk.passWrongLeft":"Неверный пароль — осталось попыток: {n}",
+  "bk.passWrongFinal":"Неверный пароль. Файл не открыт.",
   "bk.never":"копия ещё не создавалась",
   "bk.lastAt":"последняя копия",
   "bk.groups":"групп данных",
@@ -4960,7 +5009,20 @@ const TIPS=[
  "מסך הטלפון לא יכבה באמצע פעילות — מניעת כיבוי המסך פעילה כשטיימר רץ (אפשר לכבות בהגדרות).",
  "אפשר להתקין את האפליקציה למסך הבית — תפריט הדפדפן ואז ׳הוספה למסך הבית׳."
 ];
-function homeInit(){ $("#fieldTip").textContent=TIPS[Math.floor(Math.random()*TIPS.length)]; }
+/* מכשיר ריק לגמרי — מורה שנכנס בפעם הראשונה. אין לו עדיין תלמידים,
+   רשימת כיתה, תוצאה או שיא, ולכן זאת בדיוק הנקודה שבה "טיפ שטח"
+   אקראי (טריקים לשימוש שוטף) פחות שימושי מהצעד הראשון בפועל.
+   ברגע שיש נתון כלשהו — חוזרים לבריכת הטיפים הרגילה. בלי מסך חדש,
+   בלי מפתח אחסון חדש: אותו widget, רק ברירת המחדל שלו משתנה. */
+function hasAnyData(){
+  const n=k=>{ const v=LS.get(k,null);
+    return Array.isArray(v)?v.length:(v&&typeof v==="object"?Object.keys(v).length:0); };
+  return n("ft.results")+n("stu.list")+n("rec.list")+n("ft.roster")+n("bt.results")>0;
+}
+const ONBOARD_TIP="חדשים כאן? לחצו 🎬 «מצב הדגמה» במסך הכניסה — כיתה לדוגמה עם תוצאות אמיתיות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים.";
+function homeInit(){
+  $("#fieldTip").textContent=hasAnyData()?TIPS[Math.floor(Math.random()*TIPS.length)]:ONBOARD_TIP;
+}
 function homeStats(){
   $("#qsRuns").textContent=LS.get("pf.totalRaces",0);
   const bb=LS.get("bt.best",null); $("#qsBeep").textContent=bb?bb+" מ׳":"—";
@@ -5099,7 +5161,7 @@ $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
-  saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
+  saveSet(); modal("setModal",false); toast(t("set.saved","ההגדרות נשמרו"));
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
   wireBackup(); wireAbout(); wirePurge(); wireStorageWarn();
 }
@@ -5420,10 +5482,13 @@ async function bkDecrypt(file,pass){
 function bkAskPass(mode){
   return new Promise(resolve=>{
     const two=mode==="new";
-    $("#bkPassTitle").textContent=two?"🔐 סיסמה לגיבוי":"🔐 הקובץ מוצפן";
+    /* הטקסטים כאן נכתבים בזמן ריצה (לא data-i18n סטטי), ולכן חייבים
+       לעבור דרך t() בעצמם — אחרת חלון הסיסמה תמיד היה בעברית, גם
+       כשכל שאר המסך באנגלית. */
+    $("#bkPassTitle").textContent=two?t("bk.passTitleNew","🔐 סיסמה לגיבוי"):t("bk.passTitleOpen","🔐 הקובץ מוצפן");
     $("#bkPassHint").innerHTML=two
-      ? "בחר סיסמה. <b>אין דרך לשחזר אותה</b> — שמור אותה במקום שאתה זוכר, אחרת הקובץ אבוד."
-      : "הקובץ הזה מוצפן. הזן את הסיסמה שאיתה נוצר.";
+      ? t("bk.passHintNew","בחר סיסמה. <b>אין דרך לשחזר אותה</b> — שמור אותה במקום שאתה זוכר, אחרת הקובץ אבוד.")
+      : t("bk.passHintOpen","הקובץ הזה מוצפן. הזן את הסיסמה שאיתה נוצר.");
     $("#bk-pass2Wrap").style.display=two?"":"none";
     $("#bk-pass1").value=""; $("#bk-pass2").value="";
     $("#bk-passWarn").style.display="none";
@@ -5431,8 +5496,8 @@ function bkAskPass(mode){
     const go=()=>{
       const a=$("#bk-pass1").value, b=$("#bk-pass2").value;
       const warn=m=>{ const w=$("#bk-passWarn"); w.textContent=m; w.style.display="block"; };
-      if(a.length<8)return warn("סיסמה של 8 תווים לפחות.");
-      if(two&&a!==b)return warn("שתי הסיסמאות אינן זהות.");
+      if(a.length<8)return warn(t("bk.passShort","סיסמה של 8 תווים לפחות."));
+      if(two&&a!==b)return warn(t("bk.passMismatch","שתי הסיסמאות אינן זהות."));
       done(a);
     };
     const onKey=e=>{ if(e.key==="Enter"){e.preventDefault();go();} };
@@ -5566,7 +5631,8 @@ function wireBackup(){
               if(!iv.ok){ toast("הקובץ פוענח אבל תוכנו אינו גיבוי — "+bkErrMsg(iv.errors[0])); return; }
               bkPreview(inner); return;
             }catch(err){
-              toast(tryN<3?("סיסמה שגויה — נותרו "+(3-tryN)+" ניסיונות"):"סיסמה שגויה. הקובץ לא נפתח.");
+              toast(tryN<3?t("bk.passWrongLeft","סיסמה שגויה — נותרו {n} ניסיונות").replace("{n}",3-tryN)
+                          :t("bk.passWrongFinal","סיסמה שגויה. הקובץ לא נפתח."));
             }
           }
         })();
