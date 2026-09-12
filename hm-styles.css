@@ -1238,3 +1238,14 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
 #stWarn .muted{color:var(--muted);font-weight:400}
 #stWarn .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
 body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
+
+/* ===== פס השיעור הפעיל =====
+   שקט בכוונה: שורה אחת בראש המסך שאומרת שיש שיעור פתוח ולאיזו
+   כיתה. לא מסך, לא דשבורד — רק הקשר שלא נעלם בין מודול למודול. */
+#lsBar{position:sticky;top:0;z-index:125;display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 16%,var(--bg2));
+  border-bottom:1px solid var(--acc);color:var(--ink);padding:7px 14px;font-size:13px}
+#lsBar[hidden]{display:none!important}
+#lsBar b{color:var(--acc)}
+body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
+#ft-startLesson{margin-top:9px}

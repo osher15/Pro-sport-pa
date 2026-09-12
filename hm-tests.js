@@ -298,6 +298,10 @@ window.FT=(function(){
          נשמר — הוא נגזר בכל תצוגה — אבל בלי החותמת הזאת החלפת טבלת
          נורמה הייתה משנה בשקט את הפרשנות של כל ההיסטוריה. */
       normVer:normVersion(),
+      /* אם יש שיעור פתוח לאותה כיתה — המדידה יודעת באיזה שיעור
+         נלקחה. זה הקשר בלבד: המדידה נשארת רשומה עצמאית עם sid,
+         cid, מבחן, תאריך וערך גולמי, וכל אלה קודמים ל-sessionId. */
+      sessionId:sessionFor(c),
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
@@ -334,6 +338,14 @@ window.FT=(function(){
   /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
      מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
   const normVersion=()=>String(norms().version||"");
+  /* מזהה השיעור הפעיל — רק אם הוא של הכיתה הנמדדת. מדידה בכיתה
+     אחרת באמצע שיעור פתוח אינה שייכת לשיעור ההוא. */
+  function sessionFor(c){
+    try{
+      const a=H().session&&H().session.active();
+      return (a&&a.cid===DATA.classId(c))?a.id:null;
+    }catch(e){ return null; }
+  }
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
   /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
   const lapsFor   =tid=>Math.max(1,+((LS().get("ft.laps",{}))[tid]||1));
@@ -417,6 +429,7 @@ window.FT=(function(){
     }).join("");
 
     renderAmb();
+    wireStartLesson();
     $$("#ft-grades [data-g]").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;persist();renderPicker();}));
     $$("#ft-nums [data-n]").forEach(b=>b.addEventListener("click",()=>{st.num=+b.dataset.n;persist();renderPicker();}));
     $$("#ft-tests [data-t]").forEach(b=>b.addEventListener("click",()=>openTest(b.dataset.t)));
@@ -2002,6 +2015,34 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     7ד. פתיחת שיעור מבורר הכיתה
+     ------------------------------------------------------------
+     הכיתה כבר נבחרה כאן — זה המקום הטבעי להתחיל ממנו שיעור, בלי
+     מסך חדש ובלי לבחור כיתה פעם שנייה.
+     ============================================================ */
+  function wireStartLesson(){
+    const {$}=H(), b=$("#ft-startLesson"); if(!b)return;
+    const S=H().session; if(!S){ b.hidden=true; return; }
+    const c=cls(), cid=DATA.classId(c), act=S.active();
+    b.hidden=false;
+    if(act&&act.cid===cid){ b.textContent="▶ השיעור בכיתה הזאת פתוח"; b.disabled=true; return; }
+    b.disabled=false;
+    b.textContent="▶ התחל שיעור";
+    b.onclick=()=>{
+      registerCls(c);
+      const r=S.start({cid,clsSnapshot:c,date:today()});
+      if(r.outcome==="blocked"){
+        H().toast("כבר פתוח שיעור בכיתה "+(r.active.clsSnapshot||"")+" — סיים אותו קודם");
+        return;
+      }
+      if(!r.ok){ H().toast("לא ניתן לפתוח שיעור"); return; }
+      H().paintSessionBar();
+      H().toast(r.outcome==="resumed"?"השיעור בכיתה "+c+" כבר פתוח":"▶ השיעור בכיתה "+c+" התחיל");
+      renderPicker();
+    };
+  }
+
+  /* ============================================================
      8. אתחול
      ============================================================ */
   /* מעבר בין «מבחנים» ל«מדד» — שתי הלשוניות חולקות את אותה בחירת כיתה */
@@ -2126,7 +2167,7 @@ window.FT=(function(){
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
         cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,
-        normVer:normVersion(),gradeKey:pc.grade,
+        normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;
     });

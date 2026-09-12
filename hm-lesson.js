@@ -435,10 +435,48 @@ window.LESSON=(function(){
 
   const placeName=p=>({field:"מגרש חוץ",hall:"אולם",class:"כיתה",gym:"חדר כושר"}[p]||p);
 
+  /* ============================================================
+     פתיחת שיעור מתוך המערך
+     ------------------------------------------------------------
+     זה הקישור בין PLAN ל-TEACH: המערך אומר מה התכוונו ללמד,
+     והשיעור אומר מה קרה בפועל, ביום מסוים ועם כיתה מסוימת.
+     המערך עצמו אינו משתנה — הוא תוכן לשימוש חוזר, והשיעור רק
+     שומר הפניה אליו ואת שמו לקריאוּת ההיסטוריה.
+
+     הכיתה חייבת להיבחר קודם במבחני הכושר: שם חיה רשימת הכיתה
+     ושם נקבע המזהה היציב. בלי זה אין לשיעור למה להתחבר.
+     ============================================================ */
+  function wireStartFromPlan(){
+    const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
+    const S=H().session;
+    if(!S||!window.FT){ b.hidden=true; return; }
+    const last=H().LS.get("ft.last",{});
+    const c=(window.FT.classOf&&last.grade)?window.FT.classOf(last.grade,last.num||1):"";
+    const cid=window.HMDATA.classId(c);
+    const act=S.active();
+    b.hidden=false;
+    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; return; }
+    if(!cid){ b.textContent="▶ בחר כיתה קודם"; b.disabled=true; return; }
+    b.disabled=false;
+    b.textContent="▶ התחל שיעור · "+c;
+    b.onclick=()=>{
+      const r=S.start({cid,clsSnapshot:c,date:today(),
+        planId:(plan&&plan.id)||null,planTitle:(plan&&plan.title)||""});
+      if(r.outcome==="blocked"){
+        H().toast("כבר פתוח שיעור בכיתה "+(r.active.clsSnapshot||"")); return;
+      }
+      if(!r.ok){ H().toast("לא ניתן לפתוח שיעור"); return; }
+      H().paintSessionBar();
+      H().toast(r.outcome==="resumed"?"השיעור כבר פתוח":"▶ השיעור בכיתה "+c+" התחיל");
+      renderPlan();
+    };
+  }
+
   function renderPlan(){
     const {$, $$, esc}=H();
     if(!plan){$("#ls-planCard").style.display="none";return;}
     $("#ls-planCard").style.display="";
+    wireStartFromPlan();
     const total=plan.phases.reduce((a,p)=>a+p.min,0);
     const src=window.KNOW&&window.KNOW.byId(plan.cur);
     $("#ls-planBody").innerHTML=`

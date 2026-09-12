@@ -382,6 +382,73 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
 }
 
 /* ============================================================
+   שיעור פעיל — מתאם האחסון
+   ------------------------------------------------------------
+   הלוגיקה עצמה ב-hm-data.js וטהורה. כאן רק הקריאה והכתיבה, ופס
+   מינימלי שאומר למורה שיש שיעור פתוח ולאיזו כיתה.
+
+   מקור אמת אחד: השיעור הפעיל הוא הרשומה שסטטוסה «active» בתוך
+   ls.sessions. אין מצביע נפרד, ולכן אין מצב שבו המצביע והרשומה
+   מספרים שני סיפורים.
+   ============================================================ */
+const SES_KEY="ls.sessions";
+function sesAll(){ const v=LS.get(SES_KEY,[]); return Array.isArray(v)?v:[]; }
+/* כתיבה שנכשלת מדווחת. שיעור שנפתח ולא נשמר הוא שיעור שייעלם
+   ברענון הבא, והמורה חייב לדעת את זה עכשיו ולא אז. */
+function sesSave(list){
+  const ok=LS.set(SES_KEY,list);
+  if(!ok)toast("⚠ השיעור לא נשמר במכשיר — ראה את ההודעה למעלה");
+  return ok;
+}
+const SESSION={
+  all:sesAll,
+  active:()=>DATA.activeSession(sesAll()),
+  byId:id=>DATA.sessionById(sesAll(),id),
+  list:opts=>DATA.listSessions(sesAll(),opts),
+  /* פותח שיעור, או מחזיר את הפתוח כבר. outcome אומר מה קרה. */
+  start(o){
+    const r=DATA.createSession(sesAll(),o);
+    if(r.ok&&r.outcome==="created"&&!sesSave(r.list))
+      return {ok:false,outcome:"not-saved",session:null};
+    return r;
+  },
+  complete(id){
+    const r=DATA.completeSession(sesAll(),id);
+    if(r.ok&&r.outcome==="completed"&&!sesSave(r.list))
+      return {ok:false,outcome:"not-saved",session:null};
+    if(r.ok)paintSessionBar();
+    return r;
+  },
+  resume:()=>DATA.resumeSession(sesAll()),
+  measurements:sessionId=>DATA.sessionMeasurements(LS.get("ft.results",[]),sessionId)
+};
+
+/* הפס. מכוון להיות שקט: שורה אחת, לא מסך. */
+function paintSessionBar(){
+  const bar=document.getElementById("lsBar"); if(!bar)return;
+  const a=SESSION.active();
+  if(!a){ bar.hidden=true; return; }
+  const t=document.getElementById("lsBarT");
+  if(t)t.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot||a.cid)+
+    (a.planTitle?" · "+esc(a.planTitle):"");
+  bar.hidden=false;
+}
+function wireSessionBar(){
+  const bar=document.getElementById("lsBar"); if(!bar)return;
+  const end=document.getElementById("lsBarEnd");
+  if(end)end.addEventListener("click",()=>{
+    const a=SESSION.active(); if(!a)return;
+    const n=SESSION.measurements(a.id).length;
+    if(!confirm("לסיים את השיעור בכיתה "+(a.clsSnapshot||"")+"?\n\n"+
+      (n?"• "+n+" מדידות נלקחו בשיעור והן נשמרות.\n":"• לא נלקחו מדידות בשיעור.\n")+
+      "• השיעור יישאר בהיסטוריה."))return;
+    const r=SESSION.complete(a.id);
+    toast(r.ok?"✓ השיעור הסתיים":"סיום השיעור נכשל");
+  });
+  paintSessionBar();
+}
+
+/* ============================================================
    גיבוי ושחזור
    ------------------------------------------------------------
    כל האפליקציה חיה ב-localStorage תחת התחילית «pehub.», בלי שרת
@@ -3295,6 +3362,7 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
+  session:SESSION,paintSessionBar,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -3341,6 +3409,7 @@ window.HMBoot=function(){
     const mod=document.body.dataset.mod;
     if(mod&&mod!=="home"){ inited[mod]&&go(mod); }
   });
+  wireSessionBar();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */

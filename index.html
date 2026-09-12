@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=f64d3180">
-<script src="hm-data.js?v=682383e8"></script>
+<link rel="stylesheet" href="hm-styles.css?v=8c4d6c1a">
+<script src="hm-data.js?v=38b7132c"></script>
 <script src="hm-i18n.js?v=b4951cd9"></script>
-<script src="hm-app.js?v=076f57ce"></script>
+<script src="hm-app.js?v=c54641d9"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -23,9 +23,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="hm-tools.js?v=5d473e53"></script>
 <script src="hm-plans.js?v=ba067c4d"></script>
-<script src="hm-lesson.js?v=45abc322"></script>
+<script src="hm-lesson.js?v=14bea440"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=caf32a8e"></script>
+<script src="hm-tests.js?v=27065c7c"></script>
 <script src="hm-new.js?v=10069892"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -958,6 +958,7 @@
     <div class="row" style="justify-content:space-between">
       <h2 style="margin:0"><span class="dot"></span> המערך</h2>
       <div class="row">
+        <button class="btn sm acc" id="ls-startLesson">▶ התחל שיעור</button>
         <button class="btn sm" id="ls-save">💾 שמור</button>
         <button class="btn sm ghost" id="ls-print">🖨 הדפס</button>
       </div>
@@ -1038,6 +1039,7 @@
       <div class="ft-cls">
         <div class="big" id="ft-clsName">ז׳1</div>
         <div class="sb" id="ft-clsInfo"></div>
+        <button class="btn sm acc" id="ft-startLesson">▶ התחל שיעור</button>
       </div>
     </div>
     <!-- מוצג רק כשיש מדידות שההסבה לא הצליחה לשייך בוודאות -->
@@ -1556,6 +1558,8 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div id="lsBar" hidden><span id="lsBarT"></span>
+  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
 <div id="stWarn" hidden><span id="stWarnT"></span>
   <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
   <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>

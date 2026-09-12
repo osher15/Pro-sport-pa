@@ -1250,6 +1250,17 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
 #stWarn .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
 body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
 
+/* ===== פס השיעור הפעיל =====
+   שקט בכוונה: שורה אחת בראש המסך שאומרת שיש שיעור פתוח ולאיזו
+   כיתה. לא מסך, לא דשבורד — רק הקשר שלא נעלם בין מודול למודול. */
+#lsBar{position:sticky;top:0;z-index:125;display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 16%,var(--bg2));
+  border-bottom:1px solid var(--acc);color:var(--ink);padding:7px 14px;font-size:13px}
+#lsBar[hidden]{display:none!important}
+#lsBar b{color:var(--acc)}
+body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
+#ft-startLesson{margin-top:9px}
+
 </style>
 </head>
 <body>
@@ -2183,6 +2194,7 @@ body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
     <div class="row" style="justify-content:space-between">
       <h2 style="margin:0"><span class="dot"></span> המערך</h2>
       <div class="row">
+        <button class="btn sm acc" id="ls-startLesson">▶ התחל שיעור</button>
         <button class="btn sm" id="ls-save">💾 שמור</button>
         <button class="btn sm ghost" id="ls-print">🖨 הדפס</button>
       </div>
@@ -2263,6 +2275,7 @@ body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
       <div class="ft-cls">
         <div class="big" id="ft-clsName">ז׳1</div>
         <div class="sb" id="ft-clsInfo"></div>
+        <button class="btn sm acc" id="ft-startLesson">▶ התחל שיעור</button>
       </div>
     </div>
     <!-- מוצג רק כשיש מדידות שההסבה לא הצליחה לשייך בוודאות -->
@@ -2781,6 +2794,8 @@ body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div id="lsBar" hidden><span id="lsBarT"></span>
+  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
 <div id="stWarn" hidden><span id="stWarnT"></span>
   <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
   <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
@@ -3649,6 +3664,132 @@ function archiveNorm(archive,N){
 }
 
 /* ============================================================
+   5ד. שיעור פעיל — LessonSession
+   ------------------------------------------------------------
+   באפליקציה כבר היה «מערך שיעור»: תוכן שמור, שאפשר לטעון ולהציג.
+   מה שלא היה הוא ההבחנה בין מה שתוכנן לבין מה שקרה בפועל.
+
+     LessonPlan     — מה שהתכוונו ללמד. תוכן לשימוש חוזר.
+     LessonSession  — מה שקרה, ביום מסוים, עם כיתה מסוימת.
+
+   בלי ההפרדה הזאת אי אפשר לשאול «מה עשינו בשיעור של יום שלישי»,
+   ואי אפשר לקשור מדידה לשיעור שבו היא נלקחה — המורה היה בוחר את
+   הכיתה מחדש בכל כלי, ושום דבר לא היה יודע שמדובר באותו שיעור.
+
+   הסשן הוא הקשר, לא בעלים. מדידה נשארת רשומה עצמאית עם sid, cid,
+   מבחן, תאריך וערך גולמי; sessionId הוא שדה נוסף עליה. אין
+   session.measurements[] — מקור אמת אחד בלבד.
+
+   הכול טהור: מקבל רשימה, מחזיר רשימה חדשה. אין אחסון, אין DOM.
+   ============================================================ */
+var SESSION_ACTIVE="active", SESSION_DONE="completed";
+var SESSION_MAX=300;   /* גבול היסטוריה, כדי ש-localStorage לא יגדל לנצח */
+
+function newSessionId(){
+  return "ls"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+}
+function asList(v){ return Array.isArray(v)?v:[]; }
+
+/* השיעור הפעיל, אם יש. יחיד במכוון: מורה מלמד כיתה אחת בכל רגע,
+   ושני שיעורים פעילים היו הופכים «לאיזה שיעור שייכת המדידה» לשאלה
+   שאין לה תשובה. */
+function activeSession(list){
+  var all=asList(list);
+  for(var i=0;i<all.length;i++)
+    if(all[i]&&all[i].status===SESSION_ACTIVE)return all[i];
+  return null;
+}
+function sessionById(list,id){
+  if(!id)return null;
+  var all=asList(list);
+  for(var i=0;i<all.length;i++)if(all[i]&&all[i].id===id)return all[i];
+  return null;
+}
+
+/* ============================================================
+   פתיחת שיעור
+   ------------------------------------------------------------
+   הגנת הכפילות היא הדרישה המרכזית כאן. מורה שלוחץ פעמיים על
+   «התחל שיעור», או שחוזר לאפליקציה אחרי שסגר אותה, חייב לקבל את
+   אותו שיעור — לא שיעור שני שמפצל את המדידות שלו לשניים.
+
+   שלוש תוצאות אפשריות, וכולן מפורשות:
+     created  — נפתח שיעור חדש
+     resumed  — כבר יש שיעור פעיל לאותה כיתה. מוחזר הוא עצמו.
+     blocked  — יש שיעור פעיל לכיתה אחרת. לא נוגעים בו, והקורא
+                מחליט מה להציג למורה.
+   ============================================================ */
+function createSession(list,o){
+  o=o||{};
+  var all=asList(list);
+  if(!o.cid)return {ok:false,outcome:"no-class",list:all,session:null};
+
+  var act=activeSession(all);
+  if(act){
+    if(act.cid===o.cid)
+      return {ok:true,outcome:"resumed",list:all,session:act};
+    return {ok:false,outcome:"blocked",list:all,session:null,active:act};
+  }
+  var now=o.now||Date.now();
+  var ses={
+    id:o.id||newSessionId(),
+    cid:o.cid,
+    /* השם נשמר כהקשר היסטורי בלבד. הכיתה עשויה לשנות שם אחר כך,
+       והשיעור הזה עדיין צריך לדעת איך היא נקראה אז. */
+    clsSnapshot:String(o.clsSnapshot||""),
+    date:o.date||new Date(now).toISOString().slice(0,10),
+    startedAt:now,
+    endedAt:null,
+    status:SESSION_ACTIVE,
+    planId:o.planId==null?null:o.planId,
+    planTitle:String(o.planTitle||"")
+  };
+  return {ok:true,outcome:"created",session:ses,list:[ses].concat(all).slice(0,SESSION_MAX)};
+}
+
+/* סיום מפורש. הרשומה נשארת בהיסטוריה — הסיום מסמן, לא מוחק. */
+function completeSession(list,id,now){
+  var all=asList(list);
+  var ses=sessionById(all,id);
+  if(!ses)return {ok:false,outcome:"not-found",list:all,session:null};
+  if(ses.status===SESSION_DONE)
+    return {ok:true,outcome:"already-completed",list:all,session:ses};
+  var t=now||Date.now();
+  var out=all.map(function(x){
+    if(!x||x.id!==id)return x;
+    return Object.assign({},x,{status:SESSION_DONE,endedAt:t});
+  });
+  return {ok:true,outcome:"completed",list:out,session:sessionById(out,id)};
+}
+
+/* חידוש: מחזיר את השיעור הפעיל הקיים. לעולם לא יוצר חדש —
+   זה מה שמבדיל «חזרתי לאפליקציה» מ«התחלתי שיעור». */
+function resumeSession(list){
+  var act=activeSession(asList(list));
+  return act?{ok:true,outcome:"resumed",session:act}
+            :{ok:false,outcome:"none",session:null};
+}
+
+function listSessions(list,opts){
+  opts=opts||{};
+  var all=asList(list).filter(function(x){ return x&&x.id; });
+  if(opts.cid)all=all.filter(function(x){ return x.cid===opts.cid; });
+  if(opts.status)all=all.filter(function(x){ return x.status===opts.status; });
+  if(opts.date)all=all.filter(function(x){ return x.date===opts.date; });
+  return all.slice().sort(function(a,b){ return (b.startedAt||0)-(a.startedAt||0); });
+}
+
+/* המדידות שנלקחו בשיעור. הן חיות ב-ft.results כמו כל מדידה אחרת —
+   כאן רק מסננים לפי ההקשר. */
+function sessionMeasurements(rows,sessionId){
+  if(!sessionId)return [];
+  return (rows||[]).filter(function(r){ return r&&r.sessionId===sessionId; })
+    .sort(function(a,b){
+      return (String(a.d||"").localeCompare(String(b.d||"")))||((a.ts||0)-(b.ts||0));
+    });
+}
+
+/* ============================================================
    6. גיבוי
    ------------------------------------------------------------
    הגיבוי הישן אסף רק את localStorage. סרטוני השיאים יושבים
@@ -3757,6 +3898,10 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
+  newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
+  sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
+  listSessions:listSessions, sessionMeasurements:sessionMeasurements,
   ASSESS_VERSION:ASSESS_VERSION, ASSESS_REASON:ASSESS_REASON, assess:assess,
   archiveNorm:archiveNorm,
   isBetter:isBetter, isNum:isNum, isValidMeasurement:isValidMeasurement,
@@ -4647,6 +4792,73 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
   saveSet(); modal("setModal",false); toast("ההגדרות נשמרו");
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
   wireBackup(); wireAbout(); wirePurge(); wireStorageWarn();
+}
+
+/* ============================================================
+   שיעור פעיל — מתאם האחסון
+   ------------------------------------------------------------
+   הלוגיקה עצמה ב-hm-data.js וטהורה. כאן רק הקריאה והכתיבה, ופס
+   מינימלי שאומר למורה שיש שיעור פתוח ולאיזו כיתה.
+
+   מקור אמת אחד: השיעור הפעיל הוא הרשומה שסטטוסה «active» בתוך
+   ls.sessions. אין מצביע נפרד, ולכן אין מצב שבו המצביע והרשומה
+   מספרים שני סיפורים.
+   ============================================================ */
+const SES_KEY="ls.sessions";
+function sesAll(){ const v=LS.get(SES_KEY,[]); return Array.isArray(v)?v:[]; }
+/* כתיבה שנכשלת מדווחת. שיעור שנפתח ולא נשמר הוא שיעור שייעלם
+   ברענון הבא, והמורה חייב לדעת את זה עכשיו ולא אז. */
+function sesSave(list){
+  const ok=LS.set(SES_KEY,list);
+  if(!ok)toast("⚠ השיעור לא נשמר במכשיר — ראה את ההודעה למעלה");
+  return ok;
+}
+const SESSION={
+  all:sesAll,
+  active:()=>DATA.activeSession(sesAll()),
+  byId:id=>DATA.sessionById(sesAll(),id),
+  list:opts=>DATA.listSessions(sesAll(),opts),
+  /* פותח שיעור, או מחזיר את הפתוח כבר. outcome אומר מה קרה. */
+  start(o){
+    const r=DATA.createSession(sesAll(),o);
+    if(r.ok&&r.outcome==="created"&&!sesSave(r.list))
+      return {ok:false,outcome:"not-saved",session:null};
+    return r;
+  },
+  complete(id){
+    const r=DATA.completeSession(sesAll(),id);
+    if(r.ok&&r.outcome==="completed"&&!sesSave(r.list))
+      return {ok:false,outcome:"not-saved",session:null};
+    if(r.ok)paintSessionBar();
+    return r;
+  },
+  resume:()=>DATA.resumeSession(sesAll()),
+  measurements:sessionId=>DATA.sessionMeasurements(LS.get("ft.results",[]),sessionId)
+};
+
+/* הפס. מכוון להיות שקט: שורה אחת, לא מסך. */
+function paintSessionBar(){
+  const bar=document.getElementById("lsBar"); if(!bar)return;
+  const a=SESSION.active();
+  if(!a){ bar.hidden=true; return; }
+  const t=document.getElementById("lsBarT");
+  if(t)t.innerHTML="▶ <b>שיעור פעיל</b> · "+esc(a.clsSnapshot||a.cid)+
+    (a.planTitle?" · "+esc(a.planTitle):"");
+  bar.hidden=false;
+}
+function wireSessionBar(){
+  const bar=document.getElementById("lsBar"); if(!bar)return;
+  const end=document.getElementById("lsBarEnd");
+  if(end)end.addEventListener("click",()=>{
+    const a=SESSION.active(); if(!a)return;
+    const n=SESSION.measurements(a.id).length;
+    if(!confirm("לסיים את השיעור בכיתה "+(a.clsSnapshot||"")+"?\n\n"+
+      (n?"• "+n+" מדידות נלקחו בשיעור והן נשמרות.\n":"• לא נלקחו מדידות בשיעור.\n")+
+      "• השיעור יישאר בהיסטוריה."))return;
+    const r=SESSION.complete(a.id);
+    toast(r.ok?"✓ השיעור הסתיים":"סיום השיעור נכשל");
+  });
+  paintSessionBar();
 }
 
 /* ============================================================
@@ -7563,6 +7775,7 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
+  session:SESSION,paintSessionBar,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -7609,6 +7822,7 @@ window.HMBoot=function(){
     const mod=document.body.dataset.mod;
     if(mod&&mod!=="home"){ inited[mod]&&go(mod); }
   });
+  wireSessionBar();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */
@@ -10074,10 +10288,48 @@ window.LESSON=(function(){
 
   const placeName=p=>({field:"מגרש חוץ",hall:"אולם",class:"כיתה",gym:"חדר כושר"}[p]||p);
 
+  /* ============================================================
+     פתיחת שיעור מתוך המערך
+     ------------------------------------------------------------
+     זה הקישור בין PLAN ל-TEACH: המערך אומר מה התכוונו ללמד,
+     והשיעור אומר מה קרה בפועל, ביום מסוים ועם כיתה מסוימת.
+     המערך עצמו אינו משתנה — הוא תוכן לשימוש חוזר, והשיעור רק
+     שומר הפניה אליו ואת שמו לקריאוּת ההיסטוריה.
+
+     הכיתה חייבת להיבחר קודם במבחני הכושר: שם חיה רשימת הכיתה
+     ושם נקבע המזהה היציב. בלי זה אין לשיעור למה להתחבר.
+     ============================================================ */
+  function wireStartFromPlan(){
+    const {$}=H(), b=$("#ls-startLesson"); if(!b)return;
+    const S=H().session;
+    if(!S||!window.FT){ b.hidden=true; return; }
+    const last=H().LS.get("ft.last",{});
+    const c=(window.FT.classOf&&last.grade)?window.FT.classOf(last.grade,last.num||1):"";
+    const cid=window.HMDATA.classId(c);
+    const act=S.active();
+    b.hidden=false;
+    if(act){ b.textContent="▶ שיעור פתוח · "+(act.clsSnapshot||""); b.disabled=true; return; }
+    if(!cid){ b.textContent="▶ בחר כיתה קודם"; b.disabled=true; return; }
+    b.disabled=false;
+    b.textContent="▶ התחל שיעור · "+c;
+    b.onclick=()=>{
+      const r=S.start({cid,clsSnapshot:c,date:today(),
+        planId:(plan&&plan.id)||null,planTitle:(plan&&plan.title)||""});
+      if(r.outcome==="blocked"){
+        H().toast("כבר פתוח שיעור בכיתה "+(r.active.clsSnapshot||"")); return;
+      }
+      if(!r.ok){ H().toast("לא ניתן לפתוח שיעור"); return; }
+      H().paintSessionBar();
+      H().toast(r.outcome==="resumed"?"השיעור כבר פתוח":"▶ השיעור בכיתה "+c+" התחיל");
+      renderPlan();
+    };
+  }
+
   function renderPlan(){
     const {$, $$, esc}=H();
     if(!plan){$("#ls-planCard").style.display="none";return;}
     $("#ls-planCard").style.display="";
+    wireStartFromPlan();
     const total=plan.phases.reduce((a,p)=>a+p.min,0);
     const src=window.KNOW&&window.KNOW.byId(plan.cur);
     $("#ls-planBody").innerHTML=`
@@ -12043,6 +12295,10 @@ window.FT=(function(){
          נשמר — הוא נגזר בכל תצוגה — אבל בלי החותמת הזאת החלפת טבלת
          נורמה הייתה משנה בשקט את הפרשנות של כל ההיסטוריה. */
       normVer:normVersion(),
+      /* אם יש שיעור פתוח לאותה כיתה — המדידה יודעת באיזה שיעור
+         נלקחה. זה הקשר בלבד: המדידה נשארת רשומה עצמאית עם sid,
+         cid, מבחן, תאריך וערך גולמי, וכל אלה קודמים ל-sessionId. */
+      sessionId:sessionFor(c),
       val:+(+val).toFixed(2),unit:T.unit};
     if(i>=0)rs[i]=rec; else rs.push(rec);
     setRes(rs);
@@ -12079,6 +12335,14 @@ window.FT=(function(){
   /* מזהה גרסת הכללים: שם הגרסה שהמורה הקליד בטבלת הנורמה, ואם אין —
      מחרוזת ריקה, שמשמעותה «ניקוד יחסי בלבד». */
   const normVersion=()=>String(norms().version||"");
+  /* מזהה השיעור הפעיל — רק אם הוא של הכיתה הנמדדת. מדידה בכיתה
+     אחרת באמצע שיעור פתוח אינה שייכת לשיעור ההוא. */
+  function sessionFor(c){
+    try{
+      const a=H().session&&H().session.active();
+      return (a&&a.cid===DATA.classId(c))?a.id:null;
+    }catch(e){ return null; }
+  }
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
   /* אילו מבחנים נכנסים למדד. ריק = כל מבחן שיש לו תוצאה. */
   const lapsFor   =tid=>Math.max(1,+((LS().get("ft.laps",{}))[tid]||1));
@@ -12162,6 +12426,7 @@ window.FT=(function(){
     }).join("");
 
     renderAmb();
+    wireStartLesson();
     $$("#ft-grades [data-g]").forEach(b=>b.addEventListener("click",()=>{st.grade=b.dataset.g;persist();renderPicker();}));
     $$("#ft-nums [data-n]").forEach(b=>b.addEventListener("click",()=>{st.num=+b.dataset.n;persist();renderPicker();}));
     $$("#ft-tests [data-t]").forEach(b=>b.addEventListener("click",()=>openTest(b.dataset.t)));
@@ -13747,6 +14012,34 @@ window.FT=(function(){
   }
 
   /* ============================================================
+     7ד. פתיחת שיעור מבורר הכיתה
+     ------------------------------------------------------------
+     הכיתה כבר נבחרה כאן — זה המקום הטבעי להתחיל ממנו שיעור, בלי
+     מסך חדש ובלי לבחור כיתה פעם שנייה.
+     ============================================================ */
+  function wireStartLesson(){
+    const {$}=H(), b=$("#ft-startLesson"); if(!b)return;
+    const S=H().session; if(!S){ b.hidden=true; return; }
+    const c=cls(), cid=DATA.classId(c), act=S.active();
+    b.hidden=false;
+    if(act&&act.cid===cid){ b.textContent="▶ השיעור בכיתה הזאת פתוח"; b.disabled=true; return; }
+    b.disabled=false;
+    b.textContent="▶ התחל שיעור";
+    b.onclick=()=>{
+      registerCls(c);
+      const r=S.start({cid,clsSnapshot:c,date:today()});
+      if(r.outcome==="blocked"){
+        H().toast("כבר פתוח שיעור בכיתה "+(r.active.clsSnapshot||"")+" — סיים אותו קודם");
+        return;
+      }
+      if(!r.ok){ H().toast("לא ניתן לפתוח שיעור"); return; }
+      H().paintSessionBar();
+      H().toast(r.outcome==="resumed"?"השיעור בכיתה "+c+" כבר פתוח":"▶ השיעור בכיתה "+c+" התחיל");
+      renderPicker();
+    };
+  }
+
+  /* ============================================================
      8. אתחול
      ============================================================ */
   /* מעבר בין «מבחנים» ל«מדד» — שתי הלשוניות חולקות את אותה בחירת כיתה */
@@ -13871,7 +14164,7 @@ window.FT=(function(){
       seen.add(key);
       rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
         cls:c,cid:DATA.classId(c),test:testId,name:nm,sid:known?(known.id||null):null,
-        normVer:normVersion(),gradeKey:pc.grade,
+        normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,
         sex:(row.sex||(known&&known.sex)||null),val:+v.toFixed(2),unit:T.unit,src:src||null});
       added++;
     });

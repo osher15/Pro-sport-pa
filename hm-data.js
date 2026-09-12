@@ -826,6 +826,132 @@ function archiveNorm(archive,N){
 }
 
 /* ============================================================
+   5ד. שיעור פעיל — LessonSession
+   ------------------------------------------------------------
+   באפליקציה כבר היה «מערך שיעור»: תוכן שמור, שאפשר לטעון ולהציג.
+   מה שלא היה הוא ההבחנה בין מה שתוכנן לבין מה שקרה בפועל.
+
+     LessonPlan     — מה שהתכוונו ללמד. תוכן לשימוש חוזר.
+     LessonSession  — מה שקרה, ביום מסוים, עם כיתה מסוימת.
+
+   בלי ההפרדה הזאת אי אפשר לשאול «מה עשינו בשיעור של יום שלישי»,
+   ואי אפשר לקשור מדידה לשיעור שבו היא נלקחה — המורה היה בוחר את
+   הכיתה מחדש בכל כלי, ושום דבר לא היה יודע שמדובר באותו שיעור.
+
+   הסשן הוא הקשר, לא בעלים. מדידה נשארת רשומה עצמאית עם sid, cid,
+   מבחן, תאריך וערך גולמי; sessionId הוא שדה נוסף עליה. אין
+   session.measurements[] — מקור אמת אחד בלבד.
+
+   הכול טהור: מקבל רשימה, מחזיר רשימה חדשה. אין אחסון, אין DOM.
+   ============================================================ */
+var SESSION_ACTIVE="active", SESSION_DONE="completed";
+var SESSION_MAX=300;   /* גבול היסטוריה, כדי ש-localStorage לא יגדל לנצח */
+
+function newSessionId(){
+  return "ls"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+}
+function asList(v){ return Array.isArray(v)?v:[]; }
+
+/* השיעור הפעיל, אם יש. יחיד במכוון: מורה מלמד כיתה אחת בכל רגע,
+   ושני שיעורים פעילים היו הופכים «לאיזה שיעור שייכת המדידה» לשאלה
+   שאין לה תשובה. */
+function activeSession(list){
+  var all=asList(list);
+  for(var i=0;i<all.length;i++)
+    if(all[i]&&all[i].status===SESSION_ACTIVE)return all[i];
+  return null;
+}
+function sessionById(list,id){
+  if(!id)return null;
+  var all=asList(list);
+  for(var i=0;i<all.length;i++)if(all[i]&&all[i].id===id)return all[i];
+  return null;
+}
+
+/* ============================================================
+   פתיחת שיעור
+   ------------------------------------------------------------
+   הגנת הכפילות היא הדרישה המרכזית כאן. מורה שלוחץ פעמיים על
+   «התחל שיעור», או שחוזר לאפליקציה אחרי שסגר אותה, חייב לקבל את
+   אותו שיעור — לא שיעור שני שמפצל את המדידות שלו לשניים.
+
+   שלוש תוצאות אפשריות, וכולן מפורשות:
+     created  — נפתח שיעור חדש
+     resumed  — כבר יש שיעור פעיל לאותה כיתה. מוחזר הוא עצמו.
+     blocked  — יש שיעור פעיל לכיתה אחרת. לא נוגעים בו, והקורא
+                מחליט מה להציג למורה.
+   ============================================================ */
+function createSession(list,o){
+  o=o||{};
+  var all=asList(list);
+  if(!o.cid)return {ok:false,outcome:"no-class",list:all,session:null};
+
+  var act=activeSession(all);
+  if(act){
+    if(act.cid===o.cid)
+      return {ok:true,outcome:"resumed",list:all,session:act};
+    return {ok:false,outcome:"blocked",list:all,session:null,active:act};
+  }
+  var now=o.now||Date.now();
+  var ses={
+    id:o.id||newSessionId(),
+    cid:o.cid,
+    /* השם נשמר כהקשר היסטורי בלבד. הכיתה עשויה לשנות שם אחר כך,
+       והשיעור הזה עדיין צריך לדעת איך היא נקראה אז. */
+    clsSnapshot:String(o.clsSnapshot||""),
+    date:o.date||new Date(now).toISOString().slice(0,10),
+    startedAt:now,
+    endedAt:null,
+    status:SESSION_ACTIVE,
+    planId:o.planId==null?null:o.planId,
+    planTitle:String(o.planTitle||"")
+  };
+  return {ok:true,outcome:"created",session:ses,list:[ses].concat(all).slice(0,SESSION_MAX)};
+}
+
+/* סיום מפורש. הרשומה נשארת בהיסטוריה — הסיום מסמן, לא מוחק. */
+function completeSession(list,id,now){
+  var all=asList(list);
+  var ses=sessionById(all,id);
+  if(!ses)return {ok:false,outcome:"not-found",list:all,session:null};
+  if(ses.status===SESSION_DONE)
+    return {ok:true,outcome:"already-completed",list:all,session:ses};
+  var t=now||Date.now();
+  var out=all.map(function(x){
+    if(!x||x.id!==id)return x;
+    return Object.assign({},x,{status:SESSION_DONE,endedAt:t});
+  });
+  return {ok:true,outcome:"completed",list:out,session:sessionById(out,id)};
+}
+
+/* חידוש: מחזיר את השיעור הפעיל הקיים. לעולם לא יוצר חדש —
+   זה מה שמבדיל «חזרתי לאפליקציה» מ«התחלתי שיעור». */
+function resumeSession(list){
+  var act=activeSession(asList(list));
+  return act?{ok:true,outcome:"resumed",session:act}
+            :{ok:false,outcome:"none",session:null};
+}
+
+function listSessions(list,opts){
+  opts=opts||{};
+  var all=asList(list).filter(function(x){ return x&&x.id; });
+  if(opts.cid)all=all.filter(function(x){ return x.cid===opts.cid; });
+  if(opts.status)all=all.filter(function(x){ return x.status===opts.status; });
+  if(opts.date)all=all.filter(function(x){ return x.date===opts.date; });
+  return all.slice().sort(function(a,b){ return (b.startedAt||0)-(a.startedAt||0); });
+}
+
+/* המדידות שנלקחו בשיעור. הן חיות ב-ft.results כמו כל מדידה אחרת —
+   כאן רק מסננים לפי ההקשר. */
+function sessionMeasurements(rows,sessionId){
+  if(!sessionId)return [];
+  return (rows||[]).filter(function(r){ return r&&r.sessionId===sessionId; })
+    .sort(function(a,b){
+      return (String(a.d||"").localeCompare(String(b.d||"")))||((a.ts||0)-(b.ts||0));
+    });
+}
+
+/* ============================================================
    6. גיבוי
    ------------------------------------------------------------
    הגיבוי הישן אסף רק את localStorage. סרטוני השיאים יושבים
@@ -934,6 +1060,10 @@ return {
   ERR:ERR, classifyStorageError:classifyStorageError, safeSet:safeSet, safeGet:safeGet,
   ambiguous:ambiguous, ambiguousGroups:ambiguousGroups,
   resolveCandidates:resolveCandidates, resolveAmbiguous:resolveAmbiguous,
+  SESSION_ACTIVE:SESSION_ACTIVE, SESSION_DONE:SESSION_DONE, SESSION_MAX:SESSION_MAX,
+  newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
+  sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
+  listSessions:listSessions, sessionMeasurements:sessionMeasurements,
   ASSESS_VERSION:ASSESS_VERSION, ASSESS_REASON:ASSESS_REASON, assess:assess,
   archiveNorm:archiveNorm,
   isBetter:isBetter, isNum:isNum, isValidMeasurement:isValidMeasurement,
