@@ -733,22 +733,14 @@ window.NUT=(function(){
    כדי לדעת מי קיבל את האפליקציה ולשלוח לו שאלון בהמשך, מסך אחד־פעמי
    מבקש מהמורה (לא מהתלמיד!) שם ודרך יצירת קשר, ושולח אותם בשקט לטופס
    Google Forms קיים — בלי שרת משלנו ובלי לגעת בנתוני התלמידים, שנשארים
-   במכשיר בדיוק כמו קודם.
-
-   הגדרה (חובה למלא לפני שהמסך שולח בפועל):
-   1. פתח formResponse — צור טופס חדש ב-Google Forms עם שלוש שאלות
-      מסוג "תשובה קצרה": שם פרטי / שם משפחה / אימייל או נייד.
-   2. בתצוגה המקדימה של הטופס, פתח כלי מפתחים (F12) ← Network, שלח
-      תשובת בדיקה, ומצא את הבקשה אל .../formResponse. שם השדות
-      (entry.XXXXXXXXX) נמצא שם לכל שאלה.
-   3. הדבק כאן את כתובת ה-formResponse ואת שלושת מזהי ה-entry.
-   כל עוד action נשאר ריק — המסך עדיין מוצג ונשמר במכשיר שהוא נענה,
-   אבל שום דבר לא נשלח לשום מקום. */
+   במכשיר בדיוק כמו קודם. מזהי ה-entry נלקחו מקישור "מולא מראש" של
+   הטופס "המגרש פרו משתמשים". */
 const LEAD_FORM={
-  action:"",   // למשל: "https://docs.google.com/forms/d/e/1FAIpQLSf.../formResponse"
-  first:"",    // למשל: "entry.123456789"
-  last:"",
-  contact:""
+  action:"https://docs.google.com/forms/d/e/1FAIpQLSdFAH8PGbTnCywhD754OYVFI7sl6t3sWQIiASd4s2RikIaxZg/formResponse",
+  first:"entry.433001861",
+  last:"entry.603620454",
+  phone:"entry.790270370",
+  email:"entry.457350621"
 };
 function initLeadCapture(){
   const {$, LS, toast}=H();
@@ -756,21 +748,22 @@ function initLeadCapture(){
   if(LS.get("hx.leadDone",false))return;
   ov.classList.add("on");
   const close=()=>ov.classList.remove("on");
-  const submitToForm=(first,last,contact)=>{
+  const submitToForm=(first,last,phone,email)=>{
     if(!LEAD_FORM.action)return;
     try{
       const f=document.createElement("form");
       f.action=LEAD_FORM.action; f.method="POST"; f.target="lead-frame"; f.style.display="none";
-      const add=(name,val)=>{ if(!name)return; const i=document.createElement("input"); i.name=name; i.value=val; f.appendChild(i); };
-      add(LEAD_FORM.first,first); add(LEAD_FORM.last,last); add(LEAD_FORM.contact,contact);
+      const add=(name,val)=>{ if(!name||!val)return; const i=document.createElement("input"); i.name=name; i.value=val; f.appendChild(i); };
+      add(LEAD_FORM.first,first); add(LEAD_FORM.last,last); add(LEAD_FORM.phone,phone); add(LEAD_FORM.email,email);
       document.body.appendChild(f); f.submit(); f.remove();
     }catch(e){ console.error("lead submit",e); }
   };
   $("#lead-send").addEventListener("click",()=>{
-    const first=$("#lead-first").value.trim(), last=$("#lead-last").value.trim(), contact=$("#lead-contact").value.trim();
-    if(!first||!contact){ toast("שם פרטי ודרך יצירת קשר — שדה חובה"); return; }
+    const first=$("#lead-first").value.trim(), last=$("#lead-last").value.trim(),
+          phone=$("#lead-phone").value.trim(), email=$("#lead-email").value.trim();
+    if(!first||!last||(!phone&&!email)){ toast("שם פרטי, שם משפחה, ואימייל או נייד — שדות חובה"); return; }
     LS.set("hx.leadDone",true);
-    submitToForm(first,last,contact);
+    submitToForm(first,last,phone,email);
     toast("תודה! ממשיכים 👋");
     close();
   });

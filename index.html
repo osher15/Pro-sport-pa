@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css?v=3835622d">
-<script src="hm-i18n.js?v=bbeb1ea5"></script>
+<script src="hm-i18n.js?v=a53fde3e"></script>
 <script src="hm-app.js?v=b05726a0"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
@@ -25,7 +25,7 @@
 <script src="hm-lesson.js?v=45abc322"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=a4320c3d"></script>
-<script src="hm-new.js?v=e120e075"></script>
+<script src="hm-new.js?v=b34da548"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
@@ -1594,8 +1594,10 @@
     <input type="text" id="lead-first" autocomplete="given-name"></div>
   <div class="field" style="margin-top:9px"><label data-i18n="lead.last">שם משפחה</label>
     <input type="text" id="lead-last" autocomplete="family-name"></div>
-  <div class="field" style="margin-top:9px"><label data-i18n="lead.contact">אימייל או נייד</label>
-    <input type="text" id="lead-contact" autocomplete="email" placeholder="you@example.com / 050-0000000"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.phone">נייד</label>
+    <input type="tel" id="lead-phone" autocomplete="tel" placeholder="050-0000000"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
+    <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
   <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
   <button class="btn big ghost" id="lead-skip" style="margin-top:9px" data-i18n="lead.skip">לא עכשיו</button>
   <p class="lock-note" data-i18n="lead.note">הפרטים נשלחים אליי ישירות כדי ליצור איתך קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלך בלבד, כרגיל.</p>
