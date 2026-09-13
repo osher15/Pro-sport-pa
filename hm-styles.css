@@ -485,6 +485,10 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #leadOv .box{width:min(380px,100%);text-align:center}
 #leadOv .field{text-align:right}
 #leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
+/* קישור טקסט קטן ולא כפתור — כדי שהקריאה-לפעולה הברורה תישאר "שליחה
+   והמשך", והדילוג יישאר אפשרי (למי שפותח בלי רשת) בלי להזמין אותו. */
+.lead-skip-link{display:block;margin:13px auto 0;background:none;border:none;color:var(--faint);
+  font-family:'Heebo',sans-serif;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
 
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד

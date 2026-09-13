@@ -496,6 +496,10 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #leadOv .box{width:min(380px,100%);text-align:center}
 #leadOv .field{text-align:right}
 #leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
+/* קישור טקסט קטן ולא כפתור — כדי שהקריאה-לפעולה הברורה תישאר "שליחה
+   והמשך", והדילוג יישאר אפשרי (למי שפותח בלי רשת) בלי להזמין אותו. */
+.lead-skip-link{display:block;margin:13px auto 0;background:none;border:none;color:var(--faint);
+  font-family:'Heebo',sans-serif;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
 
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד
@@ -2827,7 +2831,7 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
   <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
     <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
   <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
-  <button class="btn big ghost" id="lead-skip" style="margin-top:9px" data-i18n="lead.skip">לא עכשיו</button>
+  <button class="lead-skip-link" id="lead-skip" data-i18n="lead.skip">לא עכשיו</button>
   <p class="lock-note" data-i18n="lead.note">הפרטים נשלחים אליי ישירות כדי ליצור איתך קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלך בלבד, כרגיל.</p>
 </div></div>
 <iframe name="lead-frame" id="lead-frame" style="display:none" title="lead-submit" tabindex="-1" aria-hidden="true"></iframe>
