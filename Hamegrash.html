@@ -5474,6 +5474,11 @@ function wireTips(root){
     q.setAttribute("aria-label","הסבר");
     q.addEventListener("click",ev=>{ ev.preventDefault(); ev.stopPropagation(); showTip(el.dataset.tip); });
     el.insertAdjacentElement("afterend",q);
+    /* לחיצה ארוכה מתאימה לכפתור, אבל לא לשדה קלט: במגע, הקשה על שדה
+       והמתנה למקלדת עוברת בקלות את 550 מ״ש, והחלון נפתח בדיוק כשהמורה
+       מנסה להקליד. היא גם חוטפת את מחוות הבחירה של הטקסט. בשדות ה-«?»
+       שנוסף כאן הוא הדרך היחידה לפתוח את ההסבר — וזה מספיק. */
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))return;
     let t=null;
     const cancel=()=>{ if(t){clearTimeout(t);t=null;} };
     el.addEventListener("pointerdown",()=>{ cancel(); t=setTimeout(()=>{t=null;showTip(el.dataset.tip);},550); });
@@ -7488,12 +7493,15 @@ const PF=(function(){
     precCalc();
     /* קיזוז מרחק אקדח–מיקרופון */
     $("#pf-gunDist").value=LS.get("pf.gunDist",0);
-    $("#pf-gunDist").addEventListener("change",e=>{
-      const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d);
-      $("#pf-gunLag").textContent=d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";
-    });
-    $("#pf-gunLag").textContent=(()=>{const d=LS.get("pf.gunDist",0);
-      return d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז";})();
+    /* «change» בשדה מספר נורה רק בעזיבת השדה, ולכן תוך כדי הקלדה
+       הפס עדיין אמר «בלי קיזוז» — וזה נראה בדיוק כמו שדה שלא מגיב.
+       «input» מעדכן בכל תו, כך שרואים את הקיזוז נבנה תוך כדי. */
+    const paintLag=d=>{ $("#pf-gunLag").textContent=
+      d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז"; };
+    const onDist=e=>{ const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d); paintLag(d); };
+    $("#pf-gunDist").addEventListener("input",onDist);
+    $("#pf-gunDist").addEventListener("change",onDist);
+    paintLag(LS.get("pf.gunDist",0));
     /* טעינת כיתה — אותה רשימה שמשמשת את מבחני הכושר, כדי שהשמות בלוח
        התוצאות יהיו זהים לאלה שבמעקב ולא גרסה מוקלדת מחדש. המסלולים
        מוגבלים ל-9, ולכן הבורר מוגבל לתשעה נבחרים — מקצה אחרי מקצה. */

@@ -193,6 +193,47 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     ok(r.gap.indexOf("מתוך 120")>=0,"עם פער — נאמר מפורשות: "+r.gap);
   }),
 
+  /* ההסבר בלחיצה ארוכה מתאים לכפתור, אבל על שדה קלט הוא נפתח בדיוק
+     כשמקישים וממתינים למקלדת — ואז נראה שהשדה לא מגיב. */
+  check("לחיצה ארוכה על שדה קלט אינה חוטפת אותו",seed,async page=>{
+    await openPf(page);
+    const box=await page.locator("#pf-gunDist").boundingBox();
+    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+    await page.mouse.down(); await page.waitForTimeout(750); await page.mouse.up();
+    await page.waitForTimeout(250);
+    eq(await page.evaluate(()=>!document.getElementById("tipPop").hidden),false,
+      "חלון ההסבר לא נפתח מעל השדה");
+    eq(await page.evaluate(()=>document.activeElement&&document.activeElement.id),"pf-gunDist",
+      "והשדה נשאר במיקוד");
+  }),
+
+  check("ה-«?» עדיין פותח את ההסבר לשדה",seed,async page=>{
+    await openPf(page);
+    await page.evaluate(()=>{
+      const i=document.getElementById("pf-gunDist");
+      i.nextElementSibling.click();          /* אייקון ה-? שנוסף אחרי השדה */
+    });
+    await page.waitForTimeout(250);
+    eq(await page.evaluate(()=>!document.getElementById("tipPop").hidden),true,
+      "ההסבר עדיין נגיש — רק לא בדרך שחוטפת את ההקלדה");
+  }),
+
+  check("מרחק האקדח ניתן לשינוי, והקיזוז מתעדכן תוך כדי הקלדה",seed,async page=>{
+    await openPf(page);
+    const pill=()=>page.textContent("#pf-gunLag");
+    eq((await pill()).trim(),"בלי קיזוז","מתחילים בלי קיזוז");
+    await page.locator("#pf-gunDist").fill("34");
+    await page.waitForTimeout(200);
+    ok((await pill()).indexOf("קיזוז")>=0&&(await pill()).indexOf("בלי")<0,
+      "הפס התעדכן עוד לפני עזיבת השדה — התקבל: "+(await pill()));
+    eq(await page.evaluate(()=>window.HM.LS.get("pf.gunDist",null)),34,"והערך נשמר");
+    /* 34 מ׳ ÷ 343 מ/ש ≈ 99 מ״ש */
+    ok((await pill()).indexOf("99")>=0,"והקיזוז מחושב נכון: "+(await pill()));
+    await page.locator("#pf-gunDist").fill("0");
+    await page.waitForTimeout(200);
+    eq((await pill()).trim(),"בלי קיזוז","ואפשר גם לבטל");
+  }),
+
   check("מסך הפוטו־פיניש ממשיך לעלות ולתפקד",seed,async page=>{
     await openPf(page);
     ok(await page.evaluate(()=>document.getElementById("view-photo").classList.contains("on")),"המסך פתוח");
