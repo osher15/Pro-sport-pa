@@ -40,7 +40,9 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
    nowrap. הכפתורים לא נסוגים (הם פעולות), והשם נחתך לפני שהוא מתנגש. */
 .brand{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 /* בלי זה העטיפה של השם והכותרת נעצרת על רוחב התוכן שלה (רצפת
-   min-content של flex), וההגנה למטה לא מגיעה לידי ביטוי בכלל. */
+   min-content של flex), וההגנה למטה לא מגיעה לידי ביטוי בכלל — ולכן
+   הכותרת מכסה את השעון בכל מסך שבו כפתור «חזרה» תופס מקום, כלומר בכל
+   מודול חוץ מהבית. (main הגיע לאותה אבחנה בנפרד; זו אותה שורה.) */
 .brand>div{min-width:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;
   background:linear-gradient(135deg,var(--acc),#0a5c38);box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:21px}
@@ -482,6 +484,17 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
   unicode-bidi:isolate;white-space:nowrap}
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
+
+/* ===== איסוף פרטי קשר, פעם אחת ===== */
+/* z-index גבוה מ-#lockOv כדי לחסום אותו עד שהמורה שולח או מדלג —
+   כך לוגיקת הנעילה הקיימת ממשיכה לרוץ בלי שינוי, והמסך הזה רק יושב מעליה. */
+#leadOv{position:fixed;inset:0;z-index:410;display:none;place-items:center;padding:22px;
+  background:radial-gradient(700px 480px at 50% 8%,rgba(167,139,250,.18),transparent 60%),#07080f}
+#leadOv.on{display:grid}
+#leadOv .box{width:min(380px,100%);text-align:center}
+#leadOv .field{text-align:right}
+#leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
+.lead-contact-hint{font-size:11.5px;color:var(--faint);text-align:right;margin:13px 0 -2px}
 
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד

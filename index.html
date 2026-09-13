@@ -12,9 +12,9 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=353f7ce3">
+<link rel="stylesheet" href="hm-styles.css?v=e1fe4967">
 <script src="hm-data.js?v=bf751979"></script>
-<script src="hm-i18n.js?v=c087873a"></script>
+<script src="hm-i18n.js?v=4d289455"></script>
 <script src="hm-app.js?v=65c2f1e7"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
@@ -26,7 +26,7 @@
 <script src="hm-lesson.js?v=1d73c0de"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=49721175"></script>
-<script src="hm-new.js?v=1d0d7eb5"></script>
+<script src="hm-new.js?v=0dec2d1f"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
@@ -64,8 +64,10 @@
       <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
       <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">05</div>
+      <div class="tx"><b data-i18n="home.know">ידע</b><span data-i18n="home.knowSub">מקורות רשמיים · תוכניות אימון מוערכות · משחקים</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -1506,9 +1508,11 @@
   <p class="ab-p">ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור,
     לוח שיאים, כלי כיתה וציונים — הכול במסך אחד, בשפה אחת, ובלי להוציא שום דבר החוצה.</p>
   <div class="ab-sec"><b>🔒 פרטיות</b>
-    <p class="ab-p">הנתונים נשמרים ב-localStorage של המכשיר הזה בלבד. <b>אין שרת, אין חשבון, ואין שליחה
-      לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא מקריות. ייצוא CSV או גיבוי הם
-      תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש גיבוי.</p></div>
+    <p class="ab-p">נתוני התלמידים — רשימות, ציונים ומדידות — נשמרים ב-localStorage של המכשיר הזה בלבד.
+      <b>אין שרת, אין חשבון, ואין שליחה לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא
+      מקריות. ייצוא CSV או גיבוי הם תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש
+      גיבוי. הדבר היחיד שיוצא מהמכשיר הוא פרטי הקשר שלך (המורה) שהוזנו במסך הפתיחה הראשון — לא נתון
+      על תלמיד — ונשלחים פעם אחת בלבד.</p></div>
   <div class="ab-sec"><b>📚 מקורות מקצועיים</b>
     <p class="ab-p">פרוטוקול Léger (מבחן הביפ) · נורמות FITNESSGRAM® של Cooper Institute · «אות החינוך
       הגופני — סטנדרטים להערכת הישגי התלמידים», משרד החינוך, המזכירות הפדגוגית · תוכנית הלימודים
@@ -1625,7 +1629,6 @@
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
-    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
     <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
     <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
@@ -1758,9 +1761,29 @@
   <p class="lock-note" data-i18n="lock.demoNote">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
   <div class="lock-about">
     <b>מה זה?</b> ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור, שיאים וציונים.<br>
-    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת, אין חשבון, שום דבר לא נשלח לשום מקום.
+    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת ואין חשבון — תלמידים, ציונים ומדידות לא נשלחים לשום מקום.
+    פרטי הקשר שהזנת במסך הקודם (שלך, לא של תלמיד) נשלחים פעם אחת אליי כדי ליצור איתך קשר בהמשך.
   </div>
 </div></div>
+
+<!-- ----- איסוף פרטי קשר, פעם אחת בפתיחה הראשונה ----- -->
+<div id="leadOv"><div class="box">
+  <div class="lg">👋</div>
+  <h1 dir="auto" data-i18n="lead.title">רגע לפני שנכנסים</h1>
+  <p data-i18n="lead.sub">האפליקציה חינמית לגמרי — בלי כרטיס אשראי, בלי תשלום ובלי שום התחייבות. השאירו כמה פרטים כדי שאוכל לשלוח לכם שאלון קצר לחוות דעת — זה יעזור לנו לשפר את האפליקציה ולהפוך אותה למקצועית יותר בהמשך.</p>
+  <div class="field"><label data-i18n="lead.first">שם פרטי</label>
+    <input type="text" id="lead-first" autocomplete="given-name"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.last">שם משפחה</label>
+    <input type="text" id="lead-last" autocomplete="family-name"></div>
+  <p class="lead-contact-hint" data-i18n="lead.contactHint">נייד או אימייל — מספיק אחד מהשניים. זו רק דרך ליצור איתכם קשר, שום דבר מעבר לזה.</p>
+  <div class="field"><label data-i18n="lead.phone">נייד</label>
+    <input type="tel" id="lead-phone" autocomplete="tel" placeholder="050-0000000"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
+    <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
+  <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
+  <p class="lock-note" data-i18n="lead.note">בלי עלות ובלי כרטיס אשראי — האפליקציה חינמית. הפרטים האלה נשלחים אליי ישירות רק כדי ליצור איתכם קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלכם בלבד, כרגיל.</p>
+</div></div>
+<iframe name="lead-frame" id="lead-frame" style="display:none" title="lead-submit" tabindex="-1" aria-hidden="true"></iframe>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {

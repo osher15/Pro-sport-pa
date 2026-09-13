@@ -102,12 +102,22 @@ async function openApp(browser,seed,APP){
   /* הזרעה לפני שהאפליקציה עולה — כך ההסבה רצה על נתונים אמיתיים
      ולא על מכשיר ריק. */
   await page.addInitScript(s=>{
-    try{ if(s)Object.keys(s).forEach(k=>localStorage.setItem("pehub."+k,JSON.stringify(s[k]))); }
-    catch(e){}
+    try{
+      /* מסך פרטי הקשר הוא שלב פתיחה חד־פעמי שחוסם את מסך הכניסה, ואין
+         בו דילוג — זו החלטה מכוונת. הבדיקות מתחילות ממורה שכבר עבר
+         אותו, ממש כשם שהן מתחילות ממורה שכבר ראה את הדרכת הפוטו־פיניש.
+         בדיקה שרוצה לבחון את המסך הזה עצמו מזריעה hx.leadDone בעצמה. */
+      const d=Object.assign({"hx.leadDone":true},s||{});
+      Object.keys(d).forEach(k=>localStorage.setItem("pehub."+k,JSON.stringify(d[k])));
+    }catch(e){}
   },seed||null);
   await page.goto(APP,{waitUntil:"domcontentloaded"});
   await page.waitForTimeout(700);
-  if(await page.locator("#lockOv.on").count()){
+  /* כשמסך פרטי הקשר פתוח הוא חוסם את כל מה שמתחתיו, כולל את מסך
+     הכניסה — וזו התנהגות נכונה ולא תקלה. בדיקה שביקשה לראות אותו
+     (הזריעה hx.leadDone:false) תטפל בו בעצמה; אין טעם להתאבק בו כאן. */
+  const leadUp=await page.locator("#leadOv.on").count();
+  if(!leadUp&&await page.locator("#lockOv.on").count()){
     await page.fill("#lock-pass",TEACHER_CODE);
     await page.click("#lock-enter");
     await page.waitForTimeout(400);

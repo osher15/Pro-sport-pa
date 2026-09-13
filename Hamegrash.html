@@ -51,7 +51,9 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
    nowrap. הכפתורים לא נסוגים (הם פעולות), והשם נחתך לפני שהוא מתנגש. */
 .brand{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 /* בלי זה העטיפה של השם והכותרת נעצרת על רוחב התוכן שלה (רצפת
-   min-content של flex), וההגנה למטה לא מגיעה לידי ביטוי בכלל. */
+   min-content של flex), וההגנה למטה לא מגיעה לידי ביטוי בכלל — ולכן
+   הכותרת מכסה את השעון בכל מסך שבו כפתור «חזרה» תופס מקום, כלומר בכל
+   מודול חוץ מהבית. (main הגיע לאותה אבחנה בנפרד; זו אותה שורה.) */
 .brand>div{min-width:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;
   background:linear-gradient(135deg,var(--acc),#0a5c38);box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:21px}
@@ -493,6 +495,17 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
   unicode-bidi:isolate;white-space:nowrap}
 #lockOv p{color:var(--muted);font-size:13px;margin:0 0 20px}
 #lockOv input{text-align:center;font-size:20px;letter-spacing:6px;font-family:'Share Tech Mono'}
+
+/* ===== איסוף פרטי קשר, פעם אחת ===== */
+/* z-index גבוה מ-#lockOv כדי לחסום אותו עד שהמורה שולח או מדלג —
+   כך לוגיקת הנעילה הקיימת ממשיכה לרוץ בלי שינוי, והמסך הזה רק יושב מעליה. */
+#leadOv{position:fixed;inset:0;z-index:410;display:none;place-items:center;padding:22px;
+  background:radial-gradient(700px 480px at 50% 8%,rgba(167,139,250,.18),transparent 60%),#07080f}
+#leadOv.on{display:grid}
+#leadOv .box{width:min(380px,100%);text-align:center}
+#leadOv .field{text-align:right}
+#leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
+.lead-contact-hint{font-size:11.5px;color:var(--faint);text-align:right;margin:13px 0 -2px}
 
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד
@@ -1353,8 +1366,10 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
       <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">05</div>
+      <div class="tx"><b data-i18n="home.know">ידע</b><span data-i18n="home.knowSub">מקורות רשמיים · תוכניות אימון מוערכות · משחקים</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -2795,9 +2810,11 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <p class="ab-p">ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור,
     לוח שיאים, כלי כיתה וציונים — הכול במסך אחד, בשפה אחת, ובלי להוציא שום דבר החוצה.</p>
   <div class="ab-sec"><b>🔒 פרטיות</b>
-    <p class="ab-p">הנתונים נשמרים ב-localStorage של המכשיר הזה בלבד. <b>אין שרת, אין חשבון, ואין שליחה
-      לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא מקריות. ייצוא CSV או גיבוי הם
-      תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש גיבוי.</p></div>
+    <p class="ab-p">נתוני התלמידים — רשימות, ציונים ומדידות — נשמרים ב-localStorage של המכשיר הזה בלבד.
+      <b>אין שרת, אין חשבון, ואין שליחה לשום מקום.</b> אלה נתונים על קטינים, ולכן זו החלטת תכנון ולא
+      מקריות. ייצוא CSV או גיבוי הם תמיד פעולה יזומה שלך. מחיקת נתוני האתר בדפדפן מוחקת הכול — לכן יש
+      גיבוי. הדבר היחיד שיוצא מהמכשיר הוא פרטי הקשר שלך (המורה) שהוזנו במסך הפתיחה הראשון — לא נתון
+      על תלמיד — ונשלחים פעם אחת בלבד.</p></div>
   <div class="ab-sec"><b>📚 מקורות מקצועיים</b>
     <p class="ab-p">פרוטוקול Léger (מבחן הביפ) · נורמות FITNESSGRAM® של Cooper Institute · «אות החינוך
       הגופני — סטנדרטים להערכת הישגי התלמידים», משרד החינוך, המזכירות הפדגוגית · תוכנית הלימודים
@@ -2914,7 +2931,6 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
-    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
     <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
     <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
@@ -3047,9 +3063,29 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <p class="lock-note" data-i18n="lock.demoNote">הדגמה: כיתה לדוגמה עם תוצאות, כדי לראות איך הכול עובד לפני שמזינים תלמידים אמיתיים. אפשר לנקות את נתוני ההדגמה בלחיצה אחת.</p>
   <div class="lock-about">
     <b>מה זה?</b> ערכת שטח למורה לחינוך גופני: מבחני כושר, ביפ טסט, פוטו־פיניש מהמצלמה, מערכי שיעור, שיאים וציונים.<br>
-    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת, אין חשבון, שום דבר לא נשלח לשום מקום.
+    <b>איפה הנתונים?</b> <b>במכשיר הזה בלבד.</b> אין שרת ואין חשבון — תלמידים, ציונים ומדידות לא נשלחים לשום מקום.
+    פרטי הקשר שהזנת במסך הקודם (שלך, לא של תלמיד) נשלחים פעם אחת אליי כדי ליצור איתך קשר בהמשך.
   </div>
 </div></div>
+
+<!-- ----- איסוף פרטי קשר, פעם אחת בפתיחה הראשונה ----- -->
+<div id="leadOv"><div class="box">
+  <div class="lg">👋</div>
+  <h1 dir="auto" data-i18n="lead.title">רגע לפני שנכנסים</h1>
+  <p data-i18n="lead.sub">האפליקציה חינמית לגמרי — בלי כרטיס אשראי, בלי תשלום ובלי שום התחייבות. השאירו כמה פרטים כדי שאוכל לשלוח לכם שאלון קצר לחוות דעת — זה יעזור לנו לשפר את האפליקציה ולהפוך אותה למקצועית יותר בהמשך.</p>
+  <div class="field"><label data-i18n="lead.first">שם פרטי</label>
+    <input type="text" id="lead-first" autocomplete="given-name"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.last">שם משפחה</label>
+    <input type="text" id="lead-last" autocomplete="family-name"></div>
+  <p class="lead-contact-hint" data-i18n="lead.contactHint">נייד או אימייל — מספיק אחד מהשניים. זו רק דרך ליצור איתכם קשר, שום דבר מעבר לזה.</p>
+  <div class="field"><label data-i18n="lead.phone">נייד</label>
+    <input type="tel" id="lead-phone" autocomplete="tel" placeholder="050-0000000"></div>
+  <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
+    <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
+  <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
+  <p class="lock-note" data-i18n="lead.note">בלי עלות ובלי כרטיס אשראי — האפליקציה חינמית. הפרטים האלה נשלחים אליי ישירות רק כדי ליצור איתכם קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלכם בלבד, כרגיל.</p>
+</div></div>
+<iframe name="lead-frame" id="lead-frame" style="display:none" title="lead-submit" tabindex="-1" aria-hidden="true"></iframe>
 <script>
 "use strict";
 /* ============================================================
@@ -4610,6 +4646,15 @@ en:{
   "lock.welcome":"Welcome back, coach 👋",
   "lock.wrong":"Wrong code",
   "lock.tooShort":"Pick a code of at least 4 digits",
+  "lead.title":"Just before you start",
+  "lead.sub":"The app is completely free — no credit card, no payment, no commitment. Leave a few details so we can send you a short feedback questionnaire — it will help us improve the app and make it more professional going forward.",
+  "lead.contactHint":"Mobile or email — either one is enough. It's just a way to reach you, nothing more.",
+  "lead.first":"First name",
+  "lead.last":"Last name",
+  "lead.phone":"Mobile",
+  "lead.email":"Email",
+  "lead.send":"Send and continue",
+  "lead.note":"No cost and no credit card — the app is free. These details are sent directly to us just to get in touch with you. Everything else — students, grades, measurements — stays on your device only, as always.",
 
   /* --- ניווט --- */
   "nav.home":"Home", "nav.tests":"Tests", "nav.lesson":"Lesson",
@@ -4628,8 +4673,10 @@ en:{
   "home.beepSub":"audio-clock accurate beeps · VO₂max · FITNESSGRAM norms",
   "home.photo":"Photo-finish",
   "home.photoSub":"camera timing · sprints · laps · certificates",
+  "home.know":"Knowledge",
+  "home.knowSub":"official sources · evidence-informed programs · games",
   "home.more":"More options",
-  "home.moreSub":"school champions · students and grades · knowledge · class tools · nutrition",
+  "home.moreSub":"school champions · students and grades · class tools · nutrition",
   "home.challenge":"Challenge of the week",
   "home.chPlus":"+ add count", "home.chEdit":"✎ new challenge",
   "home.tip":"Field tip",
@@ -4742,6 +4789,15 @@ ar:{
   "lock.welcome":"أهلًا بعودتك، أيها المدرّب 👋",
   "lock.wrong":"رمز غير صحيح",
   "lock.tooShort":"اختر رمزًا من 4 أرقام على الأقل",
+  "lead.title":"قبل أن نبدأ",
+  "lead.sub":"التطبيق مجاني تمامًا — بدون بطاقة ائتمان، بدون دفع وبدون أي التزام. اتركوا بعض التفاصيل حتى نتمكن من إرسال استبيان قصير لرأيكم — سيساعدنا ذلك على تحسين التطبيق وجعله أكثر احترافية لاحقًا.",
+  "lead.contactHint":"الجوال أو البريد الإلكتروني — يكفي واحد منهما. هذه فقط طريقة للتواصل معكم، لا أكثر.",
+  "lead.first":"الاسم الأول",
+  "lead.last":"اسم العائلة",
+  "lead.phone":"الجوال",
+  "lead.email":"البريد الإلكتروني",
+  "lead.send":"إرسال ومتابعة",
+  "lead.note":"بدون تكلفة وبدون بطاقة ائتمان — التطبيق مجاني. هذه التفاصيل تُرسل إلينا مباشرة فقط للتواصل معكم. كل شيء آخر — الطلاب والعلامات والقياسات — يبقى على جهازكم فقط، كما كان دائمًا.",
 
   "nav.home":"الرئيسية", "nav.tests":"اختبارات", "nav.lesson":"الدرس",
   "nav.beep":"البيب", "nav.photo":"النهاية", "nav.records":"الأرقام",
@@ -4758,8 +4814,10 @@ ar:{
   "home.beepSub":"نبضات بدقة الساعة الصوتية · VO₂max · معايير FITNESSGRAM",
   "home.photo":"تصوير خط النهاية",
   "home.photoSub":"توقيت بالكاميرا · سباقات سرعة · لفّات · شهادات",
+  "home.know":"المعرفة",
+  "home.knowSub":"مصادر رسمية · برامج تدريب مبنية على الأدلة · ألعاب",
   "home.more":"خيارات أخرى",
-  "home.moreSub":"أبطال المدرسة · الطلاب والعلامات · المعرفة · أدوات الصف · التغذية",
+  "home.moreSub":"أبطال المدرسة · الطلاب والعلامات · أدوات الصف · التغذية",
   "home.challenge":"تحدّي الأسبوع",
   "home.chPlus":"+ أضف عدًّا", "home.chEdit":"✎ تحدٍّ جديد",
   "home.tip":"نصيحة ميدانية",
@@ -4875,6 +4933,15 @@ ru:{
   "lock.welcome":"С возвращением, тренер 👋",
   "lock.wrong":"Неверный код",
   "lock.tooShort":"Выберите код минимум из 4 цифр",
+  "lead.title":"Прежде чем начать",
+  "lead.sub":"Приложение полностью бесплатное — без банковской карты, без оплаты и без обязательств. Оставьте немного данных, чтобы мы могли прислать вам короткую анкету отзыва — это поможет нам улучшить приложение и сделать его более профессиональным в дальнейшем.",
+  "lead.contactHint":"Телефон или email — достаточно одного. Это просто способ связаться с вами, не более того.",
+  "lead.first":"Имя",
+  "lead.last":"Фамилия",
+  "lead.phone":"Телефон",
+  "lead.email":"Email",
+  "lead.send":"Отправить и продолжить",
+  "lead.note":"Бесплатно и без банковской карты — приложение бесплатное. Эти данные отправляются напрямую нам только для связи с вами. Всё остальное — ученики, оценки, замеры — остаётся только на вашем устройстве, как и раньше.",
 
   "nav.home":"Главная", "nav.tests":"Тесты", "nav.lesson":"Урок",
   "nav.beep":"Бип", "nav.photo":"Финиш", "nav.records":"Рекорды",
@@ -4891,8 +4958,10 @@ ru:{
   "home.beepSub":"сигналы по аудиочасам · VO₂max · нормы FITNESSGRAM",
   "home.photo":"Фотофиниш",
   "home.photoSub":"замер с камеры · спринт · круги · грамоты",
+  "home.know":"Знания",
+  "home.knowSub":"официальные источники · проверенные программы тренировок · игры",
   "home.more":"Другие возможности",
-  "home.moreSub":"чемпионы школы · ученики и оценки · знания · инструменты класса · питание",
+  "home.moreSub":"чемпионы школы · ученики и оценки · инструменты класса · питание",
   "home.challenge":"Вызов недели",
   "home.chPlus":"+ добавить", "home.chEdit":"✎ новый вызов",
   "home.tip":"Полевой совет",
@@ -16298,8 +16367,49 @@ window.NUT=(function(){
   return {init,daily};
 })();
 
+/* ============================ איסוף פרטי קשר, פעם אחת בפתיחה ============================
+   כדי לדעת מי קיבל את האפליקציה ולשלוח לו שאלון בהמשך, מסך אחד־פעמי
+   מבקש מהמורה (לא מהתלמיד!) שם ודרך יצירת קשר, ושולח אותם בשקט לטופס
+   Google Forms קיים — בלי שרת משלנו ובלי לגעת בנתוני התלמידים, שנשארים
+   במכשיר בדיוק כמו קודם. מזהי ה-entry נלקחו מקישור "מולא מראש" של
+   הטופס "המגרש פרו משתמשים". */
+const LEAD_FORM={
+  action:"https://docs.google.com/forms/d/e/1FAIpQLSdFAH8PGbTnCywhD754OYVFI7sl6t3sWQIiASd4s2RikIaxZg/formResponse",
+  first:"entry.433001861",
+  last:"entry.603620454",
+  phone:"entry.790270370",
+  email:"entry.457350621"
+};
+function initLeadCapture(){
+  const {$, LS, toast}=H();
+  const ov=$("#leadOv"); if(!ov)return;
+  if(LS.get("hx.leadDone",false))return;
+  ov.classList.add("on");
+  const close=()=>ov.classList.remove("on");
+  const submitToForm=(first,last,phone,email)=>{
+    if(!LEAD_FORM.action)return;
+    try{
+      const f=document.createElement("form");
+      f.action=LEAD_FORM.action; f.method="POST"; f.target="lead-frame"; f.style.display="none";
+      const add=(name,val)=>{ if(!name||!val)return; const i=document.createElement("input"); i.name=name; i.value=val; f.appendChild(i); };
+      add(LEAD_FORM.first,first); add(LEAD_FORM.last,last); add(LEAD_FORM.phone,phone); add(LEAD_FORM.email,email);
+      document.body.appendChild(f); f.submit(); f.remove();
+    }catch(e){ console.error("lead submit",e); }
+  };
+  $("#lead-send").addEventListener("click",()=>{
+    const first=$("#lead-first").value.trim(), last=$("#lead-last").value.trim(),
+          phone=$("#lead-phone").value.trim(), email=$("#lead-email").value.trim();
+    if(!first||!last||(!phone&&!email)){ toast("שם פרטי, שם משפחה, ואימייל או נייד — שדות חובה"); return; }
+    LS.set("hx.leadDone",true);
+    submitToForm(first,last,phone,email);
+    toast("תודה! ממשיכים 👋");
+    close();
+  });
+}
+
 /* ============================ HOME extras + נעילת מורה ============================ */
 window.HMBootNew=function(){
+  initLeadCapture();
   const {$, LS, toast, esc}=H();
   /* ---------- מסך כניסה: מורה (קוד) או תלמיד (בלי קוד) ----------
      מורה  — קוד נכון פותח את כל האפליקציה.
