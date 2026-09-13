@@ -1547,6 +1547,57 @@ const PF=(function(){
   const rTime=()=>race.on?(performance.now()-race.t0)/1000:0;
   function thresholds(){ return 0.045-(sens/100)*0.028; }
 
+  /* ============================================================
+     שעון המצלמה
+     ------------------------------------------------------------
+     עד כאן הזמן נלקח מ-performance.now() ברגע שהלולאה עיבדה את
+     הפריים. זה שני מקורות שגיאה בבת אחת: הפריים כבר היה ישן כשהגיע
+     (השהיית צנרת המצלמה), והלולאה רצה לפי רענון המסך ולא לפי קצב
+     הפריימים — כך שאותו פריים עובד פעמיים, או שפריים נופל בין הסדקים.
+
+     requestVideoFrameCallback מחזיר לכל פריים אמיתי את mediaTime —
+     חותמת הזמן שהוטבעה בו בזמן הצילום. כשגם הזינוק וגם הסיום נמדדים
+     על אותו שעון, השהיית הצנרת מתקזזת לגמרי, כי היא נכנסת לשני
+     הקצוות באותה מידה.
+
+     בדפדפן בלי rVFC נשארת ההתנהגות הישנה: שעון הביצועים משמש כשעון
+     מדיה מדומה, וכל החישוב למטה עובד עליו בדיוק אותו דבר. */
+  let vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
+
+  /* הזמן על שעון המצלמה ברגע הזה: הפריים האחרון, ועוד מה שחלף מאז
+     לפי שעון הביצועים. בלי ההשלמה הזאת t0 היה נופל על גבול פריים
+     ומקבל שגיאה של פריים שלם. */
+  function camMediaNow(){
+    if(!vclk.pt)return performance.now()/1000;
+    return vclk.mt+Math.max(0,performance.now()-vclk.pt)/1000;
+  }
+
+  /* ============================================================
+     אינטרפולציית תת-פריים
+     ------------------------------------------------------------
+     החציה כמעט לעולם אינה נופלת בדיוק על פריים. עד כאן נרשם הפריים
+     הראשון שחצה את הסף — כלומר עיגול כלפי מעלה שגודלו עד פריים שלם.
+     שני הפריימים שמסביב יודעים יותר מזה: אם בקודם היה 0.02 ובנוכחי
+     0.06 והסף הוא 0.03, החציה קרתה ברבע הראשון של המרווח.
+
+     זה מה שמוריד את הרזולוציה אל מתחת לקצב הפריימים עצמו, וזו הסיבה
+     שמערכת FAT מדווחת מאיות שנייה ממצלמה שאינה מצלמת ב-1000fps. */
+  function crossAt(prevFrac,prevT,frac,t,th){
+    if(!(t>prevT))return t;
+    if(!(frac>prevFrac))return t;
+    if(prevFrac>=th)return prevT;
+    const f=(th-prevFrac)/(frac-prevFrac);
+    return prevT+Math.max(0,Math.min(1,f))*(t-prevT);
+  }
+
+  /* רזולוציית הזמן שהמכשיר באמת מספק. עם אינטרפולציה הרזולוציה
+     האפקטיבית טובה פי כ-2 מרווח הפריים, ולכן זה מה שמוצג. */
+  function precisionOf(fps){
+    if(!fps||!isFinite(fps)||fps<=0)return null;
+    return 1/(fps*2);
+  }
+  const fmtPrec=p=>p==null?"—":("±"+p.toFixed(3).replace(/0+$/,"").replace(/\.$/,"")+" שנ׳");
+
   /* ---------- mode ---------- */
   function setMode(m){
     mode=m; LS.set("pf.mode",m);
@@ -1559,15 +1610,33 @@ const PF=(function(){
   function camOff(){ if(cam.on){ cam.stream.getTracks().forEach(t=>t.stop()); cam.on=false; $("#pf-video").srcObject=null; } }
   async function camOn(){
     try{
-      cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}},audio:false});
+      /* בפוטו־פיניש קצב הפריימים שווה יותר מרזולוציה: הזיהוי רץ ממילא
+         על 320×180, בעוד שכל פריים נוסף בשנייה מקטין ישירות את שגיאת
+         הזמן. לכן מבקשים קצב גבוה, ומוותרים על רזולוציה אם המצלמה
+         דורשת את החליפין הזה. */
+      cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",
+        width:{ideal:1280},height:{ideal:720},frameRate:{ideal:240}},audio:false});
+      await pushMaxFps();
       $("#pf-video").srcObject=cam.stream; cam.on=true; bg=null; bgReady=0;
+      vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
       $("#pf-status").textContent="🟢 מצלמה פעילה · מכייל רקע…";
-      camLoop();
+      startCamLoop();
     }catch(e){
       $("#pf-status").textContent="המצלמה חסומה — עברנו לסימולציה";
       toast("אין גישה למצלמה. בתצוגה מוטמעת היא חסומה — הורד את הקובץ, או השתמש בסימולציה.");
       setMode("sim");
     }
+  }
+  /* הבקשה ב-getUserMedia היא משאלה; מה שהתקבל בפועל יושב ב-getSettings.
+     אם החומרה מצהירה על קצב גבוה יותר ממה שניתן — מבקשים אותו שוב
+     במפורש. יש מכשירים שנותנים 60 או 120 רק לבקשה שנייה כזאת. */
+  async function pushMaxFps(){
+    try{
+      const tr=cam.stream.getVideoTracks()[0]; if(!tr||!tr.getCapabilities)return;
+      const caps=tr.getCapabilities()||{}, cur=(tr.getSettings&&tr.getSettings().frameRate)||0;
+      const max=caps.frameRate&&caps.frameRate.max;
+      if(max&&max>cur+1)await tr.applyConstraints({frameRate:{ideal:max}});
+    }catch(e){}
   }
   function applyCamCss(){ $("#pf-video").style.transform=`scale(${cam.zoom}) scaleX(${cam.flip?-1:1})`; }
 
@@ -1579,9 +1648,38 @@ const PF=(function(){
     pctx.drawImage($("#pf-video"),-PW/2,-PH/2,PW,PH);
     pctx.restore();
   }
-  function camLoop(){
-    if(!cam.on||mode!=="cam")return;
+  /* לולאה לכל פריים אמיתי, ולא לכל רענון מסך. rVFC מעיר אותנו בדיוק
+     כשפריים חדש הגיע, ומוסר את חותמת הזמן שלו — שתי בעיות נפרדות
+     שנפתרות באותה קריאה. הנפילה אחורה ל-requestAnimationFrame משמרת
+     בדיוק את ההתנהגות שהייתה כאן קודם. */
+  function startCamLoop(){
     const v=$("#pf-video");
+    if(v.requestVideoFrameCallback){
+      vclk.rvfc=true;
+      const step=(now,meta)=>{
+        if(!cam.on||mode!=="cam")return;
+        camFrame(meta&&meta.mediaTime,meta&&meta.presentationTime);
+        v.requestVideoFrameCallback(step);
+      };
+      v.requestVideoFrameCallback(step);
+    }else{
+      vclk.rvfc=false;
+      (function raf(){ if(!cam.on||mode!=="cam")return; camFrame(null,null); requestAnimationFrame(raf); })();
+    }
+  }
+  let prevFrac=0,prevMt=0;
+  function camFrame(mediaTime,presTime){
+    const v=$("#pf-video");
+    /* בלי rVFC שעון הביצועים משמש כשעון מדיה — אותה מתמטיקה בדיוק */
+    const mt=(mediaTime!=null&&isFinite(mediaTime))?mediaTime:performance.now()/1000;
+    const pt=(presTime!=null&&isFinite(presTime))?presTime:performance.now();
+    if(vclk.pt){
+      const d=mt-vclk.mt;
+      /* ממוצע נע — קצב רגעי קופץ, וממנו אי אפשר לדווח דיוק ביושר */
+      if(d>0&&d<1)vclk.dt=vclk.dt?vclk.dt*0.9+d*0.1:d;
+      if(vclk.dt>0)vclk.fps=1/vclk.dt;
+    }
+    vclk.mt=mt; vclk.pt=pt;
     if(v.readyState>=2){
       drawFrame();
       const bx=Math.max(0,Math.min(PW-BANDW,Math.round(lineRatio*PW)-BANDW/2));
@@ -1596,15 +1694,30 @@ const PF=(function(){
         if(fg)fgCnt++;
         bg[c]+=(lum-bg[c])*(fg?0.004:(bgReady<30?0.18:0.03));
       }
-      if(bgReady<30){ bgReady++; if(bgReady===30)$("#pf-status").textContent="🟢 מצלמה פעילה · זיהוי חמוש"; }
+      if(bgReady<30){ bgReady++; if(bgReady===30)paintArmed(); }
       const frac=fgCnt/cells, th=thresholds(), nowMs=performance.now();
       if(race.on&&race.armed&&rTime()>=minT&&bgReady>=30&&$("#pf-autoDetect").checked){
-        if(frac>=th){ if(!lineActive&&nowMs-lastFire>450){ lastFire=nowMs; lineActive=true; fire(null,"אוטו"); } }
+        if(frac>=th){
+          if(!lineActive&&nowMs-lastFire>450){
+            lastFire=nowMs; lineActive=true;
+            /* רגע החציה בין הפריים הקודם לנוכחי, ולא הפריים שבו
+               הבחנו בה. race.mt0 נמדד על אותו שעון בדיוק. */
+            const tc=crossAt(prevFrac,prevMt,frac,mt,th);
+            fire(null,"אוטו",tc-race.mt0);
+          }
+        }
         else if(frac<th*0.5)lineActive=false;
       }
+      prevFrac=frac; prevMt=mt;
       if(race.on)captureStrip(proc);
     }
-    requestAnimationFrame(camLoop);
+  }
+  /* המורה צריך לדעת באיזו רזולוציה הוא מודד — זה ההבדל בין «השעון
+     אמר 8.41» לבין «8.41, ±0.008». */
+  function paintArmed(){
+    const p=precisionOf(vclk.fps);
+    $("#pf-status").textContent="🟢 זיהוי חמוש"+
+      (vclk.fps?" · "+Math.round(vclk.fps)+"fps · "+fmtPrec(p):"");
   }
 
   /* ---------- simulation ---------- */
@@ -1752,17 +1865,34 @@ const PF=(function(){
       micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
       micCtx=new (window.AudioContext||window.webkitAudioContext)();
       const src=micCtx.createMediaStreamSource(micStream);
-      micAn=micCtx.createAnalyser(); micAn.fftSize=512; src.connect(micAn);
+      /* 512 דגימות הן כ-11 מ״ש, והדגימה רצה ב-requestAnimationFrame —
+         כ-17 מ״ש. כלומר בין בדיקה לבדיקה היה קטע שמע שאיש לא הסתכל
+         בו, ויריית אקדח קצרה יכלה ליפול בדיוק שם. חלון של 2048
+         דגימות (כ-46 מ״ש) מכסה את המרווח ברווח ביטחון. */
+      micAn=micCtx.createAnalyser(); micAn.fftSize=2048; src.connect(micAn);
       micArmed=true;
       $("#pf-status").textContent="🎙 ממתין לאקדח / מחיאת כף…";
-      const data=new Uint8Array(micAn.fftSize);
+      const N=micAn.fftSize, sr=micCtx.sampleRate||44100;
+      const data=new Uint8Array(N);
       let calm=0;
       (function poll(){
         if(!micArmed)return;
         micAn.getByteTimeDomainData(data);
-        let peak=0; for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]-128));
+        let peak=0,hit=-1;
+        for(let i=0;i<N;i++){
+          const a=Math.abs(data[i]-128);
+          if(a>peak)peak=a;
+          if(hit<0&&a>70)hit=i;          /* הדגימה הראשונה שחצתה — לא החזקה ביותר */
+        }
         if(calm<20){ if(peak<25)calm++; }
-        else if(peak>70){ micStop(); launch(soundLagSec()); return; }
+        else if(hit>=0){
+          micStop();
+          /* היריה נמצאת בתוך החלון, לא בקצהו: מהדגימה שחצתה ועד סוף
+             החלון חלפו (N-hit) דגימות. בלעדי התיקון הזה השעון מתחיל
+             עד 46 מ״ש מאוחר מדי — יותר מכל שגיאה אחרת במערכת. */
+          launch(soundLagSec()+micLagSec(N,hit,sr));
+          return;
+        }
         requestAnimationFrame(poll);
       })();
     }catch(e){ toast("אין גישה למיקרופון — זינוק רגיל"); countdown(); }
@@ -1802,10 +1932,20 @@ const PF=(function(){
     const d=parseFloat(LS.get("pf.gunDist",0));
     return (d>0&&isFinite(d)) ? d/343 : 0;
   }
+  /* המרחק בזמן בין הדגימה שבה נשמעה היריה לבין סוף חלון הניתוח */
+  function micLagSec(N,hit,sr){
+    if(!(N>0)||!(sr>0)||!(hit>=0)||hit>=N)return 0;
+    return (N-hit)/sr;
+  }
   function launch(backdate){
     horn();
     race.on=true; race.armed=true;
     race.t0=performance.now()-(backdate||0)*1000;
+    /* נקודת האפס גם על שעון המצלמה. כל זמן סיום נמדד כהפרש על
+       השעון הזה, ולכן השהיית הצנרת — שנכנסת לשני הקצוות במידה
+       שווה — מתקזזת במקום להיספר כשגיאה. */
+    race.mt0=camMediaNow()-(backdate||0);
+    prevFrac=0; prevMt=0;
     lineActive=false; lastFire=-1e9;
     $("#pf-gun").innerHTML="⏹ עצור מקצה";
     const fg=$("#pf-fsGun"); if(fg){ fg.textContent="⏹ עצור"; fg.classList.remove("go"); }
@@ -1825,10 +1965,13 @@ const PF=(function(){
     const fc=$("#pf-fsClock"); if(fc)fc.textContent="00:00.00"; if(mode==="sim")drawSimIdle(); }
 
   function nextUnfinished(){ return lanes.findIndex(l=>l.time==null); }
-  function fire(idx,src){
+  function fire(idx,src,tExact){
     if(!race.on)return;
     const i=idx!=null?idx:nextUnfinished(); if(i<0||!lanes[i]||lanes[i].time!=null)return;
-    const t=rTime(); lanes[i].time=t; lanes[i].src=src||"ידני";
+    /* זיהוי אוטומטי מוסר את הזמן המדויק שחושב על שעון המצלמה;
+       לחיצה ידנית נופלת על שעון הביצועים, כי שם באמת קרתה. */
+    const t=(tExact!=null&&isFinite(tExact)&&tExact>=0)?tExact:rTime();
+    lanes[i].time=t; lanes[i].src=src||"ידני";
     if(mode==="cam"&&cam.on){ try{
       const sc=document.createElement("canvas");sc.width=PW;sc.height=PH;const sx2=sc.getContext("2d");
       sx2.drawImage(proc,0,0); sx2.strokeStyle="#ff4d5e";sx2.lineWidth=2;
@@ -2002,7 +2145,12 @@ const PF=(function(){
   function arcSave(){
     const list=finished(); if(!list.length){toast("אין תוצאות לשמירה");return;}
     const arc=arcList();
-    arc.unshift({id:Date.now(),meta:{...META},results:list.map(l=>({lane:l.lane,name:l.name,time:+l.time.toFixed(3),src:l.src}))});
+    /* תנאי המדידה נשמרים יחד עם התוצאה. זמן בלי הרזולוציה שבה נמדד
+       אינו ניתן להשוואה — וזה ההבדל בין רישום לבין מדידה. */
+    arc.unshift({id:Date.now(),meta:{...META},
+      cond:{fps:vclk.fps?Math.round(vclk.fps*10)/10:0,prec:precisionOf(vclk.fps),
+        clock:vclk.rvfc?"camera":"display",mode},
+      results:list.map(l=>({lane:l.lane,name:l.name,time:+l.time.toFixed(3),src:l.src}))});
     LS.set("pf.archive",arc.slice(0,60));
     renderHistory(); toast("💾 נשמר לארכיון"); confetti(40);
   }
@@ -2416,7 +2564,15 @@ const PF=(function(){
     });
     renderChips(); renderBoard(); refreshLaneSel(); lRender(); setMode(mode); renderLiveStrip();
   }
-  return {init,_test:{thresholds:s2=>{sens=s2;return thresholds()},nextUnfinished:()=>nextUnfinished(),setLanes:l=>{lanes=l},windIllegal:w=>{META.wind=w;return windIllegal()}}};
+  return {init,
+    /* מצב המדידה, לתצוגה ולארכיון: מה המכשיר באמת נותן כרגע */
+    timing:()=>({fps:vclk.fps?Math.round(vclk.fps*10)/10:0,
+      prec:precisionOf(vclk.fps),rvfc:!!vclk.rvfc}),
+    _test:{thresholds:s2=>{sens=s2;return thresholds()},nextUnfinished:()=>nextUnfinished(),
+      setLanes:l=>{lanes=l},windIllegal:w=>{META.wind=w;return windIllegal()},
+      crossAt,precisionOf,micLagSec,soundLag:d=>{LS.set("pf.gunDist",d);return soundLagSec()},
+      camMediaNow:()=>camMediaNow(),
+      setClock:c=>{vclk=Object.assign(vclk,c)}}};
 })();
 
 
