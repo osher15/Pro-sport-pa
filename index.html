@@ -12,8 +12,8 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=dead7c37">
-<script src="hm-i18n.js?v=a53fde3e"></script>
+<link rel="stylesheet" href="hm-styles.css?v=8e91da5f">
+<script src="hm-i18n.js?v=2469515c"></script>
 <script src="hm-app.js?v=b05726a0"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
@@ -25,7 +25,7 @@
 <script src="hm-lesson.js?v=45abc322"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=a4320c3d"></script>
-<script src="hm-new.js?v=b34da548"></script>
+<script src="hm-new.js?v=32bc2783"></script>
 </helmet>
 <div class="app" dir="rtl">
 <div class="topbar">
@@ -1589,18 +1589,18 @@
 <div id="leadOv"><div class="box">
   <div class="lg">👋</div>
   <h1 dir="auto" data-i18n="lead.title">רגע לפני שנכנסים</h1>
-  <p data-i18n="lead.sub">כמה פרטים שלך — לא של תלמידים — כדי שאוכל לשלוח לך עדכון קצר ושאלון בהמשך.</p>
+  <p data-i18n="lead.sub">האפליקציה חינמית לגמרי — בלי כרטיס אשראי, בלי תשלום ובלי שום התחייבות. רק תגידו לי מי אתם, כדי שאוכל לשלוח לכם שאלון קצר לחוות דעת — זה מה שעוזר לנו לשפר את האפליקציה מקצועית קדימה.</p>
   <div class="field"><label data-i18n="lead.first">שם פרטי</label>
     <input type="text" id="lead-first" autocomplete="given-name"></div>
   <div class="field" style="margin-top:9px"><label data-i18n="lead.last">שם משפחה</label>
     <input type="text" id="lead-last" autocomplete="family-name"></div>
-  <div class="field" style="margin-top:9px"><label data-i18n="lead.phone">נייד</label>
+  <p class="lead-contact-hint" data-i18n="lead.contactHint">נייד או אימייל — מספיק אחד מהשניים. זו רק דרך ליצור איתכם קשר, שום דבר מעבר לזה.</p>
+  <div class="field"><label data-i18n="lead.phone">נייד</label>
     <input type="tel" id="lead-phone" autocomplete="tel" placeholder="050-0000000"></div>
   <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
     <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
   <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
-  <button class="lead-skip-link" id="lead-skip" data-i18n="lead.skip">לא עכשיו</button>
-  <p class="lock-note" data-i18n="lead.note">הפרטים נשלחים אליי ישירות כדי ליצור איתך קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלך בלבד, כרגיל.</p>
+  <p class="lock-note" data-i18n="lead.note">בלי עלות ובלי כרטיס אשראי — האפליקציה חינמית. הפרטים האלה נשלחים אליי ישירות רק כדי ליצור איתכם קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלכם בלבד, כרגיל.</p>
 </div></div>
 <iframe name="lead-frame" id="lead-frame" style="display:none" title="lead-submit" tabindex="-1" aria-hidden="true"></iframe>
 </x-dc>

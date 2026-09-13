@@ -767,7 +767,6 @@ function initLeadCapture(){
     toast("תודה! ממשיכים 👋");
     close();
   });
-  $("#lead-skip").addEventListener("click",()=>{ LS.set("hx.leadDone",true); close(); });
 }
 
 /* ============================ HOME extras + נעילת מורה ============================ */

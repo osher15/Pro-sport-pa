@@ -496,10 +496,7 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 #leadOv .box{width:min(380px,100%);text-align:center}
 #leadOv .field{text-align:right}
 #leadOv .field input{text-align:right;font-family:'Heebo',sans-serif}
-/* קישור טקסט קטן ולא כפתור — כדי שהקריאה-לפעולה הברורה תישאר "שליחה
-   והמשך", והדילוג יישאר אפשרי (למי שפותח בלי רשת) בלי להזמין אותו. */
-.lead-skip-link{display:block;margin:13px auto 0;background:none;border:none;color:var(--faint);
-  font-family:'Heebo',sans-serif;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
+.lead-contact-hint{font-size:11.5px;color:var(--faint);text-align:right;margin:13px 0 -2px}
 
 /* ============================================================
    תוספות: משחקים · מאגר ידע · מערך מורחב · מצב תלמיד
@@ -2821,18 +2818,18 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
 <div id="leadOv"><div class="box">
   <div class="lg">👋</div>
   <h1 dir="auto" data-i18n="lead.title">רגע לפני שנכנסים</h1>
-  <p data-i18n="lead.sub">כמה פרטים שלך — לא של תלמידים — כדי שאוכל לשלוח לך עדכון קצר ושאלון בהמשך.</p>
+  <p data-i18n="lead.sub">האפליקציה חינמית לגמרי — בלי כרטיס אשראי, בלי תשלום ובלי שום התחייבות. רק תגידו לי מי אתם, כדי שאוכל לשלוח לכם שאלון קצר לחוות דעת — זה מה שעוזר לנו לשפר את האפליקציה מקצועית קדימה.</p>
   <div class="field"><label data-i18n="lead.first">שם פרטי</label>
     <input type="text" id="lead-first" autocomplete="given-name"></div>
   <div class="field" style="margin-top:9px"><label data-i18n="lead.last">שם משפחה</label>
     <input type="text" id="lead-last" autocomplete="family-name"></div>
-  <div class="field" style="margin-top:9px"><label data-i18n="lead.phone">נייד</label>
+  <p class="lead-contact-hint" data-i18n="lead.contactHint">נייד או אימייל — מספיק אחד מהשניים. זו רק דרך ליצור איתכם קשר, שום דבר מעבר לזה.</p>
+  <div class="field"><label data-i18n="lead.phone">נייד</label>
     <input type="tel" id="lead-phone" autocomplete="tel" placeholder="050-0000000"></div>
   <div class="field" style="margin-top:9px"><label data-i18n="lead.email">אימייל</label>
     <input type="email" id="lead-email" autocomplete="email" placeholder="you@example.com"></div>
   <button class="btn acc big" id="lead-send" style="margin-top:14px" data-i18n="lead.send">שליחה והמשך</button>
-  <button class="lead-skip-link" id="lead-skip" data-i18n="lead.skip">לא עכשיו</button>
-  <p class="lock-note" data-i18n="lead.note">הפרטים נשלחים אליי ישירות כדי ליצור איתך קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלך בלבד, כרגיל.</p>
+  <p class="lock-note" data-i18n="lead.note">בלי עלות ובלי כרטיס אשראי — האפליקציה חינמית. הפרטים האלה נשלחים אליי ישירות רק כדי ליצור איתכם קשר. כל השאר — תלמידים, ציונים ומדידות — נשאר במכשיר שלכם בלבד, כרגיל.</p>
 </div></div>
 <iframe name="lead-frame" id="lead-frame" style="display:none" title="lead-submit" tabindex="-1" aria-hidden="true"></iframe>
 <script>
@@ -2948,14 +2945,14 @@ en:{
   "lock.wrong":"Wrong code",
   "lock.tooShort":"Pick a code of at least 4 digits",
   "lead.title":"Just before you start",
-  "lead.sub":"A few details about you — not your students — so we can send you a short update and questionnaire later.",
+  "lead.sub":"The app is completely free — no credit card, no payment, no commitment. Just tell us who you are, so we can send you a short feedback questionnaire — that's what helps us improve the app going forward.",
+  "lead.contactHint":"Mobile or email — either one is enough. It's just a way to reach you, nothing more.",
   "lead.first":"First name",
   "lead.last":"Last name",
   "lead.phone":"Mobile",
   "lead.email":"Email",
   "lead.send":"Send and continue",
-  "lead.skip":"Not now",
-  "lead.note":"These details are sent directly to us to get in touch with you. Everything else — students, grades, measurements — stays on your device only, as always.",
+  "lead.note":"No cost and no credit card — the app is free. These details are sent directly to us just to get in touch with you. Everything else — students, grades, measurements — stays on your device only, as always.",
 
   /* --- ניווט --- */
   "nav.home":"Home", "nav.tests":"Tests", "nav.lesson":"Lesson",
@@ -3076,14 +3073,14 @@ ar:{
   "lock.wrong":"رمز غير صحيح",
   "lock.tooShort":"اختر رمزًا من 4 أرقام على الأقل",
   "lead.title":"قبل أن نبدأ",
-  "lead.sub":"بضعة تفاصيل عنك أنت — وليس عن الطلاب — حتى نتمكن من إرسال تحديث قصير واستبيان لك لاحقًا.",
+  "lead.sub":"التطبيق مجاني تمامًا — بدون بطاقة ائتمان، بدون دفع وبدون أي التزام. فقط قولوا لنا من أنتم، حتى نتمكن من إرسال استبيان قصير لرأيكم — وهذا ما يساعدنا على تطوير التطبيق مهنيًا قدمًا.",
+  "lead.contactHint":"الجوال أو البريد الإلكتروني — يكفي واحد منهما. هذه فقط طريقة للتواصل معكم، لا أكثر.",
   "lead.first":"الاسم الأول",
   "lead.last":"اسم العائلة",
   "lead.phone":"الجوال",
   "lead.email":"البريد الإلكتروني",
   "lead.send":"إرسال ومتابعة",
-  "lead.skip":"ليس الآن",
-  "lead.note":"هذه التفاصيل تُرسل إلينا مباشرة للتواصل معك. كل شيء آخر — الطلاب والعلامات والقياسات — يبقى على جهازك فقط، كما كان دائمًا.",
+  "lead.note":"بدون تكلفة وبدون بطاقة ائتمان — التطبيق مجاني. هذه التفاصيل تُرسل إلينا مباشرة فقط للتواصل معكم. كل شيء آخر — الطلاب والعلامات والقياسات — يبقى على جهازكم فقط، كما كان دائمًا.",
 
   "nav.home":"الرئيسية", "nav.tests":"اختبارات", "nav.lesson":"الدرس",
   "nav.beep":"البيب", "nav.photo":"النهاية", "nav.records":"الأرقام",
@@ -3205,14 +3202,14 @@ ru:{
   "lock.wrong":"Неверный код",
   "lock.tooShort":"Выберите код минимум из 4 цифр",
   "lead.title":"Прежде чем начать",
-  "lead.sub":"Немного данных о вас — не об учениках — чтобы мы могли позже прислать вам короткое обновление и анкету.",
+  "lead.sub":"Приложение полностью бесплатное — без банковской карты, без оплаты и без обязательств. Просто скажите нам, кто вы, чтобы мы могли прислать вам короткую анкету отзыва — это помогает нам профессионально развивать приложение дальше.",
+  "lead.contactHint":"Телефон или email — достаточно одного. Это просто способ связаться с вами, не более того.",
   "lead.first":"Имя",
   "lead.last":"Фамилия",
   "lead.phone":"Телефон",
   "lead.email":"Email",
   "lead.send":"Отправить и продолжить",
-  "lead.skip":"Не сейчас",
-  "lead.note":"Эти данные отправляются напрямую нам, чтобы связаться с вами. Всё остальное — ученики, оценки, замеры — остаётся только на вашем устройстве, как и раньше.",
+  "lead.note":"Бесплатно и без банковской карты — приложение бесплатное. Эти данные отправляются напрямую нам только для связи с вами. Всё остальное — ученики, оценки, замеры — остаётся только на вашем устройстве, как и раньше.",
 
   "nav.home":"Главная", "nav.tests":"Тесты", "nav.lesson":"Урок",
   "nav.beep":"Бип", "nav.photo":"Финиш", "nav.records":"Рекорды",
@@ -13363,7 +13360,6 @@ function initLeadCapture(){
     toast("תודה! ממשיכים 👋");
     close();
   });
-  $("#lead-skip").addEventListener("click",()=>{ LS.set("hx.leadDone",true); close(); });
 }
 
 /* ============================ HOME extras + נעילת מורה ============================ */
