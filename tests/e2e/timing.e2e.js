@@ -243,14 +243,37 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     eq(await el.inputValue(),"7","הערך הקודם הוחלף, לא הורחב ל«347»");
   }),
 
-  check("יציאה משדה ריק מחזירה אפס ולא משאירה חור",seed,async page=>{
+  /* הסיבה המשוערת ל«ראיתי 5 ואז חזר ל-0»: קלט type="number" מחזיר
+     מחרוזת ריקה בכל פעם שהדפדפן סבור שהתוכן אינו מספר תקין, וכל
+     טיפול שנשען עליו עלול לדרוס ספרה שהמורה באמת הקליד. השדה הוא
+     טקסט עם מקלדת מספרית, ולכן המצב הזה לא קיים. */
+  check("השדה מחזיר תמיד את מה שכתוב בו, בלי נורמליזציה של הדפדפן",seed,async page=>{
+    await openPf(page);
+    const r=await page.evaluate(()=>{
+      const e=document.getElementById("pf-gunDist");
+      return {type:e.type,inputmode:e.getAttribute("inputmode")};
+    });
+    eq(r.type,"text","לא type=number — הוא בולע ערכים באמצע הקלדה");
+    eq(r.inputmode,"decimal","אבל המקלדת עדיין מספרית");
+  }),
+
+  check("פסיק מתקבל כנקודה עשרונית, כפי שמקלידים בעברית",seed,async page=>{
     await openPf(page);
     const el=page.locator("#pf-gunDist");
     await el.click(); await page.waitForTimeout(200);
-    eq(await el.inputValue(),"","המיקוד ריקן את האפס");
-    await page.evaluate(()=>document.getElementById("pf-gunDist").blur());
+    await page.keyboard.press("Comma"); await page.keyboard.press("7");
     await page.waitForTimeout(250);
-    eq(await el.inputValue(),"0","ויציאה בלי הקלדה מחזירה אותו");
+    eq(await el.inputValue(),"0.7","«,7» הופך ל-0.7 ולא נבלע");
+    eq(await page.evaluate(()=>window.HM.LS.get("pf.gunDist",null)),0.7);
+  }),
+
+  check("תווים שאינם מספר פשוט לא נכנסים",seed,async page=>{
+    await openPf(page);
+    const el=page.locator("#pf-gunDist");
+    await el.click(); await page.waitForTimeout(200);
+    await page.keyboard.type("1a2b3"); await page.waitForTimeout(300);
+    eq(await el.inputValue(),"123","האותיות נופלות, הספרות נשארות");
+    eq(await page.evaluate(()=>window.HM.LS.get("pf.gunDist",null)),123);
   }),
 
   check("מרחק האקדח ניתן לשינוי, והקיזוז מתעדכן תוך כדי הקלדה",seed,async page=>{

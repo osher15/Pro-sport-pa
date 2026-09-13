@@ -2388,19 +2388,43 @@ const PF=(function(){
        «input» מעדכן בכל תו, כך שרואים את הקיזוז נבנה תוך כדי. */
     const paintLag=d=>{ $("#pf-gunLag").textContent=
       d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז"; };
-    const onDist=e=>{ const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d); paintLag(d); };
+    /* ============================================================
+       השדה הזה היה type="number", וזה מקור הצרות.
+       ------------------------------------------------------------
+       קלט מספרי בדפדפן מחזיר מחרוזת ריקה בכל פעם שהוא סבור שהתוכן
+       אינו מספר תקין — מצב שנוצר באמצע הקלדה, ומשתנה בין מקלדות
+       ובין הגדרות שפה (פסיק מול נקודה). כל טיפול שמסתמך על הערך
+       הזה עלול לראות ריק בדיוק כשהמורה רואה ספרה, ולדרוס אותה.
+
+       שדה טקסט עם מקלדת מספרית מחזיר תמיד את מה שבאמת כתוב בו.
+       הניקוי נעשה כאן, במפורש, במקום להישען על התנהגות הדפדפן. */
     const dist=$("#pf-gunDist");
+    const clean=v=>{
+      /* פסיק ונקודה הם אותו דבר בעברית ובלועזית — מנרמלים לנקודה */
+      let t2=String(v==null?"":v).replace(/,/g,".").replace(/[^0-9.]/g,"");
+      const i=t2.indexOf(".");
+      if(i>=0)t2=t2.slice(0,i+1)+t2.slice(i+1).replace(/\./g,"");   /* נקודה אחת */
+      if(t2.charAt(0)===".")t2="0"+t2;                              /* «.5» הוא חצי מטר */
+      return t2;
+    };
+    const onDist=()=>{
+      const raw=dist.value, at=dist.selectionStart==null?raw.length:dist.selectionStart;
+      const txt=clean(raw);
+      if(txt!==raw){
+        /* הסמן זז רק כמספר התווים שבאמת הוסרו לפניו, ולא באופן קבוע */
+        const before=raw.slice(0,at), keep=clean(before).length;
+        dist.value=txt;
+        const pos=Math.max(0,Math.min(txt.length,keep));
+        try{ dist.setSelectionRange(pos,pos); }catch(e){}
+      }
+      const d=Math.max(0,parseFloat(txt)||0);
+      LS.set("pf.gunDist",d); paintLag(d);
+    };
     dist.addEventListener("input",onDist);
-    dist.addEventListener("change",onDist);
-    /* השדה נושא 0 כברירת מחדל, והקלדה לתוכו נדבקה אחריו: «5» הפך
-       ל-«05». הקיזוז אמנם חושב נכון, אבל המורה ראה מספר שלא הקליד
-       והסיק שהשדה לא מגיב. מיקוד מרוקן אפס כדי שההקלדה תתחיל נקייה,
-       ובוחר ערך קיים כדי שהקלדה תחליף אותו ולא תיצמד אליו. */
-    dist.addEventListener("focus",()=>{
-      if(+dist.value===0)dist.value="";
-      else{ try{ dist.select(); }catch(e){} }
-    });
-    dist.addEventListener("blur",()=>{ if(dist.value.trim()==="")dist.value=0; });
+    /* מיקוד בוחר את הקיים, כך שהקלדה מחליפה אותו במקום להיצמד אחריו
+       ולהפוך «5» ל-«05». אין כאן ריקון וגם לא שחזור בעזיבה — ולכן אין
+       מצב ביניים שבו משהו יכול לכתוב 0 על ספרה שהמורה הקליד. */
+    dist.addEventListener("focus",()=>{ try{ dist.select(); }catch(e){} });
     paintLag(LS.get("pf.gunDist",0));
     /* טעינת כיתה — אותה רשימה שמשמשת את מבחני הכושר, כדי שהשמות בלוח
        התוצאות יהיו זהים לאלה שבמעקב ולא גרסה מוקלדת מחדש. המסלולים
