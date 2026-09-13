@@ -157,7 +157,11 @@ module.exports={title:"סיום שיעור ומסך הכיתה",tests:[
     await page.evaluate(()=>window.HM.openClassScreen("c:ז:2"));
     await page.waitForTimeout(350);
     const t=await page.evaluate(()=>document.querySelector(".cls-next").textContent);
-    ok(/אין עדיין שיעור/.test(t),t.replace(/\s+/g," ").slice(0,120));
+    /* הניסוח עבר מ«בכיתה הזאת» ל«כאן» כשקבוצות נכנסו — מסך אחד
+       משרת גם כיתה וגם קבוצה. הערובה לא השתנתה: נאמר שאין היסטוריה
+       ולא מומצאת המלצה. */
+    ok(/לא התקיים כאן שיעור/.test(t),t.replace(/\s+/g," ").slice(0,120));
+    ok(!/תרגול|משחק/.test(t),"ובלי צעדים מומצאים");
   }),
 
   check("אפשר לפתוח שיעור ישירות ממסך הכיתה",base,async page=>{
