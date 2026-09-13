@@ -141,9 +141,17 @@ module.exports={title:"שיעור פעיל",tests:[
       "והיא עדיין נמצאת דרך השיעור שהסתיים");
   }),
 
+  /* הכפתור בפס פתח פעם confirm() וסגר מיד. הוא פותח עכשיו את חלון
+     הסיום, שבו נשמר גם **מה קרה** בשיעור — ולכן הסיום הוא שתי
+     לחיצות. הערובה שנבדקת כאן לא השתנתה: הכפתור בפס הוא הדרך
+     לסיים, והשיעור באמת נסגר. */
   check("סיום דרך הכפתור בפס",seed,async page=>{
     await startFromPicker(page);
     await page.evaluate(()=>document.getElementById("lsBarEnd").click());
+    await page.waitForTimeout(350);
+    ok(await page.evaluate(()=>document.getElementById("endModal").classList.contains("on")),
+      "חלון הסיום נפתח");
+    await page.evaluate(()=>document.getElementById("end-go").click());
     await page.waitForTimeout(500);
     eq(await page.evaluate(()=>window.HM.session.active()),null);
     eq(await page.evaluate(()=>window.HM.session.all()[0].status),"completed");

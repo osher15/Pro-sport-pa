@@ -466,8 +466,9 @@ const SESSION={
       return {ok:false,outcome:"not-saved",session:null};
     return r;
   },
-  complete(id){
-    const r=DATA.completeSession(sesAll(),id);
+  /* o = {rating, note} — מה שקרה בשיעור. שניהם רשות. */
+  complete(id,o){
+    const r=DATA.completeSession(sesAll(),id,null,o);
     if(r.ok&&r.outcome==="completed"&&!sesSave(r.list))
       return {ok:false,outcome:"not-saved",session:null};
     /* סיום שיעור משנה גם את דף הבית — המשבצת מסומנת וכרטיס
@@ -628,15 +629,7 @@ function wireSessionBar(){
   const hb=document.getElementById("lsBarHist");
   if(hb)hb.addEventListener("click",openSesHist);
   const end=document.getElementById("lsBarEnd");
-  if(end)end.addEventListener("click",()=>{
-    const a=SESSION.active(); if(!a)return;
-    const n=SESSION.measurements(a.id).length;
-    if(!confirm("לסיים את השיעור בכיתה "+sesName(a)+"?\n\n"+
-      (n?"• "+n+" מדידות נלקחו בשיעור והן נשמרות.\n":"• לא נלקחו מדידות בשיעור.\n")+
-      "• השיעור יישאר בהיסטוריה."))return;
-    const r=SESSION.complete(a.id);
-    toast(r.ok?"✓ השיעור הסתיים":"סיום השיעור נכשל");
-  });
+  if(end)end.addEventListener("click",openEndLesson);
   paintSessionBar();
 }
 
@@ -740,7 +733,7 @@ function paintToday(){
         (ms?" · "+ms+" מדידות":"")+'</span></div>'+
       (r.status==="planned"
         ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
-        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">📖 היסטוריה</button>')+
+        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>')+
       '</div>';
   }).join("");
   $$("#hx-todayList [data-slot]").forEach(b=>b.addEventListener("click",()=>{
@@ -748,7 +741,7 @@ function paintToday(){
     if(sl)startFromSlot(sl);
   }));
   $$("#hx-todayList [data-cls]").forEach(b=>b.addEventListener("click",()=>
-    openSesHist()));
+    openClassScreen(b.dataset.cls)));
 }
 
 /* «השיעור האחרון» — הקצה השני של אותה זרימה: מה שקרה בפעם שעברה,
@@ -767,7 +760,7 @@ function paintLastLesson(){
       ' · '+(ms?ms+" מדידות":"בלי מדידות")+'</span></div>'+
       '<button class="btn sm ghost" data-cls="'+esc(done.cid)+'">מסך הכיתה</button></div>'+note;
   $$("#hx-lastBody [data-cls]").forEach(b=>b.addEventListener("click",()=>
-    openSesHist()));
+    openClassScreen(b.dataset.cls)));
 }
 
 /* ---------- עריכת מערכת השעות ---------- */
@@ -841,6 +834,141 @@ function wireSched(){
     $("#sw-topic").value="";
     renderSchedEditor(); paintToday();
   });
+}
+
+
+/* ============================================================
+   סיום שיעור — מה קרה בו
+   ------------------------------------------------------------
+   עד עכשיו הסיום היה confirm() אחד, והשיעור נכנס להיסטוריה בלי
+   שום דבר מלבד העובדה שהתקיים. ההיסטוריה הזאת לא יכלה לעזור
+   לשיעור הבא, כי היא לא ידעה מה עבד.
+
+   שתי לחיצות ושורה אחת. זה המקסימום שמורה שעומד במגרש עם כיתה
+   שמחכה מוכן לתת, ולכן שניהם רשות: שיעור נסגר גם בלעדיהם.
+   ============================================================ */
+let endRate=null;
+function openEndLesson(){
+  const a=SESSION.active();
+  if(!a){ toast("אין שיעור פתוח"); return; }
+  endRate=null;
+  const n=SESSION.measurements(a.id).length;
+  $("#end-title").textContent="סיום שיעור · "+sesName(a);
+  $("#end-sum").textContent=(n?n+" מדידות נלקחו בשיעור והן נשמרות. ":
+    "לא נלקחו מדידות בשיעור. ")+"השיעור יישאר בהיסטוריה.";
+  $("#end-note").value="";
+  $$("#end-rate button").forEach(b=>b.classList.remove("on"));
+  modal("endModal",true);
+}
+function wireEndLesson(){
+  $$("#end-rate button").forEach(b=>b.addEventListener("click",()=>{
+    /* לחיצה שנייה על אותו כפתור מבטלת — «לא סימנתי» חייב להישאר
+       אפשרי אחרי שנגעת בטעות. */
+    const v=+b.dataset.r;
+    endRate=(endRate===v)?null:v;
+    $$("#end-rate button").forEach(x=>x.classList.toggle("on",
+      endRate!=null&&+x.dataset.r===endRate));
+  }));
+  const go=$("#end-go"); if(!go)return;
+  go.addEventListener("click",()=>{
+    const a=SESSION.active();
+    if(!a){ modal("endModal",false); return; }
+    const cid=a.cid;
+    const r=SESSION.complete(a.id,{rating:endRate,note:$("#end-note").value});
+    modal("endModal",false);
+    if(!r.ok){ toast("סיום השיעור נכשל"); return; }
+    toast("✓ השיעור הסתיים");
+    /* מיד אחרי הסיום זה הרגע שבו ההמלצה שווה משהו — המורה עדיין
+       זוכר את השיעור, והכיתה הבאה עוד לא נכנסה. */
+    setTimeout(()=>openClassScreen(cid),350);
+  });
+}
+
+/* ============================================================
+   מסך הכיתה
+   ------------------------------------------------------------
+   «מה עשינו בח׳2 בחודש האחרון» — שאלה שלא הייתה לה תשובה בממשק.
+   חלון, לא מסך חדש: הניווט לא מתארך, והכיתה נפתחת מאיפה שהיא
+   מוזכרת — מדף הבית, מההיסטוריה, ומסוף שיעור.
+
+   הכול קריאה בלבד. אין כאן עריכה ואין מחיקה, ולכן אין סיכון
+   לנתונים; ומכוון: זה מסך שמסתכלים בו לפני שיעור, לא עובדים בו.
+   ============================================================ */
+function clsDisp(cid){
+  try{ const c=DATA.classOf(REGSTORE,cid); if(c&&c.name)return c.name; }catch(e){}
+  const p=DATA.cidParts(cid);
+  return p?DATA.clsName(p.grade,p.num):(cid||"");
+}
+function openClassScreen(cid){
+  if(!cid)return;
+  const ses=SESSION.list({cid});
+  const done=ses.filter(x=>x.status===DATA.SESSION_DONE);
+  const rows=LS.get("ft.results",[]);
+  const ms=rows.filter(r=>{ try{ return DATA.rowInClass(r,cid); }catch(e){ return false; } });
+  const stu=LS.get("stu.list",[]).filter(s=>{
+    try{ return DATA.cidOfStudent(s,REGSTORE)===cid; }catch(e){ return false; } });
+  const rec=DATA.nextLesson(ses,{cid,rows});
+  const act=SESSION.active();
+
+  $("#cls-title").textContent="כיתה "+clsDisp(cid);
+  const stat=(n,l)=>'<div class="qs"><div class="n">'+esc(String(n))+'</div><div class="l">'+esc(l)+'</div></div>';
+  const last=done[0];
+  let html='<div class="cls-stats">'+
+    stat(done.length,"שיעורים שהתקיימו")+stat(stu.length,"תלמידים")+
+    stat(ms.length,"מדידות")+stat(last?last.date:"—","שיעור אחרון")+'</div>';
+
+  /* המשך מומלץ */
+  html+='<div class="cls-next">';
+  if(rec.ok){
+    html+='<b>💡 המשך מומלץ · '+esc(rec.title)+'</b><ol>'+
+      rec.steps.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'+
+      (rec.measure?'<div class="pill" style="margin-bottom:7px">＋ לשלב מדידה</div>':"")+
+      '<div class="why">'+rec.why.map(w=>'· '+esc(w)).join("<br>")+'</div>'+
+      (rec.note?'<div class="why">· מההערה שלך: “'+esc(rec.note)+'”</div>':"");
+  }else{
+    html+='<b>💡 המשך מומלץ</b><div class="why">'+
+      (rec.reason==="no-history"
+        ? "אין עדיין שיעור שהתקיים בכיתה הזאת. אחרי השיעור הראשון שתסגור — תופיע כאן הצעה."
+        : "השיעור האחרון נסגר בלי נושא, ולכן אין על מה לבסס המלצה. נושא נכנס מהמערכת או ממערך שיעור.")+
+      '</div>';
+  }
+  html+='</div>';
+
+  /* שיעורים אחרונים */
+  html+='<h4 class="cls-h">שיעורים אחרונים</h4>';
+  if(!ses.length){
+    html+='<div class="empty-state" style="padding:16px"><div class="big">📖</div>'+
+      'עוד לא התקיים שיעור בכיתה הזאת.</div>';
+  }else{
+    html+=ses.slice(0,8).map(x=>{
+      const n=SESSION.measurements(x.id).length;
+      return '<div class="arc-item'+(x.status===DATA.SESSION_ACTIVE?" on":"")+'">'+
+        '<div class="grow"><div class="ttl">'+esc(x.date)+
+          (x.status===DATA.SESSION_ACTIVE?' <span class="pill acc">פעיל</span>':"")+
+          (x.rating!=null?' <span class="pill">'+esc(RATING_LABEL[String(x.rating)]||"")+'</span>':"")+
+          '</div><div class="sb">'+(x.planTitle?esc(x.planTitle)+" · ":"")+
+          (n?n+" מדידות":"בלי מדידות")+'</div>'+
+          (x.note?'<div class="sb" style="color:var(--ink)">“'+esc(x.note)+'”</div>':"")+
+        '</div></div>';
+    }).join("");
+  }
+
+  /* פעולה אחת: להתחיל כאן שיעור, אם אין אחד פתוח */
+  html+='<div class="row" style="margin-top:12px">';
+  if(act&&act.cid===cid)html+='<span class="pill acc">שיעור פתוח בכיתה הזאת</span>';
+  else if(act)html+='<span class="pill">פתוח שיעור בכיתה '+esc(sesName(act))+'</span>';
+  else html+='<button class="btn sm acc" id="cls-start">▶ התחל שיעור בכיתה הזאת</button>';
+  html+='<button class="btn sm ghost" id="cls-ft">🏅 מבחני כושר</button></div>';
+
+  $("#cls-body").innerHTML=html;
+  const st=$("#cls-start");
+  if(st)st.addEventListener("click",()=>{
+    startFromSlot({cid,clsSnapshot:clsDisp(cid),topic:""});
+    modal("clsModal",false);
+  });
+  const ft=$("#cls-ft");
+  if(ft)ft.addEventListener("click",()=>{ modal("clsModal",false); go("ft"); });
+  modal("clsModal",true);
 }
 
 /* תוויות המשוב על שיעור. חיות כאן ולא בשכבת הנתונים: הדירוג הוא
@@ -4016,7 +4144,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  sched:SCHED,paintToday,paintHome,openSched,
+  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -4065,6 +4193,7 @@ window.HMBoot=function(){
   });
   wireSessionBar();
   wireSched();
+  wireEndLesson();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */

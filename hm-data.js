@@ -1396,14 +1396,16 @@ function ladderStage(list){
   var top=topicOf(list[0]), n=0, i;
   if(!top)return {topic:"",streak:0,stage:0};
   for(i=0;i<list.length;i++){ if(topicOf(list[i])!==top)break; n++; }
-  var stage=0;
+  var stage=0, max=LADDER.length-1;
   for(i=n-1;i>=0;i--){
     var r=ratingOf(list[i]);
     if(r===RATING_UP)stage++;
     else if(r===RATING_DOWN)stage--;
+    /* חסימה בכל צעד ולא רק בסוף: 👎 בשלב הראשון אין לאן להוריד,
+       ולכן 👍 אחריו חייב לקדם. חישוב מצטבר היה «בולע» אותו. */
+    if(stage<0)stage=0;
+    if(stage>max)stage=max;
   }
-  if(stage<0)stage=0;
-  if(stage>LADDER.length-1)stage=LADDER.length-1;
   return {topic:top,streak:n,stage:stage};
 }
 

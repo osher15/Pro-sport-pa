@@ -432,6 +432,18 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .scoreband .sb .n{font-family:'Share Tech Mono';font-size:clamp(22px,6.4vw,32px);line-height:1;font-variant-numeric:tabular-nums}
 .scoreband .sb .l{font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:600}
 .scoreband .div{width:1px;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--acc) 60%,transparent),transparent);margin:2px 4px}
+/* ===== מסך הכיתה ===== */
+.cls-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
+.cls-stats .qs{background:var(--inset);border:1px solid var(--line);border-radius:11px;padding:9px 4px;text-align:center}
+.cls-stats .qs .n{font-family:'Share Tech Mono';font-size:17px;font-variant-numeric:tabular-nums}
+.cls-stats .qs .l{font-size:10px;color:var(--muted);margin-top:3px;font-weight:600;line-height:1.3}
+.cls-next{border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:14px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 13%,var(--panel)),var(--panel))}
+.cls-next b{font-size:13.5px;font-weight:700;display:block;margin-bottom:7px}
+.cls-next ol{margin:0 0 8px;padding-inline-start:20px;font-size:13px;line-height:1.75}
+.cls-next .why{font-size:11.5px;color:var(--muted);line-height:1.6}
+.cls-h{font-size:13px;font-weight:700;margin:0 0 8px;color:var(--muted)}
+@media(max-width:430px){.cls-stats{grid-template-columns:repeat(2,1fr)}}
 /* ===== היום שלי =====
    הבלוק הראשון שהמורה רואה. הוא עונה על «מה אני עושה עכשיו»,
    ולכן הוא יושב מעל האריחים ולא מתחתם. */

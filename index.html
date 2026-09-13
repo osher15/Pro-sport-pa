@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=311923cc">
-<script src="hm-data.js?v=69c75e9f"></script>
-<script src="hm-i18n.js?v=97238b01"></script>
-<script src="hm-app.js?v=74825d8e"></script>
+<link rel="stylesheet" href="hm-styles.css?v=4960d60b">
+<script src="hm-data.js?v=9662bcb6"></script>
+<script src="hm-i18n.js?v=ec4a652e"></script>
+<script src="hm-app.js?v=47056a0d"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -1726,6 +1726,26 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div class="modal" id="endModal"><div class="box" style="max-width:460px">
+  <h3>⏹ <span id="end-title">סיום שיעור</span><button class="x" data-close="endModal">✕</button></h3>
+  <div class="hint" id="end-sum"></div>
+  <div class="field" style="margin-top:12px"><label>איך עבר השיעור?</label>
+    <div class="seg" id="end-rate">
+      <button data-r="1">👍 עבד מצוין</button><button data-r="0">😐 בינוני</button><button data-r="-1">👎 לא עבד</button>
+    </div>
+  </div>
+  <div class="field" style="margin-top:10px"><label>מה לזכור לשיעור הבא? (רשות)</label>
+    <textarea id="end-note" rows="2" placeholder="למשל: התרגיל האחרון היה קשה מדי"></textarea></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn stop grow" id="end-go">⏹ סיים שיעור</button>
+    <button class="btn ghost" data-close="endModal">ביטול</button>
+  </div>
+  <div class="hint" style="margin-top:9px">המשוב נשמר על השיעור עצמו — הוא מה שיבנה את ההמלצה לשיעור הבא בכיתה הזאת.</div>
+</div></div>
+<div class="modal" id="clsModal"><div class="box" style="max-width:600px">
+  <h3>🏷 <span id="cls-title">כיתה</span><button class="x" data-close="clsModal">✕</button></h3>
+  <div id="cls-body"></div>
+</div></div>
 <div class="modal" id="schedModal"><div class="box" style="max-width:560px">
   <h3>🗓 <span>מערכת שעות</span><button class="x" data-close="schedModal">✕</button></h3>
   <div class="hint">מה שנקבע כאן חוזר כל שבוע. הוא לא יוצר שיעור — הוא רק אומר לדף הבית מה מחכה לך היום.</div>
