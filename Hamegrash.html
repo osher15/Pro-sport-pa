@@ -6750,6 +6750,12 @@ const PF=(function(){
       const caps=tr.getCapabilities()||{}, cur=(tr.getSettings&&tr.getSettings().frameRate)||0;
       const max=caps.frameRate&&caps.frameRate.max;
       if(max&&max>cur+1)await tr.applyConstraints({frameRate:{ideal:max}});
+      /* מה שהחומרה מצהירה עליו, לעומת מה שמתקבל בפועל. ההפרש בין
+         השניים הוא האבחנה: תקרת חומרה היא דבר אחד, פריימים שנופלים
+         תחת עומס הם דבר אחר לגמרי — ורק אחד מהם ניתן לתיקון. */
+      const st=(tr.getSettings&&tr.getSettings())||{};
+      vclk.capMax=max||0;
+      vclk.res=(st.width&&st.height)?(st.width+"×"+st.height):"";
     }catch(e){}
   }
   function applyCamCss(){ $("#pf-video").style.transform=`scale(${cam.zoom}) scaleX(${cam.flip?-1:1})`; }
@@ -6833,8 +6839,12 @@ const PF=(function(){
     const el=$("#pf-status"); if(!el)return;
     /* המצב בשורה אחת, תנאי המדידה בשנייה — קצר יותר מכל אחד מהם
        ברצף, וקריא יותר. אין כאן קלט משתמש, רק מספרים שחושבו כאן. */
+    /* כשהמצלמה מצהירה על יותר ממה שהיא מספקת, זה נאמר במפורש —
+       «59fps מתוך 120» מפנה לעומס עיבוד, לא לתקרת חומרה. */
+    const fps=Math.round(vclk.fps), cap=Math.round(vclk.capMax||0);
+    const of=(cap&&fps&&cap>fps*1.15)?(" מתוך "+cap):"";
     el.innerHTML="🟢 זיהוי חמוש"+
-      (vclk.fps?"<b>"+Math.round(vclk.fps)+"fps · "+fmtPrec(p)+"</b>":"");
+      (vclk.fps?"<b>"+fps+"fps"+of+" · "+fmtPrec(p)+"</b>":"");
   }
 
   /* ---------- simulation ---------- */
@@ -7684,10 +7694,25 @@ const PF=(function(){
   return {init,
     /* מצב המדידה, לתצוגה ולארכיון: מה המכשיר באמת נותן כרגע */
     timing:()=>({fps:vclk.fps?Math.round(vclk.fps*10)/10:0,
-      prec:precisionOf(vclk.fps),rvfc:!!vclk.rvfc}),
+      prec:precisionOf(vclk.fps),rvfc:!!vclk.rvfc,
+      capMax:vclk.capMax||0,res:vclk.res||""}),
+    /* מה המצלמה מצהירה שהיא יודעת לעשות — התשובה לשאלה «מה התקרה»
+       נמדדת מהחומרה עצמה ולא מתוך הנחות. נקרא מהקונסולה או מכלי בדיקה. */
+    camCaps:()=>{
+      try{
+        const tr=cam.stream&&cam.stream.getVideoTracks()[0];
+        if(!tr||!tr.getCapabilities)return {supported:false};
+        const c=tr.getCapabilities()||{}, s2=(tr.getSettings&&tr.getSettings())||{};
+        return {supported:true,
+          fpsMax:c.frameRate&&c.frameRate.max, fpsMin:c.frameRate&&c.frameRate.min,
+          widthMax:c.width&&c.width.max, heightMax:c.height&&c.height.max,
+          now:{fps:s2.frameRate,w:s2.width,h:s2.height},
+          measured:vclk.fps?Math.round(vclk.fps*10)/10:0, rvfc:!!vclk.rvfc};
+      }catch(e){ return {supported:false,error:String(e)}; }
+    },
     _test:{thresholds:s2=>{sens=s2;return thresholds()},nextUnfinished:()=>nextUnfinished(),
       setLanes:l=>{lanes=l},windIllegal:w=>{META.wind=w;return windIllegal()},
-      crossAt,precisionOf,micLagSec,soundLag:d=>{LS.set("pf.gunDist",d);return soundLagSec()},
+      crossAt,precisionOf,micLagSec,paintArmed,soundLag:d=>{LS.set("pf.gunDist",d);return soundLagSec()},
       camMediaNow:()=>camMediaNow(),
       setClock:c=>{vclk=Object.assign(vclk,c)}}};
 })();

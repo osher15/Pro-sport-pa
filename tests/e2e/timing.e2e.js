@@ -168,6 +168,31 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     ok(r.txt.indexOf("60fps")>=0&&r.txt.indexOf("±0.008")>=0,"והמידע עצמו שם: "+r.txt);
   }),
 
+  check("אבחון המצלמה זמין ולא קורס כשאין מצלמה",seed,async page=>{
+    await openPf(page);
+    const c=await page.evaluate(()=>window.PF.camCaps());
+    ok(c&&typeof c==="object","camCaps() מחזיר תשובה");
+    ok("supported" in c,"ואומר במפורש אם יש מה לדווח — התקבל "+JSON.stringify(c));
+    const t=await page.evaluate(()=>window.PF.timing());
+    ok("capMax" in t&&"res" in t,"ותקרת החומרה חשופה לצד הקצב בפועל");
+  }),
+
+  check("«מתוך» מופיע רק כשיש באמת פער בין ההצהרה לביצוע",seed,async page=>{
+    await openPf(page);
+    const r=await page.evaluate(()=>{
+      const T=window.PF._test, out={};
+      /* קצב תואם להצהרה — אין מה להתריע */
+      T.setClock({fps:59,capMax:60}); T.paintArmed();
+      out.match=document.getElementById("pf-status").textContent;
+      /* המצלמה מצהירה על הרבה יותר ממה שמתקבל — זה נאמר */
+      T.setClock({fps:30,capMax:120}); T.paintArmed();
+      out.gap=document.getElementById("pf-status").textContent;
+      return out;
+    });
+    ok(r.match.indexOf("מתוך")<0,"בלי פער אין רעש: "+r.match);
+    ok(r.gap.indexOf("מתוך 120")>=0,"עם פער — נאמר מפורשות: "+r.gap);
+  }),
+
   check("מסך הפוטו־פיניש ממשיך לעלות ולתפקד",seed,async page=>{
     await openPf(page);
     ok(await page.evaluate(()=>document.getElementById("view-photo").classList.contains("on")),"המסך פתוח");
