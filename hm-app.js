@@ -264,9 +264,13 @@ setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc
    הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
 /* מזהה הבנייה — נגזר מחותמת הגרסה של הסקריפט הראשי. מאפשר לענות
    על «איזו גרסה אני מריץ» בלי לנחש, כשמשהו נראה לא מעודכן. */
+/* מזהה הגרסה נקרא מ-hm-app.js, שמשתנה כמעט בכל שינוי אמיתי. קודם
+   הוא נקרא מ-hm-tests.js — קובץ תוכן שיכול לא להשתנות סבבים שלמים,
+   ואז המספר בהגדרות נשאר זהה בזמן שהאפליקציה כן התעדכנה. בפיילוט זה
+   ההבדל בין «יש לך את התיקון» לבין ניחוש. */
 function buildId(){
   try{
-    const sc=[...document.scripts].map(s=>s.src).find(x=>/hm-tests\.js/.test(x))||"";
+    const sc=[...document.scripts].map(s=>s.src).find(x=>/hm-app\.js/.test(x))||"";
     const m=sc.match(/[?&]v=([0-9a-f]+)/);
     return m?m[1]:"local";
   }catch(e){ return "—"; }
@@ -3753,7 +3757,7 @@ window.REC=REC; window.BT=BT; window.PF=PF; window.FIT=FIT;
 window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCSV,esc,modal,go,fmtMS,fmtMSc,t,loc,
   setRole,isStudent,isGuest,role:()=>ROLE,applyTheme,exercises:()=>FIT._test.EX,
   openClassRename,classRenameList:clsRenameList,
-  storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,
+  storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות

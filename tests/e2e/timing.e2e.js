@@ -269,6 +269,26 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     eq((await pill()).trim(),"בלי קיזוז","ואפשר גם לבטל");
   }),
 
+  /* בפיילוט השאלה «איזו גרסה יש לך» נשאלת בכל דיווח תקלה. אם המספר
+     בהגדרות לא זז כשהאפליקציה משתנה, אי אפשר לענות עליה. */
+  check("מזהה הגרסה נגזר מקובץ שמשתנה עם האפליקציה",seed,async page=>{
+    const r=await page.evaluate(()=>{
+      const src=id=>{ const s=[...document.scripts].map(x=>x.src).find(x=>x.indexOf(id)>=0)||"";
+        const m=s.match(/[?&]v=([0-9a-f]+)/); return m?m[1]:null; };
+      return {app:src("hm-app.js"),tests:src("hm-tests.js"),shown:window.HM.buildId?window.HM.buildId():null};
+    });
+    /* בקובץ הבודד הסקריפטים מוטמעים ואין חותמות — והמזהה אומר «local»
+       במקום להמציא מספר. בגרסת הרשת הוא חייב לבוא מ-hm-app.js. */
+    if(!r.app){
+      eq(r.shown,"local","בבנייה המאוחדת אין חותמות, וזה נאמר במפורש");
+      eq(r.tests,null,"וגם לא לקובץ התוכן — כלומר אין מאיפה להטעות");
+    }else{
+      eq(r.shown,r.app,"המזהה נגזר מ-hm-app.js");
+      if(r.tests&&r.tests!==r.app)
+        ok(r.shown!==r.tests,"ובמפורש לא מקובץ התוכן, שיכול לא לזוז סבבים שלמים");
+    }
+  }),
+
   check("מסך הפוטו־פיניש ממשיך לעלות ולתפקד",seed,async page=>{
     await openPf(page);
     ok(await page.evaluate(()=>document.getElementById("view-photo").classList.contains("on")),"המסך פתוח");
