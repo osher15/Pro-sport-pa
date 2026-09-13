@@ -241,8 +241,16 @@ details.fold .bd{padding:0 12px 13px}
 .pf-camctl{position:absolute;top:9px;inset-inline-start:9px;display:flex;gap:6px;z-index:5}
 .pf-camctl button{width:36px;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.55);
   color:#fff;font-size:15px;cursor:pointer;backdrop-filter:blur(4px)}
-.pf-status{position:absolute;top:9px;inset-inline-end:9px;z-index:5;font-size:11px;font-weight:800;border-radius:99px;padding:5px 11px;
+/* הפס מעוגן בקצה אחד וגדל לעבר השני — היישר לתוך כפתורי המצלמה
+   שיושבים בקצה הנגדי (4×36 + מרווחים ≈ 171px). בלי התקרה הזאת כל
+   הארכה של הטקסט דורכת עליהם, וזה בדיוק מה שקרה כשנוספו ה-fps
+   והדיוק. התקרה היא ההגנה; פיצול לשתי שורות הוא מה שמייתר אותה. */
+.pf-status{position:absolute;top:9px;inset-inline-end:9px;z-index:5;font-size:11px;font-weight:800;border-radius:14px;padding:5px 11px;
+  max-width:calc(100% - 190px);line-height:1.45;
   background:rgba(0,0,0,.55);color:#9df;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px)}
+/* תנאי המדידה — שורה שנייה, שקטה יותר מהמצב עצמו */
+.pf-status b{display:block;font-weight:600;font-size:10px;opacity:.8;
+  font-family:'Share Tech Mono',ui-monospace,monospace;letter-spacing:.3px}
 /* פקדים מוקטנים בתוך #pf-stage עצמו — כך שהם נשארים גלויים גם במסך מלא אמיתי (Fullscreen API),
    שמציג רק את תת-העץ של האלמנט שעליו נקרא requestFullscreen. */
 .pf-fsctl{position:absolute;bottom:9px;inset-inline:9px;z-index:6;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -1366,10 +1374,8 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
     <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
       <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="know" style="--lc:#22d3ee"><div class="no">05</div>
-      <div class="tx"><b data-i18n="home.know">ידע</b><span data-i18n="home.knowSub">מקורות רשמיים · תוכניות אימון מוערכות · משחקים</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -2931,6 +2937,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
+    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
     <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
     <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
@@ -4676,7 +4683,7 @@ en:{
   "home.know":"Knowledge",
   "home.knowSub":"official sources · evidence-informed programs · games",
   "home.more":"More options",
-  "home.moreSub":"school champions · students and grades · class tools · nutrition",
+  "home.moreSub":"school champions · students and grades · knowledge · class tools · nutrition",
   "home.challenge":"Challenge of the week",
   "home.chPlus":"+ add count", "home.chEdit":"✎ new challenge",
   "home.tip":"Field tip",
@@ -4817,7 +4824,7 @@ ar:{
   "home.know":"المعرفة",
   "home.knowSub":"مصادر رسمية · برامج تدريب مبنية على الأدلة · ألعاب",
   "home.more":"خيارات أخرى",
-  "home.moreSub":"أبطال المدرسة · الطلاب والعلامات · أدوات الصف · التغذية",
+  "home.moreSub":"أبطال المدرسة · الطلاب والعلامات · المعرفة · أدوات الصف · التغذية",
   "home.challenge":"تحدّي الأسبوع",
   "home.chPlus":"+ أضف عدًّا", "home.chEdit":"✎ تحدٍّ جديد",
   "home.tip":"نصيحة ميدانية",
@@ -4961,7 +4968,7 @@ ru:{
   "home.know":"Знания",
   "home.knowSub":"официальные источники · проверенные программы тренировок · игры",
   "home.more":"Другие возможности",
-  "home.moreSub":"чемпионы школы · ученики и оценки · инструменты класса · питание",
+  "home.moreSub":"чемпионы школы · ученики и оценки · знания · инструменты класса · питание",
   "home.challenge":"Вызов недели",
   "home.chPlus":"+ добавить", "home.chEdit":"✎ новый вызов",
   "home.tip":"Полевой совет",
@@ -6823,8 +6830,11 @@ const PF=(function(){
      אמר 8.41» לבין «8.41, ±0.008». */
   function paintArmed(){
     const p=precisionOf(vclk.fps);
-    $("#pf-status").textContent="🟢 זיהוי חמוש"+
-      (vclk.fps?" · "+Math.round(vclk.fps)+"fps · "+fmtPrec(p):"");
+    const el=$("#pf-status"); if(!el)return;
+    /* המצב בשורה אחת, תנאי המדידה בשנייה — קצר יותר מכל אחד מהם
+       ברצף, וקריא יותר. אין כאן קלט משתמש, רק מספרים שחושבו כאן. */
+    el.innerHTML="🟢 זיהוי חמוש"+
+      (vclk.fps?"<b>"+Math.round(vclk.fps)+"fps · "+fmtPrec(p)+"</b>":"");
   }
 
   /* ---------- simulation ---------- */

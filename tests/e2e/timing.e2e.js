@@ -134,6 +134,40 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     ok(Math.abs(r.m34-0.1)<1e-3,"34.3 מטר הם כעשירית שנייה: "+r.m34);
   }),
 
+  /* אותה משפחת באג כמו בסרגל העליון, ובדיוק מאותה סיבה: פס מעוגן
+     בקצה אחד שגדל לעבר כפתורים בקצה השני. הוספת ה-fps והדיוק הביאה
+     אותו לידי התנגשות בפועל על מכשיר אמיתי. */
+  check("שורת הסטטוס אינה דורכת על כפתורי המצלמה, בשום אורך טקסט",seed,async page=>{
+    await openPf(page);
+    for(const w of [430,390,360]){
+      await page.setViewportSize({width:w,height:820});
+      await page.waitForTimeout(250);
+      const hit=await page.evaluate(()=>{
+        const s=document.getElementById("pf-status");
+        /* הטקסט הארוך ביותר שהמסך יכול להציג בפועל */
+        s.innerHTML="🟢 זיהוי חמוש<b>240fps · ±0.002 שנ׳</b>";
+        const a=s.getBoundingClientRect();
+        const b=document.querySelector(".pf-camctl").getBoundingClientRect();
+        const ov=Math.min(a.right,b.right)-Math.max(a.left,b.left);
+        return {ov:+ov.toFixed(1),sw:+a.width.toFixed(1)};
+      });
+      ok(hit.ov<=0.5,"חפיפה של "+hit.ov+"px ברוחב "+w);
+      ok(hit.sw>40,"והפס עצמו לא נמחץ לאפס: "+hit.sw);
+    }
+  }),
+
+  check("תנאי המדידה מוצגים בשורה נפרדת מהמצב",seed,async page=>{
+    await openPf(page);
+    const r=await page.evaluate(()=>{
+      const s=document.getElementById("pf-status");
+      s.innerHTML="🟢 זיהוי חמוש<b>60fps · ±0.008 שנ׳</b>";
+      const b=s.querySelector("b");
+      return {disp:getComputedStyle(b).display,txt:s.textContent};
+    });
+    eq(r.disp,"block","שתי שורות, לא רצף אחד ארוך");
+    ok(r.txt.indexOf("60fps")>=0&&r.txt.indexOf("±0.008")>=0,"והמידע עצמו שם: "+r.txt);
+  }),
+
   check("מסך הפוטו־פיניש ממשיך לעלות ולתפקד",seed,async page=>{
     await openPf(page);
     ok(await page.evaluate(()=>document.getElementById("view-photo").classList.contains("on")),"המסך פתוח");

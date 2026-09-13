@@ -1716,8 +1716,11 @@ const PF=(function(){
      אמר 8.41» לבין «8.41, ±0.008». */
   function paintArmed(){
     const p=precisionOf(vclk.fps);
-    $("#pf-status").textContent="🟢 זיהוי חמוש"+
-      (vclk.fps?" · "+Math.round(vclk.fps)+"fps · "+fmtPrec(p):"");
+    const el=$("#pf-status"); if(!el)return;
+    /* המצב בשורה אחת, תנאי המדידה בשנייה — קצר יותר מכל אחד מהם
+       ברצף, וקריא יותר. אין כאן קלט משתמש, רק מספרים שחושבו כאן. */
+    el.innerHTML="🟢 זיהוי חמוש"+
+      (vclk.fps?"<b>"+Math.round(vclk.fps)+"fps · "+fmtPrec(p)+"</b>":"");
   }
 
   /* ---------- simulation ---------- */

@@ -20,7 +20,8 @@ const suites=[
   require("./info14.e2e.js"),
   require("./topbar.e2e.js"),
   require("./timing.e2e.js"),
-  require("./lead.e2e.js")
+  require("./lead.e2e.js"),
+  require("./nav.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });
