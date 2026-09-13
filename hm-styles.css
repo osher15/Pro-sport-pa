@@ -444,6 +444,29 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .cls-next .why{font-size:11.5px;color:var(--muted);line-height:1.6}
 .cls-h{font-size:13px;font-weight:700;margin:0 0 8px;color:var(--muted)}
 @media(max-width:430px){.cls-stats{grid-template-columns:repeat(2,1fr)}}
+/* ===== קבוצות הוראה ===== */
+.grp-form{margin-top:14px;border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:var(--panel2)}
+/* .btn ו-.row הם flex וגוברים על התכונה hidden — «בטל עריכה» נשאר
+   גלוי בטופס של קבוצה חדשה. אותו תיקון כמו בעורך המערכת. */
+.grp-form [hidden]{display:none!important}
+.grp-form>.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.grp-form>.top b{font-size:13.5px}
+.grp-pick{display:flex;flex-wrap:wrap;gap:6px;border:1px solid var(--line);border-radius:11px;
+  padding:8px;background:var(--inset);max-height:132px;overflow-y:auto}
+.grp-pick.tall{max-height:184px}
+.grp-pick .empty{color:var(--faint);font-size:12px;padding:4px 2px}
+.grp-pick label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  border:1px solid var(--line);border-radius:99px;padding:5px 10px;font-size:12px;
+  background:var(--panel);transition:.12s;white-space:nowrap}
+.grp-pick label:has(input:checked){border-color:var(--acc);background:var(--accDim);color:var(--acc);font-weight:700}
+.grp-pick input{accent-color:var(--acc);margin:0}
+.grp-pick .grpHead{flex:1 0 100%;font-size:11px;color:var(--muted);font-weight:700;margin:4px 0 -1px}
+.grp-item{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.grp-item .grow{min-width:0}
+.grp-item .ttl{font-weight:700;font-size:14px}
+.grp-item .sb{color:var(--muted);font-size:11.5px;margin-top:2px}
+.cls-comp{font-size:12px;color:var(--muted);margin:-6px 0 12px;line-height:1.6}
 /* ===== טבלת מערכת השעות =====
    הטבלה שהמורה כבר מכיר מהמשו״ב: שעות מול ימים. במסך צר היא
    נגללת לצדדים ולא נדחסת לבלתי-קריאה — טבלה היא המקום היחיד

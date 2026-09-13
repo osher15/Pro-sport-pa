@@ -548,8 +548,8 @@ function clsRenameList(){
   return Object.keys(reg).map(cid=>{
     const c=reg[cid]||{};
     return {cid,name:c.name||cid,origin:clsOrigin(cid),
-      students:(Array.isArray(stu)?stu:[]).filter(s=>DATA.cidOfStudent(s,REGSTORE)===cid).length,
-      results:(Array.isArray(res)?res:[]).filter(r=>DATA.rowInClass(r,cid)).length};
+      students:DATA.studentsIn(REGSTORE,cid,Array.isArray(stu)?stu:[]).length,
+      results:(Array.isArray(res)?res:[]).filter(r=>DATA.rowInScope(r,REGSTORE,cid)).length};
   }).sort((a,b)=>a.name.localeCompare(b.name,"he")||a.cid.localeCompare(b.cid));
 }
 function paintClassRename(keepCid){
@@ -773,6 +773,127 @@ function paintLastLesson(){
 }
 
 /* ============================================================
+   קבוצות הוראה — הממשק
+   ------------------------------------------------------------
+   המודל ב-hm-data.js וטהור. כאן הרישום, הבחירה והעריכה.
+
+   שתי דרכים להרכיב קבוצה, כי שתיהן קיימות בשדה: **כיתות שלמות**
+   (שתי כיתות שמחוברות לשיעור אחד) ו**תלמידים בודדים** (קבוצת
+   למידה שמגיעה מכמה כיתות). אפשר גם לשלב.
+   ============================================================ */
+let grpEdit=null;   /* מזהה הקבוצה שנערכת, או null ליצירה */
+
+function grpStudents(){ const v=LS.get("stu.list",[]); return Array.isArray(v)?v:[]; }
+function grpName(cid){
+  try{ const c=DATA.classOf(REGSTORE,cid); if(c&&c.name)return c.name; }catch(e){}
+  return cid||"";
+}
+function renderGrpList(){
+  const box=$("#grp-list"); if(!box)return;
+  const list=DATA.listGroups(REGSTORE), stu=grpStudents();
+  if(!list.length){
+    box.innerHTML='<div class="empty-state" style="padding:14px"><div class="big">👥</div>'+
+      'עוד לא הגדרת קבוצות.<br>בנה אחת למטה — היא תופיע בכל מקום שבו בוחרים כיתה.</div>';
+    return;
+  }
+  box.innerHTML=list.map(g=>{
+    const n=DATA.studentsIn(REGSTORE,g.id,stu).length;
+    return '<div class="grp-item"><div class="grow">'+
+      '<div class="ttl">'+esc(g.name)+'</div>'+
+      '<div class="sb">'+esc(DATA.groupSummary(REGSTORE,g.id))+' · '+n+' תלמידים</div></div>'+
+      '<button class="btn sm ghost" data-gedit="'+esc(g.id)+'">✎</button>'+
+      '<button class="btn sm ghost" data-gdel="'+esc(g.id)+'">🗑</button></div>';
+  }).join("");
+  $$("#grp-list [data-gedit]").forEach(b=>b.addEventListener("click",()=>grpLoad(b.dataset.gedit)));
+  $$("#grp-list [data-gdel]").forEach(b=>b.addEventListener("click",()=>{
+    const g=DATA.groupOf(REGSTORE,b.dataset.gdel); if(!g)return;
+    /* קבוצה שמופיעה במערכת השעות — המשבצות שלה יישארו בלי הקשר */
+    const used=SCHED.list().filter(x=>x.cid===g.id).length;
+    if(!confirm("למחוק את הקבוצה «"+g.name+"»?\n\n"+
+      (used?"• "+used+" משבצות במערכת השעות מצביעות עליה ויישארו בלי קבוצה.\n":"")+
+      "• התלמידים, המדידות והשיעורים שהתקיימו לא ייפגעו."))return;
+    DATA.removeGroup(REGSTORE,g.id);
+    grpReset(); renderGrpList(); paintHome();
+    toast("הקבוצה נמחקה");
+  }));
+}
+function renderGrpPickers(sel){
+  sel=sel||{cls:{},sids:{}};
+  const cbox=$("#grp-classes"), sbox=$("#grp-students");
+  const reg=DATA.realClasses(REGSTORE);
+  const cids=Object.keys(reg).sort((a,b)=>
+    String(reg[a].name||"").localeCompare(String(reg[b].name||""),"he"));
+  if(cbox)cbox.innerHTML=cids.length
+    ? cids.map(c=>'<label><input type="checkbox" data-gc="'+esc(c)+'"'+
+        (sel.cls[c]?" checked":"")+'><span>'+esc(reg[c].name||c)+'</span></label>').join("")
+    : '<div class="empty">אין עדיין כיתות רשומות. הן נרשמות כשמזינים מערכת שעות או רשימת כיתה.</div>';
+  /* התלמידים מקובצים לפי כיתה — אחרת רשימה של מאה שמות היא בלתי
+     שמישה, ובדיוק כאן צריך לבחור שניים מכל כיתה. */
+  const stu=grpStudents();
+  const by={};
+  stu.forEach(st=>{
+    const c=DATA.cidOfStudent(st,REGSTORE)||"";
+    (by[c]=by[c]||[]).push(st);
+  });
+  const keys=Object.keys(by).sort((a,b)=>grpName(a).localeCompare(grpName(b),"he"));
+  if(sbox)sbox.innerHTML=stu.length
+    ? keys.map(c=>'<div class="grpHead">'+esc(grpName(c)||"בלי כיתה")+'</div>'+
+        by[c].map(st=>'<label><input type="checkbox" data-gs="'+esc(st.id||"")+'"'+
+          (st.id&&sel.sids[st.id]?" checked":"")+(st.id?"":" disabled")+
+          '><span>'+esc(st.name||"")+'</span></label>').join("")).join("")
+    : '<div class="empty">אין עדיין תלמידים. הוסף אותם ב«התלמידים שלי».</div>';
+}
+function grpReset(){
+  grpEdit=null;
+  $("#grp-formTitle").textContent="קבוצה חדשה";
+  $("#grp-name").value="";
+  $("#grp-err").textContent="";
+  const c=$("#grp-cancel"); if(c)c.hidden=true;
+  renderGrpPickers();
+}
+function grpLoad(gid){
+  const g=DATA.groupOf(REGSTORE,gid); if(!g)return;
+  grpEdit=gid;
+  $("#grp-formTitle").textContent="עריכת «"+g.name+"»";
+  $("#grp-name").value=g.name;
+  $("#grp-err").textContent="";
+  const c=$("#grp-cancel"); if(c)c.hidden=false;
+  const sel={cls:{},sids:{}};
+  (g.members||[]).forEach(m=>{ sel.cls[m]=1; });
+  (g.sids||[]).forEach(x=>{ sel.sids[x]=1; });
+  renderGrpPickers(sel);
+  const f=$("#grp-form"); if(f&&f.scrollIntoView)f.scrollIntoView({block:"nearest"});
+}
+const GRP_ERR={
+  "no-name":"תן לקבוצה שם",
+  "empty":"בחר לפחות כיתה אחת או תלמיד אחד",
+  "name-is-class":"השם הזה נקרא ככיתה — בחר שם אחר, אחרת הקבוצה תסתיר אותה",
+  "name-taken":"השם הזה כבר תפוס",
+  "no-such-group":"הקבוצה לא נמצאה"
+};
+function grpSave(){
+  const name=$("#grp-name").value.trim();
+  const members=$$("#grp-classes [data-gc]").filter(i=>i.checked).map(i=>i.dataset.gc);
+  const sids=$$("#grp-students [data-gs]").filter(i=>i.checked).map(i=>i.dataset.gs);
+  const r=grpEdit
+    ? DATA.updateGroup(REGSTORE,grpEdit,{name,members,sids})
+    : DATA.makeGroup(REGSTORE,{name,members,sids});
+  if(!r.ok){ $("#grp-err").textContent=GRP_ERR[r.outcome]||"לא נשמר"; return; }
+  $("#grp-err").textContent="";
+  toast(r.outcome==="exists"?"הקבוצה הזאת כבר קיימת":"✓ הקבוצה נשמרה");
+  grpReset(); renderGrpList(); paintGroupSelect(); paintHome();
+}
+function openGroups(){
+  grpReset(); renderGrpList();
+  modal("grpModal",true);
+}
+function wireGroups(){
+  const s=$("#grp-save"); if(s)s.addEventListener("click",grpSave);
+  const c=$("#grp-cancel"); if(c)c.addEventListener("click",()=>{ grpReset(); });
+  const m=$("#sw-grpManage"); if(m)m.addEventListener("click",openGroups);
+}
+
+/* ============================================================
    עריכת מערכת השעות — טבלת השבוע
    ------------------------------------------------------------
    הגרסה הראשונה ביקשה שיעור אחד בכל פעם. מורה עם עשרים וארבעה
@@ -786,6 +907,7 @@ function paintLastLesson(){
 const DAY_SHORT=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳"];
 let swCell=null;                 /* {day,h} — התא הפתוח כרגע */
 let swKind=DATA.KIND_PE;
+let swScope="cls";               /* «כיתה» או «קבוצה» — מי לומד */
 
 function slotText(sl){
   if(DATA.kindOf(sl)===DATA.KIND_PE)return slotName(sl);
@@ -844,11 +966,26 @@ function renderCellList(){
     SCHED.remove(b.dataset.del); renderGrid(); renderCellList(); paintHome();
   }));
 }
+/* בורר הקבוצות — נטען מהרישום בכל פתיחה, כדי שקבוצה שנוצרה עכשיו
+   תופיע בלי לסגור ולפתוח את הטבלה */
+function paintGroupSelect(keep){
+  const sel=$("#sw-group"); if(!sel)return;
+  const list=DATA.listGroups(REGSTORE);
+  const cur=keep||sel.value;
+  sel.innerHTML=list.length
+    ? list.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.name)+'</option>').join("")
+    : '<option value="">אין עדיין קבוצות</option>';
+  if(cur&&list.some(g=>g.id===cur))sel.value=cur;
+  sel.disabled=!list.length;
+}
 function paintKind(){
   $$("#sw-kind button").forEach(b=>b.classList.toggle("on",b.dataset.k===swKind));
-  const pe=swKind===DATA.KIND_PE;
-  const cls=$("#sw-clsRow"), lab=$("#sw-labelRow");
-  if(cls)cls.hidden=!pe;
+  $$("#sw-scope button").forEach(b=>b.classList.toggle("on",b.dataset.s===swScope));
+  const pe=swKind===DATA.KIND_PE, grp=swScope==="grp";
+  const sc=$("#sw-scopeRow"), cls=$("#sw-clsRow"), gr=$("#sw-grpRow"), lab=$("#sw-labelRow");
+  if(sc)sc.hidden=!pe;
+  if(cls)cls.hidden=!pe||grp;
+  if(gr)gr.hidden=!pe||!grp;
   if(lab)lab.hidden=pe;
 }
 function openCell(day,h){
@@ -859,14 +996,21 @@ function openCell(day,h){
   $("#sw-time").value=b.s;
   $("#sw-editTitle").textContent="יום "+(DATA.DAYS_HE[day]||"")+" · שיעור "+h+" · "+b.s;
   $("#sw-edit").hidden=false;
-  renderCellList(); renderGrid(); paintKind();
+  renderCellList(); renderGrid(); paintGroupSelect(); paintKind();
 }
 function closeCell(){ swCell=null; $("#sw-edit").hidden=true; renderGrid(); }
 
 function addFromEditor(){
   const kind=swKind, pe=kind===DATA.KIND_PE;
   let o={day:+$("#sw-day").value,time:$("#sw-time").value,kind};
-  if(pe){
+  if(pe&&swScope==="grp"){
+    const gid=$("#sw-group").value;
+    const g=gid?DATA.groupOf(REGSTORE,gid):null;
+    if(!g){ toast("אין קבוצה לבחור — פתח «נהל קבוצות»"); return; }
+    o.cid=g.id;
+    o.clsSnapshot=g.name;
+    o.topic=$("#sw-topic").value.trim();
+  }else if(pe){
     const g=$("#sw-grade").value, n=+$("#sw-num").value;
     const label=DATA.clsName(g,n);
     o.cid=DATA.resolveClassId(REGSTORE,label,true);
@@ -924,6 +1068,7 @@ function openSched(){
     n.innerHTML=DATA.NUMS.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
   if(k&&!k.children.length)
     k.innerHTML=DATA.SLOT_KINDS.map(x=>'<button data-k="'+x[0]+'">'+x[1]+'</button>').join("");
+  paintGroupSelect();
   closeCell(); paintKind(); renderGrid();
   modal("schedModal",true);
 }
@@ -944,6 +1089,13 @@ function wireSched(){
   if(k)k.addEventListener("click",ev=>{
     const b=ev.target.closest("button[data-k]"); if(!b)return;
     swKind=b.dataset.k; paintKind();
+  });
+  const sc=$("#sw-scope");
+  if(sc)sc.addEventListener("click",ev=>{
+    const b=ev.target.closest("button[data-s]"); if(!b)return;
+    swScope=b.dataset.s;
+    if(swScope==="grp")paintGroupSelect();
+    paintKind();
   });
   const cl=$("#sw-editClose"); if(cl)cl.addEventListener("click",closeCell);
   const sm=$("#sw-sample"); if(sm)sm.addEventListener("click",loadSampleWeek);
@@ -1018,16 +1170,23 @@ function openClassScreen(cid){
   const ses=SESSION.list({cid});
   const done=ses.filter(x=>x.status===DATA.SESSION_DONE);
   const rows=LS.get("ft.results",[]);
-  const ms=rows.filter(r=>{ try{ return DATA.rowInClass(r,cid); }catch(e){ return false; } });
-  const stu=LS.get("stu.list",[]).filter(s=>{
-    try{ return DATA.cidOfStudent(s,REGSTORE)===cid; }catch(e){ return false; } });
+  /* קבוצה מתרחבת לחבריה — כאן, בנקודה אחת. מדידה של תלמיד מז׳1
+     נספרת בקבוצה שהוא לומד בה, ונשארת שייכת לז׳1 עצמה. */
+  const ms=rows.filter(r=>{ try{ return DATA.rowInScope(r,REGSTORE,cid); }catch(e){ return false; } });
+  const stu=(()=>{ try{ return DATA.studentsIn(REGSTORE,cid,LS.get("stu.list",[])); }
+    catch(e){ return []; } })();
+  const grp=(()=>{ try{ return DATA.groupOf(REGSTORE,cid); }catch(e){ return null; } })();
   const rec=DATA.nextLesson(ses,{cid,rows});
   const act=SESSION.active();
 
-  $("#cls-title").textContent="כיתה "+clsDisp(cid);
+  $("#cls-title").textContent=(grp?"קבוצה ":"כיתה ")+clsDisp(cid);
   const stat=(n,l)=>'<div class="qs"><div class="n">'+esc(String(n))+'</div><div class="l">'+esc(l)+'</div></div>';
   const last=done[0];
-  let html='<div class="cls-stats">'+
+  let html=grp
+    ? '<div class="cls-comp">מורכבת מ-'+esc(DATA.groupSummary(REGSTORE,cid))+
+      '. התלמידים נשארים בכיתות שלהם, והמדידות נספרות גם שם.</div>'
+    : "";
+  html+='<div class="cls-stats">'+
     stat(done.length,"שיעורים שהתקיימו")+stat(stu.length,"תלמידים")+
     stat(ms.length,"מדידות")+stat(last?last.date:"—","שיעור אחרון")+'</div>';
 
@@ -1042,7 +1201,7 @@ function openClassScreen(cid){
   }else{
     html+='<b>💡 המשך מומלץ</b><div class="why">'+
       (rec.reason==="no-history"
-        ? "אין עדיין שיעור שהתקיים בכיתה הזאת. אחרי השיעור הראשון שתסגור — תופיע כאן הצעה."
+        ? "עוד לא התקיים כאן שיעור. אחרי השיעור הראשון שתסגור — תופיע כאן הצעה."
         : "השיעור האחרון נסגר בלי נושא, ולכן אין על מה לבסס המלצה. נושא נכנס מהמערכת או ממערך שיעור.")+
       '</div>';
   }
@@ -1072,7 +1231,11 @@ function openClassScreen(cid){
   if(act&&act.cid===cid)html+='<span class="pill acc">שיעור פתוח בכיתה הזאת</span>';
   else if(act)html+='<span class="pill">פתוח שיעור בכיתה '+esc(sesName(act))+'</span>';
   else html+='<button class="btn sm acc" id="cls-start">▶ התחל שיעור בכיתה הזאת</button>';
-  html+='<button class="btn sm ghost" id="cls-ft">🏅 מבחני כושר</button></div>';
+  /* מבחני הכושר עדיין עובדים על כיתה בודדת. עדיף לא להציע כפתור
+     שיפתח את הכיתה הלא נכונה מאשר להציע אותו ולהטעות. */
+  html+=(grp?"":'<button class="btn sm ghost" id="cls-ft">🏅 מבחני כושר</button>')+'</div>'+
+    (grp?'<div class="hint" style="margin-top:9px">מדידה בקבוצה נעשית בינתיים דרך הכיתה עצמה — '+
+      esc(DATA.groupSummary(REGSTORE,cid))+'.</div>':"");
 
   $("#cls-body").innerHTML=html;
   const st=$("#cls-start");
@@ -4259,7 +4422,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
   sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,
-  schedSample:loadSampleWeek,schedCell:openCell,
+  schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -4308,6 +4471,7 @@ window.HMBoot=function(){
   });
   wireSessionBar();
   wireSched();
+  wireGroups();
   wireEndLesson();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });

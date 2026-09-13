@@ -352,10 +352,17 @@ window.FT=(function(){
   const normVersion=()=>String(norms().version||"");
   /* מזהה השיעור הפעיל — רק אם הוא של הכיתה הנמדדת. מדידה בכיתה
      אחרת באמצע שיעור פתוח אינה שייכת לשיעור ההוא. */
+  /* מדידה שנלקחה בזמן שיעור נושאת את מזהה השיעור. כששיעור מתקיים
+     בקבוצה, הכיתה שנמדדת היא **חברה** בקבוצה ולא הקבוצה עצמה —
+     ובלי ההרחבה הזאת המדידה הייתה נשמרת נכון אבל מתנתקת מהשיעור
+     שבו נלקחה. */
   function sessionFor(c){
     try{
       const a=H().session&&H().session.active();
-      return (a&&a.cid===cidOf(c))?a.id:null;
+      if(!a)return null;
+      const cid=cidOf(c);
+      if(a.cid===cid)return a.id;
+      return DATA.expandCid(clsStore,a.cid).indexOf(cid)>=0?a.id:null;
     }catch(e){ return null; }
   }
   const setScoreMode=m=>LS().set("ft.scoreMode",m);
@@ -2269,7 +2276,11 @@ window.FT=(function(){
        ============================================================ */
     const act=(H().session&&H().session.active())||null;
     /* הזהות קודם: שכבה/מספר מתוך cid השיעור; הצילום — נפילה אחורה */
-    const actCls=act?(DATA.cidParts(act.cid)||DATA.parseCls(act.clsSnapshot)):null;
+    /* שיעור בקבוצה: אין לו שכבה ומספר משלו, ולכן הבורר נפתח על
+       הכיתה הראשונה שבקבוצה — זו שסביר שהמורה ימדוד קודם. */
+    const actExp=act?DATA.expandCid(clsStore,act.cid):[];
+    const actBase=act?((DATA.isGroupId(act.cid)&&actExp[0])||act.cid):null;
+    const actCls=act?(DATA.cidParts(actBase)||DATA.parseCls(act.clsSnapshot)):null;
     let g=(actCls&&actCls.grade)||last.grade||"ט";
     let num=(actCls&&actCls.num)||+last.num||1;
     let sel=null;

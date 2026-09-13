@@ -113,6 +113,178 @@ function derivedId(prefix,seed){
 }
 
 /* ============================================================
+   2ב. קבוצת הוראה
+   ------------------------------------------------------------
+   המודל עד כאן הניח שמה שמלמדים הוא כיתה. זה לא נכון בשדה: מורים
+   מחברים שתי כיתות לשיעור אחד, ולפעמים בונים קבוצת למידה מתלמידים
+   שמגיעים מכמה כיתות. המערכת אילצה אותם לפצל שיעור אחד לשניים.
+
+   קבוצה היא **הקשר הוראה**, לא כיתה חדשה:
+
+     · התלמיד נשאר בכיתה שלו. cidOfStudent לעולם לא מחזיר מזהה
+       קבוצה — אחרת היסטוריית התלמיד הייתה נקרעת לשניים.
+     · המדידה נושאת את הכיתה האמיתית של התלמיד. שיעור שנלמד
+       בקבוצה עדיין נספר בכיתה שממנה התלמיד בא.
+     · השיעור (LessonSession) והמשבצת במערכת השעות **כן** נושאים
+       את מזהה הקבוצה — כי הם מתארים את מה שקרה בפועל.
+
+   הקבוצה נרשמת באותו רישום של הכיתות (ft.classes) עם kind:"group".
+   זה מה שמאפשר לכל מסך שכבר יודע להציג שם של כיתה דרך classOf
+   להציג גם קבוצה, בלי לשנות אותו.
+
+   אין קבוצה בתוך קבוצה: חברי קבוצה הם כיתות אמיתיות בלבד.
+   ============================================================ */
+var GROUP_PREFIX="g:";
+var GROUP_KIND="group";
+function isGroupId(v){ return isCid(v)&&String(v).indexOf(GROUP_PREFIX)===0; }
+/* מזהה נגזר מהתוכן, כמו כל מזהה אחר כאן: אותה הגדרה מייצרת אותו
+   מזהה בכל מכשיר, ולכן יצירה חוזרת אינה יוצרת כפילות. */
+function groupId(name,members,sids){
+  var seed=clsKey(name)+"|"+asList(members).slice().sort().join(",")+
+           "|"+asList(sids).slice().sort().join(",");
+  return GROUP_PREFIX+derivedId("",seed).replace(/^:/,"");
+}
+function isGroupRec(c){ return !!(c&&c.kind===GROUP_KIND); }
+function groupOf(store,gid){
+  var c=classes(store)[gid];
+  return isGroupRec(c)?c:null;
+}
+function listGroups(store){
+  var reg=classes(store);
+  return Object.keys(reg).filter(function(k){ return isGroupRec(reg[k]); })
+    .map(function(k){ return reg[k]; })
+    .sort(function(a,b){ return String(a.name||"").localeCompare(String(b.name||""),"he"); });
+}
+/* כיתות אמיתיות בלבד — לכל מקום שמניח שכבה ומספר */
+function realClasses(store){
+  var reg=classes(store), out={};
+  Object.keys(reg).forEach(function(k){ if(!isGroupRec(reg[k]))out[k]=reg[k]; });
+  return out;
+}
+function cleanMembers(members){
+  var out=[], seen={};
+  asList(members).forEach(function(c){
+    if(!isCid(c)||isGroupId(c)||seen[c])return;   /* בלי קבוצה בתוך קבוצה */
+    seen[c]=1; out.push(c);
+  });
+  return out;
+}
+function cleanSids(sids){
+  var out=[], seen={};
+  asList(sids).forEach(function(x){
+    var v=String(x==null?"":x).trim();
+    if(!v||seen[v])return;
+    seen[v]=1; out.push(v);
+  });
+  return out;
+}
+function makeGroup(store,o){
+  o=o||{};
+  var name=String(o.name==null?"":o.name).trim();
+  if(!name)return {ok:false,outcome:"no-name",group:null};
+  /* שם שנקרא ככיתה היה מסתיר את הכיתה עצמה בחיפוש לפי תווית */
+  if(parseCls(name))return {ok:false,outcome:"name-is-class",group:null};
+  var members=cleanMembers(o.members), sids=cleanSids(o.sids);
+  if(!members.length&&!sids.length)
+    return {ok:false,outcome:"empty",group:null};
+  var reg=classes(store);
+  /* שם תפוס בידי כיתה או קבוצה אחרת — אחרת שתיהן נראות זהות למורה */
+  var clash=null, keys=Object.keys(reg);
+  for(var i=0;i<keys.length;i++)
+    if(clsKey(reg[keys[i]].name)===clsKey(name)){ clash=reg[keys[i]]; break; }
+  var id=o.id||groupId(name,members,sids);
+  if(clash&&clash.id!==id)
+    return {ok:false,outcome:"name-taken",group:clash};
+  if(reg[id])return {ok:true,outcome:"exists",group:reg[id]};
+  reg[id]={id:id,name:name,key:clsKey(name),grade:null,num:null,
+           kind:GROUP_KIND,members:members,sids:sids};
+  store.set("ft.classes",reg);
+  return {ok:true,outcome:"created",group:reg[id]};
+}
+function updateGroup(store,gid,o){
+  o=o||{};
+  var reg=classes(store), g=reg[gid];
+  if(!isGroupRec(g))return {ok:false,outcome:"no-such-group",group:null};
+  if(o.name!=null){
+    var nm=String(o.name).trim();
+    if(!nm)return {ok:false,outcome:"no-name",group:g};
+    if(parseCls(nm))return {ok:false,outcome:"name-is-class",group:g};
+    g.name=nm; g.key=clsKey(nm);
+  }
+  if(o.members!=null)g.members=cleanMembers(o.members);
+  if(o.sids!=null)g.sids=cleanSids(o.sids);
+  if(!asList(g.members).length&&!asList(g.sids).length)
+    return {ok:false,outcome:"empty",group:g};
+  store.set("ft.classes",reg);
+  return {ok:true,outcome:"updated",group:g};
+}
+/* מחיקה מסירה את הקבוצה מהרישום בלבד. שיעורים שהתקיימו בה נשארים
+   בהיסטוריה ומדידות לא זזות — הן מעולם לא נשאו את מזהה הקבוצה. */
+function removeGroup(store,gid){
+  var reg=classes(store);
+  if(!isGroupRec(reg[gid]))return {ok:false,outcome:"no-such-group"};
+  delete reg[gid];
+  store.set("ft.classes",reg);
+  return {ok:true,outcome:"removed"};
+}
+/* מזהה → הכיתות שמאחוריו. כיתה מחזירה את עצמה; קבוצה מחזירה את
+   חבריה. הנקודה האחת שבה «על מי מדובר» מתורגם מהקשר לכיתות. */
+function expandCid(store,cid){
+  if(!isCid(cid))return [];
+  var g=store?groupOf(store,cid):null;
+  return g?asList(g.members).slice():[cid];
+}
+/* מדידה שייכת להקשר הזה? כיתה — כרגיל; קבוצה — כל אחד מחבריה,
+   או תלמיד שצורף אליה במפורש. */
+function rowInScope(r,store,cid){
+  if(!r||!isCid(cid))return false;
+  var g=store?groupOf(store,cid):null;
+  if(!g)return rowInClass(r,cid);
+  var sids=asList(g.sids);
+  if(r.sid&&sids.indexOf(r.sid)>=0)return true;
+  var m=asList(g.members);
+  for(var i=0;i<m.length;i++)if(rowInClass(r,m[i]))return true;
+  return false;
+}
+/* התלמידים שבהקשר הזה. סדר יציב: לפי הכיתות כסדרן, ואז המצורפים. */
+function studentsIn(store,cid,list){
+  var all=asList(list).filter(function(s){ return s&&typeof s==="object"; });
+  if(!isCid(cid))return [];
+  var g=store?groupOf(store,cid):null;
+  if(!g)return all.filter(function(s){ return cidOfStudent(s,store)===cid; });
+  var seen={}, out=[];
+  asList(g.members).forEach(function(m){
+    all.forEach(function(s){
+      var k=s.id||s.name;
+      if(seen[k]||cidOfStudent(s,store)!==m)return;
+      seen[k]=1; out.push(s);
+    });
+  });
+  asList(g.sids).forEach(function(sid){
+    all.forEach(function(s){
+      var k=s.id||s.name;
+      if(seen[k]||s.id!==sid)return;
+      seen[k]=1; out.push(s);
+    });
+  });
+  return out;
+}
+/* תיאור קצר של הרכב הקבוצה, לתצוגה: «ז׳1 · ז׳3 · +2 תלמידים» */
+function groupSummary(store,gid){
+  var g=store?groupOf(store,gid):null;
+  if(!g)return "";
+  var reg=classes(store);
+  var parts=asList(g.members).map(function(m){
+    return (reg[m]&&reg[m].name)||m;
+  });
+  var n=asList(g.sids).length;
+  /* בלי כיתות שלמות זו קבוצת למידה, ו«+2 תלמידים» נקרא כשארית של
+     משהו. איתן — הסימן «+» הוא בדיוק מה שהוא אומר. */
+  if(n)parts.push(parts.length?("+"+n+" תלמידים"):(n+" תלמידים מכמה כיתות"));
+  return parts.join(" · ");
+}
+
+/* ============================================================
    3. זהות תלמיד
    ------------------------------------------------------------
    עד היום כל חיפוש היסטוריה עבד על r.name===name. זה עבד מצוין עד
@@ -1831,6 +2003,10 @@ return {
   classes:classes, classOf:classOf, findClass:findClass,
   registerClass:registerClass, renameClass:renameClass,
   isCid:isCid, cidOfStudent:cidOfStudent, resolveClassId:resolveClassId,
+  GROUP_PREFIX:GROUP_PREFIX, GROUP_KIND:GROUP_KIND, isGroupId:isGroupId, isGroupRec:isGroupRec,
+  groupId:groupId, makeGroup:makeGroup, updateGroup:updateGroup, removeGroup:removeGroup,
+  groupOf:groupOf, listGroups:listGroups, realClasses:realClasses,
+  expandCid:expandCid, rowInScope:rowInScope, studentsIn:studentsIn, groupSummary:groupSummary,
   mergeRoster:mergeRoster, findStudent:findStudent,
   studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf, rowInClass:rowInClass,
   SCHEMA_VERSION:SCHEMA_VERSION, SCHEMA_KEY:SCHEMA_KEY, MIGRATIONS:MIGRATIONS,

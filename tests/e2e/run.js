@@ -25,7 +25,8 @@ const suites=[
   require("./update.e2e.js"),
   require("./today.e2e.js"),
   require("./lessonend.e2e.js"),
-  require("./week.e2e.js")
+  require("./week.e2e.js"),
+  require("./groups.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });

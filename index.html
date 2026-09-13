@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=e6b5674e">
-<script src="hm-data.js?v=db5c4fb9"></script>
+<link rel="stylesheet" href="hm-styles.css?v=2fed672c">
+<script src="hm-data.js?v=508b3a19"></script>
 <script src="hm-i18n.js?v=ec4a652e"></script>
-<script src="hm-app.js?v=97ec8b4f"></script>
+<script src="hm-app.js?v=9a5a6cdc"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -25,7 +25,7 @@
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=1d73c0de"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=49721175"></script>
+<script src="hm-tests.js?v=634d021f"></script>
 <script src="hm-new.js?v=0dec2d1f"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -1746,6 +1746,26 @@
   <h3>🏷 <span id="cls-title">כיתה</span><button class="x" data-close="clsModal">✕</button></h3>
   <div id="cls-body"></div>
 </div></div>
+<div class="modal" id="grpModal"><div class="box" style="max-width:600px">
+  <h3>👥 <span>קבוצות הוראה</span><button class="x" data-close="grpModal">✕</button></h3>
+  <div class="hint">קבוצה היא מה שאתה באמת מלמד: שתי כיתות שמחוברות לשיעור אחד, או קבוצת למידה מתלמידים שמגיעים מכמה כיתות. התלמידים נשארים בכיתות שלהם — הקבוצה היא ההקשר, לא כיתה חדשה.</div>
+  <div id="grp-list" style="margin-top:12px"></div>
+  <div class="grp-form" id="grp-form">
+    <div class="top"><b id="grp-formTitle">קבוצה חדשה</b>
+      <button class="btn sm ghost" id="grp-cancel" hidden>✕ בטל עריכה</button></div>
+    <div class="field"><label>שם הקבוצה</label>
+      <input type="text" id="grp-name" placeholder="למשל: ז׳1 + ז׳3"></div>
+    <div class="field" style="margin-top:9px"><label>כיתות שלמות</label>
+      <div class="grp-pick" id="grp-classes"></div></div>
+    <div class="field" style="margin-top:9px">
+      <label>תלמידים בודדים <span class="hint" style="font-weight:400">(לקבוצת למידה מכמה כיתות)</span></label>
+      <div class="grp-pick tall" id="grp-students"></div></div>
+    <div class="row" style="margin-top:11px">
+      <button class="btn acc grow" id="grp-save">💾 שמור קבוצה</button>
+    </div>
+    <div class="hint" id="grp-err" style="margin-top:8px;color:var(--stop)"></div>
+  </div>
+</div></div>
 <div class="modal" id="schedModal"><div class="box" style="max-width:820px">
   <h3>🗓 <span>מערכת שעות</span><button class="x" data-close="schedModal">✕</button></h3>
   <div class="hint">הטבלה היא השבוע שלך כפי שהוא — שעות מול ימים. הקש על תא כדי למלא אותו. מה שנקבע כאן חוזר כל שבוע; הוא לא יוצר שיעור, רק אומר לדף הבית מה מחכה לך היום.</div>
@@ -1761,11 +1781,19 @@
     <div id="sw-cellList"></div>
     <div class="field" style="margin-top:9px"><label>סוג המשבצת</label>
       <div class="seg" id="sw-kind"></div></div>
+    <div class="field" id="sw-scopeRow" style="margin-top:9px"><label>מי לומד</label>
+      <div class="seg" id="sw-scope">
+        <button data-s="cls" class="on">כיתה</button><button data-s="grp">קבוצה</button>
+      </div></div>
     <div class="row" id="sw-clsRow" style="margin-top:9px">
       <div class="field" style="width:100px"><label>שכבה</label><select id="sw-grade"></select></div>
       <div class="field" style="width:84px"><label>כיתה</label><select id="sw-num"></select></div>
       <div class="field grow" style="min-width:150px"><label>נושא (רשות)</label>
         <input type="text" id="sw-topic" placeholder="כדורסל — מסירה"></div>
+    </div>
+    <div class="row" id="sw-grpRow" style="margin-top:9px" hidden>
+      <div class="field grow" style="min-width:150px"><label>קבוצה</label><select id="sw-group"></select></div>
+      <button class="btn sm ghost" id="sw-grpManage" style="margin-top:18px">👥 נהל קבוצות</button>
     </div>
     <div class="field" id="sw-labelRow" style="margin-top:9px" hidden><label>תיאור</label>
       <input type="text" id="sw-label" placeholder="ישיבת צוות / הכנת חומרים"></div>
