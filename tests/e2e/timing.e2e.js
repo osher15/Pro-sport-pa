@@ -257,6 +257,33 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
     eq(r.inputmode,"decimal","אבל המקלדת עדיין מספרית");
   }),
 
+  /* מספר הוא רצף LTR, ושדה שכזה בתוך פריסת RTL הוא מקום שבו
+     הדו-כיווניות ממקמת תווים וסמן במקומות לא צפויים — משתנה בין
+     דפדפן למקלדת. כיוון מפורש מוציא את המשתנה הזה מהמשוואה. */
+  check("שדה מספרי מוגדר LTR מפורשות, גם בתוך מסך RTL",seed,async page=>{
+    await openPf(page);
+    const r=await page.evaluate(()=>{
+      const e=document.getElementById("pf-gunDist");
+      return {dir:e.getAttribute("dir"),computed:getComputedStyle(e).direction,
+        align:getComputedStyle(e).textAlign,page:document.querySelector(".app").getAttribute("dir")};
+    });
+    eq(r.page,"rtl","המסך עצמו נשאר RTL");
+    eq(r.dir,"ltr","אבל השדה המספרי מוגדר LTR");
+    eq(r.computed,"ltr");
+  }),
+
+  /* אם הרינדור בשדה נכשל במכשיר מסוים, המורה עדיין צריך לראות מה
+     נקלט — בלי להאמין לשדה שאולי משקר לו. */
+  check("הפס מציג את המרחק שנקלט, לא רק את התוצאה",seed,async page=>{
+    await openPf(page);
+    const el=page.locator("#pf-gunDist");
+    await el.click(); await page.waitForTimeout(200);
+    await page.keyboard.type("20"); await page.waitForTimeout(300);
+    const pill=(await page.textContent("#pf-gunLag")).trim();
+    ok(pill.indexOf("20")>=0,"המרחק עצמו מופיע: "+pill);
+    ok(pill.indexOf("58")>=0,"וגם הקיזוז שנגזר ממנו: "+pill);
+  }),
+
   check("פסיק מתקבל כנקודה עשרונית, כפי שמקלידים בעברית",seed,async page=>{
     await openPf(page);
     const el=page.locator("#pf-gunDist");
