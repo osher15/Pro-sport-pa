@@ -726,11 +726,20 @@ function paintToday(){
                 r.status==="done"?'<span class="pill">✓ התקיים</span>':
                 r.now?'<span class="pill acc">עכשיו</span>':"";
     const ms=r.session?SESSION.measurements(r.session.id).length:0;
+    /* פרטני, שהייה וישיבה הם חלק מהיום של המורה ולכן מוצגים —
+       אבל אין מה להתחיל בהם ואין להם מסך כיתה. שורת הקשר, לא שיעור. */
+    if(!r.startable)
+      return '<div class="hx-slot ctx">'+
+        '<div class="tm">'+esc(sl.time)+'</div>'+
+        '<div class="tx"><b>'+esc(sl.label||DATA.kindLabel(DATA.kindOf(sl)))+'</b> '+
+          (r.now?'<span class="pill">עכשיו</span>':"")+'</div></div>';
+    /* שורת המשנה נכתבת רק כשיש בה מידע. «בלי נושא מוגדר» על כל
+       שורה הוא רעש שמאריך יום של עשרה שיעורים בלי להוסיף דבר. */
+    const sub=[sl.topic?esc(sl.topic):"",ms?ms+" מדידות":""].filter(Boolean).join(" · ");
     return '<div class="hx-slot'+(up?" up":"")+(r.status==="done"?" done":"")+'">'+
       '<div class="tm">'+esc(sl.time)+'</div>'+
       '<div class="tx"><b>'+esc(slotName(sl))+'</b> '+badge+
-        '<span>'+(sl.topic?esc(sl.topic):"בלי נושא מוגדר")+
-        (ms?" · "+ms+" מדידות":"")+'</span></div>'+
+        (sub?'<span>'+sub+'</span>':"")+'</div>'+
       (r.status==="planned"
         ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
         : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>')+
@@ -763,79 +772,184 @@ function paintLastLesson(){
     openClassScreen(b.dataset.cls)));
 }
 
-/* ---------- עריכת מערכת השעות ---------- */
-function renderSchedEditor(){
-  const box=$("#sw-list"); if(!box)return;
-  const all=SCHED.list();
-  if(!all.length){
-    box.innerHTML='<div class="empty-state" style="padding:14px"><div class="big">🗓</div>'+
-      'המערכת ריקה.<br>הוסף שיעור אחד — הוא יחזור כל שבוע.</div>';
-    return;
-  }
-  let cur=-1, html="";
-  all.forEach(sl=>{
-    if(sl.day!==cur){ cur=sl.day; html+='<div class="sw-day">'+esc(DATA.DAYS_HE[cur])+'</div>'; }
-    html+='<div class="arc-item"><div class="tm mono" style="min-width:46px">'+esc(sl.time)+'</div>'+
-      '<div class="grow"><div class="ttl">'+esc(slotName(sl))+'</div>'+
-      (sl.topic?'<div class="sb">'+esc(sl.topic)+'</div>':"")+'</div>'+
-      '<button class="btn sm ghost" data-del="'+esc(sl.id)+'">🗑</button></div>';
+/* ============================================================
+   עריכת מערכת השעות — טבלת השבוע
+   ------------------------------------------------------------
+   הגרסה הראשונה ביקשה שיעור אחד בכל פעם. מורה עם עשרים וארבעה
+   שיעורים בשבוע נוטש בשיעור החמישי, וזה לא באג בטופס אלא בצורה
+   שלו: המערכת כבר קיימת אצלו כטבלה — שעות מול ימים — וכל דבר
+   שאינו הטבלה הזאת מחייב אותו לתרגם אותה תוך כדי הזנה.
+
+   כאן זו אותה טבלה. הקשה על תא פותחת עורך שהיום והשעה שלו כבר
+   מלאים, וכל מה שנשאר הוא מה יש שם.
+   ============================================================ */
+const DAY_SHORT=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳"];
+let swCell=null;                 /* {day,h} — התא הפתוח כרגע */
+let swKind=DATA.KIND_PE;
+
+function slotText(sl){
+  if(DATA.kindOf(sl)===DATA.KIND_PE)return slotName(sl);
+  return sl.label||DATA.kindLabel(DATA.kindOf(sl));
+}
+function renderGrid(){
+  const box=$("#sw-grid"); if(!box)return;
+  const week=DATA.schedWeek(SCHED.all());
+  const cnt=$("#sw-count");
+  if(cnt)cnt.textContent=week.count?week.count+" משבצות בשבוע":"המערכת ריקה";
+  let html='<thead><tr><th class="hh">שעה</th>'+
+    DAY_SHORT.map(d=>'<th>'+d+'</th>').join("")+'</tr></thead><tbody>';
+  DATA.BELLS.forEach(b=>{
+    html+='<tr><th class="hh"><b>'+b.h+'</b><span>'+esc(b.s)+'</span></th>';
+    for(let d=0;d<DAY_SHORT.length;d++){
+      const cell=DATA.weekCell(week,d,b.h);
+      const on=swCell&&swCell.day===d&&swCell.h===b.h;
+      html+='<td class="sw-cell'+(on?" on":"")+(cell.length?"":" empty")+
+        '" data-cell="'+d+"|"+b.h+'">'+
+        (cell.length
+          ? cell.map(x=>'<span class="ch k-'+esc(DATA.kindOf(x))+'">'+esc(slotText(x))+'</span>').join("")
+          : '<span class="plus">+</span>')+'</td>';
+    }
+    html+='</tr>';
   });
-  box.innerHTML='<div class="hint">'+all.length+' שיעורים בשבוע.</div>'+html;
-  $$("#sw-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
-    SCHED.remove(b.dataset.del); renderSchedEditor(); paintToday();
+  box.innerHTML=html+'</tbody>';
+  $$("#sw-grid [data-cell]").forEach(td=>td.addEventListener("click",()=>{
+    const [d,h]=td.dataset.cell.split("|");
+    openCell(+d,+h);
+  }));
+  renderLoose(week.loose);
+}
+/* משבצות בשעה שאינה צלצול — הן קיימות ותקפות, אבל אין להן שורה
+   בטבלה, ולכן הן מוצגות מתחתיה במקום להיעלם. */
+function renderLoose(loose){
+  const box=$("#sw-loose"); if(!box)return;
+  if(!loose||!loose.length){ box.innerHTML=""; return; }
+  box.innerHTML='<div class="hint">שעות שאינן בלוח הצלצולים:</div>'+
+    loose.map(sl=>'<div class="arc-item"><div class="tm mono" style="min-width:46px">'+
+      esc(sl.time)+'</div><div class="grow"><div class="ttl">'+esc(slotText(sl))+'</div>'+
+      '<div class="sb">'+esc(DATA.DAYS_HE[sl.day]||"")+'</div></div>'+
+      '<button class="btn sm ghost" data-del="'+esc(sl.id)+'">🗑</button></div>').join("");
+  $$("#sw-loose [data-del]").forEach(b=>b.addEventListener("click",()=>{
+    SCHED.remove(b.dataset.del); renderGrid(); paintHome();
   }));
 }
+function renderCellList(){
+  const box=$("#sw-cellList"); if(!box||!swCell)return;
+  const cell=DATA.weekCell(DATA.schedWeek(SCHED.all()),swCell.day,swCell.h);
+  box.innerHTML=cell.length
+    ? cell.map(sl=>'<div class="sw-row"><span class="ch k-'+esc(DATA.kindOf(sl))+'">'+
+        esc(slotText(sl))+'</span>'+(sl.topic?'<span class="tp">'+esc(sl.topic)+'</span>':"")+
+        '<button class="btn sm ghost" data-del="'+esc(sl.id)+'">🗑</button></div>').join("")
+    : '<div class="hint">התא ריק.</div>';
+  $$("#sw-cellList [data-del]").forEach(b=>b.addEventListener("click",()=>{
+    SCHED.remove(b.dataset.del); renderGrid(); renderCellList(); paintHome();
+  }));
+}
+function paintKind(){
+  $$("#sw-kind button").forEach(b=>b.classList.toggle("on",b.dataset.k===swKind));
+  const pe=swKind===DATA.KIND_PE;
+  const cls=$("#sw-clsRow"), lab=$("#sw-labelRow");
+  if(cls)cls.hidden=!pe;
+  if(lab)lab.hidden=pe;
+}
+function openCell(day,h){
+  const b=DATA.bellByHour(h); if(!b)return;
+  swCell={day,h};
+  $("#sw-day").value=String(day);
+  $("#sw-hour").value=String(h);
+  $("#sw-time").value=b.s;
+  $("#sw-editTitle").textContent="יום "+(DATA.DAYS_HE[day]||"")+" · שיעור "+h+" · "+b.s;
+  $("#sw-edit").hidden=false;
+  renderCellList(); renderGrid(); paintKind();
+}
+function closeCell(){ swCell=null; $("#sw-edit").hidden=true; renderGrid(); }
+
+function addFromEditor(){
+  const kind=swKind, pe=kind===DATA.KIND_PE;
+  let o={day:+$("#sw-day").value,time:$("#sw-time").value,kind};
+  if(pe){
+    const g=$("#sw-grade").value, n=+$("#sw-num").value;
+    const label=DATA.clsName(g,n);
+    o.cid=DATA.resolveClassId(REGSTORE,label,true);
+    o.clsSnapshot=label;
+    o.topic=$("#sw-topic").value.trim();
+  }else{
+    o.label=$("#sw-label").value.trim()||DATA.kindLabel(kind);
+  }
+  const r=SCHED.add(o);
+  if(!r.ok){
+    toast({"bad-time":"שעה לא תקינה — למשל 09:00","bad-day":"בחר יום",
+      "no-class":"בחר כיתה","bad-kind":"סוג לא מוכר",
+      "full":"המערכת מלאה","not-saved":"לא נשמר במכשיר"}[r.outcome]||"לא נוסף");
+    return;
+  }
+  toast(r.outcome==="duplicate"?"המשבצת הזאת כבר קיימת":"✓ נוסף למערכת");
+  if(pe)$("#sw-topic").value="";
+  renderGrid(); renderCellList(); paintHome();
+}
+
+/* טעינת הדוגמה. היא לא ברירת מחדל ולא נטענת לבד — ומעל מערכת
+   קיימת היא שואלת קודם, כי שבוע שמישהו הזין ידנית לא נמחק בשקט. */
+function loadSampleWeek(){
+  const cur=SCHED.list().length;
+  if(cur&&!confirm("במערכת יש כבר "+cur+" משבצות.\nלטעון את המערכת לדוגמה במקומה?"))return;
+  let list=cur?[]:SCHED.all();
+  if(cur)schedSave([]);
+  let added=0;
+  DATA.sampleSlots().forEach(o=>{
+    if(o.clsSnapshot){ try{ DATA.registerClass(REGSTORE,o.clsSnapshot); }catch(e){} }
+    const r=SCHED.add(o);
+    if(r.ok&&r.outcome==="added")added++;
+  });
+  closeCell(); renderGrid(); paintHome();
+  toast("✓ נטענו "+added+" משבצות — ערוך אותן לפי המערכת שלך");
+}
+function clearWeek(){
+  const n=SCHED.list().length;
+  if(!n){ toast("המערכת כבר ריקה"); return; }
+  if(!confirm("למחוק את כל "+n+" המשבצות במערכת השעות?\nהתלמידים, המדידות והשיעורים לא ייפגעו."))return;
+  schedSave([]);
+  closeCell(); renderGrid(); paintHome();
+  toast("המערכת נוקתה");
+}
+
 function openSched(){
-  const d=$("#sw-day"), g=$("#sw-grade"), n=$("#sw-num"), h=$("#sw-hour");
-  /* «שיעור שלישי» הוא איך שמורה חושב; השעה היא מה שהמערכת צריכה.
-     הבורר ממלא את השעה, ומי שרוצה שעה אחרת פשוט מקליד אותה. */
-  if(h&&!h.options.length)
-    h.innerHTML='<option value="">—</option>'+DATA.BELLS.map(b=>
-      '<option value="'+b.h+'">שיעור '+b.h+' · '+b.s+'</option>').join("");
+  const d=$("#sw-day"), g=$("#sw-grade"), n=$("#sw-num"), h=$("#sw-hour"), k=$("#sw-kind");
   if(d&&!d.options.length)
     d.innerHTML=DATA.DAYS_HE.map((nm,i)=>'<option value="'+i+'">'+nm+'</option>').join("");
+  if(h&&!h.options.length)
+    h.innerHTML=DATA.BELLS.map(b=>'<option value="'+b.h+'">שיעור '+b.h+' · '+b.s+'</option>').join("");
   if(g&&!g.options.length)
     g.innerHTML=DATA.GRADES.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join("");
   if(n&&!n.options.length)
     n.innerHTML=DATA.NUMS.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
-  if(d)d.value=String(DATA.dayOfISO(isoToday())||0);
-  renderSchedEditor();
+  if(k&&!k.children.length)
+    k.innerHTML=DATA.SLOT_KINDS.map(x=>'<button data-k="'+x[0]+'">'+x[1]+'</button>').join("");
+  closeCell(); paintKind(); renderGrid();
   modal("schedModal",true);
 }
 function wireSched(){
   const e=$("#hx-schedEdit"); if(e)e.addEventListener("click",openSched);
+  const hl=$("#hx-lastHist"); if(hl)hl.addEventListener("click",openSesHist);
   const hr=$("#sw-hour");
   if(hr)hr.addEventListener("change",()=>{
     const b=DATA.bellByHour(+hr.value);
     if(b)$("#sw-time").value=b.s;
   });
-  /* שעה שהוקלדה ביד ומתאימה לצלצול — הבורר מתיישר אליה, כדי ששני
-     השדות לא יספרו שני סיפורים */
   const tm=$("#sw-time");
   if(tm)tm.addEventListener("input",()=>{
     const b=DATA.bellOfTime(tm.value);
     if($("#sw-hour"))$("#sw-hour").value=b?String(b.h):"";
   });
-  const h=$("#hx-lastHist"); if(h)h.addEventListener("click",openSesHist);
-  const add=$("#sw-add"); if(!add)return;
-  add.addEventListener("click",()=>{
-    const g=$("#sw-grade").value, n=+$("#sw-num").value;
-    const label=DATA.clsName(g,n);
-    const cid=DATA.resolveClassId(REGSTORE,label,true);
-    const r=SCHED.add({day:+$("#sw-day").value,time:$("#sw-time").value,
-      cid,clsSnapshot:label,topic:$("#sw-topic").value.trim()});
-    if(!r.ok){
-      toast({"bad-time":"שעה לא תקינה — למשל 09:00",
-             "bad-day":"בחר יום","no-class":"בחר כיתה",
-             "full":"המערכת מלאה","not-saved":"לא נשמר במכשיר"}[r.outcome]||"לא נוסף");
-      return;
-    }
-    toast(r.outcome==="duplicate"?"השיעור הזה כבר במערכת":"✓ נוסף למערכת");
-    $("#sw-topic").value="";
-    renderSchedEditor(); paintToday();
+  const k=$("#sw-kind");
+  if(k)k.addEventListener("click",ev=>{
+    const b=ev.target.closest("button[data-k]"); if(!b)return;
+    swKind=b.dataset.k; paintKind();
   });
+  const cl=$("#sw-editClose"); if(cl)cl.addEventListener("click",closeCell);
+  const sm=$("#sw-sample"); if(sm)sm.addEventListener("click",loadSampleWeek);
+  const cw=$("#sw-clear"); if(cw)cw.addEventListener("click",clearWeek);
+  const add=$("#sw-add"); if(add)add.addEventListener("click",addFromEditor);
 }
-
 
 /* ============================================================
    סיום שיעור — מה קרה בו
@@ -4145,6 +4259,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
   sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,
+  schedSample:loadSampleWeek,schedCell:openCell,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */

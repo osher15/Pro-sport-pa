@@ -1319,6 +1319,38 @@ function sessionMeasurements(rows,sessionId){
 }
 
 /* ============================================================
+   סוג המשבצת
+   ------------------------------------------------------------
+   מערכת שעות אמיתית של מורה לחינוך גופני אינה עשויה רק משיעורים:
+   בתוכה יש פרטני, שהייה, ישיבות והכנת חומרים. מערכת שמכילה רק
+   שיעורים מחייבת את המורה לתרגם את היום שלו לפני שהוא מזין אותו,
+   וזה בדיוק סוג החיכוך שגורם לוותר.
+
+   רק «פרונטלי» פותח שיעור. השאר הם הקשר: הם עונים על «מה אני
+   עושה עכשיו» בלי להתחזות לשיעור שאפשר למדוד בו.
+   ============================================================ */
+var SLOT_KINDS=[
+  ["pe","פרונטלי"],   /* שיעור חנ״ג — היחיד שנפתח ממנו שיעור */
+  ["prat","פרטני"],
+  ["stay","שהייה"],
+  ["other","אחר"]     /* ישיבה, הכנת חומרים, מקצוע אחר */
+];
+var KIND_PE="pe";
+function kindLabel(k){
+  for(var i=0;i<SLOT_KINDS.length;i++)if(SLOT_KINDS[i][0]===k)return SLOT_KINDS[i][1];
+  return "";
+}
+function validKind(k){ return !!kindLabel(k); }
+/* משבצת שנשמרה לפני שהיה סוג היא שיעור — כך היא נוצרה, וכך היא
+   חייבת להמשיך להתנהג. הנקודה האחת שבה משבצת הופכת לסוג. */
+function kindOf(sl){
+  var k=sl&&sl.kind;
+  return k==null?KIND_PE:k;
+}
+/* «פרונטלי» בלי כיתה אינו שיעור שאפשר לפתוח */
+function startable(sl){ return !!(sl&&kindOf(sl)===KIND_PE&&sl.cid); }
+
+/* ============================================================
    לוח הצלצולים
    ------------------------------------------------------------
    מורה לא חושב «09:45» אלא «שיעור שלישי». הלוח הזה הועתק מאפליקציית
@@ -1359,6 +1391,91 @@ function slotNow(sl,nowMin){
   var w=slotWindow(sl);
   return !!w&&nowMin>=w.from&&nowMin<w.to;
 }
+
+/* ============================================================
+   מערכת לדוגמה
+   ------------------------------------------------------------
+   מערכת שעות אמיתית של מורה לחנ״ג בחטיבה ותיכון, כפי שהיא מופיעה
+   במשו״ב — כולל פרטני, שהייה, ישיבות ומקצועות נוספים. היא כאן כדי
+   שאפשר יהיה לראות שבוע מלא בלחיצה אחת ולערוך ממנו, במקום להתחיל
+   מטבלה ריקה.
+
+   היא **דוגמה ולא ברירת מחדל**: אף אחד לא מקבל אותה בלי לבקש, וטעינה
+   מציגה אזהרה אם כבר יש מערכת.
+
+   שתי כיתות שמלמדים יחד (ז-1 ו-ז-3) הן שתי משבצות באותו תא. המודל
+   נשאר «משבצת אחת, כיתה אחת» — הטבלה היא זו שמציגה אותן יחד.
+   ============================================================ */
+var SAMPLE_GROUPS={
+  peA:{cls:[["ז",1],["ז",3]]},      peB:{cls:[["ז",5]]},
+  peC:{cls:[["ז",9],["ז",10]]},     peD:{cls:[["ח",3]]},
+  peE:{cls:[["ט",1],["ט",4]]},      peF:{cls:[["ט",2]]},
+  peG:{cls:[["יא",6]]},             peH:{cls:[["יא",7]]},
+  peI:{cls:[["יב",1],["יב",2]]},    peJ:{cls:[["יב",3]]},
+  hlA:{kind:"other",label:"חינוך לבריאות ז-7"},
+  hlB:{kind:"other",label:"חינוך לבריאות ז-6"},
+  hvA:{kind:"other",label:"חברה ז-5"},
+  pratani:{kind:"prat",label:"פרטני אופק"},
+  pratani2:{kind:"prat",label:"פרטני עוז"},
+  shehiya:{kind:"stay",label:"שהייה"},
+  homer:{kind:"other",label:"הכנת חומרים"},
+  computer:{kind:"other",label:"מחשב־גשרים ח-5"},
+  mehanchim:{kind:"other",label:"ישיבת מחנכים"},
+  tzevet:{kind:"other",label:"ישיבת צוות"},
+  hishtalmut:{kind:"other",label:"השתלמות"}
+};
+var SAMPLE_WEEK={
+  0:{1:"peD",2:"peE",3:"peA",4:"peC",5:"peF",6:"shehiya",7:"peB",8:"homer"},
+  1:{1:"peG",2:"peH",3:"homer",4:"shehiya",5:"peC",6:"peB",7:"hvA"},
+  2:{1:"pratani",2:"shehiya",3:"shehiya",4:"computer",5:"computer",
+     6:"peI",7:"mehanchim",8:"mehanchim",9:"peG"},
+  3:{1:"peE",2:"hlA",3:"peI",4:"peF",5:"pratani2",6:"peD",7:"peA",8:"tzevet"},
+  4:{1:"peH",2:"pratani",3:"hvA",4:"peJ",5:"hlB",6:"pratani",7:"hishtalmut"}
+};
+/* מרחיב את הדוגמה לרשימת משבצות מוכנה ל-schedAdd. טהור: לא רושם
+   כיתות ולא נוגע באחסון — הקורא מחליט מה לעשות עם התוצאה. */
+function sampleSlots(){
+  var out=[];
+  Object.keys(SAMPLE_WEEK).forEach(function(d){
+    var day=+d, hours=SAMPLE_WEEK[d];
+    Object.keys(hours).forEach(function(h){
+      var g=SAMPLE_GROUPS[hours[h]]; if(!g)return;
+      var b=bellByHour(+h); if(!b)return;
+      if(g.cls){
+        g.cls.forEach(function(c){
+          var nm=clsName(c[0],c[1]);
+          out.push({day:day,time:b.s,kind:KIND_PE,cid:classId(nm),clsSnapshot:nm});
+        });
+      }else{
+        out.push({day:day,time:b.s,kind:g.kind,label:g.label});
+      }
+    });
+  });
+  return out;
+}
+
+/* ============================================================
+   הטבלה השבועית
+   ------------------------------------------------------------
+   להזין 24 שיעורים אחד-אחד זה בדיוק המקום שבו מורה מוותר. הטבלה
+   היא אותם נתונים בדיוק, בצורה שבה הם כבר קיימים אצלו: שעות מול
+   ימים, כמו בצילום המערכת מהמשו״ב.
+
+   שתי כיתות שמלמדים יחד הן שתי משבצות באותו תא — המודל נשאר
+   «משבצת אחת, כיתה אחת», והתא הוא זה שמציג אותן יחד.
+   ============================================================ */
+function schedWeek(list){
+  var all=schedList(list);
+  var cell={}, loose=[];
+  all.forEach(function(s){
+    var b=bellOfTime(s.time);
+    if(!b){ loose.push(s); return; }
+    var k=s.day+"|"+b.h;
+    (cell[k]=cell[k]||[]).push(s);
+  });
+  return {cell:cell, loose:loose, count:all.length};
+}
+function weekCell(week,day,h){ return (week&&week.cell[day+"|"+h])||[]; }
 
 /* ============================================================
    5ג. תוצאת שיעור והמשך מומלץ
@@ -1498,8 +1615,12 @@ function fmtTime(min){
   return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
 }
 function validSlot(s){
-  return !!(s&&typeof s==="object"&&s.id&&s.cid&&
-    isNum(s.day)&&s.day>=0&&s.day<=6&&timeMin(s.time)!=null);
+  if(!(s&&typeof s==="object"&&s.id&&isNum(s.day)&&s.day>=0&&s.day<=6&&
+       timeMin(s.time)!=null))return false;
+  /* משבצות שנשמרו לפני שהיה סוג הן שיעורים — כך הן נוצרו */
+  var k=kindOf(s);
+  if(!validKind(k))return false;
+  return k!==KIND_PE||!!s.cid;
 }
 /* הרשימה תמיד ממוינת לפי יום ואז שעה. מיון במקום אחד — כל קורא
    מקבל את אותו סדר, ואף מסך לא ממיין לעצמו. */
@@ -1517,24 +1638,37 @@ function schedList(list,opts){
 function schedAdd(list,o){
   o=o||{};
   var all=asList(list);
-  if(!o.cid)return {ok:false,outcome:"no-class",list:all,slot:null};
+  var kind=o.kind==null?KIND_PE:o.kind;
+  if(!validKind(kind))return {ok:false,outcome:"bad-kind",list:all,slot:null};
+  if(kind===KIND_PE&&!o.cid)return {ok:false,outcome:"no-class",list:all,slot:null};
   var t=timeMin(o.time);
   if(t==null)return {ok:false,outcome:"bad-time",list:all,slot:null};
   var day=+o.day;
   if(!(day>=0&&day<=6))return {ok:false,outcome:"bad-day",list:all,slot:null};
+  var label=String(o.label||"").trim();
+  /* אותה משבצת בדיוק — אותו יום, אותה שעה, אותו סוג ואותה כיתה או
+     אותה תווית. מורה שלחץ פעמיים לא התכוון לשתיים. */
   var dup=schedList(all).filter(function(s){
-    return s.cid===o.cid&&s.day===day&&timeMin(s.time)===t; })[0];
+    if(s.day!==day||timeMin(s.time)!==t||kindOf(s)!==kind)return false;
+    return kind===KIND_PE ? s.cid===o.cid : String(s.label||"")===label;
+  })[0];
   if(dup)return {ok:true,outcome:"duplicate",list:all,slot:dup};
   if(schedList(all).length>=SCHED_MAX)
     return {ok:false,outcome:"full",list:all,slot:null};
+  var b=bellOfTime(fmtTime(t));
   var slot={
     id:o.id||newSlotId(),
     day:day,
     time:fmtTime(t),
-    cid:o.cid,
+    /* מספר השיעור נשמר כשהשעה היא צלצול — כך הטבלה יודעת לאיזו
+       שורה המשבצת שייכת בלי לנחש מחדש בכל ציור. */
+    h:b?b.h:null,
+    kind:kind,
+    cid:kind===KIND_PE?o.cid:null,
     /* השם כהקשר בלבד, כמו בשיעור: כיתה עשויה לשנות שם, והמשבצת
        עדיין מצביעה על אותה כיתה דרך cid. */
-    clsSnapshot:String(o.clsSnapshot||""),
+    clsSnapshot:kind===KIND_PE?String(o.clsSnapshot||""):"",
+    label:label,
     topic:String(o.topic||"")
   };
   return {ok:true,outcome:"added",slot:slot,list:all.concat([slot])};
@@ -1562,13 +1696,17 @@ function schedToday(list,iso,sessions,nowMin){
   var done={};
   listSessions(sessions,{date:iso}).forEach(function(s){ done[s.cid]=s; });
   return schedList(list,{day:day}).map(function(s){
-    var ses=done[s.cid]||null;
+    var ses=(s.cid&&done[s.cid])||null;
     return {
       slot:s,
       session:ses,
       /* «עכשיו» לפי השעון הוא מידע אחר מ«פתוח» לפי המורה: שיעור
          יכול להתקיים בלי שנפתח, ולהיות פתוח אחרי שנגמר. */
       now:slotNow(s,nowMin),
+      /* רק משבצת פרונטלית עם כיתה היא שיעור שאפשר לפתוח. פרטני
+         ושהייה נמצאים ביום של המורה, ולכן מוצגים — אבל הם לא
+         מתחזים לשיעור שאפשר למדוד בו. */
+      startable:startable(s),
       status:!ses?"planned":(ses.status===SESSION_ACTIVE?"active":"done")
     };
   });
@@ -1583,7 +1721,7 @@ function schedNext(list,iso,sessions,nowMin){
        אני עושה עכשיו», גם אם המורה עדיין לא פתח אותו. */
     if(rows[i].now&&rows[i].status!=="done"&&!cur)cur=rows[i];
     if(!act&&rows[i].status==="active")act=rows[i];
-    if(!up&&rows[i].status==="planned"&&
+    if(!up&&rows[i].status==="planned"&&rows[i].startable&&
        (nowMin==null||timeMin(rows[i].slot.time)>=nowMin-15))up=rows[i];
   }
   return cur||act||up||null;
@@ -1710,6 +1848,10 @@ return {
   timeMin:timeMin, fmtTime:fmtTime, validSlot:validSlot, dayOfISO:dayOfISO,
   schedList:schedList, schedAdd:schedAdd, schedRemove:schedRemove,
   schedToday:schedToday, schedNext:schedNext,
+  SLOT_KINDS:SLOT_KINDS, KIND_PE:KIND_PE, kindLabel:kindLabel,
+  validKind:validKind, startable:startable, kindOf:kindOf,
+  schedWeek:schedWeek, weekCell:weekCell,
+  SAMPLE_GROUPS:SAMPLE_GROUPS, SAMPLE_WEEK:SAMPLE_WEEK, sampleSlots:sampleSlots,
   BELLS:BELLS, SLOT_DEFAULT_MIN:SLOT_DEFAULT_MIN,
   bellByHour:bellByHour, bellOfTime:bellOfTime, slotWindow:slotWindow, slotNow:slotNow,
   RATING_UP:RATING_UP, RATING_MID:RATING_MID, RATING_DOWN:RATING_DOWN,

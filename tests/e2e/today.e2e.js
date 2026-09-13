@@ -208,10 +208,13 @@ module.exports={title:"היום שלי",tests:[
     eq(await page.evaluate(()=>window.HM.sched.list().length),1);
   }),
 
-  check("מחיקה מוציאה שיעור מהמערכת ומדף הבית",seeded(),async page=>{
-    await page.evaluate(()=>window.HM.openSched());
+  check("מחיקה מהתא מוציאה שיעור מהמערכת ומדף הבית",seeded(),async page=>{
+    await page.evaluate(d=>{ window.HM.openSched(); window.HM.schedCell(d,2); },
+      await page.evaluate(()=>window.HMDATA.dayOfISO(new Date().toISOString().slice(0,10))));
     await page.waitForTimeout(300);
-    await page.evaluate(()=>document.querySelector("#sw-list [data-del]").click());
+    ok(await page.evaluate(()=>!!document.querySelector("#sw-cellList [data-del]")),
+      "המשבצת של 09:00 נמצאת בתא של שיעור 2");
+    await page.evaluate(()=>document.querySelector("#sw-cellList [data-del]").click());
     await page.waitForTimeout(300);
     eq(await page.evaluate(()=>window.HM.sched.list().length),2,"נמחקה אחת מתוך שלוש");
   }),

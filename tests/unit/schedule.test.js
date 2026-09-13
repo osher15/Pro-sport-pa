@@ -250,3 +250,150 @@ test("שיעור שהתקיים כבר אינו «עכשיו» גם אם השע�
   const n=D.schedNext(l,"2026-09-13",ses.list,9*60+10);
   assert.equal(n,null,"נגמר — ולא מציעים אותו שוב");
 });
+
+/* ============ סוג המשבצת ============ */
+
+test("משבצת ישנה בלי סוג היא שיעור — כך היא נוצרה",()=>{
+  const old={id:"x",day:2,time:"09:00",cid:"c:ט:3",clsSnapshot:"ט׳3"};
+  assert.equal(D.schedList([old]).length,1,"נשארת תקפה");
+  assert.equal(D.startable(Object.assign({kind:"pe"},old)),true);
+});
+
+test("פרונטלי בלי כיתה אינו נוסף; שהייה בלי כיתה כן",()=>{
+  assert.equal(D.schedAdd([],{day:0,time:"09:00",kind:"pe"}).outcome,"no-class");
+  const r=D.schedAdd([],{day:0,time:"09:00",kind:"stay",label:"שהייה"});
+  assert.equal(r.outcome,"added");
+  assert.equal(r.slot.cid,null,"אין כיתה, ולכן אין מזהה מזויף");
+  assert.equal(r.slot.label,"שהייה");
+});
+
+test("סוג שאינו מהרשימה נדחה בשם",()=>{
+  assert.equal(D.schedAdd([],{day:0,time:"09:00",kind:"חופש"}).outcome,"bad-kind");
+});
+
+test("רק פרונטלי עם כיתה ניתן לפתיחה",()=>{
+  assert.equal(D.startable({kind:"pe",cid:"c:ט:3"}),true);
+  assert.equal(D.startable({kind:"pe"}),false);
+  assert.equal(D.startable({kind:"prat",label:"פרטני"}),false);
+  assert.equal(D.startable({kind:"stay"}),false);
+  assert.equal(D.startable(null),false);
+});
+
+test("לכל סוג יש תווית בעברית",()=>{
+  D.SLOT_KINDS.forEach(([k,lbl])=>{
+    assert.ok(lbl&&lbl.length,"תווית ל-"+k);
+    assert.equal(D.kindLabel(k),lbl);
+  });
+  assert.equal(D.kindLabel("no-such"),"");
+});
+
+test("שתי שהיות באותה שעה אינן נוספות פעמיים, ושתי כיתות כן",()=>{
+  let l=D.schedAdd([],{day:0,time:"09:00",kind:"stay",label:"שהייה"}).list;
+  assert.equal(D.schedAdd(l,{day:0,time:"09:00",kind:"stay",label:"שהייה"}).outcome,"duplicate");
+  l=D.schedAdd(l,{day:0,time:"09:00",cid:"c:ז:1"}).list;
+  const two=D.schedAdd(l,{day:0,time:"09:00",cid:"c:ז:3"});
+  assert.equal(two.outcome,"added","כיתות שמלמדים יחד הן שתי משבצות באותו תא");
+});
+
+test("שיעור בכיתה אינו מסמן משבצת שאינה שיעור",()=>{
+  const l=D.schedAdd([],{day:0,time:"09:00",kind:"stay",label:"שהייה"}).list;
+  const ses=D.createSession([],{cid:"c:ז:1",date:"2026-09-13"}).list;
+  const row=D.schedToday(l,"2026-09-13",ses)[0];
+  assert.equal(row.status,"planned");
+  assert.equal(row.session,null);
+  assert.equal(row.startable,false);
+});
+
+test("«הבא בתור» מדלג על שהייה ופרטני",()=>{
+  let l=D.schedAdd([],{day:0,time:"09:00",kind:"prat",label:"פרטני"}).list;
+  l=D.schedAdd(l,{day:0,time:"11:40",cid:"c:ז:1"}).list;
+  const n=D.schedNext(l,"2026-09-13",[],8*60);
+  assert.ok(n,"יש הבא בתור");
+  assert.equal(n.slot.cid,"c:ז:1","פרטני אינו שיעור שמתחילים");
+});
+
+/* ============ הטבלה השבועית ============ */
+
+test("הטבלה מקבצת לפי יום ושעה",()=>{
+  let l=D.schedAdd([],{day:0,time:"09:45",cid:"c:ז:1"}).list;
+  l=D.schedAdd(l,{day:0,time:"09:45",cid:"c:ז:3"}).list;
+  l=D.schedAdd(l,{day:3,time:"08:10",cid:"c:ח:3"}).list;
+  const w=D.schedWeek(l);
+  assert.equal(w.count,3);
+  assert.equal(D.weekCell(w,0,3).length,2,"שתי כיתות באותו תא");
+  assert.equal(D.weekCell(w,3,1).length,1);
+  assert.equal(D.weekCell(w,1,1).length,0,"תא ריק אינו קורס");
+});
+
+test("שעה שאינה צלצול אינה נעלמת — היא מוחזרת בנפרד",()=>{
+  const l=D.schedAdd([],{day:0,time:"09:47",cid:"c:ז:1"}).list;
+  const w=D.schedWeek(l);
+  assert.equal(Object.keys(w.cell).length,0,"אין לה שורה בטבלה");
+  assert.equal(w.loose.length,1,"ולכן היא מוצגת מתחתיה");
+});
+
+test("מספר השיעור נשמר על המשבצת כשהשעה היא צלצול",()=>{
+  assert.equal(D.schedAdd([],{day:0,time:"09:45",cid:"c:ז:1"}).slot.h,3);
+  assert.equal(D.schedAdd([],{day:0,time:"09:47",cid:"c:ז:1"}).slot.h,null);
+});
+
+/* ============ המערכת לדוגמה ============ */
+
+test("הדוגמה נטענת במלואה בלי כפילות ובלי דחייה",()=>{
+  const slots=D.sampleSlots();
+  assert.ok(slots.length>40,"שבוע מלא, לא שתי דוגמאות: "+slots.length);
+  let l=[], dup=0, bad=[];
+  slots.forEach(o=>{
+    const r=D.schedAdd(l,o);
+    if(!r.ok){ bad.push(r.outcome); return; }
+    if(r.outcome==="duplicate")dup++;
+    l=r.list;
+  });
+  assert.deepEqual(bad,[],"כל משבצת בדוגמה חוקית");
+  assert.equal(dup,0,"ואין בה שתי משבצות זהות");
+  assert.equal(l.length,slots.length);
+});
+
+test("כל שעה בדוגמה היא צלצול אמיתי — אחרת היא לא תופיע בטבלה",()=>{
+  D.sampleSlots().forEach(o=>
+    assert.ok(D.bellOfTime(o.time),"שעה שאינה בלוח: "+o.time));
+});
+
+test("שיעורי הדוגמה נושאים מזהה כיתה, והשאר לא",()=>{
+  D.sampleSlots().forEach(o=>{
+    if(o.kind===D.KIND_PE||o.kind==null)assert.ok(o.cid&&o.clsSnapshot,"שיעור בלי כיתה");
+    else assert.ok(o.label,"משבצת שאינה שיעור בלי תיאור");
+  });
+});
+
+test("הדוגמה מכילה גם פרטני, גם שהייה וגם שיעורים",()=>{
+  const kinds={};
+  D.sampleSlots().forEach(o=>{ kinds[o.kind||D.KIND_PE]=(kinds[o.kind||D.KIND_PE]||0)+1; });
+  assert.ok(kinds.pe>20,"רוב המערכת היא שיעורים: "+kinds.pe);
+  assert.ok(kinds.prat>0,"פרטני");
+  assert.ok(kinds.stay>0,"שהייה");
+  assert.ok(kinds.other>0,"ישיבות והכנת חומרים");
+});
+
+test("כל קבוצה שמופיעה במערכת לדוגמה מוגדרת",()=>{
+  Object.keys(D.SAMPLE_WEEK).forEach(d=>{
+    const hours=D.SAMPLE_WEEK[d];
+    Object.keys(hours).forEach(h=>{
+      assert.ok(D.SAMPLE_GROUPS[hours[h]],"קבוצה חסרה: "+hours[h]);
+      assert.ok(D.bellByHour(+h),"שעה שאינה בלוח: "+h);
+    });
+  });
+});
+
+test("הדוגמה נכנסת בגבול המערכת",()=>{
+  assert.ok(D.sampleSlots().length<=D.SCHED_MAX);
+});
+
+test("משבצת שנשמרה לפני שהיה סוג נשארת ניתנת לפתיחה",()=>{
+  /* הרגרסיה האמיתית: מורה שהזין מערכת בגרסה הקודמת, ואחרי העדכון
+     אף שיעור שלו לא היה נפתח — כי לא היה לו שדה kind. */
+  const legacy={id:"x",day:0,time:"09:00",cid:"c:ט:3",clsSnapshot:"ט׳3"};
+  assert.equal(D.kindOf(legacy),"pe");
+  assert.equal(D.startable(legacy),true);
+  assert.equal(D.schedToday([legacy],"2026-09-13",[])[0].startable,true);
+});
