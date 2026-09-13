@@ -7499,8 +7499,18 @@ const PF=(function(){
     const paintLag=d=>{ $("#pf-gunLag").textContent=
       d>0?"קיזוז "+(d/343*1000).toFixed(0)+" מ״ש":"בלי קיזוז"; };
     const onDist=e=>{ const d=Math.max(0,+e.target.value||0); LS.set("pf.gunDist",d); paintLag(d); };
-    $("#pf-gunDist").addEventListener("input",onDist);
-    $("#pf-gunDist").addEventListener("change",onDist);
+    const dist=$("#pf-gunDist");
+    dist.addEventListener("input",onDist);
+    dist.addEventListener("change",onDist);
+    /* השדה נושא 0 כברירת מחדל, והקלדה לתוכו נדבקה אחריו: «5» הפך
+       ל-«05». הקיזוז אמנם חושב נכון, אבל המורה ראה מספר שלא הקליד
+       והסיק שהשדה לא מגיב. מיקוד מרוקן אפס כדי שההקלדה תתחיל נקייה,
+       ובוחר ערך קיים כדי שהקלדה תחליף אותו ולא תיצמד אליו. */
+    dist.addEventListener("focus",()=>{
+      if(+dist.value===0)dist.value="";
+      else{ try{ dist.select(); }catch(e){} }
+    });
+    dist.addEventListener("blur",()=>{ if(dist.value.trim()==="")dist.value=0; });
     paintLag(LS.get("pf.gunDist",0));
     /* טעינת כיתה — אותה רשימה שמשמשת את מבחני הכושר, כדי שהשמות בלוח
        התוצאות יהיו זהים לאלה שבמעקב ולא גרסה מוקלדת מחדש. המסלולים

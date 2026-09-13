@@ -218,6 +218,41 @@ module.exports={title:"פוטו־פיניש — תזמון",tests:[
       "ההסבר עדיין נגיש — רק לא בדרך שחוטפת את ההקלדה");
   }),
 
+  /* הבדיקה למטה השתמשה ב-fill, שמחליף את כל התוכן — ולכן לא ראתה
+     שהקלדה אמיתית לתוך שדה שמכיל 0 מייצרת «05». כאן מקישים מקש. */
+  check("הקלדה לתוך השדה מתחילה נקייה, ולא נדבקת לאפס שהיה בו",seed,async page=>{
+    await openPf(page);
+    const el=page.locator("#pf-gunDist");
+    eq(await el.inputValue(),"0","מתחילים מאפס");
+    await el.click(); await page.waitForTimeout(200);
+    await page.keyboard.press("5"); await page.waitForTimeout(250);
+    eq(await el.inputValue(),"5","מה שהוקלד הוא מה שרואים — לא «05»");
+    await page.keyboard.press("0"); await page.waitForTimeout(200);
+    eq(await el.inputValue(),"50","וההמשך נבנה כרגיל");
+    eq(await page.evaluate(()=>window.HM.LS.get("pf.gunDist",null)),50);
+  }),
+
+  check("מיקוד על ערך קיים בוחר אותו, כדי שהקלדה תחליף ולא תיצמד",seed,async page=>{
+    await openPf(page);
+    const el=page.locator("#pf-gunDist");
+    await el.fill("34");
+    await page.evaluate(()=>document.getElementById("pf-gunDist").blur());
+    await page.waitForTimeout(200);
+    await el.click(); await page.waitForTimeout(200);
+    await page.keyboard.press("7"); await page.waitForTimeout(250);
+    eq(await el.inputValue(),"7","הערך הקודם הוחלף, לא הורחב ל«347»");
+  }),
+
+  check("יציאה משדה ריק מחזירה אפס ולא משאירה חור",seed,async page=>{
+    await openPf(page);
+    const el=page.locator("#pf-gunDist");
+    await el.click(); await page.waitForTimeout(200);
+    eq(await el.inputValue(),"","המיקוד ריקן את האפס");
+    await page.evaluate(()=>document.getElementById("pf-gunDist").blur());
+    await page.waitForTimeout(250);
+    eq(await el.inputValue(),"0","ויציאה בלי הקלדה מחזירה אותו");
+  }),
+
   check("מרחק האקדח ניתן לשינוי, והקיזוז מתעדכן תוך כדי הקלדה",seed,async page=>{
     await openPf(page);
     const pill=()=>page.textContent("#pf-gunLag");
