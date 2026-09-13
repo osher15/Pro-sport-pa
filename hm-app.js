@@ -215,7 +215,11 @@ function go(mod){
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
-  if(mod==="home")homeStats();
+  if(mod==="home"){ homeStats();
+    /* דף הבית קורא את מצב השיעור בכל כניסה. אין מנגנון אירועים בין
+       המודולים, ולכן זו הנקודה שבה «התחלתי שיעור בכיתה אחרת» הופך
+       לנראה — במקום מסך שמראה מצב ישן. */
+    paintHome(); }
   updateBack(); wireTips();
   if(window.I18N)window.I18N.applyDom();
   /* המסך האחרון נשמר כדי שרענון או חזרה לאפליקציה יחזירו אותך לאן
@@ -466,7 +470,10 @@ const SESSION={
     const r=DATA.completeSession(sesAll(),id);
     if(r.ok&&r.outcome==="completed"&&!sesSave(r.list))
       return {ok:false,outcome:"not-saved",session:null};
-    if(r.ok)paintSessionBar();
+    /* סיום שיעור משנה גם את דף הבית — המשבצת מסומנת וכרטיס
+       «השיעור האחרון» נפתח. בלי זה מורה שסיים שיעור בעודו בדף
+       הבית היה רואה מצב ישן עד שייצא ויחזור. */
+    if(r.ok){ paintSessionBar(); paintHome(); }
     return r;
   },
   resume:()=>DATA.resumeSession(sesAll()),
@@ -632,6 +639,213 @@ function wireSessionBar(){
   });
   paintSessionBar();
 }
+
+
+/* ============================================================
+   מערכת שעות — מתאם האחסון והמסך
+   ------------------------------------------------------------
+   הלוגיקה ב-hm-data.js וטהורה. כאן הקריאה והכתיבה, והמסך.
+
+   התאריך נלקח כמו בכל שאר האפליקציה (toISOString) כדי שהשוואה
+   מול תאריך השיעור תעבוד. זה אומר שבין חצות לשלוש לפנות בוקר
+   «היום» עדיין אתמול — ידוע, ועדיף על שני מושגי תאריך שונים
+   באותה אפליקציה.
+   ============================================================ */
+const SCHED_KEY="sched.week";
+const isoToday=()=>new Date().toISOString().slice(0,10);
+const minNow=()=>{ const d=new Date(); return d.getHours()*60+d.getMinutes(); };
+function schedAll(){ const v=LS.get(SCHED_KEY,[]); return Array.isArray(v)?v:[]; }
+function schedSave(list){
+  const ok=LS.set(SCHED_KEY,list);
+  if(!ok)toast("⚠ מערכת השעות לא נשמרה במכשיר — ראה את ההודעה למעלה");
+  return ok;
+}
+const SCHED={
+  all:schedAll,
+  list:opts=>DATA.schedList(schedAll(),opts),
+  today:(iso,nowMin)=>DATA.schedToday(schedAll(),iso||isoToday(),sesAll(),
+    nowMin==null?minNow():nowMin),
+  next:(iso,nowMin)=>DATA.schedNext(schedAll(),iso||isoToday(),sesAll(),
+    nowMin==null?minNow():nowMin),
+  add(o){
+    const r=DATA.schedAdd(schedAll(),o);
+    if(r.ok&&r.outcome==="added"&&!schedSave(r.list))
+      return {ok:false,outcome:"not-saved",slot:null};
+    return r;
+  },
+  remove(id){ const r=DATA.schedRemove(schedAll(),id); if(r.ok)schedSave(r.list); return r; }
+};
+
+/* ============================================================
+   «השיעורים שלי היום»
+   ------------------------------------------------------------
+   השאלה שדף הבית לא ידע לענות עליה עד עכשיו. שורה לכל שיעור,
+   וכפתור אחד שפותח אותו — אותו SESSION.start שבו משתמשים בורר
+   הכיתה ומערך השיעור, ולא העתק שלישי שלו.
+   ============================================================ */
+function startFromSlot(slot){
+  /* הכיתה כבר רשומה כמעט תמיד — המשבצת נוצרה דרך resolveClassId.
+     רושמים רק כשהמזהה אינו מוכר, ואף פעם לא «ליתר ביטחון»: רישום
+     לפי צילום שם ישן של כיתה ששונתה היה יוצר כיתה שנייה. */
+  try{ if(!DATA.classOf(REGSTORE,slot.cid))
+    DATA.registerClass(REGSTORE,slot.clsSnapshot||""); }catch(e){}
+  const r=SESSION.start({cid:slot.cid,clsSnapshot:slot.clsSnapshot||"",
+    date:isoToday(),planTitle:slot.topic||""});
+  if(r.outcome==="blocked"){
+    toast("כבר פתוח שיעור בכיתה "+sesName(r.active)+" — סיים אותו קודם");
+    return;
+  }
+  if(!r.ok){ toast("לא ניתן לפתוח שיעור"); return; }
+  paintSessionBar();
+  toast(r.outcome==="resumed"?"השיעור כבר פתוח":"▶ השיעור בכיתה "+
+    (slot.clsSnapshot||"")+" התחיל");
+  paintHome();
+}
+/* שם הכיתה של משבצת — מהרישום, כדי ששינוי שם יופיע גם כאן */
+function slotName(sl){
+  try{ const c=DATA.classOf(REGSTORE,sl.cid); if(c&&c.name)return c.name; }catch(e){}
+  return sl.clsSnapshot||sl.cid||"";
+}
+/* שני הבלוקים של דף הבית נצבעים יחד — הם שני קצוות של אותה זרימה */
+function paintHome(){
+  try{ paintToday(); paintLastLesson(); }catch(e){}
+}
+function paintToday(){
+  const box=$("#hx-todayList"); if(!box)return;
+  const rows=SCHED.today();
+  if(!SCHED.list().length){
+    box.innerHTML='<div class="hx-empty">עדיין לא הגדרת מערכת שעות.<br>'+
+      'דקה אחת של הגדרה, ומאז דף הבית פותח על הכיתה שמחכה לך.'+
+      '<div style="margin-top:10px"><button class="btn sm acc" id="hx-schedFirst">🗓 הגדר עכשיו</button></div></div>';
+    const b=$("#hx-schedFirst"); if(b)b.addEventListener("click",openSched);
+    return;
+  }
+  if(!rows.length){
+    box.innerHTML='<div class="hx-empty">אין שיעורים היום ('+
+      esc(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"")+').<br>'+
+      'המערכת מוגדרת — היום פשוט פנוי.</div>';
+    return;
+  }
+  const nx=SCHED.next();
+  box.innerHTML=rows.map(r=>{
+    const sl=r.slot, up=nx&&nx.slot.id===sl.id;
+    const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
+                r.status==="done"?'<span class="pill">✓ התקיים</span>':
+                r.now?'<span class="pill acc">עכשיו</span>':"";
+    const ms=r.session?SESSION.measurements(r.session.id).length:0;
+    return '<div class="hx-slot'+(up?" up":"")+(r.status==="done"?" done":"")+'">'+
+      '<div class="tm">'+esc(sl.time)+'</div>'+
+      '<div class="tx"><b>'+esc(slotName(sl))+'</b> '+badge+
+        '<span>'+(sl.topic?esc(sl.topic):"בלי נושא מוגדר")+
+        (ms?" · "+ms+" מדידות":"")+'</span></div>'+
+      (r.status==="planned"
+        ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
+        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">📖 היסטוריה</button>')+
+      '</div>';
+  }).join("");
+  $$("#hx-todayList [data-slot]").forEach(b=>b.addEventListener("click",()=>{
+    const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
+    if(sl)startFromSlot(sl);
+  }));
+  $$("#hx-todayList [data-cls]").forEach(b=>b.addEventListener("click",()=>
+    openSesHist()));
+}
+
+/* «השיעור האחרון» — הקצה השני של אותה זרימה: מה שקרה בפעם שעברה,
+   כדי שהשיעור הבא לא יתחיל מדף ריק. */
+function paintLastLesson(){
+  const card=$("#hx-last"); if(!card)return;
+  const done=SESSION.list({status:DATA.SESSION_DONE})[0];
+  if(!done){ card.hidden=true; return; }
+  card.hidden=false;
+  const ms=SESSION.measurements(done.id).length;
+  const note=done.note?'<div class="nt">“'+esc(done.note)+'”</div>':"";
+  $("#hx-lastBody").innerHTML=
+    '<div class="hx-slot"><div class="tx"><b>'+esc(sesName(done))+'</b> '+
+      (done.rating!=null?'<span class="pill">'+esc(RATING_LABEL[String(done.rating)]||"")+'</span>':"")+
+      '<span>'+esc(done.date)+(done.planTitle?" · "+esc(done.planTitle):"")+
+      ' · '+(ms?ms+" מדידות":"בלי מדידות")+'</span></div>'+
+      '<button class="btn sm ghost" data-cls="'+esc(done.cid)+'">מסך הכיתה</button></div>'+note;
+  $$("#hx-lastBody [data-cls]").forEach(b=>b.addEventListener("click",()=>
+    openSesHist()));
+}
+
+/* ---------- עריכת מערכת השעות ---------- */
+function renderSchedEditor(){
+  const box=$("#sw-list"); if(!box)return;
+  const all=SCHED.list();
+  if(!all.length){
+    box.innerHTML='<div class="empty-state" style="padding:14px"><div class="big">🗓</div>'+
+      'המערכת ריקה.<br>הוסף שיעור אחד — הוא יחזור כל שבוע.</div>';
+    return;
+  }
+  let cur=-1, html="";
+  all.forEach(sl=>{
+    if(sl.day!==cur){ cur=sl.day; html+='<div class="sw-day">'+esc(DATA.DAYS_HE[cur])+'</div>'; }
+    html+='<div class="arc-item"><div class="tm mono" style="min-width:46px">'+esc(sl.time)+'</div>'+
+      '<div class="grow"><div class="ttl">'+esc(slotName(sl))+'</div>'+
+      (sl.topic?'<div class="sb">'+esc(sl.topic)+'</div>':"")+'</div>'+
+      '<button class="btn sm ghost" data-del="'+esc(sl.id)+'">🗑</button></div>';
+  });
+  box.innerHTML='<div class="hint">'+all.length+' שיעורים בשבוע.</div>'+html;
+  $$("#sw-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
+    SCHED.remove(b.dataset.del); renderSchedEditor(); paintToday();
+  }));
+}
+function openSched(){
+  const d=$("#sw-day"), g=$("#sw-grade"), n=$("#sw-num"), h=$("#sw-hour");
+  /* «שיעור שלישי» הוא איך שמורה חושב; השעה היא מה שהמערכת צריכה.
+     הבורר ממלא את השעה, ומי שרוצה שעה אחרת פשוט מקליד אותה. */
+  if(h&&!h.options.length)
+    h.innerHTML='<option value="">—</option>'+DATA.BELLS.map(b=>
+      '<option value="'+b.h+'">שיעור '+b.h+' · '+b.s+'</option>').join("");
+  if(d&&!d.options.length)
+    d.innerHTML=DATA.DAYS_HE.map((nm,i)=>'<option value="'+i+'">'+nm+'</option>').join("");
+  if(g&&!g.options.length)
+    g.innerHTML=DATA.GRADES.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join("");
+  if(n&&!n.options.length)
+    n.innerHTML=DATA.NUMS.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
+  if(d)d.value=String(DATA.dayOfISO(isoToday())||0);
+  renderSchedEditor();
+  modal("schedModal",true);
+}
+function wireSched(){
+  const e=$("#hx-schedEdit"); if(e)e.addEventListener("click",openSched);
+  const hr=$("#sw-hour");
+  if(hr)hr.addEventListener("change",()=>{
+    const b=DATA.bellByHour(+hr.value);
+    if(b)$("#sw-time").value=b.s;
+  });
+  /* שעה שהוקלדה ביד ומתאימה לצלצול — הבורר מתיישר אליה, כדי ששני
+     השדות לא יספרו שני סיפורים */
+  const tm=$("#sw-time");
+  if(tm)tm.addEventListener("input",()=>{
+    const b=DATA.bellOfTime(tm.value);
+    if($("#sw-hour"))$("#sw-hour").value=b?String(b.h):"";
+  });
+  const h=$("#hx-lastHist"); if(h)h.addEventListener("click",openSesHist);
+  const add=$("#sw-add"); if(!add)return;
+  add.addEventListener("click",()=>{
+    const g=$("#sw-grade").value, n=+$("#sw-num").value;
+    const label=DATA.clsName(g,n);
+    const cid=DATA.resolveClassId(REGSTORE,label,true);
+    const r=SCHED.add({day:+$("#sw-day").value,time:$("#sw-time").value,
+      cid,clsSnapshot:label,topic:$("#sw-topic").value.trim()});
+    if(!r.ok){
+      toast({"bad-time":"שעה לא תקינה — למשל 09:00",
+             "bad-day":"בחר יום","no-class":"בחר כיתה",
+             "full":"המערכת מלאה","not-saved":"לא נשמר במכשיר"}[r.outcome]||"לא נוסף");
+      return;
+    }
+    toast(r.outcome==="duplicate"?"השיעור הזה כבר במערכת":"✓ נוסף למערכת");
+    $("#sw-topic").value="";
+    renderSchedEditor(); paintToday();
+  });
+}
+
+/* תוויות המשוב על שיעור. חיות כאן ולא בשכבת הנתונים: הדירוג הוא
+   מספר, והמילה שמתארת אותו היא החלטת ממשק. */
+const RATING_LABEL={"1":"👍 עבד מצוין","0":"😐 בינוני","-1":"👎 לא עבד"};
 
 /* ============================================================
    גיבוי ושחזור
@@ -3802,6 +4016,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
+  sched:SCHED,paintToday,paintHome,openSched,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -3849,6 +4064,7 @@ window.HMBoot=function(){
     if(mod&&mod!=="home"){ inited[mod]&&go(mod); }
   });
   wireSessionBar();
+  wireSched();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */

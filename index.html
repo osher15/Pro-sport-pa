@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=a261d8c2">
-<script src="hm-data.js?v=bf751979"></script>
+<link rel="stylesheet" href="hm-styles.css?v=311923cc">
+<script src="hm-data.js?v=69c75e9f"></script>
 <script src="hm-i18n.js?v=97238b01"></script>
-<script src="hm-app.js?v=dccbd52e"></script>
+<script src="hm-app.js?v=74825d8e"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -46,6 +46,11 @@
     <div class="kick" id="hx-date" dir="auto">—</div>
     <h1><span data-i18n="home.greet">בוקר טוב,</span><br><b data-i18n="home.coach">המאמן.</b></h1>
   </div>
+  <div class="hx-today" id="hx-today">
+    <div class="top"><b data-i18n="home.today">השיעורים שלי היום</b>
+      <button class="btn sm ghost" id="hx-schedEdit" data-i18n="home.schedEdit">🗓 מערכת שעות</button></div>
+    <div id="hx-todayList"></div>
+  </div>
   <div class="scoreband">
     <div class="sb"><div class="n" id="qsRuns">0</div><div class="l" data-i18n="home.statRuns">מקצים נמדדו</div></div>
     <div class="div"></div>
@@ -66,6 +71,11 @@
       <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
       <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+  </div>
+  <div class="hx-last" id="hx-last" hidden>
+    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
+      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
+    <div id="hx-lastBody"></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -1716,6 +1726,22 @@
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div class="modal" id="schedModal"><div class="box" style="max-width:560px">
+  <h3>🗓 <span>מערכת שעות</span><button class="x" data-close="schedModal">✕</button></h3>
+  <div class="hint">מה שנקבע כאן חוזר כל שבוע. הוא לא יוצר שיעור — הוא רק אומר לדף הבית מה מחכה לך היום.</div>
+  <div class="row" style="margin-top:11px">
+    <div class="field" style="width:120px"><label>יום</label><select id="sw-day"></select></div>
+    <div class="field" style="width:132px"><label>שיעור</label><select id="sw-hour"></select></div>
+    <div class="field" style="width:96px"><label>שעה</label>
+      <input type="text" id="sw-time" inputmode="numeric" dir="ltr" placeholder="09:00" value="09:00" style="text-align:right"></div>
+    <div class="field" style="width:104px"><label>שכבה</label><select id="sw-grade"></select></div>
+    <div class="field" style="width:88px"><label>כיתה</label><select id="sw-num"></select></div>
+  </div>
+  <div class="field" style="margin-top:9px"><label>נושא (רשות)</label>
+    <input type="text" id="sw-topic" placeholder="כדורסל — מסירה"></div>
+  <button class="btn acc" id="sw-add" style="margin-top:11px">+ הוסף למערכת</button>
+  <div id="sw-list" style="margin-top:13px"></div>
+</div></div>
 <div class="modal" id="lsHistModal"><div class="box" style="max-width:640px">
   <h3>📖 <span>היסטוריית שיעורים</span><button class="x" data-close="lsHistModal">✕</button></h3>
   <div id="lsHistBody"></div>

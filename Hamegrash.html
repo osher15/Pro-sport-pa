@@ -443,6 +443,40 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .scoreband .sb .n{font-family:'Share Tech Mono';font-size:clamp(22px,6.4vw,32px);line-height:1;font-variant-numeric:tabular-nums}
 .scoreband .sb .l{font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:600}
 .scoreband .div{width:1px;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--acc) 60%,transparent),transparent);margin:2px 4px}
+/* ===== היום שלי =====
+   הבלוק הראשון שהמורה רואה. הוא עונה על «מה אני עושה עכשיו»,
+   ולכן הוא יושב מעל האריחים ולא מתחתם. */
+.hx-today,.hx-last{margin:14px 0;border:1px solid var(--line);border-radius:16px;padding:13px 14px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 13%,var(--panel)),var(--panel))}
+.hx-last{background:linear-gradient(120deg,color-mix(in srgb,var(--muted) 12%,var(--panel)),var(--panel))}
+.hx-today>.top,.hx-last>.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.hx-today>.top b,.hx-last>.top b{font-weight:600;font-size:14px}
+.hx-empty{color:var(--muted);font-size:12.5px;line-height:1.65;text-align:center;padding:10px 4px}
+.hx-slot{display:flex;align-items:center;gap:11px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.hx-slot:last-child{margin-bottom:0}
+/* השיעור הבא בתור מסומן — מורה שמסתכל בחטף צריך לזהות אותו בלי לקרוא */
+.hx-slot.up{border-color:var(--acc);box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 35%,transparent)}
+.hx-slot.done{opacity:.62}
+.hx-slot .tm{font-family:'Share Tech Mono';font-size:15px;font-variant-numeric:tabular-nums;
+  color:var(--acc);min-width:46px;text-align:center}
+.hx-slot.done .tm{color:var(--muted)}
+.hx-slot .tx{flex:1;min-width:0}
+.hx-slot .tx b{font-weight:600;font-size:14.5px}
+/* שורת המשנה בלבד. בלי :not() התגית תופסת גם את התווית «פעיל»
+   והופכת אותה לפס ברוחב מלא — הפרש שאף בדיקה לא רואה, ומורה כן. */
+.hx-slot .tx>span:not(.pill){display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+.hx-slot .btn{flex:none}
+.hx-last .nt{margin-top:8px;font-size:12.5px;color:var(--ink);line-height:1.6;
+  border-inline-start:3px solid var(--line);padding-inline-start:9px}
+.sw-day{font-weight:600;font-size:12.5px;color:var(--acc);margin:12px 0 6px}
+.sw-day:first-child{margin-top:2px}
+/* מסך צר: השעה והכפתור נשארים, הכותרת מתכווצת ולא דוחפת החוצה */
+@media(max-width:430px){
+  .hx-slot{gap:8px;padding:9px 10px}
+  .hx-slot .tm{min-width:40px;font-size:14px}
+  .hx-slot .tx b{font-size:13.5px}
+}
 .hx-mods{display:flex;flex-direction:column;gap:11px}
 @media(min-width:760px){.hx-mods{display:grid;grid-template-columns:1fr 1fr}.hx-mod.primary{grid-column:1/-1}}
 .hx-mod{display:flex;align-items:center;gap:15px;background:linear-gradient(90deg,var(--panel2),var(--panel) 60%);
@@ -1363,6 +1397,11 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <div class="kick" id="hx-date" dir="auto">—</div>
     <h1><span data-i18n="home.greet">בוקר טוב,</span><br><b data-i18n="home.coach">המאמן.</b></h1>
   </div>
+  <div class="hx-today" id="hx-today">
+    <div class="top"><b data-i18n="home.today">השיעורים שלי היום</b>
+      <button class="btn sm ghost" id="hx-schedEdit" data-i18n="home.schedEdit">🗓 מערכת שעות</button></div>
+    <div id="hx-todayList"></div>
+  </div>
   <div class="scoreband">
     <div class="sb"><div class="n" id="qsRuns">0</div><div class="l" data-i18n="home.statRuns">מקצים נמדדו</div></div>
     <div class="div"></div>
@@ -1383,6 +1422,11 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
     <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
       <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
+  </div>
+  <div class="hx-last" id="hx-last" hidden>
+    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
+      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
+    <div id="hx-lastBody"></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -3033,6 +3077,22 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <div class="tblwrap" id="pf-splitBody"></div>
 </div></div>
 
+<div class="modal" id="schedModal"><div class="box" style="max-width:560px">
+  <h3>🗓 <span>מערכת שעות</span><button class="x" data-close="schedModal">✕</button></h3>
+  <div class="hint">מה שנקבע כאן חוזר כל שבוע. הוא לא יוצר שיעור — הוא רק אומר לדף הבית מה מחכה לך היום.</div>
+  <div class="row" style="margin-top:11px">
+    <div class="field" style="width:120px"><label>יום</label><select id="sw-day"></select></div>
+    <div class="field" style="width:132px"><label>שיעור</label><select id="sw-hour"></select></div>
+    <div class="field" style="width:96px"><label>שעה</label>
+      <input type="text" id="sw-time" inputmode="numeric" dir="ltr" placeholder="09:00" value="09:00" style="text-align:right"></div>
+    <div class="field" style="width:104px"><label>שכבה</label><select id="sw-grade"></select></div>
+    <div class="field" style="width:88px"><label>כיתה</label><select id="sw-num"></select></div>
+  </div>
+  <div class="field" style="margin-top:9px"><label>נושא (רשות)</label>
+    <input type="text" id="sw-topic" placeholder="כדורסל — מסירה"></div>
+  <button class="btn acc" id="sw-add" style="margin-top:11px">+ הוסף למערכת</button>
+  <div id="sw-list" style="margin-top:13px"></div>
+</div></div>
 <div class="modal" id="lsHistModal"><div class="box" style="max-width:640px">
   <h3>📖 <span>היסטוריית שיעורים</span><button class="x" data-close="lsHistModal">✕</button></h3>
   <div id="lsHistBody"></div>
@@ -4378,16 +4438,22 @@ function createSession(list,o){
 }
 
 /* סיום מפורש. הרשומה נשארת בהיסטוריה — הסיום מסמן, לא מוחק. */
-function completeSession(list,id,now){
+function completeSession(list,id,now,o){
+  o=o||{};
   var all=asList(list);
   var ses=sessionById(all,id);
   if(!ses)return {ok:false,outcome:"not-found",list:all,session:null};
   if(ses.status===SESSION_DONE)
     return {ok:true,outcome:"already-completed",list:all,session:ses};
   var t=now||Date.now();
+  /* דירוג והערה הם רשות. שיעור שנסגר בלעדיהם נשאר שיעור תקין —
+     הם מוסיפים מה קרה, לא מכשירים את הסיום. */
+  var rate=(o.rating===1||o.rating===0||o.rating===-1)?o.rating:null;
+  var note=String(o.note==null?"":o.note).trim().slice(0,600);
   var out=all.map(function(x){
     if(!x||x.id!==id)return x;
-    return Object.assign({},x,{status:SESSION_DONE,endedAt:t});
+    return Object.assign({},x,{status:SESSION_DONE,endedAt:t,
+      rating:rate,note:note});
   });
   return {ok:true,outcome:"completed",list:out,session:sessionById(out,id)};
 }
@@ -4417,6 +4483,275 @@ function sessionMeasurements(rows,sessionId){
     .sort(function(a,b){
       return (String(a.d||"").localeCompare(String(b.d||"")))||((a.ts||0)-(b.ts||0));
     });
+}
+
+/* ============================================================
+   לוח הצלצולים
+   ------------------------------------------------------------
+   מורה לא חושב «09:45» אלא «שיעור שלישי». הלוח הזה הועתק מאפליקציית
+   התוכנית השנתית, שבה הוא הועתק מלוח הצלצולים בחדר המורים — ולכן
+   הוא ברירת מחדל סבירה ולא המצאה. הוא משמש לשני דברים בלבד:
+   למלא שעה כשבוחרים מספר שיעור, ולדעת מתי שיעור **מתקיים עכשיו**.
+
+   משבצת שנקבעה בשעה חופשית עובדת בדיוק כמו קודם; הצלצולים הם קיצור,
+   לא דרישה.
+   ============================================================ */
+var BELLS=[
+  {h:1,s:"08:10",e:"08:55"},{h:2,s:"09:00",e:"09:45"},
+  {h:3,s:"09:45",e:"10:30"},{h:4,s:"10:50",e:"11:35"},
+  {h:5,s:"11:40",e:"12:25"},{h:6,s:"12:35",e:"13:20"},
+  {h:7,s:"13:25",e:"14:10"},{h:8,s:"14:15",e:"15:00"},
+  {h:9,s:"15:10",e:"15:55"},{h:10,s:"16:00",e:"16:45"}
+];
+var SLOT_DEFAULT_MIN=45;   /* אורך שיעור כשאין צלצול תואם */
+function bellByHour(h){
+  for(var i=0;i<BELLS.length;i++)if(BELLS[i].h===+h)return BELLS[i];
+  return null;
+}
+/* השיעור שמתחיל בשעה הזאת, אם יש כזה */
+function bellOfTime(time){
+  var t=timeMin(time); if(t==null)return null;
+  for(var i=0;i<BELLS.length;i++)if(timeMin(BELLS[i].s)===t)return BELLS[i];
+  return null;
+}
+/* חלון הזמן של משבצת בדקות. הצלצול קודם; אחרת 45 דקות מהשעה. */
+function slotWindow(sl){
+  var from=timeMin(sl&&sl.time);
+  if(from==null)return null;
+  var b=bellOfTime(sl.time);
+  return {from:from,to:b?timeMin(b.e):from+SLOT_DEFAULT_MIN};
+}
+function slotNow(sl,nowMin){
+  if(!isNum(nowMin))return false;
+  var w=slotWindow(sl);
+  return !!w&&nowMin>=w.from&&nowMin<w.to;
+}
+
+/* ============================================================
+   5ג. תוצאת שיעור והמשך מומלץ
+   ------------------------------------------------------------
+   עד עכשיו שיעור שהסתיים סיפר רק שהוא התקיים. «מה קרה בו» נשאר
+   בראש של המורה, ולכן ההיסטוריה לא יכלה לעזור לשיעור הבא.
+
+   שני שדות סוגרים את זה: דירוג (1 / 0 / ‎-1) והערה חופשית. שיעורים
+   שנרשמו לפני התוספת נשארים תקפים — הקריאה מגוננת, ואין מיגרציה.
+
+   ההמלצה שנבנית מהם היא **כללים, לא מודל.** אין קריאת רשת, אין
+   מפתח API ואין ניחוש: סולם התקדמות קבוע, וצעד עולה, נשאר או יורד
+   לפי מה שהמורה סימן. כל המלצה נושאת את הסיבות שהובילו אליה, כי
+   המלצה שנשמעת חכמה ואי אפשר לבדוק אותה גרועה מהיעדר המלצה.
+   ============================================================ */
+var RATING_UP=1, RATING_MID=0, RATING_DOWN=-1;
+/* סולם ההתקדמות — אותו סולם לכל נושא, כי הוא מתאר **איך** מלמדים
+   ולא **מה**. תוכן ספציפי לענף הוא החלטת המורה, לא של האפליקציה. */
+var LADDER=[
+  "הקניה — תרגול במקום, קצב אישי",
+  "תרגול בזוגות",
+  "ביצוע בתנועה",
+  "משחק מצומצם 3 נגד 3",
+  "משחק מלא עם כללים"
+];
+function ratingOf(s){
+  var r=s&&s.rating;
+  return (r===1||r===0||r===-1)?r:null;
+}
+function topicOf(s){ return String((s&&s.planTitle)||"").trim(); }
+
+/* כמה שיעורים אחורה נמשך אותו נושא, ובאיזה שלב בסולם הכיתה נמצאת.
+   השלב נבנה מהישן לחדש: 👍 מקדם, 😐 משאיר, 👎 מחזיר צעד. */
+function ladderStage(list){
+  var top=topicOf(list[0]), n=0, i;
+  if(!top)return {topic:"",streak:0,stage:0};
+  for(i=0;i<list.length;i++){ if(topicOf(list[i])!==top)break; n++; }
+  var stage=0;
+  for(i=n-1;i>=0;i--){
+    var r=ratingOf(list[i]);
+    if(r===RATING_UP)stage++;
+    else if(r===RATING_DOWN)stage--;
+  }
+  if(stage<0)stage=0;
+  if(stage>LADDER.length-1)stage=LADDER.length-1;
+  return {topic:top,streak:n,stage:stage};
+}
+
+/* ההמלצה. מקבלת את כל השיעורים ואת שורות המדידה, ומחזירה הצעה
+   אחת עם הנימוקים שלה — או ok:false עם סיבה מפורשת. */
+var NEXT_MEASURE_GAP=4;   /* שיעורים בלי מדידה עד שמזכירים */
+function nextLesson(sessions,opts){
+  opts=opts||{};
+  var list=listSessions(sessions,{cid:opts.cid,status:SESSION_DONE});
+  if(!list.length)return {ok:false,reason:"no-history"};
+  var last=list[0];
+  var lad=ladderStage(list);
+  var why=[], steps=[];
+
+  if(!lad.topic)
+    return {ok:false,reason:"no-topic",session:last};
+
+  var r=ratingOf(last);
+  var stage=lad.stage;
+  if(r===RATING_DOWN){
+    why.push("בשיעור הקודם סימנת «לא עבד» — חוזרים צעד אחורה במקום להמשיך הלאה");
+  }else if(r===RATING_UP){
+    why.push("סימנת «עבד מצוין» — מתקדמים לשלב הבא");
+  }else if(r===RATING_MID){
+    why.push("סימנת «בינוני» — אותו שלב, בגיוון אחר");
+  }else{
+    why.push("לא סומן משוב על השיעור הקודם — ההצעה נשענת על הנושא בלבד");
+  }
+  if(lad.streak>=3)
+    why.push(lad.streak+" שיעורים ברצף על «"+lad.topic+"» — כדאי לשקול נושא חדש אחרי השיעור הזה");
+
+  steps.push(LADDER[stage]);
+  if(stage+1<LADDER.length)steps.push(LADDER[stage+1]);
+  if(stage+2<LADDER.length)steps.push(LADDER[stage+2]);
+
+  /* מדידה: לא המלצה פדגוגית אלא תזכורת מנהלית — כיתה בלי מדידה
+     לאורך זמן היא כיתה שאי אפשר יהיה לתת עליה ציון. */
+  var measure=false;
+  if(opts.rows){
+    var since=0, i;
+    for(i=0;i<list.length&&i<NEXT_MEASURE_GAP;i++){
+      if(sessionMeasurements(opts.rows,list[i].id).length)break;
+      since++;
+    }
+    if(since>=NEXT_MEASURE_GAP){
+      measure=true;
+      why.push(since+" שיעורים ללא מדידה — שווה לשלב מדידה אחת בשיעור הבא");
+    }
+  }
+  return {ok:true,topic:lad.topic,stage:stage,streak:lad.streak,
+    rating:r,note:String(last.note||""),session:last,
+    title:lad.topic,steps:steps,why:why,measure:measure};
+}
+
+/* ============================================================
+   5ב. מערכת שעות
+   ------------------------------------------------------------
+   «מה אני עושה עכשיו» היא השאלה שמורה שואל כשהוא פותח את
+   האפליקציה בשער בית הספר, והיא היחידה שלא היה לאפליקציה שום
+   נתון כדי לענות עליה. היא ידעה מי התלמידים, מה נמדד ומה תוכנן —
+   ולא ידעה שביום שלישי ב-09:00 יש ט׳3.
+
+   המודל הוא הדבר הקטן ביותר שעונה על זה: משבצת נושאת יום בשבוע,
+   שעה וכיתה. לא תאריך — משבצת חוזרת כל שבוע, וזאת בדיוק ההבחנה
+   בין מערכת שעות לבין יומן. שיעור שהתקיים הוא LessonSession
+   נפרד; המשבצת לא יודעת עליו דבר ולא נכתבת כשהוא נפתח.
+
+   שבוע ישראלי: 0=ראשון … 6=שבת.
+
+   הכול טהור: מקבל רשימה, מחזיר רשימה חדשה. אין אחסון, אין DOM.
+   ============================================================ */
+var SCHED_MAX=120;   /* גבול שפוי: 6 ימים × 20 שיעורים */
+var DAYS_HE=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+
+function newSlotId(){
+  return "sl"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+}
+/* "09:00" → 540. כל מה שאינו שעה תקפה מחזיר null, ולא 0 —
+   חצות ושעה פגומה חייבות להיות שתי תשובות שונות. */
+function timeMin(s){
+  var m=/^\s*(\d{1,2}):(\d{2})\s*$/.exec(String(s==null?"":s));
+  if(!m)return null;
+  var h=+m[1], mi=+m[2];
+  if(h>23||mi>59)return null;
+  return h*60+mi;
+}
+function fmtTime(min){
+  if(!isNum(min)||min<0)return "";
+  var h=Math.floor(min/60)%24, m=Math.round(min%60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+function validSlot(s){
+  return !!(s&&typeof s==="object"&&s.id&&s.cid&&
+    isNum(s.day)&&s.day>=0&&s.day<=6&&timeMin(s.time)!=null);
+}
+/* הרשימה תמיד ממוינת לפי יום ואז שעה. מיון במקום אחד — כל קורא
+   מקבל את אותו סדר, ואף מסך לא ממיין לעצמו. */
+function schedList(list,opts){
+  opts=opts||{};
+  var all=asList(list).filter(validSlot);
+  if(opts.cid)all=all.filter(function(s){ return s.cid===opts.cid; });
+  if(isNum(opts.day))all=all.filter(function(s){ return s.day===opts.day; });
+  return all.slice().sort(function(a,b){
+    return (a.day-b.day)||(timeMin(a.time)-timeMin(b.time));
+  });
+}
+/* הוספה. משבצת כפולה — אותה כיתה, אותו יום, אותה שעה — נדחית:
+   מורה שלחץ פעמיים לא התכוון לשני שיעורים באותה דקה. */
+function schedAdd(list,o){
+  o=o||{};
+  var all=asList(list);
+  if(!o.cid)return {ok:false,outcome:"no-class",list:all,slot:null};
+  var t=timeMin(o.time);
+  if(t==null)return {ok:false,outcome:"bad-time",list:all,slot:null};
+  var day=+o.day;
+  if(!(day>=0&&day<=6))return {ok:false,outcome:"bad-day",list:all,slot:null};
+  var dup=schedList(all).filter(function(s){
+    return s.cid===o.cid&&s.day===day&&timeMin(s.time)===t; })[0];
+  if(dup)return {ok:true,outcome:"duplicate",list:all,slot:dup};
+  if(schedList(all).length>=SCHED_MAX)
+    return {ok:false,outcome:"full",list:all,slot:null};
+  var slot={
+    id:o.id||newSlotId(),
+    day:day,
+    time:fmtTime(t),
+    cid:o.cid,
+    /* השם כהקשר בלבד, כמו בשיעור: כיתה עשויה לשנות שם, והמשבצת
+       עדיין מצביעה על אותה כיתה דרך cid. */
+    clsSnapshot:String(o.clsSnapshot||""),
+    topic:String(o.topic||"")
+  };
+  return {ok:true,outcome:"added",slot:slot,list:all.concat([slot])};
+}
+function schedRemove(list,id){
+  var all=asList(list);
+  var out=all.filter(function(s){ return !(s&&s.id===id); });
+  return {ok:out.length!==all.length,list:out};
+}
+/* יום בשבוע מתוך תאריך ISO, בלי תלות באזור זמן: "2026-09-13"
+   הוא אותו יום בכל מכשיר. new Date(iso) לבדו מפרש UTC ולכן זז
+   ביום שלם למורה שמסתכל בערב. */
+function dayOfISO(iso){
+  var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||""));
+  if(!m)return null;
+  var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));
+  return d.getUTCDay();
+}
+/* משבצות היום, עם סימון מה כבר התקיים. ההצלבה היא לפי כיתה
+   ותאריך — לא לפי שעה: מורה שהתחיל שיעור ברבע שעה איחור עדיין
+   התחיל את אותו שיעור. */
+function schedToday(list,iso,sessions,nowMin){
+  var day=dayOfISO(iso);
+  if(day==null)return [];
+  var done={};
+  listSessions(sessions,{date:iso}).forEach(function(s){ done[s.cid]=s; });
+  return schedList(list,{day:day}).map(function(s){
+    var ses=done[s.cid]||null;
+    return {
+      slot:s,
+      session:ses,
+      /* «עכשיו» לפי השעון הוא מידע אחר מ«פתוח» לפי המורה: שיעור
+         יכול להתקיים בלי שנפתח, ולהיות פתוח אחרי שנגמר. */
+      now:slotNow(s,nowMin),
+      status:!ses?"planned":(ses.status===SESSION_ACTIVE?"active":"done")
+    };
+  });
+}
+/* המשבצת הקרובה ביותר שטרם התקיימה. «עכשיו» נמסר בדקות מחצות,
+   כדי שהפונקציה תישאר טהורה וניתנת לבדיקה בכל שעה ביום. */
+function schedNext(list,iso,sessions,nowMin){
+  var rows=schedToday(list,iso,sessions,nowMin);
+  var cur=null, act=null, up=null;
+  for(var i=0;i<rows.length;i++){
+    /* השעון קודם לכול: השיעור שמתקיים ברגע זה הוא התשובה ל«מה
+       אני עושה עכשיו», גם אם המורה עדיין לא פתח אותו. */
+    if(rows[i].now&&rows[i].status!=="done"&&!cur)cur=rows[i];
+    if(!act&&rows[i].status==="active")act=rows[i];
+    if(!up&&rows[i].status==="planned"&&
+       (nowMin==null||timeMin(rows[i].slot.time)>=nowMin-15))up=rows[i];
+  }
+  return cur||act||up||null;
 }
 
 /* ============================================================
@@ -4536,6 +4871,15 @@ return {
   newSessionId:newSessionId, createSession:createSession, activeSession:activeSession,
   sessionById:sessionById, completeSession:completeSession, resumeSession:resumeSession,
   listSessions:listSessions, sessionMeasurements:sessionMeasurements,
+  SCHED_MAX:SCHED_MAX, DAYS_HE:DAYS_HE, newSlotId:newSlotId,
+  timeMin:timeMin, fmtTime:fmtTime, validSlot:validSlot, dayOfISO:dayOfISO,
+  schedList:schedList, schedAdd:schedAdd, schedRemove:schedRemove,
+  schedToday:schedToday, schedNext:schedNext,
+  BELLS:BELLS, SLOT_DEFAULT_MIN:SLOT_DEFAULT_MIN,
+  bellByHour:bellByHour, bellOfTime:bellOfTime, slotWindow:slotWindow, slotNow:slotNow,
+  RATING_UP:RATING_UP, RATING_MID:RATING_MID, RATING_DOWN:RATING_DOWN,
+  LADDER:LADDER, NEXT_MEASURE_GAP:NEXT_MEASURE_GAP,
+  ratingOf:ratingOf, ladderStage:ladderStage, nextLesson:nextLesson,
   ASSESS_VERSION:ASSESS_VERSION, ASSESS_REASON:ASSESS_REASON, assess:assess,
   archiveNorm:archiveNorm,
   isBetter:isBetter, isNum:isNum, isValidMeasurement:isValidMeasurement,
@@ -5340,7 +5684,11 @@ function go(mod){
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
-  if(mod==="home")homeStats();
+  if(mod==="home"){ homeStats();
+    /* דף הבית קורא את מצב השיעור בכל כניסה. אין מנגנון אירועים בין
+       המודולים, ולכן זו הנקודה שבה «התחלתי שיעור בכיתה אחרת» הופך
+       לנראה — במקום מסך שמראה מצב ישן. */
+    paintHome(); }
   updateBack(); wireTips();
   if(window.I18N)window.I18N.applyDom();
   /* המסך האחרון נשמר כדי שרענון או חזרה לאפליקציה יחזירו אותך לאן
@@ -5591,7 +5939,10 @@ const SESSION={
     const r=DATA.completeSession(sesAll(),id);
     if(r.ok&&r.outcome==="completed"&&!sesSave(r.list))
       return {ok:false,outcome:"not-saved",session:null};
-    if(r.ok)paintSessionBar();
+    /* סיום שיעור משנה גם את דף הבית — המשבצת מסומנת וכרטיס
+       «השיעור האחרון» נפתח. בלי זה מורה שסיים שיעור בעודו בדף
+       הבית היה רואה מצב ישן עד שייצא ויחזור. */
+    if(r.ok){ paintSessionBar(); paintHome(); }
     return r;
   },
   resume:()=>DATA.resumeSession(sesAll()),
@@ -5757,6 +6108,213 @@ function wireSessionBar(){
   });
   paintSessionBar();
 }
+
+
+/* ============================================================
+   מערכת שעות — מתאם האחסון והמסך
+   ------------------------------------------------------------
+   הלוגיקה ב-hm-data.js וטהורה. כאן הקריאה והכתיבה, והמסך.
+
+   התאריך נלקח כמו בכל שאר האפליקציה (toISOString) כדי שהשוואה
+   מול תאריך השיעור תעבוד. זה אומר שבין חצות לשלוש לפנות בוקר
+   «היום» עדיין אתמול — ידוע, ועדיף על שני מושגי תאריך שונים
+   באותה אפליקציה.
+   ============================================================ */
+const SCHED_KEY="sched.week";
+const isoToday=()=>new Date().toISOString().slice(0,10);
+const minNow=()=>{ const d=new Date(); return d.getHours()*60+d.getMinutes(); };
+function schedAll(){ const v=LS.get(SCHED_KEY,[]); return Array.isArray(v)?v:[]; }
+function schedSave(list){
+  const ok=LS.set(SCHED_KEY,list);
+  if(!ok)toast("⚠ מערכת השעות לא נשמרה במכשיר — ראה את ההודעה למעלה");
+  return ok;
+}
+const SCHED={
+  all:schedAll,
+  list:opts=>DATA.schedList(schedAll(),opts),
+  today:(iso,nowMin)=>DATA.schedToday(schedAll(),iso||isoToday(),sesAll(),
+    nowMin==null?minNow():nowMin),
+  next:(iso,nowMin)=>DATA.schedNext(schedAll(),iso||isoToday(),sesAll(),
+    nowMin==null?minNow():nowMin),
+  add(o){
+    const r=DATA.schedAdd(schedAll(),o);
+    if(r.ok&&r.outcome==="added"&&!schedSave(r.list))
+      return {ok:false,outcome:"not-saved",slot:null};
+    return r;
+  },
+  remove(id){ const r=DATA.schedRemove(schedAll(),id); if(r.ok)schedSave(r.list); return r; }
+};
+
+/* ============================================================
+   «השיעורים שלי היום»
+   ------------------------------------------------------------
+   השאלה שדף הבית לא ידע לענות עליה עד עכשיו. שורה לכל שיעור,
+   וכפתור אחד שפותח אותו — אותו SESSION.start שבו משתמשים בורר
+   הכיתה ומערך השיעור, ולא העתק שלישי שלו.
+   ============================================================ */
+function startFromSlot(slot){
+  /* הכיתה כבר רשומה כמעט תמיד — המשבצת נוצרה דרך resolveClassId.
+     רושמים רק כשהמזהה אינו מוכר, ואף פעם לא «ליתר ביטחון»: רישום
+     לפי צילום שם ישן של כיתה ששונתה היה יוצר כיתה שנייה. */
+  try{ if(!DATA.classOf(REGSTORE,slot.cid))
+    DATA.registerClass(REGSTORE,slot.clsSnapshot||""); }catch(e){}
+  const r=SESSION.start({cid:slot.cid,clsSnapshot:slot.clsSnapshot||"",
+    date:isoToday(),planTitle:slot.topic||""});
+  if(r.outcome==="blocked"){
+    toast("כבר פתוח שיעור בכיתה "+sesName(r.active)+" — סיים אותו קודם");
+    return;
+  }
+  if(!r.ok){ toast("לא ניתן לפתוח שיעור"); return; }
+  paintSessionBar();
+  toast(r.outcome==="resumed"?"השיעור כבר פתוח":"▶ השיעור בכיתה "+
+    (slot.clsSnapshot||"")+" התחיל");
+  paintHome();
+}
+/* שם הכיתה של משבצת — מהרישום, כדי ששינוי שם יופיע גם כאן */
+function slotName(sl){
+  try{ const c=DATA.classOf(REGSTORE,sl.cid); if(c&&c.name)return c.name; }catch(e){}
+  return sl.clsSnapshot||sl.cid||"";
+}
+/* שני הבלוקים של דף הבית נצבעים יחד — הם שני קצוות של אותה זרימה */
+function paintHome(){
+  try{ paintToday(); paintLastLesson(); }catch(e){}
+}
+function paintToday(){
+  const box=$("#hx-todayList"); if(!box)return;
+  const rows=SCHED.today();
+  if(!SCHED.list().length){
+    box.innerHTML='<div class="hx-empty">עדיין לא הגדרת מערכת שעות.<br>'+
+      'דקה אחת של הגדרה, ומאז דף הבית פותח על הכיתה שמחכה לך.'+
+      '<div style="margin-top:10px"><button class="btn sm acc" id="hx-schedFirst">🗓 הגדר עכשיו</button></div></div>';
+    const b=$("#hx-schedFirst"); if(b)b.addEventListener("click",openSched);
+    return;
+  }
+  if(!rows.length){
+    box.innerHTML='<div class="hx-empty">אין שיעורים היום ('+
+      esc(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"")+').<br>'+
+      'המערכת מוגדרת — היום פשוט פנוי.</div>';
+    return;
+  }
+  const nx=SCHED.next();
+  box.innerHTML=rows.map(r=>{
+    const sl=r.slot, up=nx&&nx.slot.id===sl.id;
+    const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
+                r.status==="done"?'<span class="pill">✓ התקיים</span>':
+                r.now?'<span class="pill acc">עכשיו</span>':"";
+    const ms=r.session?SESSION.measurements(r.session.id).length:0;
+    return '<div class="hx-slot'+(up?" up":"")+(r.status==="done"?" done":"")+'">'+
+      '<div class="tm">'+esc(sl.time)+'</div>'+
+      '<div class="tx"><b>'+esc(slotName(sl))+'</b> '+badge+
+        '<span>'+(sl.topic?esc(sl.topic):"בלי נושא מוגדר")+
+        (ms?" · "+ms+" מדידות":"")+'</span></div>'+
+      (r.status==="planned"
+        ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
+        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">📖 היסטוריה</button>')+
+      '</div>';
+  }).join("");
+  $$("#hx-todayList [data-slot]").forEach(b=>b.addEventListener("click",()=>{
+    const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
+    if(sl)startFromSlot(sl);
+  }));
+  $$("#hx-todayList [data-cls]").forEach(b=>b.addEventListener("click",()=>
+    openSesHist()));
+}
+
+/* «השיעור האחרון» — הקצה השני של אותה זרימה: מה שקרה בפעם שעברה,
+   כדי שהשיעור הבא לא יתחיל מדף ריק. */
+function paintLastLesson(){
+  const card=$("#hx-last"); if(!card)return;
+  const done=SESSION.list({status:DATA.SESSION_DONE})[0];
+  if(!done){ card.hidden=true; return; }
+  card.hidden=false;
+  const ms=SESSION.measurements(done.id).length;
+  const note=done.note?'<div class="nt">“'+esc(done.note)+'”</div>':"";
+  $("#hx-lastBody").innerHTML=
+    '<div class="hx-slot"><div class="tx"><b>'+esc(sesName(done))+'</b> '+
+      (done.rating!=null?'<span class="pill">'+esc(RATING_LABEL[String(done.rating)]||"")+'</span>':"")+
+      '<span>'+esc(done.date)+(done.planTitle?" · "+esc(done.planTitle):"")+
+      ' · '+(ms?ms+" מדידות":"בלי מדידות")+'</span></div>'+
+      '<button class="btn sm ghost" data-cls="'+esc(done.cid)+'">מסך הכיתה</button></div>'+note;
+  $$("#hx-lastBody [data-cls]").forEach(b=>b.addEventListener("click",()=>
+    openSesHist()));
+}
+
+/* ---------- עריכת מערכת השעות ---------- */
+function renderSchedEditor(){
+  const box=$("#sw-list"); if(!box)return;
+  const all=SCHED.list();
+  if(!all.length){
+    box.innerHTML='<div class="empty-state" style="padding:14px"><div class="big">🗓</div>'+
+      'המערכת ריקה.<br>הוסף שיעור אחד — הוא יחזור כל שבוע.</div>';
+    return;
+  }
+  let cur=-1, html="";
+  all.forEach(sl=>{
+    if(sl.day!==cur){ cur=sl.day; html+='<div class="sw-day">'+esc(DATA.DAYS_HE[cur])+'</div>'; }
+    html+='<div class="arc-item"><div class="tm mono" style="min-width:46px">'+esc(sl.time)+'</div>'+
+      '<div class="grow"><div class="ttl">'+esc(slotName(sl))+'</div>'+
+      (sl.topic?'<div class="sb">'+esc(sl.topic)+'</div>':"")+'</div>'+
+      '<button class="btn sm ghost" data-del="'+esc(sl.id)+'">🗑</button></div>';
+  });
+  box.innerHTML='<div class="hint">'+all.length+' שיעורים בשבוע.</div>'+html;
+  $$("#sw-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
+    SCHED.remove(b.dataset.del); renderSchedEditor(); paintToday();
+  }));
+}
+function openSched(){
+  const d=$("#sw-day"), g=$("#sw-grade"), n=$("#sw-num"), h=$("#sw-hour");
+  /* «שיעור שלישי» הוא איך שמורה חושב; השעה היא מה שהמערכת צריכה.
+     הבורר ממלא את השעה, ומי שרוצה שעה אחרת פשוט מקליד אותה. */
+  if(h&&!h.options.length)
+    h.innerHTML='<option value="">—</option>'+DATA.BELLS.map(b=>
+      '<option value="'+b.h+'">שיעור '+b.h+' · '+b.s+'</option>').join("");
+  if(d&&!d.options.length)
+    d.innerHTML=DATA.DAYS_HE.map((nm,i)=>'<option value="'+i+'">'+nm+'</option>').join("");
+  if(g&&!g.options.length)
+    g.innerHTML=DATA.GRADES.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join("");
+  if(n&&!n.options.length)
+    n.innerHTML=DATA.NUMS.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
+  if(d)d.value=String(DATA.dayOfISO(isoToday())||0);
+  renderSchedEditor();
+  modal("schedModal",true);
+}
+function wireSched(){
+  const e=$("#hx-schedEdit"); if(e)e.addEventListener("click",openSched);
+  const hr=$("#sw-hour");
+  if(hr)hr.addEventListener("change",()=>{
+    const b=DATA.bellByHour(+hr.value);
+    if(b)$("#sw-time").value=b.s;
+  });
+  /* שעה שהוקלדה ביד ומתאימה לצלצול — הבורר מתיישר אליה, כדי ששני
+     השדות לא יספרו שני סיפורים */
+  const tm=$("#sw-time");
+  if(tm)tm.addEventListener("input",()=>{
+    const b=DATA.bellOfTime(tm.value);
+    if($("#sw-hour"))$("#sw-hour").value=b?String(b.h):"";
+  });
+  const h=$("#hx-lastHist"); if(h)h.addEventListener("click",openSesHist);
+  const add=$("#sw-add"); if(!add)return;
+  add.addEventListener("click",()=>{
+    const g=$("#sw-grade").value, n=+$("#sw-num").value;
+    const label=DATA.clsName(g,n);
+    const cid=DATA.resolveClassId(REGSTORE,label,true);
+    const r=SCHED.add({day:+$("#sw-day").value,time:$("#sw-time").value,
+      cid,clsSnapshot:label,topic:$("#sw-topic").value.trim()});
+    if(!r.ok){
+      toast({"bad-time":"שעה לא תקינה — למשל 09:00",
+             "bad-day":"בחר יום","no-class":"בחר כיתה",
+             "full":"המערכת מלאה","not-saved":"לא נשמר במכשיר"}[r.outcome]||"לא נוסף");
+      return;
+    }
+    toast(r.outcome==="duplicate"?"השיעור הזה כבר במערכת":"✓ נוסף למערכת");
+    $("#sw-topic").value="";
+    renderSchedEditor(); paintToday();
+  });
+}
+
+/* תוויות המשוב על שיעור. חיות כאן ולא בשכבת הנתונים: הדירוג הוא
+   מספר, והמילה שמתארת אותו היא החלטת ממשק. */
+const RATING_LABEL={"1":"👍 עבד מצוין","0":"😐 בינוני","-1":"👎 לא עבד"};
 
 /* ============================================================
    גיבוי ושחזור
@@ -8927,6 +9485,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
+  sched:SCHED,paintToday,paintHome,openSched,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
      ניתן להרצה ולהשוואה מבחוץ ולא רק דרך לחיצה על כפתור. */
@@ -8974,6 +9533,7 @@ window.HMBoot=function(){
     if(mod&&mod!=="home"){ inited[mod]&&go(mod); }
   });
   wireSessionBar();
+  wireSched();
   const bb=$("#btnBack"); if(bb)bb.addEventListener("click",()=>{ ac(); goBack(); });
   const sb=$("#btnSun"); if(sb)sb.addEventListener("click",()=>{ ac(); toggleSun(); });
   /* עדיפות ליעד מפורש בכתובת; אחרת חוזרים למסך האחרון שהיית בו. */

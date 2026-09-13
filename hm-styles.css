@@ -432,6 +432,40 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .scoreband .sb .n{font-family:'Share Tech Mono';font-size:clamp(22px,6.4vw,32px);line-height:1;font-variant-numeric:tabular-nums}
 .scoreband .sb .l{font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:600}
 .scoreband .div{width:1px;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--acc) 60%,transparent),transparent);margin:2px 4px}
+/* ===== היום שלי =====
+   הבלוק הראשון שהמורה רואה. הוא עונה על «מה אני עושה עכשיו»,
+   ולכן הוא יושב מעל האריחים ולא מתחתם. */
+.hx-today,.hx-last{margin:14px 0;border:1px solid var(--line);border-radius:16px;padding:13px 14px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 13%,var(--panel)),var(--panel))}
+.hx-last{background:linear-gradient(120deg,color-mix(in srgb,var(--muted) 12%,var(--panel)),var(--panel))}
+.hx-today>.top,.hx-last>.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.hx-today>.top b,.hx-last>.top b{font-weight:600;font-size:14px}
+.hx-empty{color:var(--muted);font-size:12.5px;line-height:1.65;text-align:center;padding:10px 4px}
+.hx-slot{display:flex;align-items:center;gap:11px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.hx-slot:last-child{margin-bottom:0}
+/* השיעור הבא בתור מסומן — מורה שמסתכל בחטף צריך לזהות אותו בלי לקרוא */
+.hx-slot.up{border-color:var(--acc);box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 35%,transparent)}
+.hx-slot.done{opacity:.62}
+.hx-slot .tm{font-family:'Share Tech Mono';font-size:15px;font-variant-numeric:tabular-nums;
+  color:var(--acc);min-width:46px;text-align:center}
+.hx-slot.done .tm{color:var(--muted)}
+.hx-slot .tx{flex:1;min-width:0}
+.hx-slot .tx b{font-weight:600;font-size:14.5px}
+/* שורת המשנה בלבד. בלי :not() התגית תופסת גם את התווית «פעיל»
+   והופכת אותה לפס ברוחב מלא — הפרש שאף בדיקה לא רואה, ומורה כן. */
+.hx-slot .tx>span:not(.pill){display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+.hx-slot .btn{flex:none}
+.hx-last .nt{margin-top:8px;font-size:12.5px;color:var(--ink);line-height:1.6;
+  border-inline-start:3px solid var(--line);padding-inline-start:9px}
+.sw-day{font-weight:600;font-size:12.5px;color:var(--acc);margin:12px 0 6px}
+.sw-day:first-child{margin-top:2px}
+/* מסך צר: השעה והכפתור נשארים, הכותרת מתכווצת ולא דוחפת החוצה */
+@media(max-width:430px){
+  .hx-slot{gap:8px;padding:9px 10px}
+  .hx-slot .tm{min-width:40px;font-size:14px}
+  .hx-slot .tx b{font-size:13.5px}
+}
 .hx-mods{display:flex;flex-direction:column;gap:11px}
 @media(min-width:760px){.hx-mods{display:grid;grid-template-columns:1fr 1fr}.hx-mod.primary{grid-column:1/-1}}
 .hx-mod{display:flex;align-items:center;gap:15px;background:linear-gradient(90deg,var(--panel2),var(--panel) 60%);
