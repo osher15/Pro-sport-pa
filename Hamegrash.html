@@ -1319,6 +1319,13 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
   flex-wrap:wrap;background:color-mix(in srgb,var(--stop) 20%,var(--bg2));border-bottom:1px solid var(--stop);
   color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
 #stWarn[hidden]{display:none!important}
+/* פס העדכון — אותו דפוס, בצבע ההדגשה במקום באזהרה. באפליקציה
+   מותקנת אין שורת כתובת ואין כפתור רענון, ולכן הודעה שאומרת «רענן»
+   ואינה מרעננת בעצמה היא מבוי סתום. */
+#upBar{position:sticky;top:0;z-index:131;display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 20%,var(--bg2));border-bottom:1px solid var(--acc);
+  color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
+#upBar[hidden]{display:none!important}
 #stWarn b{color:var(--stop)}
 #stWarn .muted{color:var(--muted);font-weight:400}
 #stWarn .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
@@ -3034,6 +3041,10 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
 <div id="lsBar" hidden><span id="lsBarT"></span>
   <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
   <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
+<!-- ----- גרסה חדשה מוכנה ----- -->
+<div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
+  <button class="btn sm acc" id="upNow">רענן עכשיו</button>
+  <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
 <div id="stWarn" hidden><span id="stWarnT"></span>
   <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
   <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
@@ -6186,13 +6197,29 @@ function bkPreview(snap){
       navigator.serviceWorker.register("sw.js").then(reg=>{
         /* גרסה חדשה שהותקנה ברקע — מודיעים ומרעננים בהסכמה, במקום
            להחליף מתחת לרגליים באמצע מדידה. */
+        /* פס שאפשר ללחוץ עליו, ולא הודעה חולפת שמבקשת «רענן»: באפליקציה
+           מותקנת אין שורת כתובת ואין כפתור רענון, ולכן מורה שרואה הודעה
+           כזאת פשוט תקוע על גרסה ישנה — וזה בדיוק מה שקרה כאן. */
+        const offer=()=>{
+          const bar=$("#upBar"); if(!bar)return;
+          bar.hidden=false;
+          const go2=()=>{ try{ if(reg.waiting)reg.waiting.postMessage("skipWaiting"); }catch(e){}
+            setTimeout(()=>location.reload(),120); };
+          const now=$("#upNow"), x=$("#upX");
+          if(now)now.onclick=go2;
+          if(x)x.onclick=()=>{ bar.hidden=true; };
+        };
+        if(reg.waiting&&navigator.serviceWorker.controller)offer();
         reg.addEventListener("updatefound",()=>{
           const w=reg.installing; if(!w)return;
           w.addEventListener("statechange",()=>{
-            if(w.state==="installed"&&navigator.serviceWorker.controller){
-              if(typeof toast==="function")toast("גרסה חדשה מוכנה — רענן כדי לעבור אליה");
-            }
+            if(w.state==="installed"&&navigator.serviceWorker.controller)offer();
           });
+        });
+        /* אפליקציה מותקנת יכולה לרוץ ימים בלי טעינה מחדש. בדיקה בכל
+           חזרה למסך מוודאת שעדכון לא ימתין עד שמישהו יסגור אותה. */
+        document.addEventListener("visibilitychange",()=>{
+          if(!document.hidden){ try{ reg.update(); }catch(e){} }
         });
       }).catch(()=>{});
     });

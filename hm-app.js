@@ -1072,13 +1072,29 @@ function bkPreview(snap){
       navigator.serviceWorker.register("sw.js").then(reg=>{
         /* גרסה חדשה שהותקנה ברקע — מודיעים ומרעננים בהסכמה, במקום
            להחליף מתחת לרגליים באמצע מדידה. */
+        /* פס שאפשר ללחוץ עליו, ולא הודעה חולפת שמבקשת «רענן»: באפליקציה
+           מותקנת אין שורת כתובת ואין כפתור רענון, ולכן מורה שרואה הודעה
+           כזאת פשוט תקוע על גרסה ישנה — וזה בדיוק מה שקרה כאן. */
+        const offer=()=>{
+          const bar=$("#upBar"); if(!bar)return;
+          bar.hidden=false;
+          const go2=()=>{ try{ if(reg.waiting)reg.waiting.postMessage("skipWaiting"); }catch(e){}
+            setTimeout(()=>location.reload(),120); };
+          const now=$("#upNow"), x=$("#upX");
+          if(now)now.onclick=go2;
+          if(x)x.onclick=()=>{ bar.hidden=true; };
+        };
+        if(reg.waiting&&navigator.serviceWorker.controller)offer();
         reg.addEventListener("updatefound",()=>{
           const w=reg.installing; if(!w)return;
           w.addEventListener("statechange",()=>{
-            if(w.state==="installed"&&navigator.serviceWorker.controller){
-              if(typeof toast==="function")toast("גרסה חדשה מוכנה — רענן כדי לעבור אליה");
-            }
+            if(w.state==="installed"&&navigator.serviceWorker.controller)offer();
           });
+        });
+        /* אפליקציה מותקנת יכולה לרוץ ימים בלי טעינה מחדש. בדיקה בכל
+           חזרה למסך מוודאת שעדכון לא ימתין עד שמישהו יסגור אותה. */
+        document.addEventListener("visibilitychange",()=>{
+          if(!document.hidden){ try{ reg.update(); }catch(e){} }
         });
       }).catch(()=>{});
     });

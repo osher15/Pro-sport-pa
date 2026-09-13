@@ -1308,6 +1308,13 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
   flex-wrap:wrap;background:color-mix(in srgb,var(--stop) 20%,var(--bg2));border-bottom:1px solid var(--stop);
   color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
 #stWarn[hidden]{display:none!important}
+/* פס העדכון — אותו דפוס, בצבע ההדגשה במקום באזהרה. באפליקציה
+   מותקנת אין שורת כתובת ואין כפתור רענון, ולכן הודעה שאומרת «רענן»
+   ואינה מרעננת בעצמה היא מבוי סתום. */
+#upBar{position:sticky;top:0;z-index:131;display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 20%,var(--bg2));border-bottom:1px solid var(--acc);
+  color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
+#upBar[hidden]{display:none!important}
 #stWarn b{color:var(--stop)}
 #stWarn .muted{color:var(--muted);font-weight:400}
 #stWarn .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
