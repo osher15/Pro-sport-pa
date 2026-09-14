@@ -10,13 +10,13 @@
 <x-dc>
 <helmet>
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="338bab94">
+<meta name="hm-build" content="254d5733">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=46524ef5">
+<link rel="stylesheet" href="hm-styles.css?v=9bdf8111">
 <script src="hm-data.js?v=b3025127"></script>
 <script src="hm-i18n.js?v=884bfff0"></script>
-<script src="hm-app.js?v=68135424"></script>
+<script src="hm-app.js?v=5ef6fc91"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -26,7 +26,7 @@
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=1d73c0de"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=2448f44c"></script>
+<script src="hm-tests.js?v=debf8ac9"></script>
 <script src="hm-new.js?v=b0a9d5e3"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -275,16 +275,22 @@
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
           <input type="text" inputmode="decimal" id="pf-gunDist" value="0" dir="ltr" style="text-align:right" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."></div>
         <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
-        <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
-      <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+      <details class="pf-help" style="margin-top:8px">
+        <summary>איך הקיזוז וה-slit-scan עובדים</summary>
+        <div class="hint">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
+        <div class="hint">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+      </details>
     </div>
 
     <!-- ----- מיקום המצלמה ודיוק ----- -->
     <div class="card" id="pf-placeCard">
       <h2><span class="dot"></span> 📐 איפה להעמיד את המצלמה</h2>
-      <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
-        ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      <details class="pf-help">
+        <summary>למה המרחק משנה את הדיוק</summary>
+        <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
+          ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      </details>
       <div class="row" style="margin-top:11px">
         <div class="field" style="width:172px"><label>מרחק המצלמה מהמסלול (מ׳)</label>
           <input type="number" id="pf-camDist" value="6" min="1" max="60" step="0.5"></div>
@@ -1733,11 +1739,16 @@
     <input type="url" id="set-driveFolder" placeholder="https://drive.google.com/drive/folders/..." style="direction:ltr;text-align:left;font-size:12px"></div>
   <div class="hint" style="margin-top:7px">כשממלאים את הטופס — תלמידים במצב אורח מקבלים כפתור העלאה ישיר, ואתה מקבל קיצור לתיקייה מלוח השיאים.</div>
 
-  <div class="field" style="margin-top:17px"><label>סנכרון שיאים בין כמה מורים (מתקדם, רשות)</label>
-    <input type="url" id="set-syncUrl" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr;text-align:left;font-size:12px"></div>
-  <div class="field" style="margin-top:9px"><label>קוד סנכרון (אותו קוד לכל המורים בבית הספר)</label>
-    <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
-  <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
+  <details class="fold" style="margin-top:17px">
+    <summary>סנכרון שיאים בין כמה מורים (מתקדם, רשות)</summary>
+    <div class="bd">
+      <div class="field"><label>קישור לסנכרון</label>
+        <input type="url" id="set-syncUrl" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr;text-align:left;font-size:12px"></div>
+      <div class="field" style="margin-top:9px"><label>קוד סנכרון (אותו קוד לכל המורים בבית הספר)</label>
+        <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
+      <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
+    </div>
+  </details>
 
   <div class="hint" style="margin-top:13px" data-i18n="set.install">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <div class="bk-card">

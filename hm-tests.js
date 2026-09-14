@@ -926,11 +926,17 @@ window.FT=(function(){
     clk={on:true,t0:performance.now()-clk.paused*1000,raf:0,paused:0};
     const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
     if(g)g.disabled=true; if(s)s.disabled=false;
+    /* צ׳קפוינט ב-localStorage, לא ב-performance.now(): אם הדף עצמו
+       ייהרג ברקע (החלטת מערכת הפעלה, לא הפרעה רגעית) כל משתני ה-JS
+       נעלמים בלי קשר לאיך נמדד הזמן. Date.now() הוא מה ששרוד את זה,
+       ומה שמאפשר להודיע למורה בפתיחה הבאה — לא לשחזר את השעון עצמו. */
+    LS().set("ft.clockCheckpoint",{test:st.test,cls:cls(),startedAt:Date.now()});
     tick();
   }
   function stopClock(silent){
     if(clk.on){ clk.paused=elapsed(); clk.on=false; cancelAnimationFrame(clk.raf); }
     H().keepAwake(false);
+    LS().set("ft.clockCheckpoint",null);
     const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
     if(g)g.disabled=false; if(s)s.disabled=true;
     if(!silent)H().toast("השעון נעצר — התוצאות שנקלטו נשמרו");
@@ -1063,19 +1069,26 @@ window.FT=(function(){
         else inp.blur();
       });
     });
-    /* הזנת מדידה */
-    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("keydown",e=>{
-      if(e.key!=="Enter")return;
-      e.preventDefault(); inp.blur();
-    }));
-    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("change",()=>{
+    /* הזנת מדידה — אותו עיקרון כמו commitCnt למעלה: שמירה גם תוך כדי
+       הקלדה (בהשהיה) וגם ביציאה מהשדה, כדי שמורה שהוקפץ באמצע הקלדה
+       (רענון, swipe-back) לא יאבד ספרה שהספיק להקליד אבל לא ליציאה מהשדה. */
+    const commitVal=(inp,render)=>{
       const k=inp.dataset.val, v=+inp.value;
       const s=studByKey(c,k);
       const fresh=!!pendingNew[k];
       if(v>0){ saveVal(c,T.id,s,v,fresh); delete pendingNew[k]; }
       else { const cur=openAttempt(c,T.id,s); if(cur)delAttempt(cur.id); }
-      renderRun();
-    }));
+      if(render)renderRun(); else refreshRow(k);
+    };
+    $$("#ft-list [data-val]").forEach(inp=>{
+      let tmr=0;
+      inp.addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>commitVal(inp,false),500); });
+      inp.addEventListener("keydown",e=>{
+        if(e.key!=="Enter")return;
+        e.preventDefault(); clearTimeout(tmr); commitVal(inp,false); inp.blur();
+      });
+      inp.addEventListener("change",()=>{ clearTimeout(tmr); commitVal(inp,true); });
+    });
     $$("#ft-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
       const k=b.dataset.del, s=studByKey(c,k);
       if(!confirm("למחוק את כל הניסיונות של "+s.name+" היום? ניסיונות מתאריכים קודמים נשמרים."))return;
@@ -2327,6 +2340,16 @@ window.FT=(function(){
     if(last.grade)st.grade=last.grade;
     if(last.num)st.num=last.num;
     if(last.sort)st.sort=last.sort;
+    /* שעון שנשאר «רץ» בצ׳קפוינט אך לא נסגר ב-stopClock — כלומר הדף
+       נעלם (רענון, הריגת עמוד ברקע) בזמן שהוא היה פתוח. לא משחזרים
+       את השעון עצמו (אין דרך בטוחה לדעת אם המדידה עוד רלוונטית),
+       רק מודיעים למורה שההפרעה קרתה ומתי — כדי שיבדוק את התלמיד האחרון. */
+    const cp=LS().get("ft.clockCheckpoint",null);
+    if(cp&&cp.startedAt){
+      LS().set("ft.clockCheckpoint",null);
+      const min=Math.round((Date.now()-cp.startedAt)/60000);
+      H().toast("שעון «"+(cp.cls||"")+"» נשאר פתוח ולא נסגר כרגיל (לפני כ-"+min+" דק׳) — בדוק את התוצאה האחרונה");
+    }
     H().$$("#ft-tabs button").forEach(b=>b.addEventListener("click",()=>{ st.tab=b.dataset.ft; renderTab(); }));
     renderTab();
   }

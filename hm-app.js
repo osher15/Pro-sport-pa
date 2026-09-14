@@ -116,6 +116,12 @@ async function keepAwake(on){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&wakeLock)keepAwake(true); });
 
+/* ב-iOS Safari, פסאודו־קלאס :active לא מופעל בהקשה רגילה אלא אם
+   יש listener כלשהו של touch מחובר לעמוד — מוזרות ידועה של WebKit.
+   בלי זה, מורה שלוחץ על «שמירה» עם אצבע אחת בשמש לא מקבל שום משוב
+   ויזואלי שהלחיצה נקלטה. ה-listener הריק מספיק כדי להדליק את זה. */
+document.addEventListener("touchstart",()=>{},{passive:true});
+
 /* ---------- toast / confetti / csv / time ---------- */
 let toastTm=null;
 function toast(msg){ const t=$("#toastT"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTm); toastTm=setTimeout(()=>t.classList.remove("show"),2600); }
@@ -2454,7 +2460,7 @@ const PF=(function(){
 
      בדפדפן בלי rVFC נשארת ההתנהגות הישנה: שעון הביצועים משמש כשעון
      מדיה מדומה, וכל החישוב למטה עובד עליו בדיוק אותו דבר. */
-  let vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
+  let vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false,lowSince:0,degraded:false};
 
   /* הזמן על שעון המצלמה ברגע הזה: הפריים האחרון, ועוד מה שחלף מאז
      לפי שעון הביצועים. בלי ההשלמה הזאת t0 היה נופל על גבול פריים
@@ -2510,7 +2516,7 @@ const PF=(function(){
         width:{ideal:1280},height:{ideal:720},frameRate:{ideal:240}},audio:false});
       await pushMaxFps();
       $("#pf-video").srcObject=cam.stream; cam.on=true; bg=null; bgReady=0;
-      vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
+      vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false,lowSince:0,degraded:false};
       $("#pf-status").textContent="🟢 מצלמה פעילה · מכייל רקע…";
       startCamLoop();
     }catch(e){
@@ -2565,6 +2571,24 @@ const PF=(function(){
       (function raf(){ if(!cam.on||mode!=="cam")return; camFrame(null,null); requestAnimationFrame(raf); })();
     }
   }
+  /* אם ה-FPS בפועל נשאר עקבית הרבה מתחת למה שהמצלמה הצהירה שהיא
+     יכולה לספק — זה סימן להאטה מצטברת (בעיקר חום, במגרש בשמש), לא
+     לרעש רגעי בין שני פריימים. מורידים יעד frameRate פעם אחת מראש,
+     במקום לחכות שהדפדפן או המכשיר יעשו את זה בעצמם באמצע מקצה —
+     בצורה בלתי-צפויה ובלי שהמורה יידע למה השעון פתאום מתנהג מוזר. */
+  function checkThermal(nowMs){
+    if(vclk.degraded||!cam.on||!vclk.capMax)return;
+    const floor=Math.max(20,vclk.capMax*0.4);
+    if(vclk.fps<floor){
+      if(!vclk.lowSince)vclk.lowSince=nowMs;
+      else if(nowMs-vclk.lowSince>4000){
+        vclk.degraded=true;
+        const tr=cam.stream&&cam.stream.getVideoTracks()[0];
+        if(tr&&tr.applyConstraints)tr.applyConstraints({frameRate:{ideal:30}}).catch(()=>{});
+        toast("המכשיר מתקשה לעמוד בקצב — הורדנו את קצב המצלמה כדי שהמדידה תמשיך בלי להיתקע");
+      }
+    }else vclk.lowSince=0;
+  }
   let prevFrac=0,prevMt=0;
   function camFrame(mediaTime,presTime){
     const v=$("#pf-video");
@@ -2575,7 +2599,7 @@ const PF=(function(){
       const d=mt-vclk.mt;
       /* ממוצע נע — קצב רגעי קופץ, וממנו אי אפשר לדווח דיוק ביושר */
       if(d>0&&d<1)vclk.dt=vclk.dt?vclk.dt*0.9+d*0.1:d;
-      if(vclk.dt>0)vclk.fps=1/vclk.dt;
+      if(vclk.dt>0){ vclk.fps=1/vclk.dt; checkThermal(pt); }
     }
     vclk.mt=mt; vclk.pt=pt;
     if(v.readyState>=2){

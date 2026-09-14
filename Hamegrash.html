@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="338bab94">
+<meta name="hm-build" content="254d5733">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1083,6 +1083,12 @@ body[data-theme="sun"] .sboard .clock{background:#fff;color:#000}
 body[data-theme="sun"] .tbl td{border-bottom:1px solid #c8ccd6}
 body[data-theme="sun"] .aiBox{background:#f2f4f8}
 body[data-theme="sun"][data-mod]{--acc:#0b3ea8;--accDim:rgba(11,62,168,.13)}
+/* ה-HUD של הפוטו-פיניש יושב מעל וידאו חי בלתי-צפוי, לא מעל רקע CSS
+   קבוע — שקיפות של 55% לא מבטיחה קונטרסט כשהרקע מאחורי הצ׳יפ הוא
+   שמיים בהירים או חולצה לבנה. בערכות היום (day/sun) מחזקים לאטימות
+   כמעט מלאה ומוסיפים הצללה, כדי שהקריאות לא תלויה במה שהמצלמה תופסת. */
+body[data-theme="day"] .pf-status,body[data-theme="sun"] .pf-status{
+  background:rgba(0,0,0,.85);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9)}
 
 /* ============================================================
    מצב «כפתורים גדולים» — לשימוש תוך כדי שיעור, ביד אחת
@@ -1226,8 +1232,12 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 /* קפיצות של חמש — הדרך באמצע בין הקשה לכל חזרה לבין הקלדה. צרות
    מ«+», כדי שהשורה תישאר בתוך רוחב של טלפון. */
 .ft-step button.by5{width:38px;font-size:14px;font-weight:700;color:var(--muted);
-  direction:ltr;unicode-bidi:isolate}   /* «+5» ולא «5+» — סימן ומספר הם רצף אחד */
+  direction:ltr;unicode-bidi:isolate;position:relative}   /* «+5» ולא «5+» — סימן ומספר הם רצף אחד */
 .ft-step button.by5:active{background:var(--accDim);color:var(--acc)}
+/* הרוחב החזותי נשאר צר בכוונה (השורה חייבת להיכנס בטלפון), אבל
+   שטח הלחיצה מתרחב אנכית — לא אופקית, כדי לא לגזול הקשות מ-«+»/«−»
+   הצמודים ב-gap של 2px בלבד. */
+.ft-step button.by5::after{content:"";position:absolute;inset-block:-6px;inset-inline:0}
 /* המספר הוא שדה, לא תווית: הקשה עליו בוחרת אותו והקלדה מחליפה.
    המסגרת המרומזת קיימת כדי שייראה כמו משהו שאפשר להקליד בו — בלעדיה
    הוא נקרא כתווית, והמורה ממשיך להקיש «+». */
@@ -1816,16 +1826,22 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
           <input type="text" inputmode="decimal" id="pf-gunDist" value="0" dir="ltr" style="text-align:right" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."></div>
         <span class="pill" id="pf-gunLag" style="margin-top:18px">בלי קיזוז</span>
-        <div class="hint" style="flex:1;min-width:200px;margin-top:14px">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
       </div>
-      <div class="hint" style="margin-top:8px">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+      <details class="pf-help" style="margin-top:8px">
+        <summary>איך הקיזוז וה-slit-scan עובדים</summary>
+        <div class="hint">הקול נע ‎343‎ מ/ש. אם הטלפון עומד ‎20‎ מ׳ מהאקדח, השמע מגיע באיחור של ‎58‎ מ״ש — והשעון היה מתחיל מאוחר. הזנת המרחק מקזזת את זה אוטומטית.</div>
+        <div class="hint">המנוע דוגם עמודת פיקסלים אחת בקו הסיום בכל פריים ובונה תצלום שבו <b>הציר האופקי הוא הזמן</b> — בדיוק כמו מצלמות הסיום באולימפיאדה. בזמן מירוץ: הקש על שם מסלול ברגע החצייה, או תן למנוע לסמן אוטומטית — ותכוונן במסך «תמונת סיום».</div>
+      </details>
     </div>
 
     <!-- ----- מיקום המצלמה ודיוק ----- -->
     <div class="card" id="pf-placeCard">
       <h2><span class="dot"></span> 📐 איפה להעמיד את המצלמה</h2>
-      <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
-        ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      <details class="pf-help">
+        <summary>למה המרחק משנה את הדיוק</summary>
+        <div class="hint">פס הזיהוי הוא ‎3.1%‎ מרוחב התמונה — אחוז קבוע, אבל <b>מספר משתנה של סנטימטרים</b> לפי המרחק.
+          ככל שאתה רחוק יותר, הפס מכסה יותר שטח בשטח, והרץ נמצא ״בתוך הקו״ יותר זמן. הזן את המרחק וקבל את השגיאה בפועל.</div>
+      </details>
       <div class="row" style="margin-top:11px">
         <div class="field" style="width:172px"><label>מרחק המצלמה מהמסלול (מ׳)</label>
           <input type="number" id="pf-camDist" value="6" min="1" max="60" step="0.5"></div>
@@ -3274,11 +3290,16 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <input type="url" id="set-driveFolder" placeholder="https://drive.google.com/drive/folders/..." style="direction:ltr;text-align:left;font-size:12px"></div>
   <div class="hint" style="margin-top:7px">כשממלאים את הטופס — תלמידים במצב אורח מקבלים כפתור העלאה ישיר, ואתה מקבל קיצור לתיקייה מלוח השיאים.</div>
 
-  <div class="field" style="margin-top:17px"><label>סנכרון שיאים בין כמה מורים (מתקדם, רשות)</label>
-    <input type="url" id="set-syncUrl" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr;text-align:left;font-size:12px"></div>
-  <div class="field" style="margin-top:9px"><label>קוד סנכרון (אותו קוד לכל המורים בבית הספר)</label>
-    <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
-  <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
+  <details class="fold" style="margin-top:17px">
+    <summary>סנכרון שיאים בין כמה מורים (מתקדם, רשות)</summary>
+    <div class="bd">
+      <div class="field"><label>קישור לסנכרון</label>
+        <input type="url" id="set-syncUrl" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr;text-align:left;font-size:12px"></div>
+      <div class="field" style="margin-top:9px"><label>קוד סנכרון (אותו קוד לכל המורים בבית הספר)</label>
+        <input type="text" id="set-syncCode" placeholder="קוד סודי משותף"></div>
+      <div class="hint" style="margin-top:7px">כשזה מוגדר, טבלת השיאים (שם, ענף, תוצאה, סטטוס — <b>בלי סרטונים</b>) נשלחת ל-Google Sheet משותף שאתה מקים, כדי שכל המורים יראו את אותה טבלה. בלי זה — הכול נשאר במכשיר בלבד, כמו היום. הקמה חד-פעמית: ראו README, סעיף «סנכרון שיאים בין כמה מורים».</div>
+    </div>
+  </details>
 
   <div class="hint" style="margin-top:13px" data-i18n="set.install">📲 התקנה כאפליקציה: בכרום — תפריט ⋮ ואז "הוספה למסך הבית". באייפון — שיתוף ואז "הוסף למסך הבית". כקובץ שמור במכשיר האפליקציה עובדת גם בלי אינטרנט (רק הגופנים נטענים מהרשת).</div>
   <div class="bk-card">
@@ -6319,6 +6340,12 @@ async function keepAwake(on){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&wakeLock)keepAwake(true); });
 
+/* ב-iOS Safari, פסאודו־קלאס :active לא מופעל בהקשה רגילה אלא אם
+   יש listener כלשהו של touch מחובר לעמוד — מוזרות ידועה של WebKit.
+   בלי זה, מורה שלוחץ על «שמירה» עם אצבע אחת בשמש לא מקבל שום משוב
+   ויזואלי שהלחיצה נקלטה. ה-listener הריק מספיק כדי להדליק את זה. */
+document.addEventListener("touchstart",()=>{},{passive:true});
+
 /* ---------- toast / confetti / csv / time ---------- */
 let toastTm=null;
 function toast(msg){ const t=$("#toastT"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTm); toastTm=setTimeout(()=>t.classList.remove("show"),2600); }
@@ -8657,7 +8684,7 @@ const PF=(function(){
 
      בדפדפן בלי rVFC נשארת ההתנהגות הישנה: שעון הביצועים משמש כשעון
      מדיה מדומה, וכל החישוב למטה עובד עליו בדיוק אותו דבר. */
-  let vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
+  let vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false,lowSince:0,degraded:false};
 
   /* הזמן על שעון המצלמה ברגע הזה: הפריים האחרון, ועוד מה שחלף מאז
      לפי שעון הביצועים. בלי ההשלמה הזאת t0 היה נופל על גבול פריים
@@ -8713,7 +8740,7 @@ const PF=(function(){
         width:{ideal:1280},height:{ideal:720},frameRate:{ideal:240}},audio:false});
       await pushMaxFps();
       $("#pf-video").srcObject=cam.stream; cam.on=true; bg=null; bgReady=0;
-      vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false};
+      vclk={mt:0,pt:0,dt:0,fps:0,rvfc:false,lowSince:0,degraded:false};
       $("#pf-status").textContent="🟢 מצלמה פעילה · מכייל רקע…";
       startCamLoop();
     }catch(e){
@@ -8768,6 +8795,24 @@ const PF=(function(){
       (function raf(){ if(!cam.on||mode!=="cam")return; camFrame(null,null); requestAnimationFrame(raf); })();
     }
   }
+  /* אם ה-FPS בפועל נשאר עקבית הרבה מתחת למה שהמצלמה הצהירה שהיא
+     יכולה לספק — זה סימן להאטה מצטברת (בעיקר חום, במגרש בשמש), לא
+     לרעש רגעי בין שני פריימים. מורידים יעד frameRate פעם אחת מראש,
+     במקום לחכות שהדפדפן או המכשיר יעשו את זה בעצמם באמצע מקצה —
+     בצורה בלתי-צפויה ובלי שהמורה יידע למה השעון פתאום מתנהג מוזר. */
+  function checkThermal(nowMs){
+    if(vclk.degraded||!cam.on||!vclk.capMax)return;
+    const floor=Math.max(20,vclk.capMax*0.4);
+    if(vclk.fps<floor){
+      if(!vclk.lowSince)vclk.lowSince=nowMs;
+      else if(nowMs-vclk.lowSince>4000){
+        vclk.degraded=true;
+        const tr=cam.stream&&cam.stream.getVideoTracks()[0];
+        if(tr&&tr.applyConstraints)tr.applyConstraints({frameRate:{ideal:30}}).catch(()=>{});
+        toast("המכשיר מתקשה לעמוד בקצב — הורדנו את קצב המצלמה כדי שהמדידה תמשיך בלי להיתקע");
+      }
+    }else vclk.lowSince=0;
+  }
   let prevFrac=0,prevMt=0;
   function camFrame(mediaTime,presTime){
     const v=$("#pf-video");
@@ -8778,7 +8823,7 @@ const PF=(function(){
       const d=mt-vclk.mt;
       /* ממוצע נע — קצב רגעי קופץ, וממנו אי אפשר לדווח דיוק ביושר */
       if(d>0&&d<1)vclk.dt=vclk.dt?vclk.dt*0.9+d*0.1:d;
-      if(vclk.dt>0)vclk.fps=1/vclk.dt;
+      if(vclk.dt>0){ vclk.fps=1/vclk.dt; checkThermal(pt); }
     }
     vclk.mt=mt; vclk.pt=pt;
     if(v.readyState>=2){
@@ -16127,11 +16172,17 @@ window.FT=(function(){
     clk={on:true,t0:performance.now()-clk.paused*1000,raf:0,paused:0};
     const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
     if(g)g.disabled=true; if(s)s.disabled=false;
+    /* צ׳קפוינט ב-localStorage, לא ב-performance.now(): אם הדף עצמו
+       ייהרג ברקע (החלטת מערכת הפעלה, לא הפרעה רגעית) כל משתני ה-JS
+       נעלמים בלי קשר לאיך נמדד הזמן. Date.now() הוא מה ששרוד את זה,
+       ומה שמאפשר להודיע למורה בפתיחה הבאה — לא לשחזר את השעון עצמו. */
+    LS().set("ft.clockCheckpoint",{test:st.test,cls:cls(),startedAt:Date.now()});
     tick();
   }
   function stopClock(silent){
     if(clk.on){ clk.paused=elapsed(); clk.on=false; cancelAnimationFrame(clk.raf); }
     H().keepAwake(false);
+    LS().set("ft.clockCheckpoint",null);
     const g=H().$("#ft-clkGo"), s=H().$("#ft-clkStop");
     if(g)g.disabled=false; if(s)s.disabled=true;
     if(!silent)H().toast("השעון נעצר — התוצאות שנקלטו נשמרו");
@@ -16264,19 +16315,26 @@ window.FT=(function(){
         else inp.blur();
       });
     });
-    /* הזנת מדידה */
-    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("keydown",e=>{
-      if(e.key!=="Enter")return;
-      e.preventDefault(); inp.blur();
-    }));
-    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("change",()=>{
+    /* הזנת מדידה — אותו עיקרון כמו commitCnt למעלה: שמירה גם תוך כדי
+       הקלדה (בהשהיה) וגם ביציאה מהשדה, כדי שמורה שהוקפץ באמצע הקלדה
+       (רענון, swipe-back) לא יאבד ספרה שהספיק להקליד אבל לא ליציאה מהשדה. */
+    const commitVal=(inp,render)=>{
       const k=inp.dataset.val, v=+inp.value;
       const s=studByKey(c,k);
       const fresh=!!pendingNew[k];
       if(v>0){ saveVal(c,T.id,s,v,fresh); delete pendingNew[k]; }
       else { const cur=openAttempt(c,T.id,s); if(cur)delAttempt(cur.id); }
-      renderRun();
-    }));
+      if(render)renderRun(); else refreshRow(k);
+    };
+    $$("#ft-list [data-val]").forEach(inp=>{
+      let tmr=0;
+      inp.addEventListener("input",()=>{ clearTimeout(tmr); tmr=setTimeout(()=>commitVal(inp,false),500); });
+      inp.addEventListener("keydown",e=>{
+        if(e.key!=="Enter")return;
+        e.preventDefault(); clearTimeout(tmr); commitVal(inp,false); inp.blur();
+      });
+      inp.addEventListener("change",()=>{ clearTimeout(tmr); commitVal(inp,true); });
+    });
     $$("#ft-list [data-del]").forEach(b=>b.addEventListener("click",()=>{
       const k=b.dataset.del, s=studByKey(c,k);
       if(!confirm("למחוק את כל הניסיונות של "+s.name+" היום? ניסיונות מתאריכים קודמים נשמרים."))return;
@@ -17528,6 +17586,16 @@ window.FT=(function(){
     if(last.grade)st.grade=last.grade;
     if(last.num)st.num=last.num;
     if(last.sort)st.sort=last.sort;
+    /* שעון שנשאר «רץ» בצ׳קפוינט אך לא נסגר ב-stopClock — כלומר הדף
+       נעלם (רענון, הריגת עמוד ברקע) בזמן שהוא היה פתוח. לא משחזרים
+       את השעון עצמו (אין דרך בטוחה לדעת אם המדידה עוד רלוונטית),
+       רק מודיעים למורה שההפרעה קרתה ומתי — כדי שיבדוק את התלמיד האחרון. */
+    const cp=LS().get("ft.clockCheckpoint",null);
+    if(cp&&cp.startedAt){
+      LS().set("ft.clockCheckpoint",null);
+      const min=Math.round((Date.now()-cp.startedAt)/60000);
+      H().toast("שעון «"+(cp.cls||"")+"» נשאר פתוח ולא נסגר כרגיל (לפני כ-"+min+" דק׳) — בדוק את התוצאה האחרונה");
+    }
     H().$$("#ft-tabs button").forEach(b=>b.addEventListener("click",()=>{ st.tab=b.dataset.ft; renderTab(); }));
     renderTab();
   }
