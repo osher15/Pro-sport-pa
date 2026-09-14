@@ -15,7 +15,10 @@
 const {check,eq,ok}=require("./harness.js");
 const D=require("../../hm-data.js");
 
-const base={"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION};
+/* שעון קבוע: בלעדיו הבדיקות האלה עוברות בבוקר ונכשלות אחרי הצהריים,
+   כי «הבא» ו«הסתיים» תלויים בשעה שבה ההרצה יצאה לדרך. */
+const NOW="2026-09-14T07:30:00";
+const base={"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION,__now:NOW};
 const DAY=()=>D.dayOfISO(new Date().toISOString().slice(0,10));
 const openGrid=async page=>{
   await page.evaluate(()=>window.HM.openSched());
@@ -127,11 +130,17 @@ module.exports={title:"טבלת מערכת השעות",tests:[
     const sl=await page.evaluate(()=>window.HM.sched.list()[0]);
     eq(sl.kind,"stay");
     eq(sl.cid,null,"בלי מזהה כיתה מזויף");
-    const row=await page.evaluate(()=>document.querySelector("#hx-todayList .hx-slot").textContent
+    /* דף הבית עבר להיררכיה: מה שאינו שיעור אינו מציף אותו והוא חי
+       ביום המלא. הערובה לא השתנתה — שהייה אינה מתחזה לשיעור. */
+    await page.evaluate(()=>window.HM.openDay());
+    await page.waitForTimeout(300);
+    const day=await page.evaluate(()=>document.getElementById("day-body").textContent
       .replace(/\s+/g," ").trim());
-    ok(/שהייה/.test(row),"מופיעה ביום: "+row);
-    eq(await page.evaluate(()=>document.querySelectorAll("#hx-todayList [data-slot]").length),0,
+    ok(/שהייה/.test(day),"מופיעה ביום המלא: "+day.slice(0,60));
+    eq(await page.evaluate(()=>document.querySelectorAll("#day-body [data-slot]").length),0,
       "אבל אין מה להתחיל בה");
+    eq(await page.evaluate(()=>document.querySelectorAll("#hx-todayList [data-slot]").length),0,
+      "וגם לא בבית");
   }),
 
   check("פרטני מופיע ביום כהקשר, בלי כפתור התחלה",base,async page=>{
@@ -143,10 +152,12 @@ module.exports={title:"טבלת מערכת השעות",tests:[
       document.getElementById("sw-add").click();
     },DAY());
     await page.waitForTimeout(400);
+    await page.evaluate(()=>window.HM.openDay());
+    await page.waitForTimeout(300);
     const r=await page.evaluate(()=>({
-      txt:document.getElementById("hx-todayList").textContent.replace(/\s+/g," "),
-      starts:document.querySelectorAll("#hx-todayList [data-slot]").length,
-      ctx:document.querySelectorAll("#hx-todayList .hx-slot.ctx").length
+      txt:document.getElementById("day-body").textContent.replace(/\s+/g," "),
+      starts:document.querySelectorAll("#day-body [data-slot]").length,
+      ctx:document.querySelectorAll("#day-body .day-row.ctx").length
     }));
     ok(/פרטני אופק/.test(r.txt),r.txt.slice(0,80));
     eq(r.starts,0);
@@ -183,8 +194,15 @@ module.exports={title:"טבלת מערכת השעות",tests:[
       window.HM.modal("schedModal",false);
     });
     await page.waitForTimeout(700);
-    const n=await page.evaluate(()=>document.querySelectorAll("#hx-todayList .hx-slot").length);
-    ok(n>0,"היום מלא: "+n+" שורות");
+    const n=await page.evaluate(()=>({
+      focus:document.querySelectorAll("#hx-todayList .hx-focus").length,
+      up:document.querySelectorAll("#hx-todayList .hx-up").length,
+      day:(()=>{ window.HM.openDay();
+        return document.querySelectorAll("#day-body .day-row").length; })()
+    }));
+    ok(n.focus===1,"יש שיעור במוקד");
+    ok(n.up>0,"ועוד שיעורים בהמשך: "+n.up);
+    ok(n.day>5,"והיום המלא מציג את כל הפריטים: "+n.day);
   }),
 
   check("«נקה הכול» מרוקן את המערכת ולא נוגע בתלמידים",

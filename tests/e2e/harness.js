@@ -99,6 +99,27 @@ async function openApp(browser,seed,APP){
     return route.abort();
   });
 
+  /* ============================================================
+     שעון קבוע
+     ------------------------------------------------------------
+     בדיקה שתלויה בשעה שבה היא רצה אינה בדיקה: «השיעור הבא» עובר
+     ב-08:00 ונכשל ב-14:00, ואז הכישלון מספר על שעון ההרצה ולא על
+     הקוד. בדיקה שמזריעה __now מקבלת שעון שלא זז.
+
+     רק הקריאה של הזמן מוחלפת. performance.now נשאר כפי שהוא —
+     מדידת הזמנים של הפוטו־פיניש נשענת עליו.
+     ============================================================ */
+  await page.addInitScript(iso=>{
+    if(!iso)return;
+    try{
+      var R=Date, fixed=new R(iso).getTime();
+      function F(){ return arguments.length?new R(...arguments):new R(fixed); }
+      F.prototype=R.prototype; F.now=function(){ return fixed; };
+      F.parse=R.parse; F.UTC=R.UTC;
+      window.Date=F;
+    }catch(e){}
+  },(seed&&seed.__now)||null);
+
   /* הזרעה לפני שהאפליקציה עולה — כך ההסבה רצה על נתונים אמיתיים
      ולא על מכשיר ריק. */
   await page.addInitScript(s=>{
@@ -108,6 +129,7 @@ async function openApp(browser,seed,APP){
          אותו, ממש כשם שהן מתחילות ממורה שכבר ראה את הדרכת הפוטו־פיניש.
          בדיקה שרוצה לבחון את המסך הזה עצמו מזריעה hx.leadDone בעצמה. */
       const d=Object.assign({"hx.leadDone":true},s||{});
+      delete d.__now;   /* שעון, לא נתון — אינו נכתב לאחסון */
       Object.keys(d).forEach(k=>localStorage.setItem("pehub."+k,JSON.stringify(d[k])));
     }catch(e){}
   },seed||null);

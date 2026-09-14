@@ -20,7 +20,10 @@ const S=(time,cid,cls,extra)=>Object.assign(
   {id:"s"+time.replace(":",""),day:DAY(),time,cid,clsSnapshot:cls,kind:"pe"},extra||{});
 const CTX=(time,kind,label)=>({id:"x"+time.replace(":",""),day:DAY(),time,kind,label});
 
-const base={"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION};
+/* שעון קבוע לפני השיעור הראשון: «השיעור הבא», «מתחיל בעוד» ו«הכול
+   הסתיים» תלויים בשעה, ובלי קיבוע הם מספרים על שעון ההרצה. */
+const NOW="2026-09-14T07:30:00";
+const base={"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION,__now:NOW};
 const withDay=slots=>Object.assign({},base,{"sched.week":slots});
 /* יום מלא: שיעורים, הכנות, שהייה ופרטני — כמו מערכת אמיתית */
 const FULL=[
@@ -199,7 +202,8 @@ module.exports={title:"מה קורה עכשיו",tests:[
   }),
 
   check("יום שכולו מאחור אומר זאת, ולא מציג כרטיס ריק",
-    withDay([S("08:10","c:יא:6","י״א6")]),async page=>{
+    Object.assign({},withDay([S("08:10","c:יא:6","י״א6")]),{__now:"2026-09-14T07:30:00"}),
+    async page=>{
     /* מסמנים את השיעור כהתקיים — ואז אין «עכשיו» ואין «הבא» */
     await page.evaluate(async()=>{
       document.querySelector("#hx-todayList [data-slot]").click();
