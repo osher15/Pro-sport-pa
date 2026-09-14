@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=050665f4">
+<link rel="stylesheet" href="hm-styles.css?v=61a1cb79">
 <script src="hm-data.js?v=b3025127"></script>
-<script src="hm-i18n.js?v=ec4a652e"></script>
-<script src="hm-app.js?v=93c656ec"></script>
+<script src="hm-i18n.js?v=884bfff0"></script>
+<script src="hm-app.js?v=9186dfde"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -25,7 +25,7 @@
 <script src="hm-plans.js?v=ba067c4d"></script>
 <script src="hm-lesson.js?v=1d73c0de"></script>
 <script src="hm-build.js?v=2e53417d"></script>
-<script src="hm-tests.js?v=92988545"></script>
+<script src="hm-tests.js?v=a436587b"></script>
 <script src="hm-new.js?v=b0a9d5e3"></script>
 </helmet>
 <div class="app" dir="rtl">
@@ -44,15 +44,14 @@
 <header class="apphead">
 <div class="topbar">
   <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
+  <button class="iconbtn menubtn" id="btnMenu" title="תפריט — כל המסכים" data-i18n-title="ui.menu" aria-label="תפריט">☰</button>
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl" dir="auto"><span data-i18n="brand.word">המגרש</span> <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub" dir="auto">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
     <span class="clock" id="topClock">--:--</span>
-    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button>
-    <button class="iconbtn" id="btnInfo" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info">ℹ</button>
-    <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
+    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button></div>
 </div>
 <!-- ----- גרסה חדשה מוכנה ----- -->
 <div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
@@ -67,6 +66,17 @@
   <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
   <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
 </header>
+<!-- ============================================================
+     דף הבית — שלושה דברים, לא תפריט
+     ------------------------------------------------------------
+     הסדר כאן הוא התשובה לשאלה «מה אני עושה עכשיו»: קודם השיעור
+     שקורה (או הבא בתור), ואחריו שתי הפעולות שמורה עושה בכל שיעור
+     — למדוד ולהעביר. כל שאר המסכים חיים בתפריט ☰ שבראש, כמו
+     במערכות בית הספר: מסך ראשון קצר, ותפריט אחד שבו הכול.
+
+     מה שמתחת — מונים, אתגר, תזונה וטיפ — אינו פעולה אלא רקע,
+     ולכן הוא יורד אל מתחת לשלושת הדברים במקום להתחרות בהם.
+     ============================================================ -->
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date" dir="auto">—</div>
@@ -77,6 +87,17 @@
       <button class="btn sm ghost" id="hx-schedEdit" data-i18n="home.schedEdit">🗓 מערכת שעות</button></div>
     <div id="hx-todayList"></div>
   </div>
+  <div class="hx-mods">
+    <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
+      <div class="tx"><b data-i18n="home.ft">מבחני כושר</b><span data-i18n="home.ftSub">31 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
+      <div class="tx"><b data-i18n="home.lesson">מערכי שיעור</b><span data-i18n="home.lessonSub">חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
+  </div>
+  <div class="hx-last" id="hx-last" hidden>
+    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
+      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
+    <div id="hx-lastBody"></div>
+  </div>
   <div class="scoreband">
     <div class="sb"><div class="n" id="qsRuns">0</div><div class="l" data-i18n="home.statRuns">מקצים נמדדו</div></div>
     <div class="div"></div>
@@ -85,23 +106,6 @@
     <div class="sb"><div class="n" id="qsRecs">0</div><div class="l" data-i18n="home.statRecs">שיאים מאושרים</div></div>
     <div class="div"></div>
     <div class="sb"><div class="n" id="qsStu">0</div><div class="l" data-i18n="home.statStu">תלמידים במעקב</div></div>
-  </div>
-  <div class="hx-mods">
-    <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
-      <div class="tx"><b data-i18n="home.ft">מבחני כושר</b><span data-i18n="home.ftSub">30 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
-      <div class="tx"><b data-i18n="home.lesson">מערכי שיעור</b><span data-i18n="home.lessonSub">חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">03</div>
-      <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
-      <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
-    <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
-  </div>
-  <div class="hx-last" id="hx-last" hidden>
-    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
-      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
-    <div id="hx-lastBody"></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -1430,7 +1434,7 @@
   </details>
 
   <details class="info-sec" data-info="ft"><summary>🏅 מבחני כושר</summary>
-    <p class="info-w">הלב של האפליקציה: 30 מבחנים עם שעון ומונה. בוחרים כיתה ומבחן, ומזינים תוצאה לכל תלמיד.</p>
+    <p class="info-w">הלב של האפליקציה: 31 מבחנים עם שעון ומונה. בוחרים כיתה ומבחן, ומזינים תוצאה לכל תלמיד.</p>
     <ul class="info-l">
       <li><b>🏅 מבחנים</b> המסך שבו מודדים בפועל. כל תוצאה נשמרת לתלמיד ולא נמחקת.</li>
       <li><b>📊 מדד הכושר</b> ציון כושר כולל לכל תלמיד מול הנורמות.</li>
@@ -1653,20 +1657,46 @@
   </div>
 </div></div>
 
-<div class="modal" id="moreModal"><div class="box" style="max-width:400px">
-  <h3><span data-i18n="more.title">⋯ עוד מודולים</span><button class="x" data-close="moreModal">✕</button></h3>
-  <div class="hint" style="margin-bottom:9px">כושר ומשחקים עברו לתוך «שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
+<!-- ============================================================
+     התפריט הראשי — ☰
+     ------------------------------------------------------------
+     קודם היו שתי דרכים חלקיות: ארבעה אריחים בבית, וחלון «עוד» שבו
+     מה שלא נכנס אליהם. מודול שעבר מכאן לשם נעלם — זה קרה ל«ידע»
+     פעם אחת בפועל. מגירה אחת שמחזיקה את **כל** המסכים מוציאה את
+     הצירוף הזה מהעולם: הבית מקצר, והתפריט לא מאבד כלום.
+     ============================================================ -->
+<div class="modal drawer" id="navDrawer"><div class="box">
+  <h3><span data-i18n="more.title">☰ תפריט</span><button class="x" data-close="navDrawer">✕</button></h3>
+  <div class="more-grp">
+    <div class="more-h">📍 גישה מהירה</div>
+    <button class="more-item" data-go="home" data-close="navDrawer"><span class="ic">🏠</span><span data-i18n="more.home">מה עכשיו — דף הבית</span><span class="go">→</span></button>
+    <button class="more-item" id="dw-sched" data-close="navDrawer"><span class="ic">🗓</span><span data-i18n="more.sched">מערכת שעות</span><span class="go">→</span></button>
+    <button class="more-item" id="dw-groups" data-close="navDrawer"><span class="ic">👫</span><span data-i18n="more.groups">קבוצות הוראה</span><span class="go">→</span></button>
+  </div>
+  <div class="more-grp">
+    <div class="more-h">🏅 הוראה ומדידה</div>
+    <button class="more-item" data-go="ft" data-close="navDrawer"><span class="ic">🏅</span><span data-i18n="more.ft">מבחני כושר</span><span class="go">→</span></button>
+    <button class="more-item" data-go="lesson" data-close="navDrawer"><span class="ic">📋</span><span data-i18n="more.lesson">מערכי שיעור</span><span class="go">→</span></button>
+    <button class="more-item" data-go="beep" data-close="navDrawer"><span class="ic">🎵</span><span data-i18n="more.beep">ביפ טסט</span><span class="go">→</span></button>
+    <button class="more-item" data-go="photo" data-close="navDrawer"><span class="ic">📷</span><span data-i18n="more.photo">פוטו־פיניש</span><span class="go">→</span></button>
+  </div>
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
-    <button class="more-item" data-go="rec" data-close="moreModal"><span class="ic">🏆</span><span data-i18n="more.records">אלופי בית הספר</span><span class="go">→</span></button>
-    <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span><span data-i18n="more.students">תלמידים וציונים</span><span class="go">→</span></button>
+    <button class="more-item" data-go="stu" data-close="navDrawer"><span class="ic">👥</span><span data-i18n="more.students">תלמידים וציונים</span><span class="go">→</span></button>
+    <button class="more-item" data-go="rec" data-close="navDrawer"><span class="ic">🏆</span><span data-i18n="more.records">אלופי בית הספר</span><span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
-    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
-    <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
-    <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
+    <button class="more-item" data-go="know" data-close="navDrawer"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
+    <button class="more-item" data-go="tools" data-close="navDrawer"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
+    <button class="more-item" data-go="nut" data-close="navDrawer"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
+  <div class="more-grp">
+    <div class="more-h">⚙️ הגדרות</div>
+    <button class="more-item" id="btnInfo" data-close="navDrawer" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info"><span class="ic">ℹ️</span><span data-i18n="more.guide">מדריך המסך</span><span class="go">→</span></button>
+    <button class="more-item" id="btnSettings" data-close="navDrawer" title="הגדרות" data-i18n-title="ui.settings"><span class="ic">⚙️</span><span data-i18n="more.settings">הגדרות וגיבוי</span><span class="go">→</span></button>
+  </div>
+  <div class="hint" style="margin-top:12px">כושר ומשחקים נמצאים בתוך «מערכי שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
 </div></div>
 <!-- settings modal -->
 <div class="modal" id="setModal"><div class="box">

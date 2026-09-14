@@ -22,7 +22,7 @@ const clickInfo=async page=>{
 
 module.exports={title:"שלב 14 — דף המידע",tests:[
 
-  check("הכפתור קיים בסרגל העליון, והחלון סגור בכניסה",seed,async page=>{
+  check("הכפתור קיים בתפריט, והחלון סגור בכניסה",seed,async page=>{
     ok(await page.evaluate(()=>!!document.getElementById("btnInfo")),"כפתור ℹ קיים");
     eq(await isOpen(page),false,"דף המידע אינו קופץ מעצמו");
   }),

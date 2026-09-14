@@ -94,6 +94,20 @@ body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .more-item:hover{border-color:var(--acc)}
 .more-item .ic{font-size:19px;flex:none}
 .more-item .go{margin-inline-start:auto;color:var(--acc);font-size:16px;transform:scaleX(-1)}
+/* ---------- המגירה הראשית (☰) ----------
+   מגירה ולא חלון: היא נצמדת לצד שממנו נפתחה (בעברית — ימין, דרך
+   place-items:start על הציר הלוגי), תופסת את כל הגובה, והכותרת
+   שלה נשארת דביקה כדי שה-✕ לא ייעלם ברשימה ארוכה. */
+.menubtn{font-size:18px;flex:none}
+.modal.drawer{padding:0;place-items:stretch start}
+.modal.drawer .box{width:min(340px,86vw);height:100%;max-height:none;border-radius:0;
+  border-block:none;border-inline-start:none;padding:14px;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom));animation:dwin .18s ease}
+.modal.drawer .box h3{position:sticky;top:-14px;z-index:1;margin:-14px -14px 12px;padding:14px;
+  padding-top:calc(14px + env(safe-area-inset-top));border-bottom:1px solid var(--line);
+  background:var(--panel);font-size:16px}
+@keyframes dwin{from{opacity:.3;transform:scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.modal.drawer .box{animation:none}}
 /* ---------- views ---------- */
 .view{display:none;animation:vin .22s ease}
 .view.on{display:block}
@@ -1558,15 +1572,14 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
 <header class="apphead">
 <div class="topbar">
   <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
+  <button class="iconbtn menubtn" id="btnMenu" title="תפריט — כל המסכים" data-i18n-title="ui.menu" aria-label="תפריט">☰</button>
   <div class="brand"><div class="logo">🏟️</div>
     <div><div class="ttl" dir="auto"><span data-i18n="brand.word">המגרש</span> <b style="color:var(--acc)">PRO</b></div><div class="sub" id="schoolSub" dir="auto">ערכת שטח למורה לחינוך גופני</div></div>
   </div>
   <div class="sboard">
     <button id="roleBadge" style="display:none">👦 מצב תלמיד<span id="roleExit">יציאה 🔓</span></button>
     <span class="clock" id="topClock">--:--</span>
-    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button>
-    <button class="iconbtn" id="btnInfo" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info">ℹ</button>
-    <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
+    <button class="iconbtn" id="btnSun" title="מצב שמש — ניגודיות גבוהה לאור יום" data-i18n-title="ui.sun">☀</button></div>
 </div>
 <!-- ----- גרסה חדשה מוכנה ----- -->
 <div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
@@ -1581,6 +1594,17 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
   <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
 </header>
+<!-- ============================================================
+     דף הבית — שלושה דברים, לא תפריט
+     ------------------------------------------------------------
+     הסדר כאן הוא התשובה לשאלה «מה אני עושה עכשיו»: קודם השיעור
+     שקורה (או הבא בתור), ואחריו שתי הפעולות שמורה עושה בכל שיעור
+     — למדוד ולהעביר. כל שאר המסכים חיים בתפריט ☰ שבראש, כמו
+     במערכות בית הספר: מסך ראשון קצר, ותפריט אחד שבו הכול.
+
+     מה שמתחת — מונים, אתגר, תזונה וטיפ — אינו פעולה אלא רקע,
+     ולכן הוא יורד אל מתחת לשלושת הדברים במקום להתחרות בהם.
+     ============================================================ -->
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date" dir="auto">—</div>
@@ -1591,6 +1615,17 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       <button class="btn sm ghost" id="hx-schedEdit" data-i18n="home.schedEdit">🗓 מערכת שעות</button></div>
     <div id="hx-todayList"></div>
   </div>
+  <div class="hx-mods">
+    <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
+      <div class="tx"><b data-i18n="home.ft">מבחני כושר</b><span data-i18n="home.ftSub">31 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
+    <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
+      <div class="tx"><b data-i18n="home.lesson">מערכי שיעור</b><span data-i18n="home.lessonSub">חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
+  </div>
+  <div class="hx-last" id="hx-last" hidden>
+    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
+      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
+    <div id="hx-lastBody"></div>
+  </div>
   <div class="scoreband">
     <div class="sb"><div class="n" id="qsRuns">0</div><div class="l" data-i18n="home.statRuns">מקצים נמדדו</div></div>
     <div class="div"></div>
@@ -1599,23 +1634,6 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <div class="sb"><div class="n" id="qsRecs">0</div><div class="l" data-i18n="home.statRecs">שיאים מאושרים</div></div>
     <div class="div"></div>
     <div class="sb"><div class="n" id="qsStu">0</div><div class="l" data-i18n="home.statStu">תלמידים במעקב</div></div>
-  </div>
-  <div class="hx-mods">
-    <div class="hx-mod primary" data-go="ft" style="--lc:#f59e0b"><div class="no">01</div>
-      <div class="tx"><b data-i18n="home.ft">מבחני כושר</b><span data-i18n="home.ftSub">30 מבחנים · שעון ומונה · רשימת כיתה · מדד הכושר</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="lesson" style="--lc:#f472b6"><div class="no">02</div>
-      <div class="tx"><b data-i18n="home.lesson">מערכי שיעור</b><span data-i18n="home.lessonSub">חימום → תחנות → מדידה · מהיר או בנייה ידנית</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="beep" style="--lc:#38bdf8"><div class="no">03</div>
-      <div class="tx"><b data-i18n="home.beep">ביפ טסט</b><span data-i18n="home.beepSub">ביפים בדיוק שעון אודיו · VO₂max · נורמות FITNESSGRAM</span></div><div class="go">→</div></div>
-    <div class="hx-mod" data-go="photo" style="--lc:#fb923c"><div class="no">04</div>
-      <div class="tx"><b data-i18n="home.photo">פוטו־פיניש</b><span data-i18n="home.photoSub">מדידת זמנים מהמצלמה · ספרינט · הקפות · תעודות</span></div><div class="go">→</div></div>
-    <div class="hx-mod" id="hxMoreBtn" style="--lc:#8a8da1"><div class="no">⋯</div>
-      <div class="tx"><b data-i18n="home.more">עוד אפשרויות</b><span data-i18n="home.moreSub">אלופי בית הספר · תלמידים וציונים · ידע · כלי כיתה · תזונה</span></div><div class="go">→</div></div>
-  </div>
-  <div class="hx-last" id="hx-last" hidden>
-    <div class="top"><b data-i18n="home.lastLesson">השיעור האחרון</b>
-      <button class="btn sm ghost" id="hx-lastHist" data-i18n="home.allLessons">📖 כל השיעורים</button></div>
-    <div id="hx-lastBody"></div>
   </div>
   <div class="hx-ch">
     <div class="top"><b id="hx-chTitle" data-i18n="home.challenge">אתגר השבוע</b><span class="pct" id="hx-chPct">0 / 0 · 0%</span></div>
@@ -2944,7 +2962,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   </details>
 
   <details class="info-sec" data-info="ft"><summary>🏅 מבחני כושר</summary>
-    <p class="info-w">הלב של האפליקציה: 30 מבחנים עם שעון ומונה. בוחרים כיתה ומבחן, ומזינים תוצאה לכל תלמיד.</p>
+    <p class="info-w">הלב של האפליקציה: 31 מבחנים עם שעון ומונה. בוחרים כיתה ומבחן, ומזינים תוצאה לכל תלמיד.</p>
     <ul class="info-l">
       <li><b>🏅 מבחנים</b> המסך שבו מודדים בפועל. כל תוצאה נשמרת לתלמיד ולא נמחקת.</li>
       <li><b>📊 מדד הכושר</b> ציון כושר כולל לכל תלמיד מול הנורמות.</li>
@@ -3167,20 +3185,46 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   </div>
 </div></div>
 
-<div class="modal" id="moreModal"><div class="box" style="max-width:400px">
-  <h3><span data-i18n="more.title">⋯ עוד מודולים</span><button class="x" data-close="moreModal">✕</button></h3>
-  <div class="hint" style="margin-bottom:9px">כושר ומשחקים עברו לתוך «שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
+<!-- ============================================================
+     התפריט הראשי — ☰
+     ------------------------------------------------------------
+     קודם היו שתי דרכים חלקיות: ארבעה אריחים בבית, וחלון «עוד» שבו
+     מה שלא נכנס אליהם. מודול שעבר מכאן לשם נעלם — זה קרה ל«ידע»
+     פעם אחת בפועל. מגירה אחת שמחזיקה את **כל** המסכים מוציאה את
+     הצירוף הזה מהעולם: הבית מקצר, והתפריט לא מאבד כלום.
+     ============================================================ -->
+<div class="modal drawer" id="navDrawer"><div class="box">
+  <h3><span data-i18n="more.title">☰ תפריט</span><button class="x" data-close="navDrawer">✕</button></h3>
+  <div class="more-grp">
+    <div class="more-h">📍 גישה מהירה</div>
+    <button class="more-item" data-go="home" data-close="navDrawer"><span class="ic">🏠</span><span data-i18n="more.home">מה עכשיו — דף הבית</span><span class="go">→</span></button>
+    <button class="more-item" id="dw-sched" data-close="navDrawer"><span class="ic">🗓</span><span data-i18n="more.sched">מערכת שעות</span><span class="go">→</span></button>
+    <button class="more-item" id="dw-groups" data-close="navDrawer"><span class="ic">👫</span><span data-i18n="more.groups">קבוצות הוראה</span><span class="go">→</span></button>
+  </div>
+  <div class="more-grp">
+    <div class="more-h">🏅 הוראה ומדידה</div>
+    <button class="more-item" data-go="ft" data-close="navDrawer"><span class="ic">🏅</span><span data-i18n="more.ft">מבחני כושר</span><span class="go">→</span></button>
+    <button class="more-item" data-go="lesson" data-close="navDrawer"><span class="ic">📋</span><span data-i18n="more.lesson">מערכי שיעור</span><span class="go">→</span></button>
+    <button class="more-item" data-go="beep" data-close="navDrawer"><span class="ic">🎵</span><span data-i18n="more.beep">ביפ טסט</span><span class="go">→</span></button>
+    <button class="more-item" data-go="photo" data-close="navDrawer"><span class="ic">📷</span><span data-i18n="more.photo">פוטו־פיניש</span><span class="go">→</span></button>
+  </div>
   <div class="more-grp">
     <div class="more-h">📊 תלמידים והערכה</div>
-    <button class="more-item" data-go="rec" data-close="moreModal"><span class="ic">🏆</span><span data-i18n="more.records">אלופי בית הספר</span><span class="go">→</span></button>
-    <button class="more-item" data-go="stu" data-close="moreModal"><span class="ic">👥</span><span data-i18n="more.students">תלמידים וציונים</span><span class="go">→</span></button>
+    <button class="more-item" data-go="stu" data-close="navDrawer"><span class="ic">👥</span><span data-i18n="more.students">תלמידים וציונים</span><span class="go">→</span></button>
+    <button class="more-item" data-go="rec" data-close="navDrawer"><span class="ic">🏆</span><span data-i18n="more.records">אלופי בית הספר</span><span class="go">→</span></button>
   </div>
   <div class="more-grp">
     <div class="more-h">🧰 תוכן וכלים</div>
-    <button class="more-item" data-go="know" data-close="moreModal"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
-    <button class="more-item" data-go="tools" data-close="moreModal"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
-    <button class="more-item" data-go="nut" data-close="moreModal"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
+    <button class="more-item" data-go="know" data-close="navDrawer"><span class="ic">📚</span><span data-i18n="more.knowledge">ידע</span><span class="go">→</span></button>
+    <button class="more-item" data-go="tools" data-close="navDrawer"><span class="ic">🧰</span><span data-i18n="more.tools">כלי כיתה</span><span class="go">→</span></button>
+    <button class="more-item" data-go="nut" data-close="navDrawer"><span class="ic">🥗</span><span data-i18n="more.nutrition">פינת תזונה</span><span class="go">→</span></button>
   </div>
+  <div class="more-grp">
+    <div class="more-h">⚙️ הגדרות</div>
+    <button class="more-item" id="btnInfo" data-close="navDrawer" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info"><span class="ic">ℹ️</span><span data-i18n="more.guide">מדריך המסך</span><span class="go">→</span></button>
+    <button class="more-item" id="btnSettings" data-close="navDrawer" title="הגדרות" data-i18n-title="ui.settings"><span class="ic">⚙️</span><span data-i18n="more.settings">הגדרות וגיבוי</span><span class="go">→</span></button>
+  </div>
+  <div class="hint" style="margin-top:12px">כושר ומשחקים נמצאים בתוך «מערכי שיעור» — נגישים משם בכל רגע, בלי לחפש אותם כאן.</div>
 </div></div>
 <!-- settings modal -->
 <div class="modal" id="setModal"><div class="box">
@@ -5677,7 +5721,7 @@ en:{
   "home.today":"My lessons today", "home.schedEdit":"🗓 Timetable",
   "home.lastLesson":"Last lesson", "home.allLessons":"📖 All lessons",
   "home.ft":"Fitness tests",
-  "home.ftSub":"30 tests · stopwatch and counter · class roster · fitness index",
+  "home.ftSub":"31 tests · stopwatch and counter · class roster · fitness index",
   "home.lesson":"Lesson plans",
   "home.lessonSub":"warm-up → stations → measurement · fast or hand-built",
   "home.beep":"Beep test",
@@ -5693,7 +5737,10 @@ en:{
   "home.tip":"Field tip",
 
   /* --- תפריט «עוד» --- */
-  "more.title":"More modules",
+  "more.title":"\u2630 Menu",
+  "more.home":"What now \u2014 home", "more.sched":"Timetable", "more.groups":"Teaching groups",
+  "more.ft":"Fitness tests", "more.lesson":"Lesson plans", "more.beep":"Beep test", "more.photo":"Photo finish",
+  "more.guide":"Screen guide", "more.settings":"Settings and backup",
   "more.records":"School champions", "more.students":"Students and grades",
   "more.knowledge":"Knowledge", "more.tools":"Class tools", "more.nutrition":"Nutrition corner",
 
@@ -5755,6 +5802,7 @@ en:{
   "ui.yes":"Yes", "ui.no":"No", "ui.back":"Back", "ui.next":"Next", "ui.done":"Done",
   "ui.sun":"Bright-sun mode — high contrast for daylight",
   "ui.sunOff":"Back to the normal theme",
+  "ui.menu":"Menu \u2014 every screen",
   "ui.settings":"Settings",
   "ui.info":"Quick guide — what this screen does",
   "ui.demoBar":"Demo mode", "ui.demoNote":"— the data here is a sample",
@@ -5820,7 +5868,7 @@ ar:{
   "home.today":"حصصي اليوم", "home.schedEdit":"🗓 الجدول",
   "home.lastLesson":"الحصة الأخيرة", "home.allLessons":"📖 كل الحصص",
   "home.ft":"اختبارات اللياقة",
-  "home.ftSub":"30 اختبارًا · ساعة إيقاف وعدّاد · قائمة الصف · مؤشر اللياقة",
+  "home.ftSub":"31 اختبارًا · ساعة إيقاف وعدّاد · قائمة الصف · مؤشر اللياقة",
   "home.lesson":"خطط الدروس",
   "home.lessonSub":"إحماء ← محطات ← قياس · سريع أو بناء يدوي",
   "home.beep":"اختبار البيب",
@@ -5835,7 +5883,10 @@ ar:{
   "home.chPlus":"+ أضف عدًّا", "home.chEdit":"✎ تحدٍّ جديد",
   "home.tip":"نصيحة ميدانية",
 
-  "more.title":"وحدات إضافية",
+  "more.title":"\u2630 القائمة",
+  "more.home":"ماذا الآن — الصفحة الرئيسية", "more.sched":"جدول الحصص", "more.groups":"مجموعات التدريس",
+  "more.ft":"اختبارات اللياقة", "more.lesson":"خطط الدروس", "more.beep":"اختبار الصافرة", "more.photo":"صورة النهاية",
+  "more.guide":"دليل الشاشة", "more.settings":"الإعدادات والنسخ الاحتياطي",
   "more.records":"أبطال المدرسة", "more.students":"الطلاب والعلامات",
   "more.knowledge":"المعرفة", "more.tools":"أدوات الصف", "more.nutrition":"ركن التغذية",
 
@@ -5894,6 +5945,7 @@ ar:{
   "ui.yes":"نعم", "ui.no":"لا", "ui.back":"رجوع", "ui.next":"التالي", "ui.done":"تم",
   "ui.sun":"وضع الشمس — تباين عالٍ لضوء النهار",
   "ui.sunOff":"العودة إلى السِمة العادية",
+  "ui.menu":"القائمة — كل الشاشات",
   "ui.settings":"الإعدادات",
   "ui.info":"دليل سريع — ماذا تفعل هذه الشاشة",
   "ui.demoBar":"وضع العرض التوضيحي", "ui.demoNote":"— البيانات هنا نموذجية",
@@ -5966,7 +6018,7 @@ ru:{
   "home.today":"Мои уроки сегодня", "home.schedEdit":"🗓 Расписание",
   "home.lastLesson":"Последний урок", "home.allLessons":"📖 Все уроки",
   "home.ft":"Тесты физподготовки",
-  "home.ftSub":"30 тестов · секундомер и счётчик · список класса · индекс формы",
+  "home.ftSub":"31 тестов · секундомер и счётчик · список класса · индекс формы",
   "home.lesson":"Планы уроков",
   "home.lessonSub":"разминка → станции → замер · быстро или вручную",
   "home.beep":"Бип-тест",
@@ -5981,7 +6033,10 @@ ru:{
   "home.chPlus":"+ добавить", "home.chEdit":"✎ новый вызов",
   "home.tip":"Полевой совет",
 
-  "more.title":"Другие модули",
+  "more.title":"\u2630 Меню",
+  "more.home":"Что сейчас — главная", "more.sched":"Расписание", "more.groups":"Учебные группы",
+  "more.ft":"Тесты физподготовки", "more.lesson":"Планы уроков", "more.beep":"Бип-тест", "more.photo":"Фотофиниш",
+  "more.guide":"Гид по экрану", "more.settings":"Настройки и резервная копия",
   "more.records":"Чемпионы школы", "more.students":"Ученики и оценки",
   "more.knowledge":"Знания", "more.tools":"Инструменты класса", "more.nutrition":"Уголок питания",
 
@@ -6040,6 +6095,7 @@ ru:{
   "ui.yes":"Да", "ui.no":"Нет", "ui.back":"Назад", "ui.next":"Далее", "ui.done":"Готово",
   "ui.sun":"Режим солнца — высокий контраст для дневного света",
   "ui.sunOff":"Вернуться к обычной теме",
+  "ui.menu":"Меню — все экраны",
   "ui.settings":"Настройки",
   "ui.info":"Краткое руководство — что делает этот экран",
   "ui.demoBar":"Демо-режим", "ui.demoNote":"— данные здесь учебные",
@@ -6313,6 +6369,8 @@ function applyRole(){
   const ng=$("#navGames"); if(ng)ng.style.display=stu?"":"none";
   const nm=$("#navMore"); if(nm)nm.style.display=stu?"none":"";
   const st=$("#btnSettings"); if(st)st.style.display=stu?"none":"";
+  /* התפריט הראשי מוביל למסכים שאסורים לתלמיד ממילא — הוא יורד איתם */
+  const bm=$("#btnMenu"); if(bm)bm.style.display=stu?"none":"";
   const rb=$("#roleBadge");
   if(rb){ rb.style.display=stu?"":"none"; }
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole();
@@ -6350,8 +6408,21 @@ function go(mod){
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
-  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); });
-  const hm=$("#hxMoreBtn"); if(hm)hm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
+  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("navDrawer"); });
+  const bm=$("#btnMenu"); if(bm)bm.addEventListener("click",()=>{ ac(); modal("navDrawer"); });
+  wireDrawer(); }
+/* המגירה מחזיקה גם פעולות שאינן מודול — מערכת שעות וקבוצות הוראה.
+   הסגירה שלה עצמה נעשית דרך data-close שעל כל שורה, כמו בכל חלון
+   אחר: חלון שנפתח מעל מגירה פתוחה משאיר שתי שכבות כהות זו על זו,
+   ואת הסגירה של שתיהן על המורה.
+   «מדריך» ו«הגדרות» אינם משוכפלים כאן — אלה אותם שני הכפתורים
+   עצמם, שעברו מהסרגל העליון אל תוך המגירה. הסרגל היה צר מכדי
+   להחזיק גם אותם וגם את ☰ בלי לחתוך את שם האפליקציה. */
+function wireDrawer(){
+  const hook=(id,fn)=>{ const b=$("#"+id); if(b)b.addEventListener("click",()=>{ ac(); fn(); }); };
+  hook("dw-sched",()=>openSched());
+  hook("dw-groups",()=>openGroups());
+}
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"home"));
 
 /* ---------- home ---------- */
@@ -6479,7 +6550,7 @@ function goBack(){
   const mod=document.body.dataset.mod||"home";
   /* אם המודול עצמו נמצא במסך פנימי — נותנים לו לטפל בחזרה קודם */
   for(const fn of BACK_HOOKS){ try{ if(fn(mod))return; }catch(e){} }
-  if(MORE_MODS.includes(mod)){ go("home"); modal("moreModal",true); return; }
+  if(MORE_MODS.includes(mod)){ go("home"); modal("navDrawer",true); return; }
   go(BACK_TO[mod]||"home");
 }
 /* מודול שיש בו מסך פנימי רושם כאן פונקציה. היא מקבלת את המודול
@@ -15073,6 +15144,8 @@ const TESTS=[
   /* ---------- כוח: חזרות ---------- */
   {id:"push", em:"🙌", name:"שכיבות סמיכה",       cat:"reps", kind:"count", dir:"high", unit:"חזרות",
    hint:"עד כשל או עד שהטכניקה נשברת. גוף קו ישר, חזה כמעט נוגע. אפשר לספור בזוגות."},
+  {id:"push60",em:"⏱", name:"שכיבות סמיכה — 60 שנ׳", cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
+   hint:"דקה על השעון — כמה חזרות נכנסות. מבחן אחר מ«עד כשל»: כאן נמדד גם הקצב, ולכן שתי התוצאות נשמרות בנפרד."},
   {id:"situp",em:"🔄", name:"כפיפות בטן — 60 שנ׳", cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
    hint:"דקה על השעון. ברכיים כפופות, ידיים מוצלבות על החזה, בן זוג מחזיק רגליים."},
   {id:"pull", em:"🧗", name:"מתח",                cat:"reps", kind:"count", dir:"high", unit:"חזרות",
@@ -15114,6 +15187,16 @@ const TESTS=[
   {id:"shrch",em:"🤸", name:"הושטת כתפיים מאחור", cat:"flex", kind:"value", dir:"high", unit:"ס״מ",
    hint:"יד אחת מלמעלה ואחת מלמטה מאחורי הגב, מודדים את המרחק בין קצות האצבעות (0 = נגיעה)."}
 ];
+/* ---------- מה שנמדד בפועל, בסדר שבו הוא נמדד ----------
+   הקטלוג מסודר לפי קטגוריה, וזה הסדר הנכון לחיפוש — אבל לא לעבודה.
+   ששת המבחנים שמורה מודד בהם שוב ושוב פזורים בין ארבע קטגוריות,
+   וכל אחד מהם דורש גלילה. הרשימה כאן מרימה אותם לראש המסך בסדר
+   שהמורה ביקש, והקטגוריות שמתחת מציגות את היתר — בלי כפילות,
+   כדי שלא ייראה שיש שני מבחנים שונים באותו שם.
+   הסדר הוא נתון של הוראה, לא של קוד: לשנות אותו — לשנות כאן. */
+const POPULAR=["pull","push","push60","r1000","situp","r1500","shut4x10"];
+const popTests=()=>POPULAR.map(id=>TESTS.find(t=>t.id===id)).filter(Boolean);
+
 const testById=id=>TESTS.find(t=>t.id===id);
 const catName=id=>(TCATS.find(c=>c[0]===id)||[,"—"])[1];
 
@@ -15420,21 +15503,27 @@ window.FT=(function(){
       : "אין עדיין רשימה לכיתה הזו — אפשר לייבא, להדביק או להוסיף ידנית";
 
     const rs=allRes().filter(r=>inCls(r,c));
-    $("#ft-tests").innerHTML=TCATS.map(([cid,cnm,cem])=>{
-      const items=TESTS.filter(t=>t.cat===cid);
-      if(!items.length)return "";
-      return `<div class="ft-grp"><div class="ft-grph">${cem} ${cnm}</div>
-        <div class="ft-cards">${items.map(t=>{
-          const mine=rs.filter(r=>r.test===t.id);
-          const todayN=mine.filter(r=>r.d===today()).length;
-          return `<div class="ft-card" data-t="${t.id}">
-            <div class="hd"><span class="em">${t.em}</span><b>${esc(t.name)}</b></div>
-            <div class="mt"><span class="pill">${esc(t.unit)}</span>
-              <span class="pill">${t.kind==="clock"?"⏱ שעון":t.kind==="count"?"➕ מונה":t.kind==="link"?"↗ מודול ייעודי":"✎ הזנה"}</span>
-              ${t.dur?`<span class="pill">${t.dur>=60?Math.round(t.dur/60)+" דק׳":t.dur+" שנ׳"}</span>`:""}
-              ${todayN?`<span class="pill acc">${todayN} היום</span>`:mine.length?`<span class="pill">${mine.length} בהיסטוריה</span>`:""}</div>
-          </div>`;}).join("")}</div></div>`;
-    }).join("");
+    const card=t=>{
+      const mine=rs.filter(r=>r.test===t.id);
+      const todayN=mine.filter(r=>r.d===today()).length;
+      return `<div class="ft-card" data-t="${t.id}">
+        <div class="hd"><span class="em">${t.em}</span><b>${esc(t.name)}</b></div>
+        <div class="mt"><span class="pill">${esc(t.unit)}</span>
+          <span class="pill">${t.kind==="clock"?"⏱ שעון":t.kind==="count"?"➕ מונה":t.kind==="link"?"↗ מודול ייעודי":"✎ הזנה"}</span>
+          ${t.dur?`<span class="pill">${t.dur>=60?Math.round(t.dur/60)+" דק׳":t.dur+" שנ׳"}</span>`:""}
+          ${todayN?`<span class="pill acc">${todayN} היום</span>`:mine.length?`<span class="pill">${mine.length} בהיסטוריה</span>`:""}</div>
+      </div>`;
+    };
+    const grp=(head,items)=>items.length
+      ? `<div class="ft-grp"><div class="ft-grph">${head}</div>
+          <div class="ft-cards">${items.map(card).join("")}</div></div>`
+      : "";
+    /* הנפוצים ראשונים, והקטגוריות שמתחת בלי אותם מבחנים — פעם אחת
+       לכל מבחן, כדי שלא ייראה שיש שניים באותו שם. */
+    $("#ft-tests").innerHTML=
+      grp("⭐ הנמדדים הכי הרבה",popTests())+
+      TCATS.map(([cid,cnm,cem])=>
+        grp(`${cem} ${cnm}`,TESTS.filter(t=>t.cat===cid&&POPULAR.indexOf(t.id)<0))).join("");
 
     renderAmb();
     wireStartLesson();

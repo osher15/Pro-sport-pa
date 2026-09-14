@@ -191,6 +191,8 @@ function applyRole(){
   const ng=$("#navGames"); if(ng)ng.style.display=stu?"":"none";
   const nm=$("#navMore"); if(nm)nm.style.display=stu?"none":"";
   const st=$("#btnSettings"); if(st)st.style.display=stu?"none":"";
+  /* התפריט הראשי מוביל למסכים שאסורים לתלמיד ממילא — הוא יורד איתם */
+  const bm=$("#btnMenu"); if(bm)bm.style.display=stu?"none":"";
   const rb=$("#roleBadge");
   if(rb){ rb.style.display=stu?"":"none"; }
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole();
@@ -228,8 +230,21 @@ function go(mod){
   if(location.hash!=="#"+mod){ try{history.replaceState(null,"","#"+mod)}catch(e){} }
 }
 function wireNav(){ $$("[data-go]").forEach(el=>el.addEventListener("click",()=>{ ac(); go(el.dataset.go); }));
-  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("moreModal"); });
-  const hm=$("#hxMoreBtn"); if(hm)hm.addEventListener("click",()=>{ ac(); modal("moreModal"); }); }
+  const nm=$("#navMore"); if(nm)nm.addEventListener("click",()=>{ ac(); modal("navDrawer"); });
+  const bm=$("#btnMenu"); if(bm)bm.addEventListener("click",()=>{ ac(); modal("navDrawer"); });
+  wireDrawer(); }
+/* המגירה מחזיקה גם פעולות שאינן מודול — מערכת שעות וקבוצות הוראה.
+   הסגירה שלה עצמה נעשית דרך data-close שעל כל שורה, כמו בכל חלון
+   אחר: חלון שנפתח מעל מגירה פתוחה משאיר שתי שכבות כהות זו על זו,
+   ואת הסגירה של שתיהן על המורה.
+   «מדריך» ו«הגדרות» אינם משוכפלים כאן — אלה אותם שני הכפתורים
+   עצמם, שעברו מהסרגל העליון אל תוך המגירה. הסרגל היה צר מכדי
+   להחזיק גם אותם וגם את ☰ בלי לחתוך את שם האפליקציה. */
+function wireDrawer(){
+  const hook=(id,fn)=>{ const b=$("#"+id); if(b)b.addEventListener("click",()=>{ ac(); fn(); }); };
+  hook("dw-sched",()=>openSched());
+  hook("dw-groups",()=>openGroups());
+}
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)||"home"));
 
 /* ---------- home ---------- */
@@ -357,7 +372,7 @@ function goBack(){
   const mod=document.body.dataset.mod||"home";
   /* אם המודול עצמו נמצא במסך פנימי — נותנים לו לטפל בחזרה קודם */
   for(const fn of BACK_HOOKS){ try{ if(fn(mod))return; }catch(e){} }
-  if(MORE_MODS.includes(mod)){ go("home"); modal("moreModal",true); return; }
+  if(MORE_MODS.includes(mod)){ go("home"); modal("navDrawer",true); return; }
   go(BACK_TO[mod]||"home");
 }
 /* מודול שיש בו מסך פנימי רושם כאן פונקציה. היא מקבלת את המודול

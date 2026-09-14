@@ -78,16 +78,30 @@ module.exports={title:"הסרגל העליון — פריסה",tests:[
     }
   }),
 
-  check("שלושת כפתורי הפעולה נשארים גלויים ובגודל שאפשר להקיש עליו",seed,async page=>{
+  /* «מדריך» ו«הגדרות» ירדו מהסרגל אל תוך המגירה ☰ — הסרגל לא יכול
+     היה להחזיק ארבעה כפתורים בלי לחתוך את שם האפליקציה ל«המ…».
+     נשארו שניים, ועליהם הבדיקה שומרת. */
+  check("כפתורי הסרגל נשארים גלויים ובגודל שאפשר להקיש עליו",seed,async page=>{
     for(const w of WIDTHS){
       await at(page,w,"ft");
-      const btns=await page.evaluate(()=>["btnSun","btnInfo","btnSettings"].map(id=>{
+      const btns=await page.evaluate(()=>["btnMenu","btnSun"].map(id=>{
         const r=document.getElementById(id).getBoundingClientRect();
         return {id,w:+r.width.toFixed(1),h:+r.height.toFixed(1)};
       }));
       btns.forEach(b=>{
         ok(b.w>=30&&b.h>=30,b.id+" הצטמק ל-"+b.w+"×"+b.h+" ברוחב "+w+" — קטן מדי להקשה");
       });
+    }
+  }),
+
+  check("שם האפליקציה נכנס במלואו — זה מה שהפינוי קנה",seed,async page=>{
+    for(const w of WIDTHS){
+      await at(page,w,"home");
+      const t=await page.evaluate(()=>{
+        const el=document.querySelector(".brand .ttl");
+        return {cut:el.scrollWidth-el.clientWidth,txt:el.textContent.replace(/\s+/g," ").trim()};
+      });
+      ok(t.cut<=1,"«"+t.txt+"» נחתך ב-"+t.cut+"px ברוחב "+w);
     }
   }),
 

@@ -2,12 +2,14 @@
 /* ============================================================
    ניווט — שכל מסך נשאר בר-הגעה
    ------------------------------------------------------------
-   מסך הבית נושא ארבעה אריחים ממוספרים; כל השאר חי בתפריט «עוד».
-   החלוקה הזאת שברירה בדרך אחת מסוימת: מודול שמקודם לבית ונמחק
-   מהתפריט הופך לבלתי נגיש לחלוטין, בלי ששום דבר נשבר בקוד.
+   קודם החלוקה הייתה בין ארבעה אריחים בבית לבין חלון «עוד», והיא
+   הייתה שברירה בדרך אחת: מודול שקודם לבית ונמחק מהתפריט הפך
+   לבלתי נגיש לחלוטין, בלי ששום דבר נשבר בקוד. זה קרה בפועל
+   ל«ידע» — הוא עלה לבית כאריח 05, יצא מהתפריט, ואז האריח הוסר.
 
-   זה קרה בפועל ל«ידע» — הוא עלה לבית כאריח 05 ויצא מהתפריט, ואז
-   האריח הוסר. הבדיקה כאן קיימת כדי שהצירוף הזה לא יעבור בשקט שוב.
+   עכשיו יש מגירה אחת (☰) שמחזיקה את **כל** המסכים, והבית מחזיק
+   קיצורים בלבד. הבדיקות כאן שומרות על שני הצדדים: שהמגירה שלמה,
+   ושהיא באמת נפתחת ומנווטת.
    ============================================================ */
 const {check,eq,ok}=require("./harness.js");
 const D=require("../../hm-data.js");
@@ -28,35 +30,41 @@ module.exports={title:"ניווט — נגישות המסכים",tests:[
       "אין שום דרך להגיע ל-«"+m+"» — נמצאו: "+reach.join(",")));
   }),
 
-  check("הבית מציג ארבעה אריחים, ולא רשימה שמתארכת",seed,async page=>{
-    const n=await page.evaluate(()=>({
-      tiles:document.querySelectorAll(".hx-mods .hx-mod[data-go]").length,
-      more:!!document.getElementById("hxMoreBtn")
+  check("המגירה מחזיקה את כל המסכים — לא רק את מה שלא נכנס לבית",seed,async page=>{
+    const drawer=await page.evaluate(()=>
+      [...document.querySelectorAll("#navDrawer [data-go]")].map(e=>e.dataset.go));
+    ["ft","lesson","beep","photo","rec","stu","know","tools","nut","home"].forEach(m=>
+      ok(drawer.indexOf(m)>=0,"«"+m+"» חסר מהמגירה — יש בה: "+drawer.join(",")));
+  }),
+
+  check("אריח שבבית קיים גם במגירה — קידום לבית אינו מוחק מסך",seed,async page=>{
+    const r=await page.evaluate(()=>({
+      home:[...document.querySelectorAll(".hx-mods .hx-mod[data-go]")].map(e=>e.dataset.go),
+      drawer:[...document.querySelectorAll("#navDrawer [data-go]")].map(e=>e.dataset.go)
     }));
-    eq(n.tiles,4,"ארבעה אריחים — מה שלא נכנס הולך ל«עוד»");
-    eq(n.more,true,"והכניסה ל«עוד» קיימת");
+    ok(r.home.length,"יש אריחים בבית");
+    r.home.forEach(m=>ok(r.drawer.indexOf(m)>=0,
+      "«"+m+"» נמצא רק בבית — יום שבו האריח יוסר הוא ייעלם"));
   }),
 
-  check("מה שאינו בבית נמצא בתפריט «עוד»",seed,async page=>{
-    const r=await page.evaluate(()=>{
-      const home=[...document.querySelectorAll(".hx-mods .hx-mod[data-go]")].map(e=>e.dataset.go);
-      const more=[...document.querySelectorAll("#moreModal [data-go]")].map(e=>e.dataset.go);
-      return {home,more};
-    });
-    ["rec","stu","know","tools","nut"].forEach(m=>
-      ok(r.more.indexOf(m)>=0,"«"+m+"» חסר מתפריט «עוד» — יש בו: "+r.more.join(",")));
-    r.more.forEach(m=>ok(r.home.indexOf(m)<0,"«"+m+"» מופיע גם בבית וגם בתפריט — כפילות"));
-  }),
-
-  check("«ידע» נפתח בפועל מהתפריט",seed,async page=>{
-    await page.evaluate(()=>document.getElementById("hxMoreBtn").click());
+  check("«ידע» נפתח בפועל מהמגירה",seed,async page=>{
+    await page.evaluate(()=>document.getElementById("btnMenu").click());
     await page.waitForTimeout(300);
-    ok(await page.evaluate(()=>document.getElementById("moreModal").classList.contains("on")),
-      "התפריט נפתח");
-    await page.evaluate(()=>document.querySelector('#moreModal [data-go="know"]').click());
+    ok(await page.evaluate(()=>document.getElementById("navDrawer").classList.contains("on")),
+      "המגירה נפתחה");
+    await page.evaluate(()=>document.querySelector('#navDrawer [data-go="know"]').click());
     await page.waitForTimeout(600);
     ok(await page.evaluate(()=>document.getElementById("view-know").classList.contains("on")),
       "ומסך הידע נפתח");
+    eq(await page.evaluate(()=>document.getElementById("navDrawer").classList.contains("on")),false,
+      "והמגירה נסגרה אחריה — לא נשארת פרושה מעל המסך החדש");
+  }),
+
+  check("«עוד» שבסרגל התחתון מוביל לאותה מגירה",seed,async page=>{
+    await page.evaluate(()=>document.getElementById("navMore").click());
+    await page.waitForTimeout(300);
+    ok(await page.evaluate(()=>document.getElementById("navDrawer").classList.contains("on")),
+      "שתי נקודות כניסה, תפריט אחד");
   })
 
 ]};

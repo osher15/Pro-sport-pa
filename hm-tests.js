@@ -84,6 +84,8 @@ const TESTS=[
   /* ---------- כוח: חזרות ---------- */
   {id:"push", em:"🙌", name:"שכיבות סמיכה",       cat:"reps", kind:"count", dir:"high", unit:"חזרות",
    hint:"עד כשל או עד שהטכניקה נשברת. גוף קו ישר, חזה כמעט נוגע. אפשר לספור בזוגות."},
+  {id:"push60",em:"⏱", name:"שכיבות סמיכה — 60 שנ׳", cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
+   hint:"דקה על השעון — כמה חזרות נכנסות. מבחן אחר מ«עד כשל»: כאן נמדד גם הקצב, ולכן שתי התוצאות נשמרות בנפרד."},
   {id:"situp",em:"🔄", name:"כפיפות בטן — 60 שנ׳", cat:"reps", kind:"count", dir:"high", unit:"חזרות", dur:60,
    hint:"דקה על השעון. ברכיים כפופות, ידיים מוצלבות על החזה, בן זוג מחזיק רגליים."},
   {id:"pull", em:"🧗", name:"מתח",                cat:"reps", kind:"count", dir:"high", unit:"חזרות",
@@ -125,6 +127,16 @@ const TESTS=[
   {id:"shrch",em:"🤸", name:"הושטת כתפיים מאחור", cat:"flex", kind:"value", dir:"high", unit:"ס״מ",
    hint:"יד אחת מלמעלה ואחת מלמטה מאחורי הגב, מודדים את המרחק בין קצות האצבעות (0 = נגיעה)."}
 ];
+/* ---------- מה שנמדד בפועל, בסדר שבו הוא נמדד ----------
+   הקטלוג מסודר לפי קטגוריה, וזה הסדר הנכון לחיפוש — אבל לא לעבודה.
+   ששת המבחנים שמורה מודד בהם שוב ושוב פזורים בין ארבע קטגוריות,
+   וכל אחד מהם דורש גלילה. הרשימה כאן מרימה אותם לראש המסך בסדר
+   שהמורה ביקש, והקטגוריות שמתחת מציגות את היתר — בלי כפילות,
+   כדי שלא ייראה שיש שני מבחנים שונים באותו שם.
+   הסדר הוא נתון של הוראה, לא של קוד: לשנות אותו — לשנות כאן. */
+const POPULAR=["pull","push","push60","r1000","situp","r1500","shut4x10"];
+const popTests=()=>POPULAR.map(id=>TESTS.find(t=>t.id===id)).filter(Boolean);
+
 const testById=id=>TESTS.find(t=>t.id===id);
 const catName=id=>(TCATS.find(c=>c[0]===id)||[,"—"])[1];
 
@@ -431,21 +443,27 @@ window.FT=(function(){
       : "אין עדיין רשימה לכיתה הזו — אפשר לייבא, להדביק או להוסיף ידנית";
 
     const rs=allRes().filter(r=>inCls(r,c));
-    $("#ft-tests").innerHTML=TCATS.map(([cid,cnm,cem])=>{
-      const items=TESTS.filter(t=>t.cat===cid);
-      if(!items.length)return "";
-      return `<div class="ft-grp"><div class="ft-grph">${cem} ${cnm}</div>
-        <div class="ft-cards">${items.map(t=>{
-          const mine=rs.filter(r=>r.test===t.id);
-          const todayN=mine.filter(r=>r.d===today()).length;
-          return `<div class="ft-card" data-t="${t.id}">
-            <div class="hd"><span class="em">${t.em}</span><b>${esc(t.name)}</b></div>
-            <div class="mt"><span class="pill">${esc(t.unit)}</span>
-              <span class="pill">${t.kind==="clock"?"⏱ שעון":t.kind==="count"?"➕ מונה":t.kind==="link"?"↗ מודול ייעודי":"✎ הזנה"}</span>
-              ${t.dur?`<span class="pill">${t.dur>=60?Math.round(t.dur/60)+" דק׳":t.dur+" שנ׳"}</span>`:""}
-              ${todayN?`<span class="pill acc">${todayN} היום</span>`:mine.length?`<span class="pill">${mine.length} בהיסטוריה</span>`:""}</div>
-          </div>`;}).join("")}</div></div>`;
-    }).join("");
+    const card=t=>{
+      const mine=rs.filter(r=>r.test===t.id);
+      const todayN=mine.filter(r=>r.d===today()).length;
+      return `<div class="ft-card" data-t="${t.id}">
+        <div class="hd"><span class="em">${t.em}</span><b>${esc(t.name)}</b></div>
+        <div class="mt"><span class="pill">${esc(t.unit)}</span>
+          <span class="pill">${t.kind==="clock"?"⏱ שעון":t.kind==="count"?"➕ מונה":t.kind==="link"?"↗ מודול ייעודי":"✎ הזנה"}</span>
+          ${t.dur?`<span class="pill">${t.dur>=60?Math.round(t.dur/60)+" דק׳":t.dur+" שנ׳"}</span>`:""}
+          ${todayN?`<span class="pill acc">${todayN} היום</span>`:mine.length?`<span class="pill">${mine.length} בהיסטוריה</span>`:""}</div>
+      </div>`;
+    };
+    const grp=(head,items)=>items.length
+      ? `<div class="ft-grp"><div class="ft-grph">${head}</div>
+          <div class="ft-cards">${items.map(card).join("")}</div></div>`
+      : "";
+    /* הנפוצים ראשונים, והקטגוריות שמתחת בלי אותם מבחנים — פעם אחת
+       לכל מבחן, כדי שלא ייראה שיש שניים באותו שם. */
+    $("#ft-tests").innerHTML=
+      grp("⭐ הנמדדים הכי הרבה",popTests())+
+      TCATS.map(([cid,cnm,cem])=>
+        grp(`${cem} ${cnm}`,TESTS.filter(t=>t.cat===cid&&POPULAR.indexOf(t.id)<0))).join("");
 
     renderAmb();
     wireStartLesson();
