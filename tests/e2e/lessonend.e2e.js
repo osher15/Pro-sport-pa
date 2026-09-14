@@ -11,14 +11,16 @@
    באמת נשמר על השיעור, ושההמלצה משנה כיוון לפי מה שסומן ולא
    מדקלמת אותו דבר.
    ============================================================ */
-const {check,eq,ok}=require("./harness.js");
+const {check,eq,ok,atToday}=require("./harness.js");
 const D=require("../../hm-data.js");
 
 const CLS={"c:ז:2":{id:"c:ז:2",name:"ז׳2",grade:"ז",num:2,key:"ז2"}};
 const todayISO=()=>new Date().toISOString().slice(0,10);
 const base={"ft.classes":CLS,"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION,
   "sched.week":[{id:"s1",day:D.dayOfISO(new Date().toISOString().slice(0,10)),
-    time:"09:00",cid:"c:ז:2",clsSnapshot:"ז׳2",topic:"כדורסל — מסירה"}]};
+    time:"09:00",cid:"c:ז:2",clsSnapshot:"ז׳2",topic:"כדורסל — מסירה"}],
+  /* השיעור נפתח מדף הבית, ולכן הוא חייב להיות עדיין לפניו */
+  __now:atToday("07:00")};
 /* היסטוריה קיימת, כדי שמסך הכיתה יהיה מה להראות */
 const withHist=r=>Object.assign({},base,{"ls.sessions":[
   {id:"x1",cid:"c:ז:2",clsSnapshot:"ז׳2",date:"2026-09-06",startedAt:1757100000000,

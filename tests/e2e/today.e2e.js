@@ -11,7 +11,7 @@
    SESSION.start של שאר האפליקציה — כלומר שלא נוצר שיעור שני
    לאותה כיתה.
    ============================================================ */
-const {check,eq,ok}=require("./harness.js");
+const {check,eq,ok,atToday}=require("./harness.js");
 const D=require("../../hm-data.js");
 
 const CLASSES={
@@ -27,7 +27,11 @@ const week=()=>[
   {id:"s2",day:DAY(),time:"10:45",cid:"c:ח:1",clsSnapshot:"ח׳1",topic:""},
   {id:"s3",day:(DAY()+1)%7,time:"08:15",cid:"c:ז:2",clsSnapshot:"ז׳2",topic:"אתלטיקה"}
 ];
-const base={"ft.classes":CLASSES,"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION};
+/* שעון קבוע לפני השיעור הראשון: בלי זה כל המשבצות כאן הן «הסתיים»
+   בהרצה של אחרי הצהריים, ודף הבית ריק בצדק — והכישלון מספר על שעת
+   ההרצה ולא על הקוד. */
+const base={"ft.classes":CLASSES,"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION,
+  __now:atToday("07:00")};
 const seeded=()=>Object.assign({},base,{"sched.week":week()});
 /* דף הבית עבר מרשימה שטוחה להיררכיה: כרטיס מוקד אחד ושורות
    קומפקטיות. הערובות כאן לא השתנו — רק המקום שממנו קוראים אותן. */

@@ -12,7 +12,7 @@
    לגלילה, והם היו אחרונים; בראש הדף כולם רונדרו מתחת למסך.
    כלומר **אף אחד מהם לא נראה אי פעם** במקום שנועד לו.
    ============================================================ */
-const {check,eq,ok}=require("./harness.js");
+const {check,eq,ok,atToday}=require("./harness.js");
 const D=require("../../hm-data.js");
 
 const DAY=()=>D.dayOfISO(new Date().toISOString().slice(0,10));
@@ -22,7 +22,7 @@ const CTX=(time,kind,label)=>({id:"x"+time.replace(":",""),day:DAY(),time,kind,l
 
 /* שעון קבוע לפני השיעור הראשון: «השיעור הבא», «מתחיל בעוד» ו«הכול
    הסתיים» תלויים בשעה, ובלי קיבוע הם מספרים על שעון ההרצה. */
-const NOW="2026-09-14T07:30:00";
+const NOW=atToday("07:30");
 const base={"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION,__now:NOW};
 const withDay=slots=>Object.assign({},base,{"sched.week":slots});
 /* יום מלא: שיעורים, הכנות, שהייה ופרטני — כמו מערכת אמיתית */
@@ -202,7 +202,7 @@ module.exports={title:"מה קורה עכשיו",tests:[
   }),
 
   check("יום שכולו מאחור אומר זאת, ולא מציג כרטיס ריק",
-    Object.assign({},withDay([S("08:10","c:יא:6","י״א6")]),{__now:"2026-09-14T07:30:00"}),
+    Object.assign({},withDay([S("08:10","c:יא:6","י״א6")]),{__now:atToday("07:30")}),
     async page=>{
     /* מסמנים את השיעור כהתקיים — ואז אין «עכשיו» ואין «הבא» */
     await page.evaluate(async()=>{
