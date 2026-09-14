@@ -10,13 +10,13 @@
 <x-dc>
 <helmet>
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="9410df89">
+<meta name="hm-build" content="338bab94">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=9f4c6e85">
+<link rel="stylesheet" href="hm-styles.css?v=46524ef5">
 <script src="hm-data.js?v=b3025127"></script>
 <script src="hm-i18n.js?v=884bfff0"></script>
-<script src="hm-app.js?v=485e647f"></script>
+<script src="hm-app.js?v=68135424"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -56,6 +56,9 @@
 </div>
 <!-- ----- גרסה חדשה מוכנה ----- -->
 <div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
+  <!-- שתי החותמות מוצגות בכוונה: כשפס כזה נתקע, ההבדל ביניהן הוא
+       ההבדל בין «הדף ישן» לבין «הפס משקר», ובלעדיו אי אפשר לדעת. -->
+  <code id="upVer" dir="ltr"></code>
   <button class="btn sm acc" id="upNow">רענן עכשיו</button>
   <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
 <div id="stWarn" hidden><span id="stWarnT"></span>
@@ -1775,6 +1778,14 @@
     <button class="btn sm ghost grow" id="set-purge" data-i18n="set.purge">🧹 נקה נתונים ישנים</button>
   </div>
   <div class="hint" id="set-build" style="margin-top:9px;text-align:center;font-family:'Share Tech Mono'"></div>
+  <!-- שסתום ביטחון: אפליקציה מותקנת שנתקעה על גרסה ישנה אין לה
+       שורת כתובת ואין לה «רענון קשה». הכפתור הזה מוחק את מטמון
+       הקבצים ומבקש את הכול מחדש מהרשת. הנתונים אינם במטמון הזה
+       ולכן אינם נוגעים בו בכלל. -->
+  <div class="row" style="margin-top:11px">
+    <button class="btn sm ghost grow" id="set-forceUpdate">♻️ משוך גרסה עדכנית מהרשת</button>
+  </div>
+  <div class="hint" style="margin-top:6px;text-align:center">מוחק רק את מטמון הקבצים ומוריד אותם מחדש. תלמידים, מדידות, שיאים ומערכת שעות לא נוגעים.</div>
 </div></div>
 
 <!-- splits modal (laps) -->

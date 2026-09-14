@@ -151,6 +151,73 @@ module.exports={title:"פס העדכון",tests:[
       return typeof document.getElementById("upNow").onclick==="function";
     });
     eq(wired,true);
+  }),
+
+  check("הפס אומר איזו גרסה רצה ואיזו מוכנה",seed,async page=>{
+    const r=await page.evaluate(()=>{
+      window.HM.upOffer("deadbeef");
+      const v=document.getElementById("upVer");
+      return {txt:v?v.textContent.trim():null,mine:window.HM.pageBuild()};
+    });
+    ok(r.txt&&r.txt.indexOf("→")>0,"שתי חותמות עם חץ ביניהן: "+r.txt);
+    ok(r.txt.indexOf(r.mine.slice(0,6))===0,"הראשונה היא מה שרץ כאן: "+r.txt);
+    ok(/deadbe/.test(r.txt),"והשנייה היא מה שמוכן: "+r.txt);
+  }),
+
+  /* הבאג שחזר פעמיים: הפס נפתח, המורה הקיש «רענן עכשיו», הדף נטען
+     מחדש — וחזר בדיוק אותו דף עם אותו פס. טעינה מחדש עוברת דרך
+     מטמון ה-HTTP, וכתובת זהה יכולה לקבל תשובה זהה. */
+  check("«רענן עכשיו» טוען כתובת שהמטמון לא יכול לענות עליה",seed,async page=>{
+    const url=await page.evaluate(()=>new Promise(res=>{
+      const orig=window.location.replace.bind(window.location);
+      try{ Object.defineProperty(window.location,"replace",{configurable:true,value:u=>res(u)}); }
+      catch(e){ return res("BLOCKED"); }
+      window.HM.upOffer("deadbeef");
+      document.getElementById("upNow").click();
+      setTimeout(()=>res("NO-CALL"),2500);
+    }));
+    ok(url!=="NO-CALL","הכפתור באמת טוען מחדש");
+    if(url!=="BLOCKED")ok(/[?&]hmv=/.test(url),"עם פרמטר שמבטיח כתובת חדשה: "+url);
+  }),
+
+  /* ---------- שסתום הביטחון ---------- */
+
+  check("בהגדרות יש דרך ידנית למשוך גרסה עדכנית",seed,async page=>{
+    const r=await page.evaluate(()=>{
+      const b=document.getElementById("set-forceUpdate");
+      return b?{txt:b.textContent.trim(),inSettings:!!b.closest("#setModal")}:null;
+    });
+    ok(r,"הכפתור קיים");
+    ok(r.inSettings,"ובתוך ההגדרות");
+    ok(/גרסה/.test(r.txt),"עם כיתוב שאומר מה הוא עושה: "+r.txt);
+  }),
+
+  check("משיכת גרסה אינה נוגעת בנתונים — רק במטמון הקבצים",
+    Object.assign({},seed,{"ft.results":[{sid:"a",name:"דן",cid:"c:ט:3",cls:"ט׳3",
+      test:"push",val:41,d:"2026-09-06"}],"stu.list":[{id:"a",name:"דן",cls:"ט׳3"}]}),
+    async page=>{
+    const r=await page.evaluate(async()=>{
+      /* הניקוי עצמו, בלי הטעינה מחדש שבאה אחריו — זה מה שנבדק כאן */
+      const out=await window.HM.clearShell();
+      return {out,res:window.HM.LS.get("ft.results",[]).length,
+        stu:window.HM.LS.get("stu.list",[]).length};
+    });
+    ok(r.out&&typeof r.out.caches==="number","הניקוי דיווח מה עשה: "+JSON.stringify(r.out));
+    eq(r.res,1,"המדידה שרדה");
+    eq(r.stu,1,"והתלמיד גם");
+  }),
+
+  check("פס שנפתח בטעות נסגר מעצמו כשמתברר שאין מה לעדכן",seed,async page=>{
+    const r=await page.evaluate(()=>{
+      window.HM.upOffer("deadbeef");
+      const opened=!document.getElementById("upBar").hidden;
+      /* עכשיו מגיעה התשובה האמיתית: זו בדיוק הגרסה שרצה כאן */
+      const again=window.HM.upOffer(window.HM.pageBuild());
+      return {opened,again,hidden:document.getElementById("upBar").hidden};
+    });
+    eq(r.opened,true,"נפתח");
+    eq(r.again,false);
+    eq(r.hidden,true,"ונסגר בלי שאיש נגע בו — לא נשאר תקוע");
   })
 
 ]};

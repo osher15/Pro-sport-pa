@@ -451,6 +451,8 @@ $("#btnSettings").addEventListener("click",()=>{ const bi=$("#set-build"); if(bi
   $("#set-driveForm").value=SET.driveForm||""; $("#set-driveFolder").value=SET.driveFolder||"";
   $("#set-syncUrl").value=SET.syncUrl||""; $("#set-syncCode").value=SET.syncCode||"";
   bkStat(); paintClassRename(); modal("setModal"); });
+(function(){ const b=$("#set-forceUpdate");
+  if(b)b.addEventListener("click",()=>{ forceUpdate(); }); })();
 $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.trim(); SET.sound=$("#set-sound").checked; SET.voice=$("#set-voice").checked; SET.wake=$("#set-wake").checked;
   SET.driveForm=$("#set-driveForm").value.trim(); SET.driveFolder=$("#set-driveFolder").value.trim();
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
@@ -1831,24 +1833,77 @@ function swVersion(w){
 }
 /* מוצג על-ידי הקוד של ה-PWA, ונקרא ישירות בבדיקות — כי את המסלול
    דרך סרוויס־וורקר אמיתי אי אפשר להריץ בתוך בדיקה. */
+/* טעינה מחדש שאי אפשר להגיש לה את אותו דף מהמטמון.
+   location.reload() רגיל עובר דרך מטמון ה-HTTP של הדפדפן, ודף
+   שנשלח עם max-age יכול לחזור זהה לעצמו — וזה בדיוק המלכוד:
+   «רענן עכשיו» טוען מחדש, חוזר אותו דף, והפס מופיע שוב. כתובת עם
+   פרמטר חדש היא כתובת אחרת, ולכן המטמון לא יכול לענות עליה. */
+function hardReload(){
+  try{
+    const u=new URL(location.href);
+    u.searchParams.set("hmv",Date.now().toString(36));
+    location.replace(u.toString());
+  }catch(e){ location.reload(); }
+}
+/* הפרמטר שימושי רק לרגע הטעינה — משם והלאה הוא זבל בכתובת */
+(function stripHmv(){
+  try{
+    if(!/[?&]hmv=/.test(location.search))return;
+    const u=new URL(location.href); u.searchParams.delete("hmv");
+    history.replaceState(null,"",u.pathname+(u.search||"")+u.hash);
+  }catch(e){}
+})();
+
+/* שסתום הביטחון: מוחק את מטמון הקבצים, מבטל את רישום הסרוויס־וורקר
+   וטוען כתובת חדשה. אחריו אין שום שכבה שיכולה להגיש גרסה ישנה.
+   הנתונים חיים ב-localStorage וב-IndexedDB ואינם נוגעים בזה. */
+async function clearShell(){
+  const out={caches:0,workers:0};
+  try{
+    if(window.caches){
+      const ks=(await caches.keys()).filter(k=>k.indexOf("hamegrash-")===0);
+      await Promise.all(ks.map(k=>caches.delete(k)));
+      out.caches=ks.length;
+    }
+  }catch(e){}
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+      const rs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r=>r.unregister().catch(()=>{})));
+      out.workers=rs.length;
+    }
+  }catch(e){}
+  try{ LS.set(UP_SEEN,""); }catch(e){}
+  return out;
+}
+async function forceUpdate(){
+  toast("מושך גרסה עדכנית…");
+  await clearShell();
+  setTimeout(hardReload,250);
+}
+
 function upOffer(version){
   const bar=$("#upBar"); if(!bar)return false;
   const mine=pageBuild();
-  if(!version)return false;                       /* לא יודעים — לא מציעים */
-  if(mine&&version===mine)return false;           /* זו כבר הגרסה שרצה כאן */
+  /* לא יודעים, או שזו בדיוק הגרסה שרצה כאן — סוגרים ושותקים.
+     הסגירה האקטיבית חשובה: פס שנפתח בטעות בטעינה קודמת צריך
+     להיסגר מעצמו ברגע שמתברר שאין מה לעדכן. */
+  if(!version||(mine&&version===mine)){ bar.hidden=true; return false; }
   if(LS.get(UP_SEEN,"")===version)return false;   /* המורה אמר «אחר כך» */
+  const v=$("#upVer");
+  if(v)v.textContent=(mine?mine.slice(0,6):"?")+" → "+String(version).slice(0,6);
   bar.hidden=false;
   const now=$("#upNow"), x=$("#upX");
   if(now)now.onclick=()=>{
     let done=false;
-    const boom=()=>{ if(done)return; done=true; location.reload(); };
+    const boom=()=>{ if(done)return; done=true; hardReload(); };
     try{
       navigator.serviceWorker.addEventListener("controllerchange",boom,{once:true});
       navigator.serviceWorker.getRegistration().then(r=>{
         try{ if(r&&r.waiting)r.waiting.postMessage("skipWaiting"); }catch(e){}
       }).catch(()=>{});
     }catch(e){}
-    setTimeout(boom,1500);
+    setTimeout(boom,1200);
   };
   if(x)x.onclick=()=>{ bar.hidden=true; try{ LS.set(UP_SEEN,version); }catch(e){} };
   return true;
@@ -1880,7 +1935,11 @@ function upOffer(version){
      אותו ממילא, והאפליקציה שם כבר עובדת אופליין כקובץ יחיד. */
   if(httpish&&"serviceWorker" in navigator){
     window.addEventListener("load",()=>{
-      navigator.serviceWorker.register("sw.js").then(reg=>{
+      /* updateViaCache:"none" — בלעדיו הדפדפן רשאי להגיש את sw.js
+         עצמו ממטמון ה-HTTP, ואז בדיקת העדכון בודקת עותק ישן ולא
+         מוצאת כלום. זה הופך «עדכון מגיע מיד כשיש קליטה» לכוונה
+         בלבד. */
+      navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
         /* גרסה חדשה שהותקנה ברקע — מודיעים ומרעננים בהסכמה, במקום
            להחליף מתחת לרגליים באמצע מדידה. */
         /* פס שאפשר ללחוץ עליו, ולא הודעה חולפת שמבקשת «רענן»: באפליקציה
@@ -1890,7 +1949,9 @@ function upOffer(version){
           const v=await swVersion(worker||reg.waiting||reg.installing||reg.active);
           upOffer(v);
         };
-        if(reg.waiting&&navigator.serviceWorker.controller)offer(reg.waiting);
+        /* בכל טעינה: משווים מול הוורקר שבתפקיד. אם הדף מעודכן — הפס
+           נסגר מעצמו; אם לא — הוא נפתח בלי לחכות ל-updatefound. */
+        offer(reg.waiting||reg.active);
         reg.addEventListener("updatefound",()=>{
           const w=reg.installing; if(!w)return;
           w.addEventListener("statechange",()=>{
@@ -4608,7 +4669,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  upOffer,pageBuild,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
+  upOffer,pageBuild,forceUpdate,clearShell,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות

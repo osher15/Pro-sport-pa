@@ -11,7 +11,7 @@
    יוצרת מטמון חדש והישן נמחק — במקום שגרסה ישנה תישאר תקועה על
    מכשיר בלי שאיש יידע.
    ============================================================ */
-const CACHE_VERSION = "9410df89";
+const CACHE_VERSION = "338bab94";
 const CACHE = "hamegrash-" + CACHE_VERSION;
 
 const SHELL = [
@@ -41,7 +41,11 @@ self.addEventListener("install", e => {
      התקנה שנכשלת ומשאירה את המשתמש בלי שום מטמון. */
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    await Promise.all(SHELL.map(u => c.add(u).catch(() => {})));
+    /* cache:"reload" — בלעדיו ההתקנה עצמה יכולה לשאוב את הקבצים
+       ממטמון ה-HTTP של הדפדפן, כלומר להתקין גרסה חדשה שמכילה
+       קבצים ישנים. מטמון חדש שנולד ישן הוא הגרוע משני העולמות. */
+    await Promise.all(SHELL.map(u =>
+      c.add(new Request(u, { cache: "reload" })).catch(() => c.add(u).catch(() => {}))));
     self.skipWaiting();
   })());
 });
@@ -98,12 +102,31 @@ self.addEventListener("fetch", e => {
   if (req.mode === "navigate") {
     e.respondWith((async () => {
       try {
-        const net = await fetch(req);
+        /* עוקפים את מטמון ה-HTTP במפורש. «קודם רשת» שמקבל תשובה
+           ישנה מהמטמון הוא «קודם מטמון» בתחפושת — ומורה שלוחץ
+           «רענן עכשיו» מקבל בדיוק את אותו דף, שוב ושוב. */
+        const net = await fetch(req.url, { cache: "reload", credentials: "same-origin" });
         const c = await caches.open(CACHE);
         c.put("./index.html", net.clone());
         return net;
       } catch (err) {
         return (await caches.match("./index.html")) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  /* בקשה שביקשה במפורש לעקוף מטמון (reload / no-store / no-cache)
+     מקבלת רשת. אחרת «רענון קשה» אינו רענון — הוא מחזיר את אותו
+     קובץ מהמטמון שביקשנו לדלג עליו. */
+  if (req.cache === "reload" || req.cache === "no-store" || req.cache === "no-cache") {
+    e.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        if (res && res.ok) (await caches.open(CACHE)).put(req, res.clone());
+        return res;
+      } catch (err) {
+        return (await caches.match(req)) || Response.error();
       }
     })());
     return;
