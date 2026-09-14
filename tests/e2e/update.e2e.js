@@ -38,17 +38,29 @@ module.exports={title:"פס העדכון",tests:[
     ok(r.close,"ואפשרות לדחות — עדכון באמצע מדידה הוא לא רגע טוב");
   }),
 
-  check("כשהוא מוצג הוא יושב מעל התוכן ולא מתחתיו",seed,async page=>{
+  /* הבדיקה הזאת ביקשה קודם position:sticky על הפס עצמו — וזה בדיוק
+     מה שלא עבד: הפס ישב מחוץ ל-.app בסוף המסמך, ולכן sticky שלו לא
+     הדביק אותו לשום מקום והוא רונדר מתחת למסך. הערובה האמיתית היא
+     לא שם התכונה אלא התוצאה: הוא נראה, בראש, ומעל התוכן. */
+  check("כשהוא מוצג הוא יושב בראש המסך ומעל התוכן",seed,async page=>{
     const r=await page.evaluate(()=>{
       const b=document.getElementById("upBar");
       b.hidden=false;
-      const cs=getComputedStyle(b);
-      const rect=b.getBoundingClientRect();
-      return {display:cs.display,pos:cs.position,z:+cs.zIndex||0,top:rect.top,w:rect.width};
+      const head=b.closest(".apphead");
+      const cs=getComputedStyle(b), rect=b.getBoundingClientRect();
+      return {display:cs.display,w:Math.round(rect.width),
+        top:Math.round(rect.top),
+        seen:rect.top<window.innerHeight&&rect.bottom>0,
+        inHead:!!head,
+        headPos:head?getComputedStyle(head).position:null,
+        headZ:head?(+getComputedStyle(head).zIndex||0):0};
     });
     ok(r.display!=="none","נראה כשמסירים את ההסתרה");
-    eq(r.pos,"sticky","נשאר בראש המסך גם בגלילה");
-    ok(r.z>=100,"ומעל שאר הממשק — z="+r.z);
+    ok(r.seen,"ובאמת בתוך המסך — top="+r.top);
+    ok(r.top<200,"וקרוב לראש — top="+r.top);
+    ok(r.inHead,"הוא חי בראש האפליקציה");
+    eq(r.headPos,"sticky","שנשאר בראש המסך גם בגלילה");
+    ok(r.headZ>=100,"ומעל שאר הממשק — z="+r.headZ);
     ok(r.w>100,"ותופס רוחב אמיתי: "+r.w);
   }),
 

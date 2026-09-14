@@ -29,8 +29,23 @@ const week=()=>[
 ];
 const base={"ft.classes":CLASSES,"pf.guideSeen":true,"schema.version":D.SCHEMA_VERSION};
 const seeded=()=>Object.assign({},base,{"sched.week":week()});
-const slots=page=>page.evaluate(()=>[...document.querySelectorAll("#hx-todayList .hx-slot")]
-  .map(e=>e.textContent.replace(/\s+/g," ").trim()));
+/* דף הבית עבר מרשימה שטוחה להיררכיה: כרטיס מוקד אחד ושורות
+   קומפקטיות. הערובות כאן לא השתנו — רק המקום שממנו קוראים אותן. */
+const slots=page=>page.evaluate(()=>{
+  const out=[], t=e=>e.textContent.replace(/\s+/g," ").trim();
+  const f=document.querySelector("#hx-todayList .hx-focus");
+  if(f)out.push(t(f));
+  document.querySelectorAll("#hx-todayList .hx-up").forEach(e=>out.push(t(e)));
+  return out;
+});
+/* מה שמוצג ביום המלא — שם נמצא כל פריט, כולל מה שכבר התקיים */
+const dayText=async page=>{
+  await page.evaluate(()=>window.HM.openDay());
+  await page.waitForTimeout(300);
+  const t=await page.evaluate(()=>document.getElementById("day-body").textContent.replace(/\s+/g," "));
+  await page.evaluate(()=>window.HM.modal("dayModal",false));
+  return t;
+};
 
 module.exports={title:"היום שלי",tests:[
 
@@ -91,10 +106,10 @@ module.exports={title:"היום שלי",tests:[
     await page.evaluate(()=>document.querySelector("#hx-todayList [data-slot]").click());
     await page.waitForTimeout(400);
     const r=await page.evaluate(()=>({
-      txt:document.querySelector("#hx-todayList .hx-slot").textContent,
+      txt:document.querySelector("#hx-todayList .hx-focus").textContent,
       starts:document.querySelectorAll("#hx-todayList [data-slot]").length
     }));
-    ok(/פעיל/.test(r.txt),r.txt);
+    ok(/מתקיים עכשיו/.test(r.txt),r.txt.replace(/\s+/g," "));
     eq(r.starts,1,"נשאר כפתור התחלה אחד — של הכיתה השנייה");
   }),
 
@@ -131,12 +146,12 @@ module.exports={title:"היום שלי",tests:[
       window.HM.paintToday();
     });
     await page.waitForTimeout(300);
+    const day=await dayText(page);
     const r=await page.evaluate(()=>({
-      slot:document.querySelector("#hx-todayList .hx-slot").textContent,
       lastHidden:document.getElementById("hx-last").hidden,
       last:document.getElementById("hx-lastBody").textContent
     }));
-    ok(/התקיים/.test(r.slot),"המשבצת מסומנת: "+r.slot.replace(/\s+/g," "));
+    ok(/התקיים/.test(day),"הפריט מסומן ביום המלא: "+day.slice(0,90));
     eq(r.lastHidden,false,"כרטיס השיעור האחרון נפתח");
     ok(/ז׳2/.test(r.last),"ומראה איזו כיתה: "+r.last.replace(/\s+/g," ").slice(0,80));
   }),
@@ -153,8 +168,9 @@ module.exports={title:"היום שלי",tests:[
     await page.evaluate(()=>{ const a=window.HM.session.active(); window.HM.session.complete(a.id); });
     await page.evaluate(()=>window.HM.go("home"));
     await page.waitForTimeout(400);
-    const txt=await page.evaluate(()=>document.getElementById("hx-todayList").textContent);
-    ok(/התקיים/.test(txt),"השיעור שהסתיים במודול אחר מסומן גם כאן: "+txt.replace(/\s+/g," ").slice(0,90));
+    const txt=await dayText(page);
+    ok(/התקיים/.test(txt),
+      "השיעור שהסתיים במודול אחר מסומן גם כאן: "+txt.slice(0,90));
   }),
 
   check("שינוי שם כיתה משתקף במערכת השעות",seeded(),async page=>{

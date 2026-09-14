@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0c0e1a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=2fed672c">
-<script src="hm-data.js?v=508b3a19"></script>
+<link rel="stylesheet" href="hm-styles.css?v=2912e3f9">
+<script src="hm-data.js?v=3802845f"></script>
 <script src="hm-i18n.js?v=ec4a652e"></script>
-<script src="hm-app.js?v=9a5a6cdc"></script>
+<script src="hm-app.js?v=9c9c52da"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -29,6 +29,19 @@
 <script src="hm-new.js?v=0dec2d1f"></script>
 </helmet>
 <div class="app" dir="rtl">
+<!-- ============================================================
+     ראש האפליקציה — סרגל העליון ופסי ההודעה
+     ------------------------------------------------------------
+     ארבעת הפסים ישבו קודם מחוץ ל-.app, בסוף המסמך, כל אחד עם
+     position:sticky משלו. sticky נדבק רק כשהאלמנט מגיע לגלילה,
+     והם היו אחרונים — ולכן כשהדף בראש כולם רונדרו מתחת למסך ולא
+     נראו כלל. זה נמדד: y=1308 בחלון של 960.
+
+     המשמעות: פס «שיעור פעיל» לא נראה אף פעם, פס העדכון לא נראה
+     אף פעם, ואזהרת «האחסון מלא — ייצא גיבוי» גם לא. עוטף דביק
+     אחד מחזיק את כולם, במקום ארבעה שנכשלים בנפרד.
+     ============================================================ -->
+<header class="apphead">
 <div class="topbar">
   <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
@@ -41,6 +54,19 @@
     <button class="iconbtn" id="btnInfo" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info">ℹ</button>
     <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
 </div>
+<!-- ----- גרסה חדשה מוכנה ----- -->
+<div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
+  <button class="btn sm acc" id="upNow">רענן עכשיו</button>
+  <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
+<div id="stWarn" hidden><span id="stWarnT"></span>
+  <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
+  <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
+<div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
+  <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
+<div id="lsBar" hidden><span id="lsBarT"></span>
+  <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
+  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
+</header>
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date" dir="auto">—</div>
@@ -1746,6 +1772,13 @@
   <h3>🏷 <span id="cls-title">כיתה</span><button class="x" data-close="clsModal">✕</button></h3>
   <div id="cls-body"></div>
 </div></div>
+<div class="modal" id="dayModal"><div class="box" style="max-width:520px">
+  <h3>📅 <span id="day-title">היום</span><button class="x" data-close="dayModal">✕</button></h3>
+  <div id="day-body"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn sm ghost" id="day-sched">🗓 מערכת שעות</button>
+  </div>
+</div></div>
 <div class="modal" id="grpModal"><div class="box" style="max-width:600px">
   <h3>👥 <span>קבוצות הוראה</span><button class="x" data-close="grpModal">✕</button></h3>
   <div class="hint">קבוצה היא מה שאתה באמת מלמד: שתי כיתות שמחוברות לשיעור אחד, או קבוצת למידה מתלמידים שמגיעים מכמה כיתות. התלמידים נשארים בכיתות שלהם — הקבוצה היא ההקשר, לא כיתה חדשה.</div>
@@ -1808,18 +1841,6 @@
   <div id="lsHistBody"></div>
 </div></div>
 
-<div id="lsBar" hidden><span id="lsBarT"></span>
-  <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
-  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
-<!-- ----- גרסה חדשה מוכנה ----- -->
-<div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
-  <button class="btn sm acc" id="upNow">רענן עכשיו</button>
-  <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
-<div id="stWarn" hidden><span id="stWarnT"></span>
-  <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
-  <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
-<div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
-  <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
 <div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
 <div id="toast"><div class="t" id="toastT" dir="auto"></div></div>
 

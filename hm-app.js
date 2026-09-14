@@ -262,7 +262,16 @@ function homeStats(){
 }
 
 /* ---------- top clock ---------- */
-setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); },1000);
+/* שעון אחד לאפליקציה. כשהדקה מתחלפת ודף הבית פתוח — הוא נצבע
+   מחדש, כדי ש«מתחיל בעוד» ו«מתקיים עכשיו» לא יישארו על הדקה שבה
+   נכנסת. אין כאן שעון שני, רק הקשבה לזה שכבר קיים. */
+let lastMin=-1;
+setInterval(()=>{ const d=new Date(); const tc=$("#topClock");
+  if(tc)tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  const m=d.getHours()*60+d.getMinutes();
+  if(m!==lastMin){ lastMin=m;
+    if(document.body.dataset.mod==="home"){ try{ paintToday(); }catch(e){} } }
+},1000);
 
 /* ---------- ערכת רקע ומצב מגע ----------
    הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
@@ -703,54 +712,162 @@ function slotName(sl){
 function paintHome(){
   try{ paintToday(); paintLastLesson(); }catch(e){}
 }
+/* ============================================================
+   «היום שלי» — עכשיו, הבא, ובהמשך
+   ------------------------------------------------------------
+   הגרסה הראשונה הציגה את כל שיעורי היום כרשימה שטוחה, וכולם נראו
+   אותו דבר: עשר שורות, עשרה כפתורי «התחל» זהים. מורה שפותח את
+   האפליקציה בין שיעורים נאלץ לסרוק את כולן כדי למצוא את השורה
+   האחת שרלוונטית לו עכשיו.
+
+   ההיררכיה כאן היא אותם נתונים בדיוק, מסודרים לפי שאלה אחת: מה
+   קורה עכשיו, ואם כלום — מה הבא. כל השאר מתכווץ לשורות קומפקטיות,
+   והיום המלא (כולל שהייה, הכנות וישיבות) נשאר במרחק לחיצה אחת.
+   ============================================================ */
+function slotRange(sl){
+  const w=DATA.slotWindow(sl);
+  return w?(DATA.fmtTime(w.from)+"–"+DATA.fmtTime(w.to)):(sl.time||"");
+}
+/* שורה קומפקטית — לשיעור שאינו במוקד. כפתור משני ולא כפתור ראשי:
+   דף שכולו כפתורים ראשיים הוא דף בלי היררכיה. */
+function upRow(r,label){
+  const sl=r.slot;
+  return '<div class="hx-up'+(label?" lead":"")+'">'+
+    (label?'<span class="lbl">'+esc(label)+'</span>':"")+
+    '<span class="tm" dir="ltr">'+esc(sl.time)+'</span>'+
+    '<b>'+esc(slotName(sl))+'</b>'+
+    (sl.topic?'<span class="tp">'+esc(sl.topic)+'</span>':"")+
+    '<button class="btn sm ghost" data-slot="'+esc(sl.id)+'">▶ התחל</button></div>';
+}
+function focusCard(r,mode){
+  const sl=r.slot, act=SESSION.active();
+  const mine=act&&sl.cid&&act.cid===sl.cid;
+  const tag=mode==="now"
+    ? (mine?'<span class="dot live"></span>מתקיים עכשיו':'<span class="dot live"></span>עכשיו')
+    : "⏭️ השיעור הבא שלך";
+  const until=mode==="next"?DATA.fmtUntil(DATA.minsUntil(sl,minNow())):"";
+  let act1="";
+  if(!r.startable)act1="";
+  else if(mine)
+    act1='<button class="btn acc grow" data-resume="'+esc(sl.cid)+'">▶ המשך שיעור</button>'+
+         '<button class="btn stop" id="hx-endNow">⏹ סיים</button>';
+  else
+    act1='<button class="btn acc grow" data-slot="'+esc(sl.id)+'">▶ התחל שיעור</button>';
+  return '<div class="hx-focus '+esc(mode)+(r.startable?"":" ctx")+'">'+
+    '<div class="tag">'+tag+'</div>'+
+    '<div class="cls">'+esc(r.startable?slotName(sl):(sl.label||DATA.kindLabel(DATA.kindOf(sl))))+'</div>'+
+    '<div class="when">'+esc(slotRange(sl))+'</div>'+
+    (until?'<div class="until">מתחיל בעוד '+esc(until)+'</div>':"")+
+    (sl.topic?'<div class="topic">'+esc(sl.topic)+'</div>':"")+
+    (act1?'<div class="row" style="margin-top:11px">'+act1+'</div>':"")+
+    '</div>';
+}
+const UP_MAX=4;   /* כמה שיעורים עוד מוצגים בבית לפני «כל היום» */
 function paintToday(){
   const box=$("#hx-todayList"); if(!box)return;
-  const rows=SCHED.today();
   if(!SCHED.list().length){
-    box.innerHTML='<div class="hx-empty">עדיין לא הגדרת מערכת שעות.<br>'+
-      'דקה אחת של הגדרה, ומאז דף הבית פותח על הכיתה שמחכה לך.'+
+    box.innerHTML='<div class="hx-empty">עדיין אין מערכת שעות.<br>'+
+      'הגדר את השיעורים הקבועים שלך פעם אחת, ומכאן דף הבית ייפתח בכל יום '+
+      'על השיעור הנכון.'+
       '<div style="margin-top:10px"><button class="btn sm acc" id="hx-schedFirst">🗓 הגדר עכשיו</button></div></div>';
     const b=$("#hx-schedFirst"); if(b)b.addEventListener("click",openSched);
     return;
   }
+  const rows=SCHED.today();
   if(!rows.length){
     box.innerHTML='<div class="hx-empty">אין שיעורים היום ('+
       esc(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"")+').<br>'+
-      'המערכת מוגדרת — היום פשוט פנוי.</div>';
-    return;
+      'המערכת מוגדרת — היום פשוט פנוי.'+dayFoot()+'</div>';
+    wireDayFoot(); return;
   }
-  const nx=SCHED.next();
-  box.innerHTML=rows.map(r=>{
-    const sl=r.slot, up=nx&&nx.slot.id===sl.id;
-    const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
-                r.status==="done"?'<span class="pill">✓ התקיים</span>':
-                r.now?'<span class="pill acc">עכשיו</span>':"";
-    const ms=r.session?SESSION.measurements(r.session.id).length:0;
-    /* פרטני, שהייה וישיבה הם חלק מהיום של המורה ולכן מוצגים —
-       אבל אין מה להתחיל בהם ואין להם מסך כיתה. שורת הקשר, לא שיעור. */
-    if(!r.startable)
-      return '<div class="hx-slot ctx">'+
-        '<div class="tm">'+esc(sl.time)+'</div>'+
-        '<div class="tx"><b>'+esc(sl.label||DATA.kindLabel(DATA.kindOf(sl)))+'</b> '+
-          (r.now?'<span class="pill">עכשיו</span>':"")+'</div></div>';
-    /* שורת המשנה נכתבת רק כשיש בה מידע. «בלי נושא מוגדר» על כל
-       שורה הוא רעש שמאריך יום של עשרה שיעורים בלי להוסיף דבר. */
-    const sub=[sl.topic?esc(sl.topic):"",ms?ms+" מדידות":""].filter(Boolean).join(" · ");
-    return '<div class="hx-slot'+(up?" up":"")+(r.status==="done"?" done":"")+'">'+
-      '<div class="tm">'+esc(sl.time)+'</div>'+
-      '<div class="tx"><b>'+esc(slotName(sl))+'</b> '+badge+
-        (sub?'<span>'+sub+'</span>':"")+'</div>'+
-      (r.status==="planned"
-        ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
-        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>')+
-      '</div>';
-  }).join("");
+  const d=DATA.splitDay(rows,minNow());
+  let html="";
+  if(d.now){
+    html+=focusCard(d.now,"now");
+    if(d.next)html+=upRow(d.next,"⏭️ הבא");
+  }else if(d.next){
+    html+=focusCard(d.next,"next");
+  }
+  /* «בהמשך» — שיעורים בלבד. שהייה, פרטני וישיבות נמצאים ביום המלא,
+     שם הם הקשר; כאן הם היו מאריכים את הרשימה בלי לשנות החלטה. */
+  const later=d.later.filter(r=>r.startable);
+  if(later.length){
+    html+='<div class="hx-sec">היום בהמשך</div>'+
+      later.slice(0,UP_MAX).map(r=>upRow(r)).join("");
+    if(later.length>UP_MAX)
+      html+='<div class="hx-more">ועוד '+(later.length-UP_MAX)+' שיעורים היום</div>';
+  }else if(!d.now&&!d.next){
+    html+='<div class="hx-empty">כל שיעורי היום הסתיימו. '+
+      (d.past.length?d.past.length+' פריטים ביום המלא.':"")+'</div>';
+  }
+  box.innerHTML=html+dayFoot();
   $$("#hx-todayList [data-slot]").forEach(b=>b.addEventListener("click",()=>{
     const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
     if(sl)startFromSlot(sl);
   }));
-  $$("#hx-todayList [data-cls]").forEach(b=>b.addEventListener("click",()=>
-    openClassScreen(b.dataset.cls)));
+  $$("#hx-todayList [data-resume]").forEach(b=>b.addEventListener("click",()=>
+    openClassScreen(b.dataset.resume)));
+  const en=$("#hx-endNow"); if(en)en.addEventListener("click",openEndLesson);
+  wireDayFoot();
+}
+/* היום המלא נשאר במרחק לחיצה — הוא לא נעלם, הוא רק לא שולט בבית */
+function dayFoot(){
+  return '<div class="hx-foot"><button class="btn sm ghost" id="hx-allDay">📅 כל היום</button></div>';
+}
+function wireDayFoot(){
+  const b=$("#hx-allDay"); if(b)b.addEventListener("click",openDay);
+}
+
+/* ============================================================
+   היום המלא
+   ------------------------------------------------------------
+   כל מה שביומן של המורה היום — שיעורים, פרטני, שהייה, ישיבות —
+   באותה חלוקה: עכשיו, הבא, בהמשך, הסתיים. אותם נתונים ואותה
+   חלוקה של דף הבית; ההבדל היחיד הוא שכאן שום דבר לא מסונן.
+   ============================================================ */
+function dayLine(r){
+  const sl=r.slot, pe=r.startable;
+  const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
+              r.status==="done"?'<span class="pill">✓ התקיים</span>':"";
+  return '<div class="day-row'+(pe?"":" ctx")+(r.status==="done"?" done":"")+'">'+
+    '<span class="tm" dir="ltr">'+esc(sl.time)+'</span>'+
+    '<div class="tx"><b>'+esc(pe?slotName(sl):(sl.label||DATA.kindLabel(DATA.kindOf(sl))))+'</b> '+badge+
+      /* שורת המשנה רק כשיש בה מידע חדש: «שהייה / שהייה» היא רעש */
+      (sl.topic?'<span>'+esc(sl.topic)+'</span>':
+        ((!pe&&sl.label&&sl.label!==DATA.kindLabel(DATA.kindOf(sl)))
+          ?'<span>'+esc(DATA.kindLabel(DATA.kindOf(sl)))+'</span>':""))+'</div>'+
+    (pe&&r.status==="planned"
+      ? '<button class="btn sm ghost" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
+      : pe?'<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>':"")+
+    '</div>';
+}
+function openDay(){
+  const box=$("#day-body"); if(!box)return;
+  const rows=SCHED.today();
+  const t=$("#day-title");
+  if(t)t.textContent="היום · יום "+(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"");
+  if(!rows.length){
+    box.innerHTML='<div class="empty-state" style="padding:16px"><div class="big">📅</div>'+
+      'אין פריטים במערכת השעות ליום הזה.</div>';
+  }else{
+    const d=DATA.splitDay(rows,minNow());
+    const sec=(ttl,list)=>list.length?'<div class="day-sec">'+esc(ttl)+'</div>'+list.map(dayLine).join(""):"";
+    box.innerHTML=
+      sec("עכשיו",d.now?[d.now]:[])+
+      sec("הבא",d.next?[d.next]:[])+
+      sec("בהמשך",d.later)+
+      sec("הסתיים",d.past)+
+      '<div class="hint" style="margin-top:12px">'+rows.length+' פריטים היום — שיעורים, פרטני, שהייה והכנות.</div>';
+  }
+  $$("#day-body [data-slot]").forEach(b=>b.addEventListener("click",()=>{
+    const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
+    if(sl){ startFromSlot(sl); openDay(); }
+  }));
+  $$("#day-body [data-cls]").forEach(b=>b.addEventListener("click",()=>{
+    modal("dayModal",false); openClassScreen(b.dataset.cls);
+  }));
+  const e=$("#day-sched"); if(e)e.onclick=()=>{ modal("dayModal",false); openSched(); };
+  modal("dayModal",true);
 }
 
 /* «השיעור האחרון» — הקצה השני של אותה זרימה: מה שקרה בפעם שעברה,
@@ -4421,7 +4538,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,
+  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות

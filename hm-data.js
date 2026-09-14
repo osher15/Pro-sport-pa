@@ -1650,6 +1650,59 @@ function schedWeek(list){
 function weekCell(week,day,h){ return (week&&week.cell[day+"|"+h])||[]; }
 
 /* ============================================================
+   חלוקת היום — עכשיו · הבא · בהמשך · הסתיים
+   ------------------------------------------------------------
+   דף הבית הציג את כל שיעורי היום כרשימה שטוחה, וכולם נראו אותו
+   דבר. מורה שפותח את האפליקציה בין שיעורים צריך לסרוק עשר שורות
+   כדי למצוא את השורה האחת שרלוונטית לו עכשיו.
+
+   החלוקה כאן היא הפרדה של אותם נתונים בדיוק, בלי מקור שני ובלי
+   שעון שני:
+
+     now   — מה שקורה ברגע זה. שיעור פתוח גובר על השעון, כי מורה
+             שפתח שיעור נמצא בו גם אם הצלצול כבר עבר.
+     next  — השיעור הבא שאפשר לפתוח. שהייה ופרטני אינם «הבא».
+     later — כל השאר שעוד לא עבר, כולל מה שאינו שיעור.
+     past  — מה שהסתיים: סומן כהתקיים, או שחלון הזמן שלו נגמר.
+
+   טהור. הקורא מחליט מה להציג ומה לסנן.
+   ============================================================ */
+function splitDay(rows,nowMin){
+  var list=asList(rows), now=null, next=null, later=[], past=[], i, r;
+  /* שיעור פתוח הוא «עכשיו» גם אחרי שהצלצול עבר — זה מה שהמורה סימן */
+  for(i=0;i<list.length;i++)if(list[i]&&list[i].status===SESSION_ACTIVE){ now=list[i]; break; }
+  if(!now)for(i=0;i<list.length;i++){
+    r=list[i];
+    if(r&&r.now&&r.status!=="done"){ now=r; break; }
+  }
+  for(i=0;i<list.length;i++){
+    r=list[i];
+    if(!r||r===now)continue;
+    var w=slotWindow(r.slot);
+    var ended=r.status==="done"||(isNum(nowMin)&&w&&nowMin>=w.to);
+    if(ended){ past.push(r); continue; }
+    if(!next&&r.startable){ next=r; continue; }
+    later.push(r);
+  }
+  return {now:now,next:next,later:later,past:past};
+}
+/* כמה דקות עד שהמשבצת מתחילה. שלילי — היא כבר התחילה. */
+function minsUntil(slot,nowMin){
+  var w=slotWindow(slot);
+  if(!w||!isNum(nowMin))return null;
+  return w.from-nowMin;
+}
+/* «1:42» / «12 דק׳». מעל שעה — שעות ודקות; מתחת — דקות בלבד. */
+function fmtUntil(min){
+  if(!isNum(min)||min<0)return "";
+  if(min<1)return "עוד רגע";
+  if(min<60)return min+" דק׳";
+  /* «1:42» — הנקודתיים כבר אומרות שעות; «שע׳» אחריהן היה מיותר */
+  var h=Math.floor(min/60), m=min%60;
+  return h+":"+String(m).padStart(2,"0");
+}
+
+/* ============================================================
    5ג. תוצאת שיעור והמשך מומלץ
    ------------------------------------------------------------
    עד עכשיו שיעור שהסתיים סיפר רק שהוא התקיים. «מה קרה בו» נשאר
@@ -2027,6 +2080,7 @@ return {
   SLOT_KINDS:SLOT_KINDS, KIND_PE:KIND_PE, kindLabel:kindLabel,
   validKind:validKind, startable:startable, kindOf:kindOf,
   schedWeek:schedWeek, weekCell:weekCell,
+  splitDay:splitDay, minsUntil:minsUntil, fmtUntil:fmtUntil,
   SAMPLE_GROUPS:SAMPLE_GROUPS, SAMPLE_WEEK:SAMPLE_WEEK, sampleSlots:sampleSlots,
   BELLS:BELLS, SLOT_DEFAULT_MIN:SLOT_DEFAULT_MIN,
   bellByHour:bellByHour, bellOfTime:bellOfTime, slotWindow:slotWindow, slotNow:slotNow,

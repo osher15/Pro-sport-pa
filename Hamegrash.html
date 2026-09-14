@@ -43,7 +43,14 @@ body[data-mod="lesson"]{--acc:#f472b6;--accDim:rgba(244,114,182,.18)}
 body[data-mod="nut"]{--acc:#4ade80;--accDim:rgba(74,222,128,.18)}
 .app{max-width:1180px;margin:0 auto;padding:0 14px calc(var(--nav-h) + 26px)}
 /* ---------- topbar scoreboard ---------- */
-.topbar{position:sticky;top:0;z-index:60;margin:0 -14px 14px;padding:9px 14px;
+/* ===== ראש האפליקציה =====
+   עוטף דביק אחד לסרגל ולפסי ההודעה. קודם כל פס נשא sticky משלו
+   וישב מחוץ ל-.app בסוף המסמך — כלומר נדבק רק אחרי גלילה עד הסוף,
+   ובראש הדף רונדר מתחת למסך ולא נראה כלל. */
+.apphead{position:sticky;top:0;z-index:140;margin:0 -14px 14px}
+.apphead>*{margin:0}
+/* ריפוד בטיחות למכשיר עם חריץ. כשאין — הערך 0 ושום דבר לא זז. */
+.topbar{position:static;z-index:60;padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));
   background:linear-gradient(180deg,rgba(var(--bar),.97),rgba(var(--bar),.82));backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
 /* הסרגל צר, והתוכן שבו לא מתכווץ. בלי ההגנות האלה תוספת של כפתור
@@ -435,6 +442,17 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .hero{margin:8px 0 14px;text-align:right}
 .hero .kick{font-size:12px;color:var(--muted);letter-spacing:.5px;margin-bottom:4px}
 .hero h1{font-weight:300;font-size:clamp(30px,8vw,46px);line-height:1.02;margin:0}
+/* אחרי הכללים שהוא עוקף, ולא לפניהם: media query אינו מוסיף
+   ספציפיות, ולכן כלל מאוחר יותר באותה ספציפיות מנצח אותו. */
+/* במסך טלפון הברכה תפסה את כל המסך הראשון, והשיעור שמחכה עכשיו
+   נדחף אל מתחת לקיפול. הברכה נשארת — היא פשוט מפסיקה להיות הדבר
+   הגדול ביותר בדף. */
+@media(max-width:520px){
+  .hero{margin:4px 0 11px}
+  .hero h1{font-size:clamp(21px,5.6vw,26px);line-height:1.12}
+  .hero .kick{font-size:11px;margin-bottom:2px}
+}
+
 .hero h1 b{font-weight:600;color:var(--acc);text-shadow:0 0 26px var(--accDim)}
 .hero p{text-align:right}
 .scoreband{display:flex;align-items:stretch;background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 24%,var(--panel)),var(--panel));
@@ -455,6 +473,61 @@ a{color:var(--acc);text-decoration:none}a:hover{color:color-mix(in srgb,var(--ac
 .cls-next .why{font-size:11.5px;color:var(--muted);line-height:1.6}
 .cls-h{font-size:13px;font-weight:700;margin:0 0 8px;color:var(--muted)}
 @media(max-width:430px){.cls-stats{grid-template-columns:repeat(2,1fr)}}
+/* ===== המוקד: מה קורה עכשיו =====
+   כרטיס אחד שולט, והשאר מתכווצים. דף שכולו כפתורים ראשיים הוא דף
+   בלי היררכיה — וזה בדיוק מה שהיה כאן קודם. */
+.hx-focus{border:1px solid var(--acc);border-radius:15px;padding:14px 15px;margin-bottom:11px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 20%,var(--panel)),var(--panel))}
+.hx-focus.ctx{border-color:var(--line);background:var(--panel2)}
+.hx-focus .tag{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;
+  color:var(--acc);letter-spacing:.3px;margin-bottom:7px}
+.hx-focus.ctx .tag{color:var(--muted)}
+.hx-focus .dot{width:9px;height:9px;border-radius:99px;background:var(--stop);flex:none}
+.hx-focus .dot.live{animation:hxpulse 1.8s ease-in-out infinite}
+@keyframes hxpulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media(prefers-reduced-motion:reduce){.hx-focus .dot.live{animation:none}}
+.hx-focus .cls{font-family:'Inter','Heebo',sans-serif;font-weight:600;font-size:clamp(24px,7vw,32px);
+  line-height:1.1;margin-bottom:2px}
+/* טווח שעות הוא רצף LTR בתוך מסך RTL: direction נותן את סדר
+   הגליפים, ו-text-align מחזיר אותו לצד שממנו קוראים. בלי השני
+   הוא נצמד לשמאל בזמן שכל השאר מיושר לימין. */
+.hx-focus .when{font-family:'Share Tech Mono';font-size:14px;color:var(--muted);
+  font-variant-numeric:tabular-nums;direction:ltr;text-align:right}
+.hx-focus .until{font-size:13px;color:var(--acc);font-weight:600;margin-top:5px}
+.hx-focus .topic{font-size:13px;color:var(--ink);margin-top:6px;line-height:1.5}
+.hx-focus .btn{flex:none}
+.hx-focus .btn.grow{flex:1}
+
+/* שורת המשך — משנית בכוונה */
+.hx-sec{font-size:11.5px;font-weight:700;color:var(--muted);margin:13px 0 7px;letter-spacing:.3px}
+.hx-up{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;
+  background:var(--panel2);border:1px solid var(--line);margin-bottom:6px}
+.hx-up.lead{border-color:color-mix(in srgb,var(--acc) 45%,transparent)}
+.hx-up .lbl{font-size:10.5px;font-weight:700;color:var(--acc);flex:none}
+.hx-up .tm{font-family:'Share Tech Mono';font-size:13.5px;color:var(--acc);
+  font-variant-numeric:tabular-nums;flex:none;min-width:44px}
+.hx-up b{font-weight:600;font-size:14px;flex:none}
+.hx-up .tp{flex:1;min-width:0;font-size:11.5px;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hx-up .btn{margin-inline-start:auto;flex:none}
+.hx-more{font-size:12px;color:var(--muted);text-align:center;padding:4px 0 2px}
+.hx-foot{display:flex;justify-content:center;margin-top:11px;padding-top:10px;
+  border-top:1px solid var(--line)}
+
+/* ===== היום המלא ===== */
+.day-sec{font-size:11.5px;font-weight:700;color:var(--acc);margin:12px 0 6px;letter-spacing:.3px}
+.day-sec:first-child{margin-top:0}
+.day-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;
+  background:var(--panel2);border:1px solid var(--line);margin-bottom:6px}
+.day-row.ctx{opacity:.7;border-style:dashed}
+.day-row.done{opacity:.55}
+.day-row .tm{font-family:'Share Tech Mono';font-size:13.5px;color:var(--acc);
+  font-variant-numeric:tabular-nums;flex:none;min-width:46px}
+.day-row.ctx .tm,.day-row.done .tm{color:var(--muted)}
+.day-row .tx{flex:1;min-width:0}
+.day-row .tx b{font-weight:600;font-size:14px}
+.day-row .tx>span:not(.pill){display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.day-row .btn{flex:none}
 /* ===== קבוצות הוראה ===== */
 .grp-form{margin-top:14px;border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:var(--panel2)}
 /* .btn ו-.row הם flex וגוברים על התכונה hidden — «בטל עריכה» נשאר
@@ -1272,7 +1345,7 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 }
 
 /* ===== מצב הדגמה ===== */
-#demoBar{position:sticky;top:0;z-index:120;display:flex;align-items:center;justify-content:center;gap:10px;
+#demoBar{z-index:120;display:flex;align-items:center;justify-content:center;gap:10px;
   flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 22%,var(--bg2));border-bottom:1px solid var(--warn);
   color:var(--warn);padding:8px 14px;font-size:13px;font-weight:600}
 #demoBar[hidden]{display:none!important}
@@ -1433,14 +1506,14 @@ body[data-dir="ltr"] textarea{unicode-bidi:normal}
 /* ===== אזהרת אחסון =====
    צבע הסכנה ולא צבע האזהרה: מדידה שלא נשמרה היא אובדן, לא הערה.
    הפס נשאר דבוק לראש המסך עד שסוגרים אותו ביד. */
-#stWarn{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:center;gap:10px;
+#stWarn{z-index:130;display:flex;align-items:center;justify-content:center;gap:10px;
   flex-wrap:wrap;background:color-mix(in srgb,var(--stop) 20%,var(--bg2));border-bottom:1px solid var(--stop);
   color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
 #stWarn[hidden]{display:none!important}
 /* פס העדכון — אותו דפוס, בצבע ההדגשה במקום באזהרה. באפליקציה
    מותקנת אין שורת כתובת ואין כפתור רענון, ולכן הודעה שאומרת «רענן»
    ואינה מרעננת בעצמה היא מבוי סתום. */
-#upBar{position:sticky;top:0;z-index:131;display:flex;align-items:center;justify-content:center;gap:10px;
+#upBar{z-index:131;display:flex;align-items:center;justify-content:center;gap:10px;
   flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 20%,var(--bg2));border-bottom:1px solid var(--acc);
   color:var(--ink);padding:9px 14px;font-size:13px;line-height:1.6;text-align:center}
 #upBar[hidden]{display:none!important}
@@ -1452,7 +1525,7 @@ body[data-dir="ltr"] #stWarn *{unicode-bidi:plaintext}
 /* ===== פס השיעור הפעיל =====
    שקט בכוונה: שורה אחת בראש המסך שאומרת שיש שיעור פתוח ולאיזו
    כיתה. לא מסך, לא דשבורד — רק הקשר שלא נעלם בין מודול למודול. */
-#lsBar{position:sticky;top:0;z-index:125;display:flex;align-items:center;justify-content:center;
+#lsBar{z-index:125;display:flex;align-items:center;justify-content:center;
   gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--acc) 16%,var(--bg2));
   border-bottom:1px solid var(--acc);color:var(--ink);padding:7px 14px;font-size:13px}
 #lsBar[hidden]{display:none!important}
@@ -1464,6 +1537,19 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
 </head>
 <body>
 <div class="app" dir="rtl">
+<!-- ============================================================
+     ראש האפליקציה — סרגל העליון ופסי ההודעה
+     ------------------------------------------------------------
+     ארבעת הפסים ישבו קודם מחוץ ל-.app, בסוף המסמך, כל אחד עם
+     position:sticky משלו. sticky נדבק רק כשהאלמנט מגיע לגלילה,
+     והם היו אחרונים — ולכן כשהדף בראש כולם רונדרו מתחת למסך ולא
+     נראו כלל. זה נמדד: y=1308 בחלון של 960.
+
+     המשמעות: פס «שיעור פעיל» לא נראה אף פעם, פס העדכון לא נראה
+     אף פעם, ואזהרת «האחסון מלא — ייצא גיבוי» גם לא. עוטף דביק
+     אחד מחזיק את כולם, במקום ארבעה שנכשלים בנפרד.
+     ============================================================ -->
+<header class="apphead">
 <div class="topbar">
   <button class="backbtn" id="btnBack" hidden>→<span data-i18n="nav.back">חזרה</span></button>
   <div class="brand"><div class="logo">🏟️</div>
@@ -1476,6 +1562,19 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
     <button class="iconbtn" id="btnInfo" title="מדריך — מה עושים במסך הזה" data-i18n-title="ui.info">ℹ</button>
     <button class="iconbtn" id="btnSettings" title="הגדרות" data-i18n-title="ui.settings">⚙</button></div>
 </div>
+<!-- ----- גרסה חדשה מוכנה ----- -->
+<div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
+  <button class="btn sm acc" id="upNow">רענן עכשיו</button>
+  <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
+<div id="stWarn" hidden><span id="stWarnT"></span>
+  <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
+  <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
+<div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
+  <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
+<div id="lsBar" hidden><span id="lsBarT"></span>
+  <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
+  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
+</header>
 <section class="view" id="view-home">
   <div class="hero">
     <div class="kick" id="hx-date" dir="auto">—</div>
@@ -3181,6 +3280,13 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <h3>🏷 <span id="cls-title">כיתה</span><button class="x" data-close="clsModal">✕</button></h3>
   <div id="cls-body"></div>
 </div></div>
+<div class="modal" id="dayModal"><div class="box" style="max-width:520px">
+  <h3>📅 <span id="day-title">היום</span><button class="x" data-close="dayModal">✕</button></h3>
+  <div id="day-body"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn sm ghost" id="day-sched">🗓 מערכת שעות</button>
+  </div>
+</div></div>
 <div class="modal" id="grpModal"><div class="box" style="max-width:600px">
   <h3>👥 <span>קבוצות הוראה</span><button class="x" data-close="grpModal">✕</button></h3>
   <div class="hint">קבוצה היא מה שאתה באמת מלמד: שתי כיתות שמחוברות לשיעור אחד, או קבוצת למידה מתלמידים שמגיעים מכמה כיתות. התלמידים נשארים בכיתות שלהם — הקבוצה היא ההקשר, לא כיתה חדשה.</div>
@@ -3243,18 +3349,6 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
   <div id="lsHistBody"></div>
 </div></div>
 
-<div id="lsBar" hidden><span id="lsBarT"></span>
-  <button class="btn sm ghost" id="lsBarHist">📖 היסטוריה</button>
-  <button class="btn sm ghost" id="lsBarEnd">סיים שיעור</button></div>
-<!-- ----- גרסה חדשה מוכנה ----- -->
-<div id="upBar" hidden><span>✨ גרסה חדשה מוכנה</span>
-  <button class="btn sm acc" id="upNow">רענן עכשיו</button>
-  <button class="x" id="upX" aria-label="אחר כך">✕</button></div>
-<div id="stWarn" hidden><span id="stWarnT"></span>
-  <button class="btn sm" id="stWarnSave">💾 ייצא גיבוי עכשיו</button>
-  <button class="x" id="stWarnX" aria-label="סגור">✕</button></div>
-<div id="demoBar" hidden>🎬 <b data-i18n="ui.demoBar">מצב הדגמה</b> <span data-i18n="ui.demoNote">— הנתונים כאן הם דוגמה</span>
-  <button class="btn sm" id="demoClear" data-i18n="ui.demoClear">נקה נתוני הדגמה</button></div>
 <div id="tipPop" hidden><div class="tp" id="tipPopT"></div></div>
 <div id="toast"><div class="t" id="toastT" dir="auto"></div></div>
 
@@ -4962,6 +5056,59 @@ function schedWeek(list){
 function weekCell(week,day,h){ return (week&&week.cell[day+"|"+h])||[]; }
 
 /* ============================================================
+   חלוקת היום — עכשיו · הבא · בהמשך · הסתיים
+   ------------------------------------------------------------
+   דף הבית הציג את כל שיעורי היום כרשימה שטוחה, וכולם נראו אותו
+   דבר. מורה שפותח את האפליקציה בין שיעורים צריך לסרוק עשר שורות
+   כדי למצוא את השורה האחת שרלוונטית לו עכשיו.
+
+   החלוקה כאן היא הפרדה של אותם נתונים בדיוק, בלי מקור שני ובלי
+   שעון שני:
+
+     now   — מה שקורה ברגע זה. שיעור פתוח גובר על השעון, כי מורה
+             שפתח שיעור נמצא בו גם אם הצלצול כבר עבר.
+     next  — השיעור הבא שאפשר לפתוח. שהייה ופרטני אינם «הבא».
+     later — כל השאר שעוד לא עבר, כולל מה שאינו שיעור.
+     past  — מה שהסתיים: סומן כהתקיים, או שחלון הזמן שלו נגמר.
+
+   טהור. הקורא מחליט מה להציג ומה לסנן.
+   ============================================================ */
+function splitDay(rows,nowMin){
+  var list=asList(rows), now=null, next=null, later=[], past=[], i, r;
+  /* שיעור פתוח הוא «עכשיו» גם אחרי שהצלצול עבר — זה מה שהמורה סימן */
+  for(i=0;i<list.length;i++)if(list[i]&&list[i].status===SESSION_ACTIVE){ now=list[i]; break; }
+  if(!now)for(i=0;i<list.length;i++){
+    r=list[i];
+    if(r&&r.now&&r.status!=="done"){ now=r; break; }
+  }
+  for(i=0;i<list.length;i++){
+    r=list[i];
+    if(!r||r===now)continue;
+    var w=slotWindow(r.slot);
+    var ended=r.status==="done"||(isNum(nowMin)&&w&&nowMin>=w.to);
+    if(ended){ past.push(r); continue; }
+    if(!next&&r.startable){ next=r; continue; }
+    later.push(r);
+  }
+  return {now:now,next:next,later:later,past:past};
+}
+/* כמה דקות עד שהמשבצת מתחילה. שלילי — היא כבר התחילה. */
+function minsUntil(slot,nowMin){
+  var w=slotWindow(slot);
+  if(!w||!isNum(nowMin))return null;
+  return w.from-nowMin;
+}
+/* «1:42» / «12 דק׳». מעל שעה — שעות ודקות; מתחת — דקות בלבד. */
+function fmtUntil(min){
+  if(!isNum(min)||min<0)return "";
+  if(min<1)return "עוד רגע";
+  if(min<60)return min+" דק׳";
+  /* «1:42» — הנקודתיים כבר אומרות שעות; «שע׳» אחריהן היה מיותר */
+  var h=Math.floor(min/60), m=min%60;
+  return h+":"+String(m).padStart(2,"0");
+}
+
+/* ============================================================
    5ג. תוצאת שיעור והמשך מומלץ
    ------------------------------------------------------------
    עד עכשיו שיעור שהסתיים סיפר רק שהוא התקיים. «מה קרה בו» נשאר
@@ -5339,6 +5486,7 @@ return {
   SLOT_KINDS:SLOT_KINDS, KIND_PE:KIND_PE, kindLabel:kindLabel,
   validKind:validKind, startable:startable, kindOf:kindOf,
   schedWeek:schedWeek, weekCell:weekCell,
+  splitDay:splitDay, minsUntil:minsUntil, fmtUntil:fmtUntil,
   SAMPLE_GROUPS:SAMPLE_GROUPS, SAMPLE_WEEK:SAMPLE_WEEK, sampleSlots:sampleSlots,
   BELLS:BELLS, SLOT_DEFAULT_MIN:SLOT_DEFAULT_MIN,
   bellByHour:bellByHour, bellOfTime:bellOfTime, slotWindow:slotWindow, slotNow:slotNow,
@@ -6202,7 +6350,16 @@ function homeStats(){
 }
 
 /* ---------- top clock ---------- */
-setInterval(()=>{ const d=new Date(); const tc=$("#topClock"); if(!tc)return; tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); },1000);
+/* שעון אחד לאפליקציה. כשהדקה מתחלפת ודף הבית פתוח — הוא נצבע
+   מחדש, כדי ש«מתחיל בעוד» ו«מתקיים עכשיו» לא יישארו על הדקה שבה
+   נכנסת. אין כאן שעון שני, רק הקשבה לזה שכבר קיים. */
+let lastMin=-1;
+setInterval(()=>{ const d=new Date(); const tc=$("#topClock");
+  if(tc)tc.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  const m=d.getHours()*60+d.getMinutes();
+  if(m!==lastMin){ lastMin=m;
+    if(document.body.dataset.mod==="home"){ try{ paintToday(); }catch(e){} } }
+},1000);
 
 /* ---------- ערכת רקע ומצב מגע ----------
    הכל מתבצע דרך משתני CSS: data-theme בוחר פלטה, data-touch מגדיל כפתורים ושדות. */
@@ -6643,54 +6800,162 @@ function slotName(sl){
 function paintHome(){
   try{ paintToday(); paintLastLesson(); }catch(e){}
 }
+/* ============================================================
+   «היום שלי» — עכשיו, הבא, ובהמשך
+   ------------------------------------------------------------
+   הגרסה הראשונה הציגה את כל שיעורי היום כרשימה שטוחה, וכולם נראו
+   אותו דבר: עשר שורות, עשרה כפתורי «התחל» זהים. מורה שפותח את
+   האפליקציה בין שיעורים נאלץ לסרוק את כולן כדי למצוא את השורה
+   האחת שרלוונטית לו עכשיו.
+
+   ההיררכיה כאן היא אותם נתונים בדיוק, מסודרים לפי שאלה אחת: מה
+   קורה עכשיו, ואם כלום — מה הבא. כל השאר מתכווץ לשורות קומפקטיות,
+   והיום המלא (כולל שהייה, הכנות וישיבות) נשאר במרחק לחיצה אחת.
+   ============================================================ */
+function slotRange(sl){
+  const w=DATA.slotWindow(sl);
+  return w?(DATA.fmtTime(w.from)+"–"+DATA.fmtTime(w.to)):(sl.time||"");
+}
+/* שורה קומפקטית — לשיעור שאינו במוקד. כפתור משני ולא כפתור ראשי:
+   דף שכולו כפתורים ראשיים הוא דף בלי היררכיה. */
+function upRow(r,label){
+  const sl=r.slot;
+  return '<div class="hx-up'+(label?" lead":"")+'">'+
+    (label?'<span class="lbl">'+esc(label)+'</span>':"")+
+    '<span class="tm" dir="ltr">'+esc(sl.time)+'</span>'+
+    '<b>'+esc(slotName(sl))+'</b>'+
+    (sl.topic?'<span class="tp">'+esc(sl.topic)+'</span>':"")+
+    '<button class="btn sm ghost" data-slot="'+esc(sl.id)+'">▶ התחל</button></div>';
+}
+function focusCard(r,mode){
+  const sl=r.slot, act=SESSION.active();
+  const mine=act&&sl.cid&&act.cid===sl.cid;
+  const tag=mode==="now"
+    ? (mine?'<span class="dot live"></span>מתקיים עכשיו':'<span class="dot live"></span>עכשיו')
+    : "⏭️ השיעור הבא שלך";
+  const until=mode==="next"?DATA.fmtUntil(DATA.minsUntil(sl,minNow())):"";
+  let act1="";
+  if(!r.startable)act1="";
+  else if(mine)
+    act1='<button class="btn acc grow" data-resume="'+esc(sl.cid)+'">▶ המשך שיעור</button>'+
+         '<button class="btn stop" id="hx-endNow">⏹ סיים</button>';
+  else
+    act1='<button class="btn acc grow" data-slot="'+esc(sl.id)+'">▶ התחל שיעור</button>';
+  return '<div class="hx-focus '+esc(mode)+(r.startable?"":" ctx")+'">'+
+    '<div class="tag">'+tag+'</div>'+
+    '<div class="cls">'+esc(r.startable?slotName(sl):(sl.label||DATA.kindLabel(DATA.kindOf(sl))))+'</div>'+
+    '<div class="when">'+esc(slotRange(sl))+'</div>'+
+    (until?'<div class="until">מתחיל בעוד '+esc(until)+'</div>':"")+
+    (sl.topic?'<div class="topic">'+esc(sl.topic)+'</div>':"")+
+    (act1?'<div class="row" style="margin-top:11px">'+act1+'</div>':"")+
+    '</div>';
+}
+const UP_MAX=4;   /* כמה שיעורים עוד מוצגים בבית לפני «כל היום» */
 function paintToday(){
   const box=$("#hx-todayList"); if(!box)return;
-  const rows=SCHED.today();
   if(!SCHED.list().length){
-    box.innerHTML='<div class="hx-empty">עדיין לא הגדרת מערכת שעות.<br>'+
-      'דקה אחת של הגדרה, ומאז דף הבית פותח על הכיתה שמחכה לך.'+
+    box.innerHTML='<div class="hx-empty">עדיין אין מערכת שעות.<br>'+
+      'הגדר את השיעורים הקבועים שלך פעם אחת, ומכאן דף הבית ייפתח בכל יום '+
+      'על השיעור הנכון.'+
       '<div style="margin-top:10px"><button class="btn sm acc" id="hx-schedFirst">🗓 הגדר עכשיו</button></div></div>';
     const b=$("#hx-schedFirst"); if(b)b.addEventListener("click",openSched);
     return;
   }
+  const rows=SCHED.today();
   if(!rows.length){
     box.innerHTML='<div class="hx-empty">אין שיעורים היום ('+
       esc(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"")+').<br>'+
-      'המערכת מוגדרת — היום פשוט פנוי.</div>';
-    return;
+      'המערכת מוגדרת — היום פשוט פנוי.'+dayFoot()+'</div>';
+    wireDayFoot(); return;
   }
-  const nx=SCHED.next();
-  box.innerHTML=rows.map(r=>{
-    const sl=r.slot, up=nx&&nx.slot.id===sl.id;
-    const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
-                r.status==="done"?'<span class="pill">✓ התקיים</span>':
-                r.now?'<span class="pill acc">עכשיו</span>':"";
-    const ms=r.session?SESSION.measurements(r.session.id).length:0;
-    /* פרטני, שהייה וישיבה הם חלק מהיום של המורה ולכן מוצגים —
-       אבל אין מה להתחיל בהם ואין להם מסך כיתה. שורת הקשר, לא שיעור. */
-    if(!r.startable)
-      return '<div class="hx-slot ctx">'+
-        '<div class="tm">'+esc(sl.time)+'</div>'+
-        '<div class="tx"><b>'+esc(sl.label||DATA.kindLabel(DATA.kindOf(sl)))+'</b> '+
-          (r.now?'<span class="pill">עכשיו</span>':"")+'</div></div>';
-    /* שורת המשנה נכתבת רק כשיש בה מידע. «בלי נושא מוגדר» על כל
-       שורה הוא רעש שמאריך יום של עשרה שיעורים בלי להוסיף דבר. */
-    const sub=[sl.topic?esc(sl.topic):"",ms?ms+" מדידות":""].filter(Boolean).join(" · ");
-    return '<div class="hx-slot'+(up?" up":"")+(r.status==="done"?" done":"")+'">'+
-      '<div class="tm">'+esc(sl.time)+'</div>'+
-      '<div class="tx"><b>'+esc(slotName(sl))+'</b> '+badge+
-        (sub?'<span>'+sub+'</span>':"")+'</div>'+
-      (r.status==="planned"
-        ? '<button class="btn sm acc" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
-        : '<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>')+
-      '</div>';
-  }).join("");
+  const d=DATA.splitDay(rows,minNow());
+  let html="";
+  if(d.now){
+    html+=focusCard(d.now,"now");
+    if(d.next)html+=upRow(d.next,"⏭️ הבא");
+  }else if(d.next){
+    html+=focusCard(d.next,"next");
+  }
+  /* «בהמשך» — שיעורים בלבד. שהייה, פרטני וישיבות נמצאים ביום המלא,
+     שם הם הקשר; כאן הם היו מאריכים את הרשימה בלי לשנות החלטה. */
+  const later=d.later.filter(r=>r.startable);
+  if(later.length){
+    html+='<div class="hx-sec">היום בהמשך</div>'+
+      later.slice(0,UP_MAX).map(r=>upRow(r)).join("");
+    if(later.length>UP_MAX)
+      html+='<div class="hx-more">ועוד '+(later.length-UP_MAX)+' שיעורים היום</div>';
+  }else if(!d.now&&!d.next){
+    html+='<div class="hx-empty">כל שיעורי היום הסתיימו. '+
+      (d.past.length?d.past.length+' פריטים ביום המלא.':"")+'</div>';
+  }
+  box.innerHTML=html+dayFoot();
   $$("#hx-todayList [data-slot]").forEach(b=>b.addEventListener("click",()=>{
     const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
     if(sl)startFromSlot(sl);
   }));
-  $$("#hx-todayList [data-cls]").forEach(b=>b.addEventListener("click",()=>
-    openClassScreen(b.dataset.cls)));
+  $$("#hx-todayList [data-resume]").forEach(b=>b.addEventListener("click",()=>
+    openClassScreen(b.dataset.resume)));
+  const en=$("#hx-endNow"); if(en)en.addEventListener("click",openEndLesson);
+  wireDayFoot();
+}
+/* היום המלא נשאר במרחק לחיצה — הוא לא נעלם, הוא רק לא שולט בבית */
+function dayFoot(){
+  return '<div class="hx-foot"><button class="btn sm ghost" id="hx-allDay">📅 כל היום</button></div>';
+}
+function wireDayFoot(){
+  const b=$("#hx-allDay"); if(b)b.addEventListener("click",openDay);
+}
+
+/* ============================================================
+   היום המלא
+   ------------------------------------------------------------
+   כל מה שביומן של המורה היום — שיעורים, פרטני, שהייה, ישיבות —
+   באותה חלוקה: עכשיו, הבא, בהמשך, הסתיים. אותם נתונים ואותה
+   חלוקה של דף הבית; ההבדל היחיד הוא שכאן שום דבר לא מסונן.
+   ============================================================ */
+function dayLine(r){
+  const sl=r.slot, pe=r.startable;
+  const badge=r.status==="active"?'<span class="pill acc">פעיל</span>':
+              r.status==="done"?'<span class="pill">✓ התקיים</span>':"";
+  return '<div class="day-row'+(pe?"":" ctx")+(r.status==="done"?" done":"")+'">'+
+    '<span class="tm" dir="ltr">'+esc(sl.time)+'</span>'+
+    '<div class="tx"><b>'+esc(pe?slotName(sl):(sl.label||DATA.kindLabel(DATA.kindOf(sl))))+'</b> '+badge+
+      /* שורת המשנה רק כשיש בה מידע חדש: «שהייה / שהייה» היא רעש */
+      (sl.topic?'<span>'+esc(sl.topic)+'</span>':
+        ((!pe&&sl.label&&sl.label!==DATA.kindLabel(DATA.kindOf(sl)))
+          ?'<span>'+esc(DATA.kindLabel(DATA.kindOf(sl)))+'</span>':""))+'</div>'+
+    (pe&&r.status==="planned"
+      ? '<button class="btn sm ghost" data-slot="'+esc(sl.id)+'">▶ התחל</button>'
+      : pe?'<button class="btn sm ghost" data-cls="'+esc(sl.cid)+'">מסך הכיתה</button>':"")+
+    '</div>';
+}
+function openDay(){
+  const box=$("#day-body"); if(!box)return;
+  const rows=SCHED.today();
+  const t=$("#day-title");
+  if(t)t.textContent="היום · יום "+(DATA.DAYS_HE[DATA.dayOfISO(isoToday())]||"");
+  if(!rows.length){
+    box.innerHTML='<div class="empty-state" style="padding:16px"><div class="big">📅</div>'+
+      'אין פריטים במערכת השעות ליום הזה.</div>';
+  }else{
+    const d=DATA.splitDay(rows,minNow());
+    const sec=(ttl,list)=>list.length?'<div class="day-sec">'+esc(ttl)+'</div>'+list.map(dayLine).join(""):"";
+    box.innerHTML=
+      sec("עכשיו",d.now?[d.now]:[])+
+      sec("הבא",d.next?[d.next]:[])+
+      sec("בהמשך",d.later)+
+      sec("הסתיים",d.past)+
+      '<div class="hint" style="margin-top:12px">'+rows.length+' פריטים היום — שיעורים, פרטני, שהייה והכנות.</div>';
+  }
+  $$("#day-body [data-slot]").forEach(b=>b.addEventListener("click",()=>{
+    const sl=SCHED.list().find(x=>x.id===b.dataset.slot);
+    if(sl){ startFromSlot(sl); openDay(); }
+  }));
+  $$("#day-body [data-cls]").forEach(b=>b.addEventListener("click",()=>{
+    modal("dayModal",false); openClassScreen(b.dataset.cls);
+  }));
+  const e=$("#day-sched"); if(e)e.onclick=()=>{ modal("dayModal",false); openSched(); };
+  modal("dayModal",true);
 }
 
 /* «השיעור האחרון» — הקצה השני של אותה זרימה: מה שקרה בפעם שעברה,
@@ -10361,7 +10626,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,
+  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות

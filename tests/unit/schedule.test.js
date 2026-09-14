@@ -397,3 +397,93 @@ test("משבצת שנשמרה לפני שהיה סוג נשארת ניתנת ל�
   assert.equal(D.startable(legacy),true);
   assert.equal(D.schedToday([legacy],"2026-09-13",[])[0].startable,true);
 });
+
+/* ============ חלוקת היום ============ */
+
+const dayOf=(slots,nowMin,sessions)=>D.splitDay(
+  D.schedToday(slots,"2026-09-13",sessions||[],nowMin),nowMin);
+
+function week(){
+  let l=D.schedAdd([],{day:0,time:"08:10",cid:"c:ח:3",clsSnapshot:"ח׳3"}).list;
+  l=D.schedAdd(l,{day:0,time:"09:00",cid:"c:ט:1",clsSnapshot:"ט׳1"}).list;
+  l=D.schedAdd(l,{day:0,time:"10:50",kind:"stay",label:"שהייה"}).list;
+  l=D.schedAdd(l,{day:0,time:"11:40",cid:"c:ט:2",clsSnapshot:"ט׳2"}).list;
+  return l;
+}
+
+test("«עכשיו» הוא מה שהשעון נמצא בתוכו",()=>{
+  const d=dayOf(week(),9*60+10);
+  assert.equal(d.now.slot.clsSnapshot,"ט׳1");
+  assert.equal(d.next.slot.clsSnapshot,"ט׳2","שהייה אינה «הבא»");
+  assert.deepEqual(d.later.map(r=>r.slot.label),["שהייה"],"אבל היא כן ביום");
+  assert.deepEqual(d.past.map(r=>r.slot.clsSnapshot),["ח׳3"]);
+});
+
+test("בין שיעורים אין «עכשיו», ויש «הבא»",()=>{
+  const d=dayOf(week(),9*60+50);
+  assert.equal(d.now,null);
+  assert.equal(d.next.slot.clsSnapshot,"ט׳2","השיעור הבא שאפשר לפתוח");
+  assert.equal(D.startable(d.next.slot),true);
+});
+
+test("שיעור פתוח גובר על השעון — המורה בתוכו גם אחרי הצלצול",()=>{
+  const ses=D.createSession([],{cid:"c:ח:3",date:"2026-09-13"}).list;
+  const d=dayOf(week(),11*60,ses);
+  assert.equal(d.now.slot.clsSnapshot,"ח׳3");
+  assert.equal(d.now.status,"active");
+});
+
+test("בסוף היום אין «עכשיו» ואין «הבא», והכול בעבר",()=>{
+  const d=dayOf(week(),20*60);
+  assert.equal(d.now,null);
+  assert.equal(d.next,null);
+  assert.equal(d.later.length,0);
+  assert.equal(d.past.length,4);
+});
+
+test("לפני תחילת היום הכול עוד לפנינו",()=>{
+  const d=dayOf(week(),6*60);
+  assert.equal(d.now,null);
+  assert.equal(d.next.slot.clsSnapshot,"ח׳3");
+  assert.equal(d.past.length,0);
+});
+
+test("שיעור שהתקיים אינו «הבא» גם אם שעתו עוד לא עברה",()=>{
+  let ses=D.createSession([],{cid:"c:ח:3",date:"2026-09-13"});
+  ses=D.completeSession(ses.list,ses.session.id);
+  const d=dayOf(week(),7*60,ses.list);
+  assert.equal(d.next.slot.clsSnapshot,"ט׳1","מדלגים על מה שכבר נסגר");
+  assert.deepEqual(d.past.map(r=>r.slot.clsSnapshot),["ח׳3"]);
+});
+
+test("שני שיעורים באותה שעה — אחד «הבא» והשני «בהמשך», ושניהם נשארים",()=>{
+  let l=D.schedAdd([],{day:0,time:"11:40",cid:"c:ז:9",clsSnapshot:"ז׳9"}).list;
+  l=D.schedAdd(l,{day:0,time:"11:40",cid:"c:ז:10",clsSnapshot:"ז׳10"}).list;
+  const d=dayOf(l,9*60);
+  assert.equal(d.next.slot.clsSnapshot,"ז׳9");
+  assert.deepEqual(d.later.map(r=>r.slot.clsSnapshot),["ז׳10"],
+    "הכיתה השנייה לא נעלמת רק כי היא באותה דקה");
+});
+
+test("כל פריט מופיע פעם אחת בדיוק",()=>{
+  [6*60,9*60+10,11*60,20*60].forEach(t=>{
+    const d=dayOf(week(),t);
+    const n=(d.now?1:0)+(d.next?1:0)+d.later.length+d.past.length;
+    assert.equal(n,4,"בשעה "+t+" — פריט נכפל או נעלם");
+  });
+});
+
+test("«מתחיל בעוד» נקרא כמו שמורה אומר את זה",()=>{
+  assert.equal(D.fmtUntil(102),"1:42");
+  assert.equal(D.fmtUntil(12),"12 דק׳");
+  assert.equal(D.fmtUntil(0),"עוד רגע");
+  assert.equal(D.fmtUntil(-5),"","מה שכבר התחיל אינו «בעוד»");
+  assert.equal(D.fmtUntil(null),"");
+});
+
+test("הזמן עד המשבצת נמדד מתחילתה",()=>{
+  const sl={time:"09:00"};
+  assert.equal(D.minsUntil(sl,8*60),60);
+  assert.equal(D.minsUntil(sl,9*60+10),-10,"כבר התחיל");
+  assert.equal(D.minsUntil({time:"—"},480),null);
+});
