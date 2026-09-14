@@ -1405,7 +1405,7 @@ const BK_LABELS={"ft.results":"תוצאות מבחני כושר","ft.roster":"ר
   "pf.names":"שמות המסלולים","settings":"הגדרות"};
 /* מפתחות שהם רישום מקומי על המכשיר עצמו ולא נתונים של המורה — אין
    טעם לשאת אותם בקובץ ולא להציג אותם בהשוואה. */
-const BK_SKIP={"bk.last":1};
+const BK_SKIP={"bk.last":1,"up.seen":1};
 function bkKeys(){ const out=[]; const be=STORE||MEMFALLBACK; try{
     for(let i=0;i<be.length;i++){ const k=be.key(i);
       if(!k||k.indexOf(BK_PREFIX)!==0)continue;
@@ -1794,6 +1794,66 @@ function bkPreview(snap){
   modal("bk-modal",true);
 }
 
+/* ---------- פס «גרסה חדשה מוכנה» ----------
+   הפס נועד לפתור בעיה אמיתית: באפליקציה מותקנת אין שורת כתובת ואין
+   כפתור רענון, ומורה שנתקע על גרסה ישנה אין לו שום דרך לצאת ממנה.
+
+   אבל בגרסה הקודמת הוא הופיע על כל סרוויס־וורקר חדש שהותקן — גם
+   כשהדף שכבר מוצג הוא בדיוק אותה גרסה. אז «רענן עכשיו» לא שינה
+   כלום (אין מה לרענן), הפס חזר בטעינה הבאה, והמורה נשאר עם באנר
+   שאי אפשר להיפטר ממנו. שלוש הגנות:
+
+   1. חותמת הבנייה. הדף נושא <meta name="hm-build">, והסרוויס־וורקר
+      נושא את אותה חותמת כ-CACHE_VERSION. זהות — אין מה להציע.
+   2. «אחר כך» נזכר לגרסה הזאת, ולא חוזר בכל טעינה.
+   3. «רענן עכשיו» מחכה שהוורקר החדש ייכנס לתפקיד ורק אז טוען מחדש,
+      עם נפילה לאחור אחרי שנייה וחצי — טעינה מחדש מוקדמת מדי מחזירה
+      בדיוק את אותה גרסה. */
+const UP_SEEN="up.seen";
+function pageBuild(){
+  try{ const m=document.querySelector('meta[name="hm-build"]'); return m?(m.content||""):""; }
+  catch(e){ return ""; }
+}
+/* שואל את הוורקר איזו גרסה הוא. ורקר ישן (או כזה שלא ענה) מחזיר
+   מחרוזת ריקה, ואז לא מציעים כלום — עדיף לשתוק מלשקר. */
+function swVersion(w){
+  return new Promise(res=>{
+    if(!w||!window.MessageChannel)return res("");
+    let done=false;
+    const end=v=>{ if(!done){ done=true; res(String(v||"")); } };
+    try{
+      const ch=new MessageChannel();
+      ch.port1.onmessage=e=>end(e.data);
+      w.postMessage("version",[ch.port2]);
+    }catch(e){ return end(""); }
+    setTimeout(()=>end(""),1500);
+  });
+}
+/* מוצג על-ידי הקוד של ה-PWA, ונקרא ישירות בבדיקות — כי את המסלול
+   דרך סרוויס־וורקר אמיתי אי אפשר להריץ בתוך בדיקה. */
+function upOffer(version){
+  const bar=$("#upBar"); if(!bar)return false;
+  const mine=pageBuild();
+  if(!version)return false;                       /* לא יודעים — לא מציעים */
+  if(mine&&version===mine)return false;           /* זו כבר הגרסה שרצה כאן */
+  if(LS.get(UP_SEEN,"")===version)return false;   /* המורה אמר «אחר כך» */
+  bar.hidden=false;
+  const now=$("#upNow"), x=$("#upX");
+  if(now)now.onclick=()=>{
+    let done=false;
+    const boom=()=>{ if(done)return; done=true; location.reload(); };
+    try{
+      navigator.serviceWorker.addEventListener("controllerchange",boom,{once:true});
+      navigator.serviceWorker.getRegistration().then(r=>{
+        try{ if(r&&r.waiting)r.waiting.postMessage("skipWaiting"); }catch(e){}
+      }).catch(()=>{});
+    }catch(e){}
+    setTimeout(boom,1500);
+  };
+  if(x)x.onclick=()=>{ bar.hidden=true; try{ LS.set(UP_SEEN,version); }catch(e){} };
+  return true;
+}
+
 /* ---------- PWA ----------
    בפריסת ה-Pages יש manifest.webmanifest ו-sw.js אמיתיים בצד השרת.
    הקובץ הבודד (Hamegrash.html) רץ מ-file:// שבו אין service worker
@@ -1826,20 +1886,15 @@ function bkPreview(snap){
         /* פס שאפשר ללחוץ עליו, ולא הודעה חולפת שמבקשת «רענן»: באפליקציה
            מותקנת אין שורת כתובת ואין כפתור רענון, ולכן מורה שרואה הודעה
            כזאת פשוט תקוע על גרסה ישנה — וזה בדיוק מה שקרה כאן. */
-        const offer=()=>{
-          const bar=$("#upBar"); if(!bar)return;
-          bar.hidden=false;
-          const go2=()=>{ try{ if(reg.waiting)reg.waiting.postMessage("skipWaiting"); }catch(e){}
-            setTimeout(()=>location.reload(),120); };
-          const now=$("#upNow"), x=$("#upX");
-          if(now)now.onclick=go2;
-          if(x)x.onclick=()=>{ bar.hidden=true; };
+        const offer=async worker=>{
+          const v=await swVersion(worker||reg.waiting||reg.installing||reg.active);
+          upOffer(v);
         };
-        if(reg.waiting&&navigator.serviceWorker.controller)offer();
+        if(reg.waiting&&navigator.serviceWorker.controller)offer(reg.waiting);
         reg.addEventListener("updatefound",()=>{
           const w=reg.installing; if(!w)return;
           w.addEventListener("statechange",()=>{
-            if(w.state==="installed"&&navigator.serviceWorker.controller)offer();
+            if(w.state==="installed"&&navigator.serviceWorker.controller)offer(w);
           });
         });
         /* אפליקציה מותקנת יכולה לרוץ ימים בלי טעינה מחדש. בדיקה בכל
@@ -4553,7 +4608,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
+  upOffer,pageBuild,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות

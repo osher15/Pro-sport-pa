@@ -19,28 +19,44 @@ function stampVersions(){
   if(h!==fs.readFileSync(file,"utf8"))fs.writeFileSync(file,h);
   return h;
 }
-const html=stampVersions();
+let html=stampVersions();
 
 /* ---- חותמת גרסה ל-service worker ----
    המטמון חייב שם ייחודי לכל פריסה, אחרת מכשיר שכבר התקין את
    האפליקציה ימשיך להגיש לעצמו את הגרסה הישנה מהמטמון בלי שאיש
    יידע. השם נגזר מתוכן הקבצים שנכנסים למטמון. */
+const BUILD_META=/<meta name="hm-build" content="[^"]*">/;
 function stampSW(){
   const swFile=path.join(__dirname,"sw.js");
   if(!fs.existsSync(swFile))return;
+  const htmlFile=path.join(__dirname,"index.html");
   const files=["index.html","hm-styles.css","manifest.webmanifest"].concat(
     fs.readdirSync(__dirname).filter(f=>/^hm-[\w-]+\.js$/.test(f)).sort());
   const cur=fs.readFileSync(swFile,"utf8");
   /* גם שינוי בלוגיקת ה-service worker עצמו חייב להוליד גרסה חדשה,
      אחרת מכשיר מותקן ממשיך להגיש מדלי מטמון ישן. שורת הגרסה עצמה
-     מנוטרלת מהחישוב כדי שלא ייווצר מרוץ בין הגיבוב לכתיבה. */
+     מנוטרלת מהחישוב כדי שלא ייווצר מרוץ בין הגיבוב לכתיבה — וכך גם
+     חותמת הגרסה שנכתבת ל-index.html, מאותה סיבה בדיוק. */
   const swBody=cur.replace(/const CACHE_VERSION = "[^"]*";/,'const CACHE_VERSION = "";');
+  const body=f=>f==="index.html"
+    ? R(f).replace(BUILD_META,'<meta name="hm-build" content="">')
+    : R(f);
   const hash=crypto.createHash("sha1")
-    .update(files.map(f=>R(f)).join("\n")+"\n"+swBody).digest("hex").slice(0,8);
+    .update(files.map(body).join("\n")+"\n"+swBody).digest("hex").slice(0,8);
   const next=cur.replace(/const CACHE_VERSION = "[^"]*";/,'const CACHE_VERSION = "'+hash+'";');
   if(next!==cur)fs.writeFileSync(swFile,next);
+  /* אותה חותמת נכתבת גם לדף עצמו. בלעדיה הדף אינו יודע איזו גרסה
+     הוא, ופס «גרסה חדשה מוכנה» מופיע גם כשהגרסה שכבר מוצגת היא
+     החדשה — פס שאי אפשר להיפטר ממנו, כי אין באמת מה לרענן. */
+  const h0=fs.readFileSync(htmlFile,"utf8");
+  const tag='<meta name="hm-build" content="'+hash+'">';
+  const h1=BUILD_META.test(h0)?h0.replace(BUILD_META,tag)
+    :h0.replace('<meta name="theme-color" content="#0c0e1a">',
+                '<meta name="theme-color" content="#0c0e1a">\n'+tag);
+  if(h1!==h0)fs.writeFileSync(htmlFile,h1);
+  return h1;
 }
-stampSW();
+html=stampSW()||html;
 
 /* גוף האפליקציה = כל מה שבתוך <x-dc> חוץ מ־<helmet> */
 const dc=html.match(/<x-dc>([\s\S]*?)<\/x-dc>/);
@@ -95,6 +111,7 @@ const out=`<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e1a">
+${(html.match(BUILD_META)||[""])[0]}
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

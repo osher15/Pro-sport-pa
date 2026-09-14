@@ -167,6 +167,65 @@ module.exports={title:"מספר החזרות",tests:[
     eq(r.name,"דן אבירם","נמצא התלמיד שנמדד");
     eq(r.val,"55","והשדה שלו מציג את מה שנשמר");
     ok(/55/.test(r.shown),"וגם עמודת התוצאה: "+r.shown);
+  }),
+
+  /* ---------- קפיצות של חמש ---------- */
+
+  check("יש קפיצה של 5 לשני הכיוונים, לצד ההקשה הבודדת",seed,async page=>{
+    await openPush(page);
+    const r=await page.evaluate(()=>{
+      const st=document.querySelector("#ft-list .ft-step");
+      return {inc1:!!st.querySelector("[data-inc]"),dec1:!!st.querySelector("[data-dec]"),
+        inc5:!!st.querySelector("[data-inc5]"),dec5:!!st.querySelector("[data-dec5]"),
+        txt:st.textContent.replace(/\s+/g,"")};
+    });
+    ok(r.inc1&&r.dec1,"«+» ו«−» לא הוסרו — הם הדרך לספור חי");
+    ok(r.inc5&&r.dec5,"ולצידם ±5: "+r.txt);
+  }),
+
+  check("שתים־עשרה הקשות על +5 מגיעות ל-60",seed,async page=>{
+    await openPush(page);
+    for(let i=0;i<12;i++){
+      await page.evaluate(()=>document.querySelector('#ft-list [data-inc5]').click());
+      await page.waitForTimeout(30);
+    }
+    await page.waitForTimeout(400);
+    const rs=await results(page);
+    eq(rs.length,1);
+    eq(rs[0].val,60);
+    eq(rs[0].sid,"a");
+  }),
+
+  check("−5 יורד בחמש, ולא מתחת לאפס",seed,async page=>{
+    await openPush(page);
+    await page.evaluate(()=>document.querySelector('#ft-list [data-inc5]').click());
+    await page.waitForTimeout(250);
+    await page.evaluate(()=>document.querySelector('#ft-list [data-dec5]').click());
+    await page.waitForTimeout(350);
+    const rs=await results(page);
+    eq(rs.length,0,"ירידה לאפס מסירה את המדידה — לא שומרת אפס");
+  }),
+
+  check("+5 ממשיך ממה שהוקלד, ולא מאפס",seed,async page=>{
+    await openPush(page);
+    await page.click(fieldOf(0));
+    await page.keyboard.type("42");
+    await page.waitForTimeout(750);
+    await page.evaluate(()=>document.querySelector('#ft-list [data-inc5]').click());
+    await page.waitForTimeout(400);
+    const rs=await results(page);
+    eq(rs.length,1);
+    eq(rs[0].val,47,"42 ועוד 5");
+  }),
+
+  check("השדה נראה כמו שדה — אחרת ממשיכים להקיש «+»",seed,async page=>{
+    await openPush(page);
+    const cs=await page.evaluate(()=>{
+      const i=document.querySelector("#ft-list .ft-step .cnt");
+      const s=getComputedStyle(i);
+      return {w:s.borderTopWidth,style:s.borderTopStyle};
+    });
+    ok(parseFloat(cs.w)>0&&cs.style!=="none","למספר יש מסגרת: "+JSON.stringify(cs));
   })
 
 ]};

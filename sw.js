@@ -11,7 +11,7 @@
    יוצרת מטמון חדש והישן נמחק — במקום שגרסה ישנה תישאר תקועה על
    מכשיר בלי שאיש יידע.
    ============================================================ */
-const CACHE_VERSION = "72551e90";
+const CACHE_VERSION = "9410df89";
 const CACHE = "hamegrash-" + CACHE_VERSION;
 
 const SHELL = [
@@ -60,7 +60,11 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("message", e => {
-  if (e.data === "skipWaiting") self.skipWaiting();
+  if (e.data === "skipWaiting") return self.skipWaiting();
+  /* הדף שואל «איזו גרסה אתה». בלי התשובה הזאת הוא לא יכול לדעת אם
+     יש באמת מה לרענן, והציע רענון גם כשהגרסה שהוא כבר מציג היא
+     החדשה — פס שאי אפשר להיפטר ממנו. */
+  if (e.data === "version" && e.ports && e.ports[0]) e.ports[0].postMessage(CACHE_VERSION);
 });
 
 self.addEventListener("fetch", e => {

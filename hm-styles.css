@@ -1211,12 +1211,19 @@ body[data-theme="day"][data-mod="ft"]{--acc:#b45309;--accDim:rgba(180,83,9,.14)}
 .ft-step button.plus{width:58px;background:var(--accDim);color:var(--acc);font-size:26px}
 .ft-step button.plus:active{background:var(--acc);color:var(--onAcc)}
 .ft-step button:active{background:var(--accDim)}
+/* קפיצות של חמש — הדרך באמצע בין הקשה לכל חזרה לבין הקלדה. צרות
+   מ«+», כדי שהשורה תישאר בתוך רוחב של טלפון. */
+.ft-step button.by5{width:38px;font-size:14px;font-weight:700;color:var(--muted);
+  direction:ltr;unicode-bidi:isolate}   /* «+5» ולא «5+» — סימן ומספר הם רצף אחד */
+.ft-step button.by5:active{background:var(--accDim);color:var(--acc)}
 /* המספר הוא שדה, לא תווית: הקשה עליו בוחרת אותו והקלדה מחליפה.
-   נראה כמו מה שהיה, כדי שהשורה לא תשתנה למי שרק סופר עם «+». */
-.ft-step .cnt{width:52px;min-width:52px;border:none;background:transparent;color:var(--ink);
+   המסגרת המרומזת קיימת כדי שייראה כמו משהו שאפשר להקליד בו — בלעדיה
+   הוא נקרא כתווית, והמורה ממשיך להקיש «+». */
+.ft-step .cnt{width:56px;min-width:56px;border:1px dashed var(--line);background:var(--panel);
+  color:var(--ink);
   text-align:center;font-family:'Share Tech Mono';font-size:19px;font-variant-numeric:tabular-nums;
   padding:0;height:44px;border-radius:9px;direction:ltr}
-.ft-step .cnt:focus{outline:none;background:var(--accDim);color:var(--acc)}
+.ft-step .cnt:focus{outline:none;background:var(--accDim);color:var(--acc);border-style:solid;border-color:var(--acc)}
 .ft-step .cnt::placeholder{color:var(--faint)}
 .ft-num{width:96px;background:var(--inset);border:1px solid var(--line);border-radius:10px;color:var(--ink);
   font-family:'Share Tech Mono';font-size:17px;padding:9px 10px;text-align:center}

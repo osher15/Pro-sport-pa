@@ -604,12 +604,14 @@ window.FT=(function(){
              במקום ללחוץ שישים פעם. type=text ולא number: number מחזיר
              מחרוזת ריקה באמצע הקלדה, וזה כבר עלה לנו פעם בשדה אחר. */
           ? `<div class="ft-step">
-               <button class="plus" data-inc="${esc(k)}">+</button>
+               <button class="plus" data-inc="${esc(k)}" aria-label="חזרה אחת">+</button>
+               <button class="by5" data-inc5="${esc(k)}" aria-label="חמש חזרות">+5</button>
                <input class="cnt" type="text" inputmode="numeric" dir="ltr"
                  data-cnt="${esc(k)}" aria-label="מספר חזרות"
                  value="${pendingNew[k]?"":(Math.round((openAttempt(c,T.id,s)||{}).val||0)||"")}"
                  placeholder="0">
-               <button data-dec="${esc(k)}">−</button>
+               <button data-dec="${esc(k)}" aria-label="פחות אחת">−</button>
+               <button class="by5" data-dec5="${esc(k)}" aria-label="פחות חמש">−5</button>
              </div>`
           : `<input class="ft-num" type="number" inputmode="decimal" step="0.1" min="0"
                data-val="${esc(k)}" value="${pendingNew[k]?"":((openAttempt(c,T.id,s)||{}).val??"")}" placeholder="${esc(T.unit)}">`}
@@ -1015,6 +1017,11 @@ window.FT=(function(){
     }));
     $$("#ft-list [data-inc]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc,1)));
     $$("#ft-list [data-dec]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.dec,-1)));
+    /* קפיצות של חמש: הדרך באמצע בין «+» אחד־אחד (נכון לספירה חיה)
+       לבין הקלדה (נכונה כשהמספר כבר ידוע). שישים חזרות הן שתים־עשרה
+       הקשות במקום שישים. */
+    $$("#ft-list [data-inc5]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc5,5)));
+    $$("#ft-list [data-dec5]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.dec5,-5)));
     /* ============================================================
        הקלדת מספר החזרות
        ------------------------------------------------------------
