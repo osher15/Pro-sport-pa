@@ -3709,7 +3709,7 @@ const REC=(function(){
         return;
       }
     }
-    await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,
+    await dbPut({id:DATA.uid("r"),sport,name,cls,value:val,video:f,
       status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
     $("#rec-subName").value="";$("#rec-subClass").value="";$("#rec-subVal").value="";$("#rec-subVideo").value="";
@@ -3813,7 +3813,7 @@ const REC=(function(){
       const e=CACHE.find(x=>x.id===id); if(!e)return;
       Object.assign(e,{sport,name,cls,value:val}); await dbPut(e); toast("עודכן ✓");
     }else{
-      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,
+      await dbPut({id:DATA.uid("r"),sport,name,cls,value:val,
         video:null,status:"approved",src:"manual",ts:Date.now()});
       toast("נוסף ללוח ✓"); confetti(40);
     }
@@ -4021,7 +4021,7 @@ const REC=(function(){
       if(!sportById(meta.sport)||!(meta.value>0))throw new Error("נתונים חסרים");
       const dup=CACHE.some(r=>r.name===meta.name&&r.sport===meta.sport&&r.value===meta.value&&Math.abs(r.ts-meta.ts)<1000);
       if(dup){ toast("השיא הזה כבר נקלט"); return; }
-      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),
+      await dbPut({id:DATA.uid("r"),
         sport:meta.sport,name:meta.name,cls:meta.cls||"",value:meta.value,video,
         status:"pending",src:"file",ts:meta.ts||Date.now()});
       await refresh(); renderAdmin();

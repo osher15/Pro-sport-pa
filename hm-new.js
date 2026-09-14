@@ -197,7 +197,7 @@ window.STU=(function(){
       const nm=r.name.trim(); if(!nm||/^תלמיד \d+$/.test(nm))return;
       let s=list.find(x=>x.name===nm);
       /* לוח הביפ לא מכיר כיתה. תלמיד בלי כיתה הוא מצב חוקי: cid:null. */
-      if(!s){ s={id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name:nm,cls:"",cid:null,sex,age,h:null,w:null,tests:[]}; list.push(s); }
+      if(!s){ s={id:window.HMDATA.uid("s"),name:nm,cls:"",cid:null,sex,age,h:null,w:null,tests:[]}; list.push(s); }
       if(s.tests.some(t=>t.d===today()&&t.type==="ביפ"&&t.dist===r.dist))return;
       const v=vo2f(r.speed,s.age||age);
       s.tests.push({d:today(),type:"ביפ",dist:r.dist,level:r.level+"·"+r.sh,speed:r.speed,vo2:v>0?v:null,zone:v>0?zoneOf(v,s.age||age,s.sex||sex).g:""});
@@ -556,7 +556,7 @@ window.STU=(function(){
       const idx=list.findIndex(a=>a.id===paEditId);
       if(idx>-1)list[idx]={...paDraft,id:paEditId,date:list[idx].date};
     } else {
-      list.push({...paDraft,id:"pa"+Date.now()+Math.random().toString(36).slice(2,5),date:today()});
+      list.push({...paDraft,id:window.HMDATA.uid("pa"),date:today()});
     }
     saveAssess(list);
     toast("ההערכה נשמרה ✓");
@@ -645,7 +645,7 @@ window.STU=(function(){
   }
   function addPCrit(){
     const cur=loadPCrit();
-    cur.push({id:"c"+Date.now()+Math.random().toString(36).slice(2,4),t:"קריטריון חדש",d:""});
+    cur.push({id:window.HMDATA.uid("c"),t:"קריטריון חדש",d:""});
     savePCrit(cur); renderPCritEdit();
   }
   function savePCritForm(){
@@ -678,7 +678,7 @@ window.STU=(function(){
         const [name,cls]=l.split(",").map(x=>(x||"").trim());
         if(!name||/^(שם|name)$/i.test(name)||list.some(s=>s.name===name))return;
         const c=cls||defCls||"";
-        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:c,cid:cidFor(c),sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
+        list.push({id:window.HMDATA.uid("s"),name,cls:c,cid:cidFor(c),sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
       });
       save(list); return n;
     }

@@ -302,7 +302,7 @@ window.FT=(function(){
       const cur=openAttempt(c,testId,stud);
       if(cur)i=rs.findIndex(r=>r.id===cur.id);
     }
-    const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,6),
+    const rec={id:i>=0?rs[i].id:DATA.uid("f"),
       ts:Date.now(),d:today(),cls:c,cid:cidOf(c),test:testId,
       name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
@@ -1079,7 +1079,7 @@ window.FT=(function(){
     if(!nm||!nm.trim())return;
     const c=cls(), list=roster(c);
     if(list.some(x=>x.name===nm.trim())){H().toast("השם כבר ברשימה");return;}
-    list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5),name:nm.trim()});
+    list.push({id:DATA.uid("f"),name:nm.trim()});
     setRoster(c,list); renderRun(); H().toast("נוסף לכיתה "+disp(c));
   }
   function openRoster(){
@@ -1100,7 +1100,7 @@ window.FT=(function(){
       if(!lines.length){H().toast("הדבק שמות, שורה לכל תלמיד");return;}
       const list=roster(c), have=new Set(list.map(x=>x.name)); let n=0;
       lines.forEach(nm=>{ if(have.has(nm)||/^(שם|name)$/i.test(nm))return;
-        list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5)+n,name:nm}); have.add(nm); n++; });
+        list.push({id:DATA.uid("f"),name:nm}); have.add(nm); n++; });
       setRoster(c,list); $("#ft-rosBulk").value=""; renderRosterList(); H().toast("נוספו "+n+" תלמידים");
     };
     $("#ft-rosDone").onclick=()=>{ H().modal("ft-rosModal",false); renderTab(); };
@@ -1394,7 +1394,7 @@ window.FT=(function(){
     const newId={};
     const idFor=x=>{
       const k=clsKey(x.cls)+"|"+x.name;
-      return (newId[k]=newId[k]||("f"+Date.now()+Math.random().toString(36).slice(2,6)));
+      return (newId[k]=newId[k]||DATA.uid("f"));
     };
     built.forEach(x=>{
       const k=clsKey(x.cls);
@@ -2429,7 +2429,7 @@ window.FT=(function(){
       const key=(known&&known.id?("id:"+known.id):("nm:"+nm))+"|"+v.toFixed(2);
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
-      rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
+      rs.push({id:DATA.uid("f"),ts:Date.now(),d:today(),
         cls:c,cid:cid,test:testId,name:nm,sid:known?(known.id||null):null,
         ...(same.length>1?{sidAmbig:"duplicate-name"}:{}),
         normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,

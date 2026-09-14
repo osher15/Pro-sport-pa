@@ -3697,6 +3697,33 @@ function groupSummary(store,gid){
 }
 
 /* ============================================================
+   מזהה רשומה
+   ------------------------------------------------------------
+   Date.now() לבדו אינו ייחודי: שתי רשומות שנוצרות באותה מילישנייה
+   חולקות אותו חלק ראשון, ומה שמפריד ביניהן הוא ארבעה תווים
+   אקראיים בלבד — 36⁴ אפשרויות. מאתיים רשומות ברצף אחד מתנגשות
+   בהסתברות של אחוז ומשהו, וזה נמדד בפועל: בדיקת «שני שיעורים אינם
+   מתנגשים במזהה» נפלה ב-CI על 199 מתוך 200.
+
+   וזה לא נשאר בבדיקה. רשימת כיתה שלמה, מקצה ביפ של שלושים תלמידים
+   ומערכת שעות של 47 משבצות נוצרים כולם בלולאה אחת, בתוך אותה
+   מילישנייה. שני מזהים זהים שם אינם תקלה תיאורטית: מחיקה של רשומה
+   אחת מוחקת את שתיהן, ועריכה של אחת עורכת את השנייה.
+
+   המונה מבטיח ייחודיות בתוך המכשיר; האקראיות נשארת כדי ששני
+   מכשירים שמגבים לאותו קובץ לא ייצרו את אותו מזהה. הרוחב קבוע,
+   כדי ששרשור של מונים באורך שונה לא ייצור מחרוזות זהות.
+   ============================================================ */
+var UID_WRAP=1679616;          /* 36⁴ */
+var uidSeq=Math.floor(Math.random()*UID_WRAP);
+function uid(prefix){
+  uidSeq=(uidSeq+1)%UID_WRAP;
+  return String(prefix==null?"":prefix)+Date.now().toString(36)+
+    uidSeq.toString(36).padStart(4,"0")+
+    Math.random().toString(36).slice(2,6);
+}
+
+/* ============================================================
    3. זהות תלמיד
    ------------------------------------------------------------
    עד היום כל חיפוש היסטוריה עבד על r.name===name. זה עבד מצוין עד
@@ -4793,7 +4820,7 @@ var SESSION_ACTIVE="active", SESSION_DONE="completed";
 var SESSION_MAX=300;   /* גבול היסטוריה, כדי ש-localStorage לא יגדל לנצח */
 
 function newSessionId(){
-  return "ls"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return uid("ls");
 }
 function asList(v){ return Array.isArray(v)?v:[]; }
 
@@ -5235,7 +5262,7 @@ var SCHED_MAX=120;   /* גבול שפוי: 6 ימים × 20 שיעורים */
 var DAYS_HE=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
 
 function newSlotId(){
-  return "sl"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return uid("sl");
 }
 /* "09:00" → 540. כל מה שאינו שעה תקפה מחזיר null, ולא 0 —
    חצות ושעה פגומה חייבות להיות שתי תשובות שונות. */
@@ -5467,6 +5494,7 @@ return {
   classId:classId, classFrom:classFrom, sameClass:sameClass, cidParts:cidParts,
   classes:classes, classOf:classOf, findClass:findClass,
   registerClass:registerClass, renameClass:renameClass,
+  uid:uid,
   isCid:isCid, cidOfStudent:cidOfStudent, resolveClassId:resolveClassId,
   GROUP_PREFIX:GROUP_PREFIX, GROUP_KIND:GROUP_KIND, isGroupId:isGroupId, isGroupRec:isGroupRec,
   groupId:groupId, makeGroup:makeGroup, updateGroup:updateGroup, removeGroup:removeGroup,
@@ -9803,7 +9831,7 @@ const REC=(function(){
         return;
       }
     }
-    await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,video:f,
+    await dbPut({id:DATA.uid("r"),sport,name,cls,value:val,video:f,
       status:"pending",src:(window.HM&&window.HM.isStudent&&window.HM.isStudent())?"student":"teacher",ts:Date.now()});
     await refresh(); modal("rec-subModal",false);
     $("#rec-subName").value="";$("#rec-subClass").value="";$("#rec-subVal").value="";$("#rec-subVideo").value="";
@@ -9907,7 +9935,7 @@ const REC=(function(){
       const e=CACHE.find(x=>x.id===id); if(!e)return;
       Object.assign(e,{sport,name,cls,value:val}); await dbPut(e); toast("עודכן ✓");
     }else{
-      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),sport,name,cls,value:val,
+      await dbPut({id:DATA.uid("r"),sport,name,cls,value:val,
         video:null,status:"approved",src:"manual",ts:Date.now()});
       toast("נוסף ללוח ✓"); confetti(40);
     }
@@ -10115,7 +10143,7 @@ const REC=(function(){
       if(!sportById(meta.sport)||!(meta.value>0))throw new Error("נתונים חסרים");
       const dup=CACHE.some(r=>r.name===meta.name&&r.sport===meta.sport&&r.value===meta.value&&Math.abs(r.ts-meta.ts)<1000);
       if(dup){ toast("השיא הזה כבר נקלט"); return; }
-      await dbPut({id:"r"+Date.now()+Math.random().toString(36).slice(2,6),
+      await dbPut({id:DATA.uid("r"),
         sport:meta.sport,name:meta.name,cls:meta.cls||"",value:meta.value,video,
         status:"pending",src:"file",ts:meta.ts||Date.now()});
       await refresh(); renderAdmin();
@@ -15263,7 +15291,7 @@ window.FT=(function(){
       const cur=openAttempt(c,testId,stud);
       if(cur)i=rs.findIndex(r=>r.id===cur.id);
     }
-    const rec={id:i>=0?rs[i].id:"f"+Date.now()+Math.random().toString(36).slice(2,6),
+    const rec={id:i>=0?rs[i].id:DATA.uid("f"),
       ts:Date.now(),d:today(),cls:c,cid:cidOf(c),test:testId,
       name:stud.name,sid:DATA.studentKey(stud),
       gradeKey:st.grade,sex:stud.sex||null,
@@ -16040,7 +16068,7 @@ window.FT=(function(){
     if(!nm||!nm.trim())return;
     const c=cls(), list=roster(c);
     if(list.some(x=>x.name===nm.trim())){H().toast("השם כבר ברשימה");return;}
-    list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5),name:nm.trim()});
+    list.push({id:DATA.uid("f"),name:nm.trim()});
     setRoster(c,list); renderRun(); H().toast("נוסף לכיתה "+disp(c));
   }
   function openRoster(){
@@ -16061,7 +16089,7 @@ window.FT=(function(){
       if(!lines.length){H().toast("הדבק שמות, שורה לכל תלמיד");return;}
       const list=roster(c), have=new Set(list.map(x=>x.name)); let n=0;
       lines.forEach(nm=>{ if(have.has(nm)||/^(שם|name)$/i.test(nm))return;
-        list.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,5)+n,name:nm}); have.add(nm); n++; });
+        list.push({id:DATA.uid("f"),name:nm}); have.add(nm); n++; });
       setRoster(c,list); $("#ft-rosBulk").value=""; renderRosterList(); H().toast("נוספו "+n+" תלמידים");
     };
     $("#ft-rosDone").onclick=()=>{ H().modal("ft-rosModal",false); renderTab(); };
@@ -16355,7 +16383,7 @@ window.FT=(function(){
     const newId={};
     const idFor=x=>{
       const k=clsKey(x.cls)+"|"+x.name;
-      return (newId[k]=newId[k]||("f"+Date.now()+Math.random().toString(36).slice(2,6)));
+      return (newId[k]=newId[k]||DATA.uid("f"));
     };
     built.forEach(x=>{
       const k=clsKey(x.cls);
@@ -17390,7 +17418,7 @@ window.FT=(function(){
       const key=(known&&known.id?("id:"+known.id):("nm:"+nm))+"|"+v.toFixed(2);
       if(seen.has(key)){ dup++; return; }
       seen.add(key);
-      rs.push({id:"f"+Date.now()+Math.random().toString(36).slice(2,6),ts:Date.now(),d:today(),
+      rs.push({id:DATA.uid("f"),ts:Date.now(),d:today(),
         cls:c,cid:cid,test:testId,name:nm,sid:known?(known.id||null):null,
         ...(same.length>1?{sidAmbig:"duplicate-name"}:{}),
         normVer:normVersion(),sessionId:sessionFor(c),gradeKey:pc.grade,
@@ -17654,7 +17682,7 @@ window.STU=(function(){
       const nm=r.name.trim(); if(!nm||/^תלמיד \d+$/.test(nm))return;
       let s=list.find(x=>x.name===nm);
       /* לוח הביפ לא מכיר כיתה. תלמיד בלי כיתה הוא מצב חוקי: cid:null. */
-      if(!s){ s={id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name:nm,cls:"",cid:null,sex,age,h:null,w:null,tests:[]}; list.push(s); }
+      if(!s){ s={id:window.HMDATA.uid("s"),name:nm,cls:"",cid:null,sex,age,h:null,w:null,tests:[]}; list.push(s); }
       if(s.tests.some(t=>t.d===today()&&t.type==="ביפ"&&t.dist===r.dist))return;
       const v=vo2f(r.speed,s.age||age);
       s.tests.push({d:today(),type:"ביפ",dist:r.dist,level:r.level+"·"+r.sh,speed:r.speed,vo2:v>0?v:null,zone:v>0?zoneOf(v,s.age||age,s.sex||sex).g:""});
@@ -18013,7 +18041,7 @@ window.STU=(function(){
       const idx=list.findIndex(a=>a.id===paEditId);
       if(idx>-1)list[idx]={...paDraft,id:paEditId,date:list[idx].date};
     } else {
-      list.push({...paDraft,id:"pa"+Date.now()+Math.random().toString(36).slice(2,5),date:today()});
+      list.push({...paDraft,id:window.HMDATA.uid("pa"),date:today()});
     }
     saveAssess(list);
     toast("ההערכה נשמרה ✓");
@@ -18102,7 +18130,7 @@ window.STU=(function(){
   }
   function addPCrit(){
     const cur=loadPCrit();
-    cur.push({id:"c"+Date.now()+Math.random().toString(36).slice(2,4),t:"קריטריון חדש",d:""});
+    cur.push({id:window.HMDATA.uid("c"),t:"קריטריון חדש",d:""});
     savePCrit(cur); renderPCritEdit();
   }
   function savePCritForm(){
@@ -18135,7 +18163,7 @@ window.STU=(function(){
         const [name,cls]=l.split(",").map(x=>(x||"").trim());
         if(!name||/^(שם|name)$/i.test(name)||list.some(s=>s.name===name))return;
         const c=cls||defCls||"";
-        list.push({id:"s"+Date.now()+Math.random().toString(36).slice(2,5),name,cls:c,cid:cidFor(c),sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
+        list.push({id:window.HMDATA.uid("s"),name,cls:c,cid:cidFor(c),sex:"boys",age:14,h:null,w:null,tests:[]}); n++;
       });
       save(list); return n;
     }

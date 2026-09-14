@@ -285,6 +285,33 @@ function groupSummary(store,gid){
 }
 
 /* ============================================================
+   מזהה רשומה
+   ------------------------------------------------------------
+   Date.now() לבדו אינו ייחודי: שתי רשומות שנוצרות באותה מילישנייה
+   חולקות אותו חלק ראשון, ומה שמפריד ביניהן הוא ארבעה תווים
+   אקראיים בלבד — 36⁴ אפשרויות. מאתיים רשומות ברצף אחד מתנגשות
+   בהסתברות של אחוז ומשהו, וזה נמדד בפועל: בדיקת «שני שיעורים אינם
+   מתנגשים במזהה» נפלה ב-CI על 199 מתוך 200.
+
+   וזה לא נשאר בבדיקה. רשימת כיתה שלמה, מקצה ביפ של שלושים תלמידים
+   ומערכת שעות של 47 משבצות נוצרים כולם בלולאה אחת, בתוך אותה
+   מילישנייה. שני מזהים זהים שם אינם תקלה תיאורטית: מחיקה של רשומה
+   אחת מוחקת את שתיהן, ועריכה של אחת עורכת את השנייה.
+
+   המונה מבטיח ייחודיות בתוך המכשיר; האקראיות נשארת כדי ששני
+   מכשירים שמגבים לאותו קובץ לא ייצרו את אותו מזהה. הרוחב קבוע,
+   כדי ששרשור של מונים באורך שונה לא ייצור מחרוזות זהות.
+   ============================================================ */
+var UID_WRAP=1679616;          /* 36⁴ */
+var uidSeq=Math.floor(Math.random()*UID_WRAP);
+function uid(prefix){
+  uidSeq=(uidSeq+1)%UID_WRAP;
+  return String(prefix==null?"":prefix)+Date.now().toString(36)+
+    uidSeq.toString(36).padStart(4,"0")+
+    Math.random().toString(36).slice(2,6);
+}
+
+/* ============================================================
    3. זהות תלמיד
    ------------------------------------------------------------
    עד היום כל חיפוש היסטוריה עבד על r.name===name. זה עבד מצוין עד
@@ -1381,7 +1408,7 @@ var SESSION_ACTIVE="active", SESSION_DONE="completed";
 var SESSION_MAX=300;   /* גבול היסטוריה, כדי ש-localStorage לא יגדל לנצח */
 
 function newSessionId(){
-  return "ls"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return uid("ls");
 }
 function asList(v){ return Array.isArray(v)?v:[]; }
 
@@ -1823,7 +1850,7 @@ var SCHED_MAX=120;   /* גבול שפוי: 6 ימים × 20 שיעורים */
 var DAYS_HE=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
 
 function newSlotId(){
-  return "sl"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return uid("sl");
 }
 /* "09:00" → 540. כל מה שאינו שעה תקפה מחזיר null, ולא 0 —
    חצות ושעה פגומה חייבות להיות שתי תשובות שונות. */
@@ -2055,6 +2082,7 @@ return {
   classId:classId, classFrom:classFrom, sameClass:sameClass, cidParts:cidParts,
   classes:classes, classOf:classOf, findClass:findClass,
   registerClass:registerClass, renameClass:renameClass,
+  uid:uid,
   isCid:isCid, cidOfStudent:cidOfStudent, resolveClassId:resolveClassId,
   GROUP_PREFIX:GROUP_PREFIX, GROUP_KIND:GROUP_KIND, isGroupId:isGroupId, isGroupRec:isGroupRec,
   groupId:groupId, makeGroup:makeGroup, updateGroup:updateGroup, removeGroup:removeGroup,
