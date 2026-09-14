@@ -581,9 +581,16 @@ window.FT=(function(){
               const lbl=r?"↺ שוב":(need>1?`⏱ ${done+1}/${need}`:"⏱ קלוט");
               return `<button class="btn sm ${r?"ghost":"acc"}" data-cap="${esc(k)}">${lbl}</button>`; })()
           : T.kind==="count"
+          /* המספר עצמו הוא שדה. «+» נשאר לספירה חיה תוך כדי המבחן,
+             אבל מורה שכבר יודע שהתלמיד עשה 60 מקיש ומקליד שתי ספרות
+             במקום ללחוץ שישים פעם. type=text ולא number: number מחזיר
+             מחרוזת ריקה באמצע הקלדה, וזה כבר עלה לנו פעם בשדה אחר. */
           ? `<div class="ft-step">
                <button class="plus" data-inc="${esc(k)}">+</button>
-               <b>${pendingNew[k]?0:Math.round((openAttempt(c,T.id,s)||{}).val||0)}</b>
+               <input class="cnt" type="text" inputmode="numeric" dir="ltr"
+                 data-cnt="${esc(k)}" aria-label="מספר חזרות"
+                 value="${pendingNew[k]?"":(Math.round((openAttempt(c,T.id,s)||{}).val||0)||"")}"
+                 placeholder="0">
                <button data-dec="${esc(k)}">−</button>
              </div>`
           : `<input class="ft-num" type="number" inputmode="decimal" step="0.1" min="0"
@@ -623,7 +630,11 @@ window.FT=(function(){
     if(sub)sub.textContent=subTxt;
     else if(subTxt){ const sp=document.createElement("span"); sp.className="pv"; sp.textContent=subTxt;
       row.querySelector(".nm").appendChild(sp); }
-    const stepB=row.querySelector(".ft-step b"); if(stepB)stepB.textContent=Math.round((open||{}).val||0);
+    /* לא נוגעים בשדה שהאצבע נמצאת בו — ציור מחדש באמצע הקלדה מוחק
+       את הספרה שהוקלדה, וזה בדיוק הבאג שכבר נתקלנו בו בשדה המרחק. */
+    const stepI=row.querySelector(".ft-step .cnt");
+    if(stepI&&document.activeElement!==stepI)
+      stepI.value=Math.round((open||{}).val||0)||"";
     const cap=row.querySelector("[data-cap]");
     if(cap){
       const need=T.dir==="low"?lapsFor(T.id):1, done=(lapRun[key]||[]).length;
@@ -986,7 +997,52 @@ window.FT=(function(){
     }));
     $$("#ft-list [data-inc]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.inc,1)));
     $$("#ft-list [data-dec]").forEach(b=>b.addEventListener("click",()=>bump(b.dataset.dec,-1)));
+    /* ============================================================
+       הקלדת מספר החזרות
+       ------------------------------------------------------------
+       שישים שכיבות סמיכה היו שישים הקשות על «+». המספר הוא שדה,
+       ולכן שתי ספרות מספיקות. «+» נשאר — הוא עדיין הדרך הנכונה
+       לספור תוך כדי שהתלמיד עובד.
+
+       השמירה קורית גם תוך כדי הקלדה (בהשהיה) וגם ביציאה מהשדה,
+       כדי שמורה שהוקפץ באמצע לא יאבד את מה שהקליד.
+       ============================================================ */
+    const commitCnt=(inp,render)=>{
+      const k=inp.dataset.cnt, s=studByKey(c,k);
+      const v=Math.round(+String(inp.value).replace(/[^\d]/g,"")||0);
+      const fresh=!!pendingNew[k];
+      if(v>0){ saveVal(c,T.id,s,v,fresh); delete pendingNew[k]; }
+      else { const cur=openAttempt(c,T.id,s); if(cur)delAttempt(cur.id); }
+      if(render)renderRun(); else refreshRow(k);
+    };
+    $$("#ft-list [data-cnt]").forEach(inp=>{
+      let tmr=0;
+      /* מקלדת מספרים בלבד — תו שאינו ספרה מוסר מיד ולא מגיע לשמירה */
+      inp.addEventListener("input",()=>{
+        const clean=String(inp.value).replace(/[^\d]/g,"").slice(0,4);
+        if(clean!==inp.value)inp.value=clean;
+        clearTimeout(tmr); tmr=setTimeout(()=>commitCnt(inp,false),500);
+      });
+      inp.addEventListener("change",()=>{ clearTimeout(tmr); commitCnt(inp,false); });
+      /* מיקוד בוחר את הקיים, כך שהקלדה מחליפה ולא נצמדת אליו */
+      inp.addEventListener("focus",()=>{ try{ inp.select(); }catch(e){} });
+      /* Enter קופץ לתלמיד הבא. בכיתה של שלושים זה ההבדל בין הזנה
+         שוטפת לבין חיפוש השדה הבא בכל פעם. */
+      inp.addEventListener("keydown",e=>{
+        if(e.key!=="Enter")return;
+        e.preventDefault(); clearTimeout(tmr); commitCnt(inp,false);
+        const all=[...document.querySelectorAll("#ft-list [data-cnt],#ft-list [data-val]")];
+        const i=all.indexOf(inp);
+        const nx=i>=0?all[i+1]:null;
+        if(nx){ nx.focus(); try{ nx.select(); }catch(e2){} }
+        else inp.blur();
+      });
+    });
     /* הזנת מדידה */
+    $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("keydown",e=>{
+      if(e.key!=="Enter")return;
+      e.preventDefault(); inp.blur();
+    }));
     $$("#ft-list [data-val]").forEach(inp=>inp.addEventListener("change",()=>{
       const k=inp.dataset.val, v=+inp.value;
       const s=studByKey(c,k);
