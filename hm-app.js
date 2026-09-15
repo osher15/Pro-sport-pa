@@ -461,7 +461,7 @@ $("#set-save").addEventListener("click",()=>{ SET.school=$("#set-school").value.
   SET.syncUrl=$("#set-syncUrl").value.trim(); SET.syncCode=$("#set-syncCode").value.trim();
   saveSet(); modal("setModal",false); toast(t("set.saved","ההגדרות נשמרו"));
   if(typeof REC!=="undefined"&&REC.applyRole)REC.applyRole(); });
-  wireBackup(); wireAbout(); wirePurge(); wireStorageWarn();
+  wireBackup(); wireGDrive(); wireAbout(); wirePurge(); wireStorageWarn();
 }
 
 /* ============================================================
@@ -1684,6 +1684,137 @@ function wireBackup(){
     r.readAsText(f);
   });
 }
+/* ============================================================
+   גיבוי אוטומטי לגוגל דרייב
+   ------------------------------------------------------------
+   לא שרת שלנו — אישור OAuth של גוגל, בדפדפן בלבד, עם היקף
+   drive.file: האפליקציה יכולה לגעת רק בקבצים שהיא עצמה יצרה
+   בדרייב של המורה, ולא בשום דבר אחר שם. Client ID נוצר פעם אחת
+   ע"י המורה עצמו (Google Cloud Console) ונשמר מקומית — אין לנו
+   דרך ליצור אותו מטעם המורה, וגם אין לנו צורך לדעת אותו. */
+const GDRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
+const GDRIVE_FOLDER_NAME="המגרש PRO – גיבויים";
+let gdAccessToken=null,gdTokenAt=0,gdGisPromise=null;
+function gdLoadGis(){
+  if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+  if(gdGisPromise)return gdGisPromise;
+  gdGisPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src="https://accounts.google.com/gsi/client"; s.async=true; s.defer=true;
+    s.onload=()=>resolve(); s.onerror=()=>{gdGisPromise=null;reject(new Error("לא ניתן לטעון את שירות ההתחברות של גוגל"));};
+    document.head.appendChild(s);
+  });
+  return gdGisPromise;
+}
+function gdGetToken(interactive){
+  return new Promise((resolve,reject)=>{
+    const clientId=($("#set-gdClientId").value||"").trim();
+    if(!clientId){ reject(new Error("no-client-id")); return; }
+    if(gdAccessToken&&Date.now()-gdTokenAt<50*60*1000){ resolve(gdAccessToken); return; }
+    gdLoadGis().then(()=>{
+      const tc=google.accounts.oauth2.initTokenClient({
+        client_id:clientId, scope:GDRIVE_SCOPE,
+        callback:resp=>{
+          if(!resp||resp.error){ reject(new Error((resp&&resp.error)||"auth-failed")); return; }
+          gdAccessToken=resp.access_token; gdTokenAt=Date.now();
+          LS.set("bk.gdConnected",true);
+          resolve(gdAccessToken);
+        },
+        error_callback:err=>reject(new Error((err&&err.type)||"auth-failed"))
+      });
+      tc.requestAccessToken({prompt:interactive?"consent":""});
+    }).catch(reject);
+  });
+}
+async function gdEnsureFolder(token){
+  let id=LS.get("bk.gdFolderId",null);
+  if(id)return id;
+  const q=encodeURIComponent("name='"+GDRIVE_FOLDER_NAME+"' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+  const r=await fetch("https://www.googleapis.com/drive/v3/files?q="+q+"&spaces=drive&fields=files(id)",
+    {headers:{Authorization:"Bearer "+token}});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok&&j.files&&j.files.length){ LS.set("bk.gdFolderId",j.files[0].id); return j.files[0].id; }
+  const cr=await fetch("https://www.googleapis.com/drive/v3/files",{method:"POST",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({name:GDRIVE_FOLDER_NAME,mimeType:"application/vnd.google-apps.folder"})});
+  const cj=await cr.json().catch(()=>({}));
+  if(!cr.ok)throw new Error((cj.error&&cj.error.message)||"drive-folder-failed");
+  LS.set("bk.gdFolderId",cj.id); return cj.id;
+}
+async function gdUpload(token,folderId,name,content,mime){
+  const boundary="hmgpro-"+Date.now();
+  const body="--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+    JSON.stringify({name,parents:[folderId]})+"\r\n--"+boundary+"\r\nContent-Type: "+mime+"\r\n\r\n"+
+    content+"\r\n--"+boundary+"--";
+  const r=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{method:"POST",
+    headers:{Authorization:"Bearer "+token,"Content-Type":"multipart/related; boundary="+boundary},body});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error((j.error&&j.error.message)||"drive-upload-failed");
+  return j;
+}
+function gdStat(){
+  const el=$("#set-gdStat"); if(!el)return;
+  const last=LS.get("bk.gdLastAt",null);
+  el.innerHTML=last?"גיבוי אחרון לדרייב: <b>"+new Date(last).toLocaleString(H_LOC())+"</b>":"עדיין לא גובה לדרייב.";
+}
+async function gdBackupNow(interactive,quiet){
+  if(quiet&&$("#set-bkEnc").checked)return false;
+  const clientId=($("#set-gdClientId").value||"").trim();
+  if(!clientId){ if(!quiet)toast("קודם הכנס Client ID של גוגל (ראו README)"); return false; }
+  if(!navigator.onLine){ if(!quiet)toast("אין חיבור לאינטרנט — לא ניתן לגבות לדרייב עכשיו"); return false; }
+  if(!bkKeys().length){ if(!quiet)toast("אין עדיין נתונים לגיבוי"); return false; }
+  try{
+    if(!quiet)toast("מתחבר לדרייב…");
+    const token=await gdGetToken(interactive);
+    const folderId=await gdEnsureFolder(token);
+    if(!quiet)toast("אוסף נתונים…");
+    const snap=await bkSnapshotFull();
+    let content,mime,name;
+    if($("#set-bkEnc").checked){
+      if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בהצפנה — הסר את הסימון"); return false; }
+      const pass=await bkAskPass("new"); if(pass===null)return false;
+      toast("מצפין…");
+      content=JSON.stringify(await bkEncrypt(snap,pass)); mime="application/octet-stream";
+      name=bkFileName().replace(/\.json$/,"-מוצפן.hmg");
+    } else {
+      content=JSON.stringify(snap); mime="application/json"; name=bkFileName();
+    }
+    if(!quiet)toast("מעלה לדרייב…");
+    await gdUpload(token,folderId,name,content,mime);
+    LS.set("bk.gdLastAt",new Date().toISOString()); LS.set("bk.gdClientId",clientId);
+    gdStat(); $("#set-gdNow").disabled=false;
+    toast("☁️ גובה בהצלחה לדרייב");
+    return true;
+  }catch(err){
+    if(!quiet)toast("הגיבוי לדרייב נכשל: "+(err&&err.message||err));
+    return false;
+  }
+}
+function wireGDrive(){
+  if(!$("#set-gdConnect"))return;
+  $("#set-gdClientId").value=LS.get("bk.gdClientId","");
+  $("#set-gdAuto").checked=!!LS.get("bk.gdAuto",false);
+  $("#set-gdDays").value=LS.get("bk.gdDays",3);
+  $("#set-gdNow").disabled=!LS.get("bk.gdConnected",false);
+  gdStat();
+  $("#set-gdClientId").addEventListener("change",e=>LS.set("bk.gdClientId",e.target.value.trim()));
+  $("#set-gdAuto").addEventListener("change",e=>LS.set("bk.gdAuto",e.target.checked));
+  $("#set-gdDays").addEventListener("change",e=>LS.set("bk.gdDays",Math.max(1,+e.target.value||3)));
+  $("#set-gdConnect").addEventListener("click",async()=>{
+    if(!($("#set-gdClientId").value||"").trim()){ toast("קודם הכנס Client ID של גוגל (ראו README)"); return; }
+    try{ await gdGetToken(true); toast("✓ מחובר לדרייב"); $("#set-gdNow").disabled=false; }
+    catch(err){ toast("החיבור לדרייב נכשל: "+(err&&err.message||err)); }
+  });
+  $("#set-gdNow").addEventListener("click",()=>gdBackupNow(true,false));
+  /* ניסיון שקט ברקע: רק למי שכבר התחבר בעבר בהצלחה, ורק לגיבוי
+     לא מוצפן — סיסמה אי אפשר לבקש בלי שהמורה נמצא מול המסך. */
+  if(LS.get("bk.gdConnected",false)&&LS.get("bk.gdAuto",false)&&!$("#set-bkEnc").checked){
+    const days=+LS.get("bk.gdDays",3)||3, last=LS.get("bk.gdLastAt",null);
+    const due=!last||(Date.now()-new Date(last).getTime())>=days*24*60*60*1000;
+    if(due)gdBackupNow(false,true).catch(()=>{});
+  }
+}
+
 /* ---------- אודות ---------- */
 function wireAbout(){
   const b=$("#set-about"); if(!b)return;
