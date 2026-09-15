@@ -216,6 +216,9 @@ function go(mod){
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
+  /* «התלמידים שלי» ומסך הכיתה קוראים את stu.list — הגשר רץ לפניהם,
+     אחרת מסך שלם מציג אפס בזמן שהרשימות מלאות. */
+  if(mod==="stu"||mod==="home")syncStudents();
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home"){ homeStats();
     /* דף הבית קורא את מצב השיעור בכל כניסה. אין מנגנון אירועים בין
@@ -917,7 +920,24 @@ function paintLastLesson(){
    ============================================================ */
 let grpEdit=null;   /* מזהה הקבוצה שנערכת, או null ליצירה */
 
-function grpStudents(){ const v=LS.get("stu.list",[]); return Array.isArray(v)?v:[]; }
+/* ============================================================
+   הגשר: רשימות הכיתה → «התלמידים שלי»
+   ------------------------------------------------------------
+   מורה שהדביק רשימה לכל כיתה בנפרד ראה «התלמידים שלי» ריק וקבוצות
+   הוראה שמדווחות «0 תלמידים». הנתונים היו שם כל הזמן, במאגר השני.
+
+   הגשר רץ בעלייה ולפני כל מסך שקורא את הרשימה, וכותב רק כשבאמת
+   נוסף מישהו — כך שמורה שכבר מסונכרן לא משלם על זה כתיבה בכל
+   ניווט. ההחלטה מי נוסף ומה לא נדרס יושבת ב-hm-data, ונבדקת שם.
+   ============================================================ */
+function syncStudents(){
+  try{
+    const r=DATA.syncStudentsFromRosters(REGSTORE,LS.get("stu.list",[]),LS.get("ft.roster",{}));
+    if(r.added||r.filled)LS.set("stu.list",r.list);
+    return r;
+  }catch(e){ return {list:[],added:0,filled:0,classes:0}; }
+}
+function grpStudents(){ syncStudents(); const v=LS.get("stu.list",[]); return Array.isArray(v)?v:[]; }
 function grpName(cid){
   try{ const c=DATA.classOf(REGSTORE,cid); if(c&&c.name)return c.name; }catch(e){}
   return cid||"";
@@ -1301,6 +1321,7 @@ function clsDisp(cid){
 }
 function openClassScreen(cid){
   if(!cid)return;
+  syncStudents();   /* «X תלמידים» כאן קורא את stu.list — הגשר לפניו */
   const ses=SESSION.list({cid});
   const done=ses.filter(x=>x.status===DATA.SESSION_DONE);
   const rows=LS.get("ft.results",[]);
@@ -4669,7 +4690,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  upOffer,pageBuild,forceUpdate,clearShell,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
+  upOffer,pageBuild,forceUpdate,clearShell,syncStudents,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
@@ -4705,6 +4726,9 @@ function runMigration(){
 }
 window.HMBoot=function(){
   runMigration();
+  /* פעם אחת בעלייה: מכשיר שרשימות הכיתה שלו מלאות ו«התלמידים שלי»
+     ריק מתיישר עוד לפני שהמורה פותח מסך כלשהו. */
+  syncStudents();
   if(window.I18N)window.I18N.init();
   applyTheme(); wireModals(); wireNav(); wireSettings(); wireClassRename(); applySchool(); applyRole(); wireLang();
   wireTipPop();

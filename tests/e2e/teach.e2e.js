@@ -163,7 +163,10 @@ module.exports={title:"השלמת Teach Mode",tests:[
       "התאריך מהשיעור");
     const names=await page.evaluate(()=>
       [...document.querySelectorAll("#tl-attList .tl-attrow b")].map(x=>x.textContent));
-    eq(names,["דן אבירם"],"ורק תלמידי כיתת השיעור — «ט3» תואם ל«ט׳3»");
+    /* שני תלמידי ט׳3 ולא גל שדה מי׳1. עד שרשימות הכיתה הפכו למקור
+       ל«התלמידים שלי», רון לוי היה קיים ברשימה ונעדר מכאן — וזה
+       היה חסר הגשר, לא סינון נכון. */
+    eq(names,["דן אבירם","רון לוי"],"ורק תלמידי כיתת השיעור — «ט3» תואם ל«ט׳3»");
     eq(await page.evaluate(()=>document.getElementById("tl-attCtx").hidden),false,
       "והמסך אומר למה");
   }),
@@ -176,7 +179,7 @@ module.exports={title:"השלמת Teach Mode",tests:[
     await page.evaluate(()=>document.querySelector('#tl-tabs [data-tt="att"]').click());
     await page.waitForTimeout(500);
     const n=await page.evaluate(()=>document.querySelectorAll("#tl-attList .tl-attrow").length);
-    eq(n,2,"כל התלמידים");
+    eq(n,3,"כל התלמידים — שלוש הרשומות שברשימות הכיתה, לא רק מי שהוזן ידנית");
     eq(await page.evaluate(()=>document.getElementById("tl-attCtx").hidden),true,
       "ואין הודעת הקשר");
   }),

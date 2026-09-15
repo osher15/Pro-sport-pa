@@ -1014,6 +1014,16 @@ window.HMBootNew=function(){
   /* save-beep-to-tracking button */
   const bt=$("#bt-toTrack"); if(bt)bt.addEventListener("click",window.STU.importFromBeep);
   const fb=$("#stu-fromBeep"); if(fb)fb.addEventListener("click",window.STU.importFromBeep);
+  /* הגשר מרשימות הכיתה — רץ לבד בכל כניסה למסך, והכפתור הוא הדרך
+     לבקש אותו במפורש ולראות מה קרה. */
+  const fr=$("#stu-fromRoster");
+  if(fr)fr.addEventListener("click",()=>{
+    const r=H().syncStudents?H().syncStudents():{added:0,filled:0,classes:0};
+    H().toast(r.added?("✓ נוספו "+r.added+" תלמידים מ-"+r.classes+" כיתות")
+      :(r.filled?"✓ הושלמו פרטים לתלמידים שכבר היו כאן"
+        :"אין רשימות כיתה להביא מהן — העלה רשימה במבחני הכושר"));
+    if(window.STU&&window.STU.init)try{window.STU.init()}catch(e){}
+  });
   /* students count on home band */
   const sc=$("#qsStu"); if(sc)sc.textContent=window.STU.count();
 };

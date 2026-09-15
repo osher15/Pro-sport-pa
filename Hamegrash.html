@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="338bab94">
+<meta name="hm-build" content="84dfe0b1">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2344,7 +2344,13 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       </div>
       <div class="stu-chips" id="stu-chips"></div>
       <div class="stu-list" id="stu-list"></div>
-      <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
+      <!-- המסך הזה נראה למורה מיותר כשהוא ריק, והוא היה ריק בדיוק אצל
+           מי שכבר העלה רשימות כיתה — שני מאגרים בלי גשר ביניהם. הגשר
+           רץ עכשיו לבד; הכפתור נשאר בשביל הרגע שבו כלום לא קרה. -->
+      <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>
+        אם כבר יש לך רשימות כיתה במבחני הכושר — הן נכנסות לכאן לבד.<br>
+        <button class="btn sm acc" id="stu-fromRoster" style="margin-top:11px">👥 קח את התלמידים מרשימות הכיתה</button>
+        <div class="hint" style="margin-top:9px">או הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div></div>
     </div>
   </div>
 
@@ -3763,6 +3769,73 @@ function groupSummary(store,gid){
      משהו. איתן — הסימן «+» הוא בדיוק מה שהוא אומר. */
   if(n)parts.push(parts.length?("+"+n+" תלמידים"):(n+" תלמידים מכמה כיתות"));
   return parts.join(" · ");
+}
+
+/* ============================================================
+   2ג. רשימות הכיתה הן רשימת התלמידים
+   ------------------------------------------------------------
+   שני מאגרים החזיקו את אותם ילדים. ft.roster הוא רשימה לכל כיתה,
+   והוא הדרך הטבעית להעלות תלמידים — בלעדיו אי אפשר למדוד כלום.
+   stu.list הוא «התלמידים שלי», ועליו יושבים הגיל, הגובה, המשקל,
+   הציונים והמבחנים. ביניהם לא היה גשר בשום מקום מלבד ייבוא ה-CSV
+   הבית ספרי, שגם בו זו תיבת סימון.
+
+   מורה שהדביק רשימה לכל כיתה בנפרד — הדבר הסביר לעשות — קיבל
+   «התלמידים שלי» ריק, קבוצות הוראה שמדווחות «0 תלמידים», ומסך
+   שלם שנראה לו מיותר. לא חסרו לו נתונים; חסר היה הגשר.
+
+   הכיוון כאן הוא אחד בלבד: מהרשימות אל «התלמידים שלי». הרשימה
+   עונה על «מי קיים», ו-stu.list מוסיף את מה שרק הוא יודע — ולכן
+   תלמיד שכבר נמצא שם לא נדרס, רק מושלם. המחיקה אינה מסתנכרנת:
+   תלמיד שהוסר מרשימת כיתה נשאר עם ההיסטוריה שלו, בדיוק כשם
+   שהסרה מרשימה אינה מוחקת מדידות.
+
+   המין נלקח מהרשימה כפי שהוא, כולל «לא נקבע». ברירת מחדל «בן»
+   הייתה הופכת כיתה שלמה של בנות לבנים בלי שאיש יראה — והנורמות
+   נפרדות לפי מין.
+   ============================================================ */
+function syncStudentsFromRosters(store,stu,rosters){
+  var list=asList(stu).slice();
+  var src=(rosters&&typeof rosters==="object"&&!Array.isArray(rosters))?rosters:{};
+  /* מפתח הרשימה («ט3») → הכיתה הרשומה. הרישום הוא מקור האמת לשם,
+     כך שכיתה ששונה שמה נכנסת עם השם החדש ולא עם המפתח הישן. */
+  var reg=store?classes(store):{}, byKey={}, dup={};
+  Object.keys(reg).forEach(function(id){
+    var c=reg[id]; if(!c||!c.key||isGroupRec(c))return;
+    if(byKey[c.key])dup[c.key]=1; else byKey[c.key]=c;
+  });
+  var byId={};
+  list.forEach(function(s){ if(s&&s.id)byId[s.id]=s; });
+  var added=0, filled=0, touched={};
+  Object.keys(src).forEach(function(key){
+    var arr=asList(src[key]); if(!arr.length)return;
+    /* מפתח הרשימה הוא תווית, לא זהות. שתי כיתות רשאיות לשאת את
+       אותו שם — ואז אי אפשר לדעת של מי הרשימה הזאת. במקרה הזה לא
+       מנחשים: שיוך שגוי כאן קובר תלמיד בכיתה שהוא לא בה, בשקט. */
+    if(dup[key]||dup[clsKey(key)])return;
+    var c=byKey[key]||byKey[clsKey(key)]||null;
+    var cid=c?c.id:classId(key);
+    if(!cid)return;
+    var label=c?c.name:key;
+    arr.forEach(function(r){
+      if(!r||typeof r!=="object")return;
+      var nm=String(r.name==null?"":r.name).trim();
+      if(!nm)return;
+      /* קודם לפי מזהה — הרשימה ו«התלמידים שלי» חולקים sid מאז
+         הייבוא, ולכן שינוי שם באחד הצדדים אינו יוצר כפילות. */
+      var s=(r.id&&byId[r.id])||findStudent(list,nm,cid,store);
+      if(s){
+        if(!s.cls){ s.cls=label; s.cid=cid; if(s.cidAmbig)delete s.cidAmbig; filled++; }
+        if(r.sex&&!s.sex){ s.sex=r.sex; filled++; }
+        return;
+      }
+      var rec={id:r.id||uid("s"),name:nm,cls:label,cid:cid,
+        sex:r.sex||null,age:14,h:null,w:null,tests:[]};
+      list.push(rec); byId[rec.id]=rec;
+      added++; touched[cid]=1;
+    });
+  });
+  return {list:list,added:added,filled:filled,classes:Object.keys(touched).length};
 }
 
 /* ============================================================
@@ -5569,6 +5642,7 @@ return {
   groupId:groupId, makeGroup:makeGroup, updateGroup:updateGroup, removeGroup:removeGroup,
   groupOf:groupOf, listGroups:listGroups, realClasses:realClasses,
   expandCid:expandCid, rowInScope:rowInScope, studentsIn:studentsIn, groupSummary:groupSummary,
+  syncStudentsFromRosters:syncStudentsFromRosters,
   mergeRoster:mergeRoster, findStudent:findStudent,
   studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf, rowInClass:rowInClass,
   SCHEMA_VERSION:SCHEMA_VERSION, SCHEMA_KEY:SCHEMA_KEY, MIGRATIONS:MIGRATIONS,
@@ -6419,6 +6493,9 @@ function go(mod){
   $$(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+mod));
   $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===mod));
   const nm=$("#navMore"); if(nm)nm.classList.toggle("on",MORE_MODS.includes(mod));
+  /* «התלמידים שלי» ומסך הכיתה קוראים את stu.list — הגשר רץ לפניהם,
+     אחרת מסך שלם מציג אפס בזמן שהרשימות מלאות. */
+  if(mod==="stu"||mod==="home")syncStudents();
   if(!inited[mod]){ inited[mod]=true; const f={beep:BT.init,photo:PF.init,rec:REC.init,fit:FIT.init,home:homeInit,stu:window.STU.init,lesson:window.LESSON.init,nut:window.NUT.init,games:window.GAMES&&window.GAMES.init,know:window.KNOW&&window.KNOW.init,tools:window.TOOLS&&window.TOOLS.init,ft:window.FT&&window.FT.init}[mod]; if(f)f(); }
   if(mod==="home"){ homeStats();
     /* דף הבית קורא את מצב השיעור בכל כניסה. אין מנגנון אירועים בין
@@ -7120,7 +7197,24 @@ function paintLastLesson(){
    ============================================================ */
 let grpEdit=null;   /* מזהה הקבוצה שנערכת, או null ליצירה */
 
-function grpStudents(){ const v=LS.get("stu.list",[]); return Array.isArray(v)?v:[]; }
+/* ============================================================
+   הגשר: רשימות הכיתה → «התלמידים שלי»
+   ------------------------------------------------------------
+   מורה שהדביק רשימה לכל כיתה בנפרד ראה «התלמידים שלי» ריק וקבוצות
+   הוראה שמדווחות «0 תלמידים». הנתונים היו שם כל הזמן, במאגר השני.
+
+   הגשר רץ בעלייה ולפני כל מסך שקורא את הרשימה, וכותב רק כשבאמת
+   נוסף מישהו — כך שמורה שכבר מסונכרן לא משלם על זה כתיבה בכל
+   ניווט. ההחלטה מי נוסף ומה לא נדרס יושבת ב-hm-data, ונבדקת שם.
+   ============================================================ */
+function syncStudents(){
+  try{
+    const r=DATA.syncStudentsFromRosters(REGSTORE,LS.get("stu.list",[]),LS.get("ft.roster",{}));
+    if(r.added||r.filled)LS.set("stu.list",r.list);
+    return r;
+  }catch(e){ return {list:[],added:0,filled:0,classes:0}; }
+}
+function grpStudents(){ syncStudents(); const v=LS.get("stu.list",[]); return Array.isArray(v)?v:[]; }
 function grpName(cid){
   try{ const c=DATA.classOf(REGSTORE,cid); if(c&&c.name)return c.name; }catch(e){}
   return cid||"";
@@ -7504,6 +7598,7 @@ function clsDisp(cid){
 }
 function openClassScreen(cid){
   if(!cid)return;
+  syncStudents();   /* «X תלמידים» כאן קורא את stu.list — הגשר לפניו */
   const ses=SESSION.list({cid});
   const done=ses.filter(x=>x.status===DATA.SESSION_DONE);
   const rows=LS.get("ft.results",[]);
@@ -10872,7 +10967,7 @@ window.HM={$,$$,LS,SET,ac,beep,horn,tripleBeep,say,keepAwake,toast,confetti,dlCS
   openClassRename,classRenameList:clsRenameList,
   storage:()=>LS.health(),migration:()=>MIG_REPORT,schemaVersion:DATA.SCHEMA_VERSION,buildId,
   session:SESSION,paintSessionBar,openSesHist,
-  upOffer,pageBuild,forceUpdate,clearShell,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
+  upOffer,pageBuild,forceUpdate,clearShell,syncStudents,sched:SCHED,paintToday,paintHome,openSched,openClassScreen,openEndLesson,openDay,
   schedSample:loadSampleWeek,schedCell:openCell,openGroups,
   /* חשוף לבדיקות בלבד: מסלול הגיבוי הוא הדבר היחיד באפליקציה
      שכישלון שקט בו עולה למורה שנה של מדידות, ולכן הוא חייב להיות
@@ -10908,6 +11003,9 @@ function runMigration(){
 }
 window.HMBoot=function(){
   runMigration();
+  /* פעם אחת בעלייה: מכשיר שרשימות הכיתה שלו מלאות ו«התלמידים שלי»
+     ריק מתיישר עוד לפני שהמורה פותח מסך כלשהו. */
+  syncStudents();
   if(window.I18N)window.I18N.init();
   applyTheme(); wireModals(); wireNav(); wireSettings(); wireClassRename(); applySchool(); applyRole(); wireLang();
   wireTipPop();
@@ -18736,6 +18834,16 @@ window.HMBootNew=function(){
   /* save-beep-to-tracking button */
   const bt=$("#bt-toTrack"); if(bt)bt.addEventListener("click",window.STU.importFromBeep);
   const fb=$("#stu-fromBeep"); if(fb)fb.addEventListener("click",window.STU.importFromBeep);
+  /* הגשר מרשימות הכיתה — רץ לבד בכל כניסה למסך, והכפתור הוא הדרך
+     לבקש אותו במפורש ולראות מה קרה. */
+  const fr=$("#stu-fromRoster");
+  if(fr)fr.addEventListener("click",()=>{
+    const r=H().syncStudents?H().syncStudents():{added:0,filled:0,classes:0};
+    H().toast(r.added?("✓ נוספו "+r.added+" תלמידים מ-"+r.classes+" כיתות")
+      :(r.filled?"✓ הושלמו פרטים לתלמידים שכבר היו כאן"
+        :"אין רשימות כיתה להביא מהן — העלה רשימה במבחני הכושר"));
+    if(window.STU&&window.STU.init)try{window.STU.init()}catch(e){}
+  });
   /* students count on home band */
   const sc=$("#qsStu"); if(sc)sc.textContent=window.STU.count();
 };

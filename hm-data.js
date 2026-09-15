@@ -285,6 +285,73 @@ function groupSummary(store,gid){
 }
 
 /* ============================================================
+   2ג. רשימות הכיתה הן רשימת התלמידים
+   ------------------------------------------------------------
+   שני מאגרים החזיקו את אותם ילדים. ft.roster הוא רשימה לכל כיתה,
+   והוא הדרך הטבעית להעלות תלמידים — בלעדיו אי אפשר למדוד כלום.
+   stu.list הוא «התלמידים שלי», ועליו יושבים הגיל, הגובה, המשקל,
+   הציונים והמבחנים. ביניהם לא היה גשר בשום מקום מלבד ייבוא ה-CSV
+   הבית ספרי, שגם בו זו תיבת סימון.
+
+   מורה שהדביק רשימה לכל כיתה בנפרד — הדבר הסביר לעשות — קיבל
+   «התלמידים שלי» ריק, קבוצות הוראה שמדווחות «0 תלמידים», ומסך
+   שלם שנראה לו מיותר. לא חסרו לו נתונים; חסר היה הגשר.
+
+   הכיוון כאן הוא אחד בלבד: מהרשימות אל «התלמידים שלי». הרשימה
+   עונה על «מי קיים», ו-stu.list מוסיף את מה שרק הוא יודע — ולכן
+   תלמיד שכבר נמצא שם לא נדרס, רק מושלם. המחיקה אינה מסתנכרנת:
+   תלמיד שהוסר מרשימת כיתה נשאר עם ההיסטוריה שלו, בדיוק כשם
+   שהסרה מרשימה אינה מוחקת מדידות.
+
+   המין נלקח מהרשימה כפי שהוא, כולל «לא נקבע». ברירת מחדל «בן»
+   הייתה הופכת כיתה שלמה של בנות לבנים בלי שאיש יראה — והנורמות
+   נפרדות לפי מין.
+   ============================================================ */
+function syncStudentsFromRosters(store,stu,rosters){
+  var list=asList(stu).slice();
+  var src=(rosters&&typeof rosters==="object"&&!Array.isArray(rosters))?rosters:{};
+  /* מפתח הרשימה («ט3») → הכיתה הרשומה. הרישום הוא מקור האמת לשם,
+     כך שכיתה ששונה שמה נכנסת עם השם החדש ולא עם המפתח הישן. */
+  var reg=store?classes(store):{}, byKey={}, dup={};
+  Object.keys(reg).forEach(function(id){
+    var c=reg[id]; if(!c||!c.key||isGroupRec(c))return;
+    if(byKey[c.key])dup[c.key]=1; else byKey[c.key]=c;
+  });
+  var byId={};
+  list.forEach(function(s){ if(s&&s.id)byId[s.id]=s; });
+  var added=0, filled=0, touched={};
+  Object.keys(src).forEach(function(key){
+    var arr=asList(src[key]); if(!arr.length)return;
+    /* מפתח הרשימה הוא תווית, לא זהות. שתי כיתות רשאיות לשאת את
+       אותו שם — ואז אי אפשר לדעת של מי הרשימה הזאת. במקרה הזה לא
+       מנחשים: שיוך שגוי כאן קובר תלמיד בכיתה שהוא לא בה, בשקט. */
+    if(dup[key]||dup[clsKey(key)])return;
+    var c=byKey[key]||byKey[clsKey(key)]||null;
+    var cid=c?c.id:classId(key);
+    if(!cid)return;
+    var label=c?c.name:key;
+    arr.forEach(function(r){
+      if(!r||typeof r!=="object")return;
+      var nm=String(r.name==null?"":r.name).trim();
+      if(!nm)return;
+      /* קודם לפי מזהה — הרשימה ו«התלמידים שלי» חולקים sid מאז
+         הייבוא, ולכן שינוי שם באחד הצדדים אינו יוצר כפילות. */
+      var s=(r.id&&byId[r.id])||findStudent(list,nm,cid,store);
+      if(s){
+        if(!s.cls){ s.cls=label; s.cid=cid; if(s.cidAmbig)delete s.cidAmbig; filled++; }
+        if(r.sex&&!s.sex){ s.sex=r.sex; filled++; }
+        return;
+      }
+      var rec={id:r.id||uid("s"),name:nm,cls:label,cid:cid,
+        sex:r.sex||null,age:14,h:null,w:null,tests:[]};
+      list.push(rec); byId[rec.id]=rec;
+      added++; touched[cid]=1;
+    });
+  });
+  return {list:list,added:added,filled:filled,classes:Object.keys(touched).length};
+}
+
+/* ============================================================
    מזהה רשומה
    ------------------------------------------------------------
    Date.now() לבדו אינו ייחודי: שתי רשומות שנוצרות באותה מילישנייה
@@ -2088,6 +2155,7 @@ return {
   groupId:groupId, makeGroup:makeGroup, updateGroup:updateGroup, removeGroup:removeGroup,
   groupOf:groupOf, listGroups:listGroups, realClasses:realClasses,
   expandCid:expandCid, rowInScope:rowInScope, studentsIn:studentsIn, groupSummary:groupSummary,
+  syncStudentsFromRosters:syncStudentsFromRosters,
   mergeRoster:mergeRoster, findStudent:findStudent,
   studentKey:studentKey, refKey:refKey, sameStudent:sameStudent, attemptsOf:attemptsOf, rowInClass:rowInClass,
   SCHEMA_VERSION:SCHEMA_VERSION, SCHEMA_KEY:SCHEMA_KEY, MIGRATIONS:MIGRATIONS,

@@ -10,13 +10,13 @@
 <x-dc>
 <helmet>
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="338bab94">
+<meta name="hm-build" content="84dfe0b1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css?v=46524ef5">
-<script src="hm-data.js?v=b3025127"></script>
+<script src="hm-data.js?v=41cc7ab9"></script>
 <script src="hm-i18n.js?v=884bfff0"></script>
-<script src="hm-app.js?v=68135424"></script>
+<script src="hm-app.js?v=47dcb1bb"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -27,7 +27,7 @@
 <script src="hm-lesson.js?v=1d73c0de"></script>
 <script src="hm-build.js?v=2e53417d"></script>
 <script src="hm-tests.js?v=2448f44c"></script>
-<script src="hm-new.js?v=b0a9d5e3"></script>
+<script src="hm-new.js?v=ce72973a"></script>
 </helmet>
 <div class="app" dir="rtl">
 <!-- ============================================================
@@ -803,7 +803,13 @@
       </div>
       <div class="stu-chips" id="stu-chips"></div>
       <div class="stu-list" id="stu-list"></div>
-      <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div>
+      <!-- המסך הזה נראה למורה מיותר כשהוא ריק, והוא היה ריק בדיוק אצל
+           מי שכבר העלה רשימות כיתה — שני מאגרים בלי גשר ביניהם. הגשר
+           רץ עכשיו לבד; הכפתור נשאר בשביל הרגע שבו כלום לא קרה. -->
+      <div class="empty-state" id="stu-empty"><div class="big">👥</div>אין עדיין תלמידים.<br>
+        אם כבר יש לך רשימות כיתה במבחני הכושר — הן נכנסות לכאן לבד.<br>
+        <button class="btn sm acc" id="stu-fromRoster" style="margin-top:11px">👥 קח את התלמידים מרשימות הכיתה</button>
+        <div class="hint" style="margin-top:9px">או הוסף רשימה ידנית, או ייבא שמות מלוח הביפ טסט.</div></div>
     </div>
   </div>
 

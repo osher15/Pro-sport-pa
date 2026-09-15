@@ -29,7 +29,8 @@ const suites=[
   require("./groups.e2e.js"),
   require("./focus.e2e.js"),
   require("./reps.e2e.js"),
-  require("./menu.e2e.js")
+  require("./menu.e2e.js"),
+  require("./rostersync.e2e.js")
 ];
 run(suites).then(fail=>process.exit(fail?1:0))
   .catch(e=>{ console.error(e); process.exit(1); });
