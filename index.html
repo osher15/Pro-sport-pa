@@ -10,13 +10,13 @@
 <x-dc>
 <helmet>
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="ab70e53f">
+<meta name="hm-build" content="96ffd7ad">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="hm-styles.css?v=09d036eb">
 <script src="hm-data.js?v=41cc7ab9"></script>
 <script src="hm-i18n.js?v=884bfff0"></script>
-<script src="hm-app.js?v=ff28d745"></script>
+<script src="hm-app.js?v=a3754720"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -1773,8 +1773,9 @@
     </div>
     <div class="hint" id="set-bkStat" style="margin-top:8px"></div>
     <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
-    <b>☁️ גיבוי אוטומטי לגוגל דרייב (מתקדם, רשות)</b>
-    <div class="hint" style="margin-top:5px">האפליקציה לא מחוברת לשום שרת שלנו — כדי לגבות ישירות לדרייב שלך היא צריכה אישור גוגל משלך, בדיוק כמו כל אתר שמבקש "התחבר עם גוגל". ההרשאה מוגבלת לקבצים שהאפליקציה עצמה יוצרת בדרייב שלך (drive.file) — היא לא יכולה לראות או לגעת בשום קובץ אחר אצלך. הקמה חד-פעמית (כ-5 דקות, בלי תשלום): ראו README, סעיף «גיבוי אוטומטי לגוגל דרייב».</div>
+    <b>☁️ גיבוי לגוגל דרייב (מתקדם, רשות)</b>
+    <div class="hint" style="margin-top:5px">האפליקציה לא מחוברת לשום שרת שלנו — כדי לגבות ישירות לדרייב שלך היא צריכה אישור גוגל משלך, בדיוק כמו כל אתר שמבקש "התחבר עם גוגל". ההרשאה מוגבלת לקבצים שהאפליקציה עצמה יוצרת בדרייב שלך (drive.file) — היא לא יכולה לראות או לגעת בשום קובץ אחר אצלך. הקמה חד-פעמית (כ-5 דקות, בלי תשלום): ראו README, סעיף «גיבוי לגוגל דרייב».</div>
+    <div class="hint" style="margin-top:5px"><b>גיבוי לדרייב תמיד מוצפן</b> — קובץ עם שמות ותוצאות של קטינים לא עוזב את המכשיר בגלוי. ודא/י שהסימון "🔐 הצפן את הגיבוי בסיסמה" למעלה מסומן לפני שלוחצים "גבה עכשיו לדרייב"; בלעדיו הכפתור יסרב ויבקש להצפין קודם.</div>
     <div class="field" style="margin-top:9px"><label>Client ID של גוגל</label>
       <input type="text" id="set-gdClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" style="direction:ltr;text-align:left;font-size:12px"></div>
     <div class="row" style="margin-top:10px;gap:8px">
@@ -1782,11 +1783,11 @@
       <button class="btn sm acc" id="set-gdNow" disabled>☁️ גבה עכשיו לדרייב</button>
     </div>
     <label class="check" style="margin-top:10px"><input type="checkbox" id="set-gdAuto">
-      <span>גבה אוטומטית ברקע, כל</span></label>
+      <span>הזכר לי לגבות לדרייב כל</span></label>
     <div class="row" style="gap:8px;align-items:center;margin-top:4px">
       <input type="number" id="set-gdDays" value="3" min="1" style="width:70px"><span>ימים (נבדק בכל פתיחה של האפליקציה)</span>
     </div>
-    <div class="hint" style="margin-top:4px">גיבוי אוטומטי ברקע עובד רק על קובץ <b>לא מוצפן</b> (הצפנה דורשת הקלדת סיסמה בכל פעם). לגיבוי מוצפן לדרייב — הסר את הסימון "אוטומטי", השאר מסומן את "הצפן את הגיבוי בסיסמה" למעלה, ולחץ "גבה עכשיו" כשנוח לך.</div>
+    <div class="hint" style="margin-top:4px">זו <b>תזכורת בלבד</b>, לא גיבוי אמיתי ברקע — כי הצפנה דורשת הקלדת סיסמה בכל פעם, ואי אפשר לבקש אותה בלי שאת/ה מול המסך. כשהגיע הזמן תופיע הודעה שמזכירה ללחוץ על "גבה עכשיו לדרייב".</div>
     <div class="hint" id="set-gdStat" style="margin-top:8px"></div>
   </div>
   <div class="bk-card" id="set-clsCard">

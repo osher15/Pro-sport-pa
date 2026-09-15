@@ -1757,28 +1757,29 @@ function gdStat(){
   const last=LS.get("bk.gdLastAt",null);
   el.innerHTML=last?"גיבוי אחרון לדרייב: <b>"+new Date(last).toLocaleString(H_LOC())+"</b>":"עדיין לא גובה לדרייב.";
 }
+/* גיבוי לדרייב מותר רק מוצפן — קובץ עם שמות ותוצאות של קטינים לא
+   עוזב את המכשיר בגלוי, גם אם זה אומר שאין גיבוי-רקע אמיתי (אי
+   אפשר להקליד סיסמה בלי שהמורה נמצא מול המסך). */
 async function gdBackupNow(interactive,quiet){
-  if(quiet&&$("#set-bkEnc").checked)return false;
+  if(!$("#set-bkEnc").checked){
+    if(!quiet)toast("גיבוי לדרייב חייב להיות מוצפן — סמן קודם 🔐 «הצפן את הגיבוי בסיסמה» למעלה");
+    return false;
+  }
   const clientId=($("#set-gdClientId").value||"").trim();
   if(!clientId){ if(!quiet)toast("קודם הכנס Client ID של גוגל (ראו README)"); return false; }
   if(!navigator.onLine){ if(!quiet)toast("אין חיבור לאינטרנט — לא ניתן לגבות לדרייב עכשיו"); return false; }
   if(!bkKeys().length){ if(!quiet)toast("אין עדיין נתונים לגיבוי"); return false; }
+  if(!(window.crypto&&crypto.subtle)){ if(!quiet)toast("הדפדפן הזה לא תומך בהצפנה — אי אפשר לגבות לדרייב"); return false; }
   try{
     if(!quiet)toast("מתחבר לדרייב…");
     const token=await gdGetToken(interactive);
     const folderId=await gdEnsureFolder(token);
     if(!quiet)toast("אוסף נתונים…");
     const snap=await bkSnapshotFull();
-    let content,mime,name;
-    if($("#set-bkEnc").checked){
-      if(!(window.crypto&&crypto.subtle)){ toast("הדפדפן הזה לא תומך בהצפנה — הסר את הסימון"); return false; }
-      const pass=await bkAskPass("new"); if(pass===null)return false;
-      toast("מצפין…");
-      content=JSON.stringify(await bkEncrypt(snap,pass)); mime="application/octet-stream";
-      name=bkFileName().replace(/\.json$/,"-מוצפן.hmg");
-    } else {
-      content=JSON.stringify(snap); mime="application/json"; name=bkFileName();
-    }
+    const pass=await bkAskPass("new"); if(pass===null)return false;
+    toast("מצפין…");
+    const content=JSON.stringify(await bkEncrypt(snap,pass)), mime="application/octet-stream";
+    const name=bkFileName().replace(/\.json$/,"-מוצפן.hmg");
     if(!quiet)toast("מעלה לדרייב…");
     await gdUpload(token,folderId,name,content,mime);
     LS.set("bk.gdLastAt",new Date().toISOString()); LS.set("bk.gdClientId",clientId);
@@ -1806,12 +1807,12 @@ function wireGDrive(){
     catch(err){ toast("החיבור לדרייב נכשל: "+(err&&err.message||err)); }
   });
   $("#set-gdNow").addEventListener("click",()=>gdBackupNow(true,false));
-  /* ניסיון שקט ברקע: רק למי שכבר התחבר בעבר בהצלחה, ורק לגיבוי
-     לא מוצפן — סיסמה אי אפשר לבקש בלי שהמורה נמצא מול המסך. */
-  if(LS.get("bk.gdConnected",false)&&LS.get("bk.gdAuto",false)&&!$("#set-bkEnc").checked){
+  /* גיבוי לדרייב חייב סיסמה בכל פעם (הצפנה היא חובה, לא רשות) —
+     ולכן אין גיבוי-רקע אמיתי, רק תזכורת עדינה כשהגיע הזמן. */
+  if(LS.get("bk.gdConnected",false)&&LS.get("bk.gdAuto",false)){
     const days=+LS.get("bk.gdDays",3)||3, last=LS.get("bk.gdLastAt",null);
     const due=!last||(Date.now()-new Date(last).getTime())>=days*24*60*60*1000;
-    if(due)gdBackupNow(false,true).catch(()=>{});
+    if(due)toast("⏰ זמן לגבות לדרייב — ⚙️ הגדרות ← ☁️ גבה עכשיו לדרייב");
   }
 }
 
