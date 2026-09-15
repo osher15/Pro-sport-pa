@@ -2867,7 +2867,7 @@ const PF=(function(){
     try{micCtx&&micCtx.close();}catch(e){} micStream=null;micCtx=null; }
   function gun(){
     ac();
-    if(race.on){ if(confirm("לעצור את המקצה?"))stopRace(); return; }
+    if(race.on){ stopRace(); return; }
     prepRace();
     if($("#pf-micStart").checked)micListen(); else countdown();
   }
@@ -3542,6 +3542,16 @@ const PF=(function(){
     $("#pf-csvFile").addEventListener("change",e=>{ if(e.target.files[0])importCSV(e.target.files[0]); e.target.value=""; });
     $("#pf-loadSample").addEventListener("click",loadSample);
     /* laps */
+    const lSettings=LS.get("pf.lsettings",null);
+    if(lSettings){
+      if(lSettings.target!=null)$("#pf-lTarget").value=lSettings.target;
+      if(lSettings.dist!=null)$("#pf-lDist").value=lSettings.dist;
+      if(lSettings.min!=null)$("#pf-lMin").value=lSettings.min;
+    }
+    const saveLSettings=()=>LS.set("pf.lsettings",{target:$("#pf-lTarget").value,dist:$("#pf-lDist").value,min:$("#pf-lMin").value});
+    $("#pf-lTarget").addEventListener("change",saveLSettings);
+    $("#pf-lDist").addEventListener("change",()=>{saveLSettings();lRender();});
+    $("#pf-lMin").addEventListener("change",saveLSettings);
     $("#pf-lGun").addEventListener("click",lGun);
     $("#pf-lReset").addEventListener("click",()=>{ if(confirm("לאפס הקפות?")){L.on=false;cancelAnimationFrame(L.raf);L.runners.forEach(r=>{r.laps=[];r.fin=null});$("#pf-lClock").textContent="00:00.0";$("#pf-lGun").textContent="🔫 זינוק";lRender();} });
     $("#pf-lAdd").addEventListener("click",()=>{

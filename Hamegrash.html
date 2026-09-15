@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="d1e43062">
+<meta name="hm-build" content="03dc059f">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1972,7 +1972,7 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
       </div>
       <div class="row" style="margin-top:10px">
         <div class="field" style="width:130px"><label>יעד הקפות</label><input type="number" id="pf-lTarget" value="4" min="1"></div>
-        <div class="field" style="width:150px"><label>אורך הקפה (מ׳)</label><input type="number" id="pf-lDist" value="200" min="0" step="10"></div>
+        <div class="field" style="width:150px"><label>אורך הקפה (מ׳)</label><input type="number" id="pf-lDist" value="240" min="0" step="10"></div>
         <div class="field" style="width:150px"><label>מינ׳ זמן הקפה (שנ׳)</label><input type="number" id="pf-lMin" value="15" min="0"></div>
       </div>
       <div class="hint" style="margin-top:8px">כל לחיצה על כרטיס רץ = הקפה. חסם זמן מינימלי מונע ספירה כפולה.</div>
@@ -9167,7 +9167,7 @@ const PF=(function(){
     try{micCtx&&micCtx.close();}catch(e){} micStream=null;micCtx=null; }
   function gun(){
     ac();
-    if(race.on){ if(confirm("לעצור את המקצה?"))stopRace(); return; }
+    if(race.on){ stopRace(); return; }
     prepRace();
     if($("#pf-micStart").checked)micListen(); else countdown();
   }
@@ -9842,6 +9842,16 @@ const PF=(function(){
     $("#pf-csvFile").addEventListener("change",e=>{ if(e.target.files[0])importCSV(e.target.files[0]); e.target.value=""; });
     $("#pf-loadSample").addEventListener("click",loadSample);
     /* laps */
+    const lSettings=LS.get("pf.lsettings",null);
+    if(lSettings){
+      if(lSettings.target!=null)$("#pf-lTarget").value=lSettings.target;
+      if(lSettings.dist!=null)$("#pf-lDist").value=lSettings.dist;
+      if(lSettings.min!=null)$("#pf-lMin").value=lSettings.min;
+    }
+    const saveLSettings=()=>LS.set("pf.lsettings",{target:$("#pf-lTarget").value,dist:$("#pf-lDist").value,min:$("#pf-lMin").value});
+    $("#pf-lTarget").addEventListener("change",saveLSettings);
+    $("#pf-lDist").addEventListener("change",()=>{saveLSettings();lRender();});
+    $("#pf-lMin").addEventListener("change",saveLSettings);
     $("#pf-lGun").addEventListener("click",lGun);
     $("#pf-lReset").addEventListener("click",()=>{ if(confirm("לאפס הקפות?")){L.on=false;cancelAnimationFrame(L.raf);L.runners.forEach(r=>{r.laps=[];r.fin=null});$("#pf-lClock").textContent="00:00.0";$("#pf-lGun").textContent="🔫 זינוק";lRender();} });
     $("#pf-lAdd").addEventListener("click",()=>{
