@@ -2440,6 +2440,17 @@ const PF=(function(){
   let mode=LS.get("pf.mode","sim"); // sim | cam
   let cam={stream:null,on:false,zoom:1,flip:false};
   let lineRatio=LS.get("pf.line",0.5), sens=LS.get("pf.sens",45), minT=LS.get("pf.minT",3), slitW=LS.get("pf.slit",2);
+  /* ---------- מצב ידני ----------
+     הזיהוי האוטומטי טוב כשהתנאים טובים: רקע יציב, ניגודיות סבירה,
+     מצלמה מיוצבת. במגרש בית ספר לא תמיד יש את זה — שמש נעה, ילדים
+     שעוברים מאחורי הקו, ענף ברוח. מורה שנלחם בחציות מדומות מעדיף
+     שהמנוע פשוט ישתוק, ושהוא יקיש בעצמו.
+
+     המצב הזה אינו מנוע שני. הוא ברז אחד על המנוע הקיים: שני מקומות
+     בקוד שבהם נרשמת חצייה מעצמה — המצלמה והסימולציה — מפסיקים
+     לירות. כל השאר ממשיך בדיוק כמו קודם: הרצועה נבנית, תמונת הסיום
+     עובדת, ההקשה על מסלול ומקשי 1–9 רושמים זמן כרגיל. */
+  let manual=LS.get("pf.manual",false);
   let META=Object.assign({title:"אליפות בית הספר — ריצת 60 מ׳",round:"גמר",dist:60,date:"",wind:""},LS.get("pf.meta",{}));
 
   /* detection */
@@ -2517,7 +2528,7 @@ const PF=(function(){
     $$("#pf-modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
     $("#pf-video").style.display=m==="cam"?"":"none";
     $("#pf-sim").style.display=m==="sim"?"":"none";
-    if(m==="sim"){ camOff(); $("#pf-status").textContent="מצב סימולציה"; drawSimIdle(); }
+    if(m==="sim"){ camOff(); $("#pf-status").textContent="מצב סימולציה"; paintManual(); drawSimIdle(); }
     else{ camOn(); }
   }
   function camOff(){ if(cam.on){ cam.stream.getTracks().forEach(t=>t.stop()); cam.on=false; $("#pf-video").srcObject=null; } }
@@ -2615,7 +2626,7 @@ const PF=(function(){
       }
       if(bgReady<30){ bgReady++; if(bgReady===30)paintArmed(); }
       const frac=fgCnt/cells, th=thresholds(), nowMs=performance.now();
-      if(race.on&&race.armed&&rTime()>=minT&&bgReady>=30&&$("#pf-autoDetect").checked){
+      if(race.on&&race.armed&&!manual&&rTime()>=minT&&bgReady>=30&&$("#pf-autoDetect").checked){
         if(frac>=th){
           if(!lineActive&&nowMs-lastFire>450){
             lastFire=nowMs; lineActive=true;
@@ -2633,7 +2644,33 @@ const PF=(function(){
   }
   /* המורה צריך לדעת באיזו רזולוציה הוא מודד — זה ההבדל בין «השעון
      אמר 8.41» לבין «8.41, ±0.008». */
+  /* ---------- תצוגת המצב הידני ----------
+     שלוש נקודות, כולן קריאה בלבד: השורה שעל הבמה, הערה מתחת לפקד,
+     ושבבי המסלולים — כי הם מה שמקישים עליו, ושם צריך שהעין תלך. */
+  function paintManual(){
+    const b=$("#pf-manual");
+    if(b){ b.classList.toggle("acc",manual); b.setAttribute("aria-pressed",manual?"true":"false"); }
+    const n=$("#pf-manualNote"); if(n)n.hidden=!manual;
+    const lbl=$("#pf-autoLbl"); if(lbl)lbl.classList.toggle("off",manual);
+    const cb=$("#pf-autoDetect"); if(cb)cb.disabled=manual;
+    const st=$("#pf-stage"); if(st)st.classList.toggle("manual",manual);
+    const ch=$("#pf-chips"); if(ch)ch.classList.toggle("manual",manual);
+    const el=$("#pf-status");
+    if(el&&manual)el.innerHTML="✋ מצב ידני — <b>הקש על מסלול</b>";
+    else if(el&&!manual&&mode==="sim")el.textContent="מצב סימולציה";
+  }
+  function setManual(v){
+    manual=!!v; LS.set("pf.manual",manual);
+    paintManual();
+    /* הרקע נלמד מחדש ביציאה מהמצב: הוא המשיך להתעדכן גם בזמן שהוא
+       לא ירה, אבל איפוס כאן זול ומונע ירייה ראשונה על סף ישן. */
+    if(!manual){ bg=null; bgReady=0; lineActive=false; }
+    toast(manual?"✋ מצב ידני — המנוע לא מסמן חציות"
+                :"🟢 זיהוי אוטומטי חזר לפעולה");
+  }
+
   function paintArmed(){
+    if(manual){ paintManual(); return; }
     const p=precisionOf(vclk.fps);
     const el=$("#pf-status"); if(!el)return;
     /* המצב בשורה אחת, תנאי המדידה בשנייה — קצר יותר מכל אחד מהם
@@ -2693,7 +2730,9 @@ const PF=(function(){
       x.fillStyle=col;
       x.beginPath(); x.arc(r.x,cy,Math.max(6,laneH*0.16),0,7); x.fill();
       x.fillRect(r.x-3,cy,6,laneH*0.3);
-      if(!r.crossed&&r.x<=lineX){ r.crossed=true; if(race.on)fire(r.lane,"סימולציה"); }
+      /* גם בסימולציה: במצב ידני הרץ חוצה, הרצועה נבנית — והזמן
+         נרשם רק בהקשה. אחרת אי אפשר לתרגל את המצב הזה לפני שיעור. */
+      if(!r.crossed&&r.x<=lineX){ r.crossed=true; if(race.on&&!manual)fire(r.lane,"סימולציה"); }
     });
     if(race.on)captureStrip(cv,lineX/W);
     if(race.on||sim.runners.some(r=>!r.crossed))sim.raf=requestAnimationFrame(simLoop);
@@ -3279,6 +3318,12 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    /* המצב הידני נטען מהאחסון כמו כל הגדרה אחרת של המודול */
+    $("#pf-manual").addEventListener("click",()=>{ ac(); setManual(!manual); });
+    paintManual();
+    /* לוח תוצאות ריק — הדרך החוצה ממנו היא מקצה, לא הסבר */
+    const es=$("#pf-emptyStart");
+    if(es)es.addEventListener("click",()=>{ switchTab("live"); setTimeout(gun,120); });
     $("#pf-camDist").value=LS.get("pf.camDist",6);
     $("#pf-camSpeed").value=LS.get("pf.camSpeed","7");
     $("#pf-camFov").value=LS.get("pf.camFov",65);

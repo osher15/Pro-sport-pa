@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="84dfe0b1">
+<meta name="hm-build" content="d1e43062">
 <title>המגרש PRO — ערכת שטח למורה לחינוך גופני</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -273,6 +273,21 @@ details.fold .bd{padding:0 12px 13px}
 /* תנאי המדידה — שורה שנייה, שקטה יותר מהמצב עצמו */
 .pf-status b{display:block;font-weight:600;font-size:10px;opacity:.8;
   font-family:'Share Tech Mono',ui-monospace,monospace;letter-spacing:.3px}
+/* ===== מצב ידני =====
+   שלוש נקודות שאומרות אותו דבר, כי הטעות כאן יקרה: מורה שחושב
+   שהמנוע מסמן, ומגלה בסוף המקצה שאין זמנים. הבמה מקבלת מסגרת
+   כתומה, השורה שעליה אומרת מה לעשות, והשבבים — מה שמקישים עליו —
+   מוארים. שלושתם קריאה בלבד; ההתנהגות יושבת בשני תנאים בקוד. */
+.pf-stage.manual{border-color:#ff9c3d;box-shadow:0 0 0 1px rgba(255,156,61,.35)}
+.pf-stage.manual .pf-status{color:#ffcf9a;border-color:rgba(255,156,61,.55);
+  background:rgba(70,35,0,.62)}
+.pf-stage.manual .pf-status b{display:inline;font-family:inherit;font-size:11px;opacity:1}
+.pf-runchips.manual .pf-lanechip:not(.done){border-color:#ff9c3d;
+  background:color-mix(in srgb,#ff9c3d 12%,var(--panel2))}
+.pf-manual-note{border-inline-start:3px solid #ff9c3d;padding-inline-start:9px;margin-top:9px}
+/* תיבת הסימון של הזיהוי האוטומטי, כשהמצב הידני מבטל אותה */
+.check.off{opacity:.45}
+.check.off input{cursor:not-allowed}
 /* פקדים מוקטנים בתוך #pf-stage עצמו — כך שהם נשארים גלויים גם במסך מלא אמיתי (Fullscreen API),
    שמציג רק את תת-העץ של האלמנט שעליו נקרא requestFullscreen. */
 .pf-fsctl{position:absolute;bottom:9px;inset-inline:9px;z-index:6;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -1808,10 +1823,16 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
         <div class="field" style="width:104px"><label data-i18n="pf.minT">זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
       </div>
+      <!-- מצב ידני: כשתנאי השטח לא מאפשרים זיהוי — שמש נעה, ילדים
+           שעוברים מאחורי הקו, ענף ברוח — המנוע שותק והמורה מקיש.
+           תיבת הסימון שלידו מושבתת כשהוא דלוק, כדי שלא יהיו שני
+           פקדים שסותרים זה את זה על אותו מסך. -->
       <div class="row" style="margin-top:9px">
-        <label class="check"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
+        <button class="btn sm" id="pf-manual" aria-pressed="false">✋ מצב ידני — עצירה ידנית בלבד</button>
+        <label class="check" id="pf-autoLbl"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
         <label class="check"><input type="checkbox" id="pf-micStart"> זינוק קולי — אקדח/מחיאת כף (מיקרופון)</label>
       </div>
+      <div class="hint pf-manual-note" id="pf-manualNote" hidden>✋ <b>מצב ידני פעיל</b> — המנוע אינו מסמן חציות. הקש על שם המסלול ברגע החצייה, או על מקשים ‎1–9‎. הרצועה ותמונת הסיום ממשיכות לעבוד כרגיל.</div>
       <div class="row" style="margin-top:9px">
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
           <input type="text" inputmode="decimal" id="pf-gunDist" value="0" dir="ltr" style="text-align:right" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."></div>
@@ -1920,7 +1941,9 @@ body[data-dir="ltr"] #lsBar *{unicode-bidi:plaintext}
         <thead><tr><th>דירוג</th><th>מסלול</th><th>שם</th><th>זמן</th><th>פער</th><th>מקור</th><th></th></tr></thead>
         <tbody id="pf-tbody"></tbody>
       </table></div>
-      <div class="empty-state" id="pf-empty"><div class="big">📸</div>אין תוצאות עדיין. הרץ מירוץ או ייבא קובץ CSV.</div>
+      <div class="empty-state" id="pf-empty"><div class="big">📸</div>אין תוצאות עדיין.<br>
+        <button class="btn sm acc" id="pf-emptyStart" style="margin-top:11px">🔫 התחל מקצה חדש</button>
+        <div class="hint" style="margin-top:9px">או ייבא קובץ CSV של מקצה קודם.</div></div>
       <div class="row" style="margin-top:12px">
         <button class="btn acc" id="pf-btnAI" data-i18n="pf.ai">🎙️ דוח פרשן</button>
         <button class="btn sm acc" id="pf-toFt">🏅 שלח למבחני כושר</button>
@@ -8717,6 +8740,17 @@ const PF=(function(){
   let mode=LS.get("pf.mode","sim"); // sim | cam
   let cam={stream:null,on:false,zoom:1,flip:false};
   let lineRatio=LS.get("pf.line",0.5), sens=LS.get("pf.sens",45), minT=LS.get("pf.minT",3), slitW=LS.get("pf.slit",2);
+  /* ---------- מצב ידני ----------
+     הזיהוי האוטומטי טוב כשהתנאים טובים: רקע יציב, ניגודיות סבירה,
+     מצלמה מיוצבת. במגרש בית ספר לא תמיד יש את זה — שמש נעה, ילדים
+     שעוברים מאחורי הקו, ענף ברוח. מורה שנלחם בחציות מדומות מעדיף
+     שהמנוע פשוט ישתוק, ושהוא יקיש בעצמו.
+
+     המצב הזה אינו מנוע שני. הוא ברז אחד על המנוע הקיים: שני מקומות
+     בקוד שבהם נרשמת חצייה מעצמה — המצלמה והסימולציה — מפסיקים
+     לירות. כל השאר ממשיך בדיוק כמו קודם: הרצועה נבנית, תמונת הסיום
+     עובדת, ההקשה על מסלול ומקשי 1–9 רושמים זמן כרגיל. */
+  let manual=LS.get("pf.manual",false);
   let META=Object.assign({title:"אליפות בית הספר — ריצת 60 מ׳",round:"גמר",dist:60,date:"",wind:""},LS.get("pf.meta",{}));
 
   /* detection */
@@ -8794,7 +8828,7 @@ const PF=(function(){
     $$("#pf-modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
     $("#pf-video").style.display=m==="cam"?"":"none";
     $("#pf-sim").style.display=m==="sim"?"":"none";
-    if(m==="sim"){ camOff(); $("#pf-status").textContent="מצב סימולציה"; drawSimIdle(); }
+    if(m==="sim"){ camOff(); $("#pf-status").textContent="מצב סימולציה"; paintManual(); drawSimIdle(); }
     else{ camOn(); }
   }
   function camOff(){ if(cam.on){ cam.stream.getTracks().forEach(t=>t.stop()); cam.on=false; $("#pf-video").srcObject=null; } }
@@ -8892,7 +8926,7 @@ const PF=(function(){
       }
       if(bgReady<30){ bgReady++; if(bgReady===30)paintArmed(); }
       const frac=fgCnt/cells, th=thresholds(), nowMs=performance.now();
-      if(race.on&&race.armed&&rTime()>=minT&&bgReady>=30&&$("#pf-autoDetect").checked){
+      if(race.on&&race.armed&&!manual&&rTime()>=minT&&bgReady>=30&&$("#pf-autoDetect").checked){
         if(frac>=th){
           if(!lineActive&&nowMs-lastFire>450){
             lastFire=nowMs; lineActive=true;
@@ -8910,7 +8944,33 @@ const PF=(function(){
   }
   /* המורה צריך לדעת באיזו רזולוציה הוא מודד — זה ההבדל בין «השעון
      אמר 8.41» לבין «8.41, ±0.008». */
+  /* ---------- תצוגת המצב הידני ----------
+     שלוש נקודות, כולן קריאה בלבד: השורה שעל הבמה, הערה מתחת לפקד,
+     ושבבי המסלולים — כי הם מה שמקישים עליו, ושם צריך שהעין תלך. */
+  function paintManual(){
+    const b=$("#pf-manual");
+    if(b){ b.classList.toggle("acc",manual); b.setAttribute("aria-pressed",manual?"true":"false"); }
+    const n=$("#pf-manualNote"); if(n)n.hidden=!manual;
+    const lbl=$("#pf-autoLbl"); if(lbl)lbl.classList.toggle("off",manual);
+    const cb=$("#pf-autoDetect"); if(cb)cb.disabled=manual;
+    const st=$("#pf-stage"); if(st)st.classList.toggle("manual",manual);
+    const ch=$("#pf-chips"); if(ch)ch.classList.toggle("manual",manual);
+    const el=$("#pf-status");
+    if(el&&manual)el.innerHTML="✋ מצב ידני — <b>הקש על מסלול</b>";
+    else if(el&&!manual&&mode==="sim")el.textContent="מצב סימולציה";
+  }
+  function setManual(v){
+    manual=!!v; LS.set("pf.manual",manual);
+    paintManual();
+    /* הרקע נלמד מחדש ביציאה מהמצב: הוא המשיך להתעדכן גם בזמן שהוא
+       לא ירה, אבל איפוס כאן זול ומונע ירייה ראשונה על סף ישן. */
+    if(!manual){ bg=null; bgReady=0; lineActive=false; }
+    toast(manual?"✋ מצב ידני — המנוע לא מסמן חציות"
+                :"🟢 זיהוי אוטומטי חזר לפעולה");
+  }
+
   function paintArmed(){
+    if(manual){ paintManual(); return; }
     const p=precisionOf(vclk.fps);
     const el=$("#pf-status"); if(!el)return;
     /* המצב בשורה אחת, תנאי המדידה בשנייה — קצר יותר מכל אחד מהם
@@ -8970,7 +9030,9 @@ const PF=(function(){
       x.fillStyle=col;
       x.beginPath(); x.arc(r.x,cy,Math.max(6,laneH*0.16),0,7); x.fill();
       x.fillRect(r.x-3,cy,6,laneH*0.3);
-      if(!r.crossed&&r.x<=lineX){ r.crossed=true; if(race.on)fire(r.lane,"סימולציה"); }
+      /* גם בסימולציה: במצב ידני הרץ חוצה, הרצועה נבנית — והזמן
+         נרשם רק בהקשה. אחרת אי אפשר לתרגל את המצב הזה לפני שיעור. */
+      if(!r.crossed&&r.x<=lineX){ r.crossed=true; if(race.on&&!manual)fire(r.lane,"סימולציה"); }
     });
     if(race.on)captureStrip(cv,lineX/W);
     if(race.on||sim.runners.some(r=>!r.crossed))sim.raf=requestAnimationFrame(simLoop);
@@ -9556,6 +9618,12 @@ const PF=(function(){
     $("#pf-slit").addEventListener("input",e=>{ slitW=+e.target.value; LS.set("pf.slit",slitW); $("#pf-slitVal").textContent=slitW+"px"; });
     $("#pf-minT").value=minT;
     $("#pf-minT").addEventListener("change",e=>{ minT=+e.target.value||0; LS.set("pf.minT",minT); });
+    /* המצב הידני נטען מהאחסון כמו כל הגדרה אחרת של המודול */
+    $("#pf-manual").addEventListener("click",()=>{ ac(); setManual(!manual); });
+    paintManual();
+    /* לוח תוצאות ריק — הדרך החוצה ממנו היא מקצה, לא הסבר */
+    const es=$("#pf-emptyStart");
+    if(es)es.addEventListener("click",()=>{ switchTab("live"); setTimeout(gun,120); });
     $("#pf-camDist").value=LS.get("pf.camDist",6);
     $("#pf-camSpeed").value=LS.get("pf.camSpeed","7");
     $("#pf-camFov").value=LS.get("pf.camFov",65);

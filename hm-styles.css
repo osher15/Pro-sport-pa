@@ -261,6 +261,21 @@ details.fold .bd{padding:0 12px 13px}
 /* תנאי המדידה — שורה שנייה, שקטה יותר מהמצב עצמו */
 .pf-status b{display:block;font-weight:600;font-size:10px;opacity:.8;
   font-family:'Share Tech Mono',ui-monospace,monospace;letter-spacing:.3px}
+/* ===== מצב ידני =====
+   שלוש נקודות שאומרות אותו דבר, כי הטעות כאן יקרה: מורה שחושב
+   שהמנוע מסמן, ומגלה בסוף המקצה שאין זמנים. הבמה מקבלת מסגרת
+   כתומה, השורה שעליה אומרת מה לעשות, והשבבים — מה שמקישים עליו —
+   מוארים. שלושתם קריאה בלבד; ההתנהגות יושבת בשני תנאים בקוד. */
+.pf-stage.manual{border-color:#ff9c3d;box-shadow:0 0 0 1px rgba(255,156,61,.35)}
+.pf-stage.manual .pf-status{color:#ffcf9a;border-color:rgba(255,156,61,.55);
+  background:rgba(70,35,0,.62)}
+.pf-stage.manual .pf-status b{display:inline;font-family:inherit;font-size:11px;opacity:1}
+.pf-runchips.manual .pf-lanechip:not(.done){border-color:#ff9c3d;
+  background:color-mix(in srgb,#ff9c3d 12%,var(--panel2))}
+.pf-manual-note{border-inline-start:3px solid #ff9c3d;padding-inline-start:9px;margin-top:9px}
+/* תיבת הסימון של הזיהוי האוטומטי, כשהמצב הידני מבטל אותה */
+.check.off{opacity:.45}
+.check.off input{cursor:not-allowed}
 /* פקדים מוקטנים בתוך #pf-stage עצמו — כך שהם נשארים גלויים גם במסך מלא אמיתי (Fullscreen API),
    שמציג רק את תת-העץ של האלמנט שעליו נקרא requestFullscreen. */
 .pf-fsctl{position:absolute;bottom:9px;inset-inline:9px;z-index:6;display:flex;align-items:center;justify-content:center;gap:8px}

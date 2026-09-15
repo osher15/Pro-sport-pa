@@ -10,13 +10,13 @@
 <x-dc>
 <helmet>
 <meta name="theme-color" content="#0c0e1a">
-<meta name="hm-build" content="84dfe0b1">
+<meta name="hm-build" content="d1e43062">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hm-styles.css?v=46524ef5">
+<link rel="stylesheet" href="hm-styles.css?v=09d036eb">
 <script src="hm-data.js?v=41cc7ab9"></script>
 <script src="hm-i18n.js?v=884bfff0"></script>
-<script src="hm-app.js?v=47dcb1bb"></script>
+<script src="hm-app.js?v=afee4ed8"></script>
 <script src="hm-qr.js?v=82eb96ad"></script>
 <script src="hm-howto.js?v=03ad374e"></script>
 <script src="hm-know.js?v=1fd5030b"></script>
@@ -267,10 +267,16 @@
         <div class="field grow"><label>עובי החריץ · <b id="pf-slitVal">2px</b></label><input type="range" id="pf-slit" min="1" max="6" value="2"></div>
         <div class="field" style="width:104px"><label data-i18n="pf.minT">זמן מינ׳ (שנ׳)</label><input type="number" id="pf-minT" value="3" min="0" step="0.5"></div>
       </div>
+      <!-- מצב ידני: כשתנאי השטח לא מאפשרים זיהוי — שמש נעה, ילדים
+           שעוברים מאחורי הקו, ענף ברוח — המנוע שותק והמורה מקיש.
+           תיבת הסימון שלידו מושבתת כשהוא דלוק, כדי שלא יהיו שני
+           פקדים שסותרים זה את זה על אותו מסך. -->
       <div class="row" style="margin-top:9px">
-        <label class="check"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
+        <button class="btn sm" id="pf-manual" aria-pressed="false">✋ מצב ידני — עצירה ידנית בלבד</button>
+        <label class="check" id="pf-autoLbl"><input type="checkbox" id="pf-autoDetect" checked> זיהוי תנועה אוטומטי בקו הסיום</label>
         <label class="check"><input type="checkbox" id="pf-micStart"> זינוק קולי — אקדח/מחיאת כף (מיקרופון)</label>
       </div>
+      <div class="hint pf-manual-note" id="pf-manualNote" hidden>✋ <b>מצב ידני פעיל</b> — המנוע אינו מסמן חציות. הקש על שם המסלול ברגע החצייה, או על מקשים ‎1–9‎. הרצועה ותמונת הסיום ממשיכות לעבוד כרגיל.</div>
       <div class="row" style="margin-top:9px">
         <div class="field" style="width:190px"><label>מרחק מיקרופון מהמזניק (מ׳)</label>
           <input type="text" inputmode="decimal" id="pf-gunDist" value="0" dir="ltr" style="text-align:right" data-tip="המרחק בין האקדח למצלמה, במטרים. הקול נוסע 343 מ׳ בשנייה, ולכן אם המצלמה עומדת 34 מ׳ מהזינוק היא שומעת את הירייה עשירית שנייה אחרי שהיא קרתה — והזמנים יוצאים קצרים מדי בדיוק בעשירית הזאת. הזנת המרחק מקזזת את זה."></div>
@@ -379,7 +385,9 @@
         <thead><tr><th>דירוג</th><th>מסלול</th><th>שם</th><th>זמן</th><th>פער</th><th>מקור</th><th></th></tr></thead>
         <tbody id="pf-tbody"></tbody>
       </table></div>
-      <div class="empty-state" id="pf-empty"><div class="big">📸</div>אין תוצאות עדיין. הרץ מירוץ או ייבא קובץ CSV.</div>
+      <div class="empty-state" id="pf-empty"><div class="big">📸</div>אין תוצאות עדיין.<br>
+        <button class="btn sm acc" id="pf-emptyStart" style="margin-top:11px">🔫 התחל מקצה חדש</button>
+        <div class="hint" style="margin-top:9px">או ייבא קובץ CSV של מקצה קודם.</div></div>
       <div class="row" style="margin-top:12px">
         <button class="btn acc" id="pf-btnAI" data-i18n="pf.ai">🎙️ דוח פרשן</button>
         <button class="btn sm acc" id="pf-toFt">🏅 שלח למבחני כושר</button>
